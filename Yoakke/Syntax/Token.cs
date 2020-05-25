@@ -5,38 +5,6 @@ using System.Text;
 namespace Yoakke.Syntax
 {
     /// <summary>
-    /// Represents an atom in the language's grammar and the lowest level element of parsing.
-    /// </summary>
-    struct Token
-    {
-        /// <summary>
-        /// The <see cref="Position"/> of this <see cref="Token"/>.
-        /// </summary>
-        public readonly Position Position;
-        /// <summary>
-        /// The <see cref="TokenType"/> of this <see cref="Token"/>.
-        /// </summary>
-        public readonly TokenType Type;
-        /// <summary>
-        /// The text this <see cref="Token"/> was parsed from.
-        /// </summary>
-        public readonly string Value;
-
-        /// <summary>
-        /// Initializes a new <see cref="Token"/> instance.
-        /// </summary>
-        /// <param name="position">The <see cref="Position"/> of the token.</param>
-        /// <param name="type">The <see cref="TokenType"/> of the token.</param>
-        /// <param name="value">The textual value of the token.</param>
-        public Token(Position position, TokenType type, string value)
-        {
-            Position = position;
-            Type = type;
-            Value = value;
-        }
-    }
-
-    /// <summary>
     /// Position in the souce text.
     /// </summary>
     struct Position
@@ -78,6 +46,38 @@ namespace Yoakke.Syntax
 
         public override string ToString() =>
             $"line {Line}, column {Column}";
+    }
+
+    /// <summary>
+    /// Represents an atom in the language's grammar and the lowest level element of parsing.
+    /// </summary>
+    struct Token
+    {
+        /// <summary>
+        /// The <see cref="Position"/> of this <see cref="Token"/>.
+        /// </summary>
+        public readonly Position Position;
+        /// <summary>
+        /// The <see cref="TokenType"/> of this <see cref="Token"/>.
+        /// </summary>
+        public readonly TokenType Type;
+        /// <summary>
+        /// The text this <see cref="Token"/> was parsed from.
+        /// </summary>
+        public readonly string Value;
+
+        /// <summary>
+        /// Initializes a new <see cref="Token"/> instance.
+        /// </summary>
+        /// <param name="position">The <see cref="Position"/> of the token.</param>
+        /// <param name="type">The <see cref="TokenType"/> of the token.</param>
+        /// <param name="value">The textual value of the token.</param>
+        public Token(Position position, TokenType type, string value)
+        {
+            Position = position;
+            Type = type;
+            Value = value;
+        }
     }
 
     /// <summary>

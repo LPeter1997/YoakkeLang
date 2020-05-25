@@ -7,7 +7,7 @@ namespace Yoakke
     {
         static void Main(string[] args)
         {
-            var toks = Lexer.Lex(@"
+            var src = new Source(@"
     const Person = struct(T: type) {
         name: *char,
         age: i32,
@@ -17,10 +17,7 @@ namespace Yoakke
         0
     }
 ");
-            foreach (var t in toks)
-            {
-                Console.WriteLine($"{t.Type} - '{t.Value}' ({t.Position})");
-            }
+            Console.WriteLine(Annotation.Annotate(src, new Position(line: 2, column: 14)));
         }
     }
 }

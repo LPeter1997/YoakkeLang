@@ -11,18 +11,18 @@ namespace Yoakke.Syntax
     /// </summary>
     class Lexer
     {
-        private string source;
+        private Source source;
         private int index;
         private Position position;
 
-        private bool IsEnd => index >= source.Length;
+        private bool IsEnd => index >= source.Text.Length;
 
         /// <summary>
         /// Lexes the whole source code.
         /// </summary>
-        /// <param name="source">The source code to lex.</param>
+        /// <param name="source">The <see cref="Source"/> to lex.</param>
         /// <returns>An <see cref="IEnumerable{Token}"/> over all <see cref="Token"/>s.</returns>
-        public static IEnumerable<Token> Lex(string source)
+        public static IEnumerable<Token> Lex(Source source)
         {
             var lexer = new Lexer(source);
             while (true)
@@ -33,9 +33,9 @@ namespace Yoakke.Syntax
             }
         }
 
-        private Lexer(string source)
+        private Lexer(Source source)
         {
-            this.source = NormalizeNewline(source);
+            this.source = source;
         }
 
         private Token Next()
@@ -168,7 +168,7 @@ namespace Yoakke.Syntax
         private char Peek(int forward, char def = '\0')
         {
             var finalIndex = index + forward;
-            return finalIndex < source.Length ? source[finalIndex] : def;
+            return finalIndex < source.Text.Length ? source.Text[finalIndex] : def;
         }
 
         private string Consume(int amount)
@@ -194,8 +194,5 @@ namespace Yoakke.Syntax
 
         private static bool IsIdent(char ch) => 
             char.IsLetterOrDigit(ch) || ch == '_';
-
-        private static string NormalizeNewline(string source) =>
-            source.Replace("\r\n", "\n").Replace("\r", "\n");
     }
 }
