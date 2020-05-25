@@ -19,7 +19,7 @@ namespace Yoakke
 ");
             foreach (var t in toks)
             {
-                Console.WriteLine($"{t.Type} - {t.Value} (line: {t.Position.Line}, column: {t.Position.Column})");
+                Console.WriteLine($"{t.Type} - '{t.Value}' ({t.Position})");
             }
         }
     }

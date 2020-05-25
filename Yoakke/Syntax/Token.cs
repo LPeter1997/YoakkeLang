@@ -75,6 +75,9 @@ namespace Yoakke.Syntax
         /// <returns>A position in the next line's first character.</returns>
         public Position Newline() =>
             new Position(line: Line + 1, column: 0);
+
+        public override string ToString() =>
+            $"line {Line}, column {Column}";
     }
 
     /// <summary>

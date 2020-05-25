@@ -6,16 +6,22 @@ using System.Text;
 
 namespace Yoakke.Syntax
 {
-    // TODO: Document
-
+    /// <summary>
+    /// Splits up the source text into <see cref="Token"/>s to simplify parsing.
+    /// </summary>
     class Lexer
     {
         private string source;
         private int index;
         private Position position;
 
-        public bool IsEnd => index >= source.Length;
+        private bool IsEnd => index >= source.Length;
 
+        /// <summary>
+        /// Lexes the whole source code.
+        /// </summary>
+        /// <param name="source">The source code to lex.</param>
+        /// <returns>An <see cref="IEnumerable{Token}"/> over all <see cref="Token"/>s.</returns>
         public static IEnumerable<Token> Lex(string source)
         {
             var lexer = new Lexer(source);
@@ -27,12 +33,12 @@ namespace Yoakke.Syntax
             }
         }
 
-        public Lexer(string source)
+        private Lexer(string source)
         {
             this.source = NormalizeNewline(source);
         }
 
-        public Token Next()
+        private Token Next()
         {
             while (true)
             {
@@ -56,34 +62,25 @@ namespace Yoakke.Syntax
             // Single-line comment
             if (Matches("//"))
             {
-                Consume(2);
                 for (; Peek(0, '\n') != '\n'; Consume(1)) ;
                 return null;
             }
             // Multi-line comment
             if (Matches("/*"))
             {
-                Consume(2);
                 int depth = 1;
                 while (depth > 0)
                 {
                     if (IsEnd) throw new NotImplementedException("Unclosed nested comment!");
-                    if (Matches("/*"))
-                    {
-                        ++depth;
-                        Consume(2);
-                        continue;
-                    }
-                    if (Matches("*/"))
-                    {
-                        Consume(2);
-                        --depth;
-                        continue;
-                    }
-                    Consume(1);
+                    
+                    if (Matches("/*"))      ++depth;
+                    else if (Matches("*/")) --depth;
+                    else Consume(1);
                 }
+                return null;
             }
 
+            // Punctuation and operators
             switch (ch)
             {
             case '(': return MakeToken(TokenType.OpenParen   , 1);
@@ -124,17 +121,21 @@ namespace Yoakke.Syntax
             }
 
             // Literals
+
+            // Integer literal
             if (char.IsDigit(ch))
             {
                 int i = 1;
                 for (; char.IsDigit(Peek(i)); ++i) ;
                 return MakeToken(TokenType.IntLiteral, i);
             }
+            // Identifier
             if (IsIdent(ch))
             {
                 int i = 1;
                 for (; IsIdent(Peek(i)); ++i) ;
                 var ident = MakeToken(TokenType.Identifier, i);
+                // Determine if keyword
                 var tokenType = ident.Value switch
                 {
                     "proc" => TokenType.KwProc,
@@ -160,6 +161,7 @@ namespace Yoakke.Syntax
             {
                 if (str[i] != Peek(i)) return false;
             }
+            Consume(str.Length);
             return true;
         }
 
