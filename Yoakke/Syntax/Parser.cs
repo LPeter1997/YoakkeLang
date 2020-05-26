@@ -8,10 +8,18 @@ namespace Yoakke.Syntax
 {
     using Input = ReadOnlySpan<Token>;
 
+    /// <summary>
+    /// Implements the parser for the language, that creates the AST from the <see cref="Token"/>s.
+    /// </summary>
     class Parser
     {
         private delegate T ParseFunc<T>(ref Input input);
 
+        /// <summary>
+        /// Parses the <see cref="IEnumerable{Token}"/> into a program AST.
+        /// </summary>
+        /// <param name="tokens">The list of <see cref="Token"/>s to parse.</param>
+        /// <returns>The parsed AST.</returns>
         public static Declaration ParseProgram(IEnumerable<Token> tokens)
         {
             Input input = tokens.ToArray().AsSpan();
