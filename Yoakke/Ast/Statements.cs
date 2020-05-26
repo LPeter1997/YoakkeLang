@@ -7,18 +7,18 @@ namespace Yoakke.Ast
     /// <summary>
     /// A list of statements.
     /// </summary>
-    class ProgramStatement : Statement
+    class ProgramDeclaration : Declaration
     {
         /// <summary>
-        /// The list of <see cref="Declaration"/>s the <see cref="ProgramStatement"/> consists of.
+        /// The list of <see cref="Declaration"/>s the <see cref="ProgramDeclaration"/> consists of.
         /// </summary>
         public List<Declaration> Declarations { get; set; }
 
         /// <summary>
-        /// Initializes a new <see cref="ProgramStatement"/>.
+        /// Initializes a new <see cref="ProgramDeclaration"/>.
         /// </summary>
-        /// <param name="statements">The list of other <see cref="Statement"/>s this one consists of.</param>
-        public ProgramStatement(List<Declaration> declarations)
+        /// <param name="declarations">The list of <see cref="Declaration"/>s the program consists of.</param>
+        public ProgramDeclaration(List<Declaration> declarations)
         {
             Declarations = declarations;
         }
@@ -38,7 +38,7 @@ namespace Yoakke.Ast
         /// <summary>
         /// Initializes a new <see cref="ExpressionStatement"/>.
         /// </summary>
-        /// <param name="expression">The expression to wrap up.</param>
+        /// <param name="expression">The <see cref="Expression"/> to wrap up.</param>
         public ExpressionStatement(Expression expression)
         {
             Expression = expression;

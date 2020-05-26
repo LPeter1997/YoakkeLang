@@ -73,9 +73,9 @@ namespace Yoakke.Syntax
                 {
                     if (IsEnd) throw new NotImplementedException("Unclosed nested comment!");
                     
-                    if (Matches("/*"))      ++depth;
+                    if      (Matches("/*")) ++depth;
                     else if (Matches("*/")) --depth;
-                    else Consume(1);
+                    else                    Consume(1);
                 }
                 return null;
             }

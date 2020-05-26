@@ -131,8 +131,14 @@ namespace Yoakke.Syntax
 
         private static void WriteLineNumber(StringBuilder builder, AnnotationSettings settings, int? line, int padding)
         {
-            if (line == null) builder.Append(' ', padding);
-            else builder.Append(line.Value.ToString().PadLeft(padding, settings.LineNumberPadding));
+            if (line == null)
+            {
+                builder.Append(' ', padding);
+            }
+            else
+            {
+                builder.Append(line.Value.ToString().PadLeft(padding, settings.LineNumberPadding));
+            }
 
             builder.Append(settings.LineNumberSeparator);
         }

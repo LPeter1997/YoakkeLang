@@ -99,7 +99,7 @@ namespace Yoakke.Ast
         /// <summary>
         /// The body of this procedure.
         /// </summary>
-        public Statement Body { get; set; }
+        public Expression Body { get; set; }
 
         /// <summary>
         /// Initializes a new <see cref="ProcExpression"/>.
@@ -107,7 +107,7 @@ namespace Yoakke.Ast
         /// <param name="parameters">The list of parameters the procedure takes.</param>
         /// <param name="returnType">The return type of the procedure.</param>
         /// <param name="body">The body of the procedure.</param>
-        public ProcExpression(List<Parameter> parameters, Expression? returnType, Statement body)
+        public ProcExpression(List<Parameter> parameters, Expression? returnType, Expression body)
         {
             Parameters = parameters;
             ReturnType = returnType;
@@ -125,7 +125,7 @@ namespace Yoakke.Ast
     /// }
     /// ```
     /// </summary>
-    class BlockExpression : Statement
+    class BlockExpression : Expression
     {
         /// <summary>
         /// The list of <see cref="Statement"/>s this <see cref="BlockExpression"/> consists of.
