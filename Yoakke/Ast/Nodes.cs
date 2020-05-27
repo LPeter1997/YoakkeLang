@@ -6,9 +6,12 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Yoakke.Syntax;
+using Yoakke.Type;
 
 namespace Yoakke.Ast
 {
+    using Type = Yoakke.Type.Type;
+
     /// <summary>
     /// Base class for all AST nodes.
     /// </summary>
@@ -95,5 +98,9 @@ namespace Yoakke.Ast
     /// </summary>
     abstract class Expression : Node
     {
+        /// <summary>
+        /// The <see cref="Type"/> this <see cref="Expression"/> evaluates to.
+        /// </summary>
+        public Type? Type { get; set; }
     }
 }
