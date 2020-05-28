@@ -6,6 +6,26 @@ using Yoakke.Syntax;
 namespace Yoakke.Ast
 {
     /// <summary>
+    /// A list of top-level declarations.
+    /// </summary>
+    class ProgramDeclaration : Declaration
+    {
+        /// <summary>
+        /// The list of <see cref="Declaration"/>s the <see cref="ProgramDeclaration"/> consists of.
+        /// </summary>
+        public List<Declaration> Declarations { get; set; }
+
+        /// <summary>
+        /// Initializes a new <see cref="ProgramDeclaration"/>.
+        /// </summary>
+        /// <param name="declarations">The list of <see cref="Declaration"/>s the program consists of.</param>
+        public ProgramDeclaration(List<Declaration> declarations)
+        {
+            Declarations = declarations;
+        }
+    }
+
+    /// <summary>
     /// Anything in the form of
     /// ```
     /// const Name = Value;

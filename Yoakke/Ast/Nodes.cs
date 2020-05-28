@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Yoakke.Semantic;
 using Yoakke.Syntax;
 
 namespace Yoakke.Ast
@@ -16,6 +17,11 @@ namespace Yoakke.Ast
     /// </summary>
     abstract class Node
     {
+        /// <summary>
+        /// The scope this AST node belongs to.
+        /// </summary>
+        public Scope? Scope { get; set; }
+
         /// <summary>
         /// Prints the AST into a readable form.
         /// </summary>

@@ -4,10 +4,35 @@ using System.Linq;
 using System.Text;
 using Yoakke.Ast;
 
-namespace Yoakke.Semantic
+namespace Yoakke.Semantic.Steps
 {
     static class TypeChecker
     {
+        public static void CheckType(Statement statement)
+        {
+            switch (statement)
+            {
+            case ProgramDeclaration program:
+                foreach (var decl in program.Declarations) CheckType(decl);
+                break;
+
+            case ConstDefinition constDef:
+                var exprType = CheckType(constDef.Value);
+                if (constDef.Type != null)
+                {
+                    var type = CheckType(constDef.Type);
+                    Unifier.Unify(type, exprType);
+                }
+                break;
+
+            case ExpressionStatement expression:
+                CheckType(expression.Expression);
+                break;
+
+            default: throw new NotImplementedException();
+            }
+        }
+
         public static Type CheckType(Expression expression)
         {
             if (expression.Type == null)
@@ -40,6 +65,7 @@ namespace Yoakke.Semantic
 
             case BlockExpression block:
             {
+                foreach (var stmt in block.Statements) CheckType(stmt);
                 if (block.Value == null) return Type.Unit;
                 return CheckType(block.Value);
             }
