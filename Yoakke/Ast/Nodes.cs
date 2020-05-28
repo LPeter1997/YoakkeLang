@@ -6,11 +6,10 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Yoakke.Syntax;
-using Yoakke.Type;
 
 namespace Yoakke.Ast
 {
-    using Type = Yoakke.Type.Type;
+    using Type = Yoakke.Semantic.Type;
 
     /// <summary>
     /// Base class for all AST nodes.

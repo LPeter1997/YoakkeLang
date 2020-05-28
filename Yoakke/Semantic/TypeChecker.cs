@@ -3,12 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Yoakke.Ast;
-using Yoakke.Type;
 
 namespace Yoakke.Semantic
 {
-    using Type = Yoakke.Type.Type;
-
     static class TypeChecker
     {
         public static Type CheckType(Expression expression)

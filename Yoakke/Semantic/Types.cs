@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
-namespace Yoakke.Type
+namespace Yoakke.Semantic
 {
     /// <summary>
     /// The base class for types in the compiler.

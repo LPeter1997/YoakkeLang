@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Yoakke.Type
+namespace Yoakke.Semantic
 {
     /// <summary>
     /// Operations for type-inference and unification.
