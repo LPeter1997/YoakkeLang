@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Yoakke.Semantic;
 using Yoakke.Syntax;
 
 namespace Yoakke.Ast
@@ -34,6 +35,11 @@ namespace Yoakke.Ast
         /// The identifier token.
         /// </summary>
         public Token Token { get; set; }
+
+        /// <summary>
+        /// The symbol this constant refers to.
+        /// </summary>
+        public Symbol? Symbol { get; set; }
 
         /// <summary>
         /// Initializes a new <see cref="IdentifierExpression"/>.

@@ -49,8 +49,14 @@ namespace Yoakke.Semantic.Steps
             // TODO: Some generic integral type?
             case IntLiteralExpression intLiteral: return Type.I32;
 
-            // TODO
-            case IdentifierExpression identifier: throw new NotImplementedException();
+            case IdentifierExpression identifier:
+            {
+                if (identifier.Scope == null) throw new NotImplementedException();
+                var symbol = identifier.Scope.Reference(identifier.Token.Value);
+                identifier.Symbol = symbol;
+                if (symbol.Type == null) throw new NotImplementedException();
+                return symbol.Type;
+            }    
 
             case ProcExpression proc:
             {
