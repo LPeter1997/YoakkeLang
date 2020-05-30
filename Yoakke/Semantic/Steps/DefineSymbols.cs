@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Yoakke.Ast;
+using Yoakke.Utils;
 
 namespace Yoakke.Semantic.Steps
 {
@@ -42,7 +43,7 @@ namespace Yoakke.Semantic.Steps
 
             case IdentifierExpression identifier:
                 // We want to resolve the referred symbol
-                if (identifier.Scope == null) throw new NotImplementedException();
+                Assert.NonNull(identifier.Scope);
                 identifier.Symbol = identifier.Scope.Reference(identifier.Token.Value);
                 break;
 
@@ -54,7 +55,7 @@ namespace Yoakke.Semantic.Steps
                     Define(param.Type);
                     var symbol = new VariableSymbol(param.Name);
                     param.Symbol = symbol;
-                    if (param.Type.Scope == null) throw new NotImplementedException();
+                    Assert.NonNull(param.Type.Scope);
                     param.Type.Scope.Define(symbol);
                 }
                 // Define in return-type
