@@ -147,7 +147,7 @@ namespace Yoakke.Syntax
                     parameters.Add(ParseProcParameter(ref input));
                     if (Match(ref input, TokenType.Comma)) continue;
 
-                    Expect(ref input, TokenType.CloseBrace);
+                    Expect(ref input, TokenType.CloseParen);
                     break;
                 }
             }

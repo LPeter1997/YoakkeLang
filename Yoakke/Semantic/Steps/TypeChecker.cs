@@ -13,16 +13,27 @@ namespace Yoakke.Semantic.Steps
             switch (statement)
             {
             case ProgramDeclaration program:
+                // Type-check each declaration
                 foreach (var decl in program.Declarations) CheckType(decl);
                 break;
 
             case ConstDefinition constDef:
+                // Get type of constant value
                 var exprType = CheckType(constDef.Value);
                 if (constDef.Type != null)
                 {
-                    var type = CheckType(constDef.Type);
-                    Unifier.Unify(type, exprType);
+                    // TODO: Type is probably "type (ValueType)"
+                    // while value is "ValueType", we'd want to check if type is a type-type,
+                    // and unify with subtype!
+                    throw new NotImplementedException();
+                    // If has a type, get the type of it
+                    //var type = CheckType(constDef.Type);
+                    // Unify with value
+                    //Unifier.Unify(type, exprType);
                 }
+                var symbol = constDef.Symbol as ConstSymbol;
+                if (symbol == null) throw new NotImplementedException();
+                symbol.Type = exprType;
                 break;
 
             case ExpressionStatement expression:
@@ -33,8 +44,9 @@ namespace Yoakke.Semantic.Steps
             }
         }
 
-        public static Type CheckType(Expression expression)
+        private static Type CheckType(Expression expression)
         {
+            // Some cacheing
             if (expression.Type == null)
             {
                 expression.Type = CheckTypeInternal(expression);
@@ -60,7 +72,15 @@ namespace Yoakke.Semantic.Steps
 
             case ProcExpression proc:
             {
-                var parameterTypes = proc.Parameters.Select(x => CheckType(x.Type)).ToList();
+                var parameterTypes = new List<Type>();
+                foreach (var param in proc.Parameters)
+                {
+                    var paramType = CheckType(param.Type);
+                    parameterTypes.Add(paramType);
+                    var symbol = param.Symbol as VariableSymbol;
+                    if (symbol == null) throw new NotImplementedException();
+                    symbol.Type = paramType;
+                }
                 var returnType = proc.ReturnType == null ? Type.Unit : CheckType(proc.ReturnType);
                 var bodyType = CheckType(proc.Body);
                 // TODO: Make sure return type is a concrete type, so signatures are always fix?
@@ -70,11 +90,9 @@ namespace Yoakke.Semantic.Steps
             }
 
             case BlockExpression block:
-            {
                 foreach (var stmt in block.Statements) CheckType(stmt);
                 if (block.Value == null) return Type.Unit;
                 return CheckType(block.Value);
-            }
 
             default: throw new NotImplementedException();
             }

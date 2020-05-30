@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Yoakke.Semantic;
 using Yoakke.Syntax;
 
 namespace Yoakke.Ast
@@ -49,6 +50,11 @@ namespace Yoakke.Ast
         /// The value the constant gets defined with.
         /// </summary>
         public Expression Value { get; set; }
+
+        /// <summary>
+        /// The <see cref="Symbol"/> this constant defines.
+        /// </summary>
+        public Symbol? Symbol { get; set; }
 
         /// <summary>
         /// Initializes a new <see cref="ConstDefinition"/>.

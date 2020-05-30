@@ -79,4 +79,12 @@ namespace Yoakke.Semantic
         {
         }
     }
+
+    class VariableSymbol : Symbol
+    {
+        public VariableSymbol(Token name)
+            : base(name)
+        {
+        }
+    }
 }

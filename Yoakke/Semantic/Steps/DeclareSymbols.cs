@@ -5,65 +5,72 @@ using Yoakke.Ast;
 
 namespace Yoakke.Semantic.Steps
 {
-    class DeclareSymbols
+    static class DeclareSymbols
     {
-        public SymbolTable SymbolTable { get; }
-
-        public DeclareSymbols(SymbolTable symbolTable)
+        public static void Declare(SymbolTable symbolTable, Statement statement)
         {
-            SymbolTable = symbolTable;
-        }
-
-        public void Declare(Statement statement)
-        {
-            statement.Scope = SymbolTable.CurrentScope;
+            statement.Scope = symbolTable.CurrentScope;
 
             switch (statement)
             {
             case ProgramDeclaration program:
-                foreach (var decl in program.Declarations) Declare(decl);
+                // Just loop through every declaration
+                foreach (var decl in program.Declarations) Declare(symbolTable, decl);
                 break;
 
             case ConstDefinition constDef:
             {
-                Declare(constDef.Value);
-                if (constDef.Type != null) Declare(constDef.Type);
+                // First declare everything in value
+                Declare(symbolTable, constDef.Value);
+                // For safety, declare in type too
+                if (constDef.Type != null) Declare(symbolTable, constDef.Type);
+                // Declare this symbol, store it and add to the symbol
                 var symbol = new ConstSymbol(constDef.Name);
-                SymbolTable.CurrentScope.Define(symbol);
+                constDef.Symbol = symbol;
+                symbolTable.CurrentScope.Define(symbol);
             }  
             break;
 
             case ExpressionStatement expression:
-                Declare(expression.Expression);
+                // Declare in the expression
+                Declare(symbolTable, expression.Expression);
                 break;
 
             default: throw new NotImplementedException();
             }
         }
 
-        private void Declare(Expression expression)
+        private static void Declare(SymbolTable symbolTable, Expression expression)
         {
-            expression.Scope = SymbolTable.CurrentScope;
+            expression.Scope = symbolTable.CurrentScope;
 
             switch (expression)
             {
             case IntLiteralExpression intLiteral: 
             case IdentifierExpression identifier:
+                // Nothing to declare, leaf nodes
                 break;
 
             case ProcExpression proc:
-                foreach (var param in proc.Parameters) Declare(param.Type);
-                if (proc.ReturnType != null) Declare(proc.ReturnType);
-                SymbolTable.PushScope();
-                Declare(proc.Body);
-                SymbolTable.PopScope();
+                // Processes introduce a scope for their signature
+                symbolTable.PushScope();
+                // Declare in parameters
+                foreach (var param in proc.Parameters) Declare(symbolTable, param.Type);
+                // Declare in return-type
+                if (proc.ReturnType != null) Declare(symbolTable, proc.ReturnType);
+                // Declare in body
+                Declare(symbolTable, proc.Body);
+                symbolTable.PopScope();
                 break;
 
             case BlockExpression block:
-                SymbolTable.PushScope();
-                foreach (var stmt in block.Statements) Declare(stmt);
-                if (block.Value != null) Declare(block.Value);
-                SymbolTable.PopScope();
+                // Blocks introduce a scope
+                symbolTable.PushScope();
+                // Declare in each statement
+                foreach (var stmt in block.Statements) Declare(symbolTable, stmt);
+                // In return value too
+                if (block.Value != null) Declare(symbolTable, block.Value);
+                symbolTable.PopScope();
                 break;
 
             default: throw new NotImplementedException();

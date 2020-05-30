@@ -37,7 +37,7 @@ namespace Yoakke.Ast
         public Token Token { get; set; }
 
         /// <summary>
-        /// The symbol this constant refers to.
+        /// The <see cref="Symbol"/> this name refers to.
         /// </summary>
         public Symbol? Symbol { get; set; }
 
@@ -81,6 +81,11 @@ namespace Yoakke.Ast
             /// The type <see cref="Expression"/> of the <see cref="Parameter"/>.
             /// </summary>
             public Expression Type { get; set; }
+
+            /// <summary>
+            /// The <see cref="Symbol"/> corresponding to this parameter.
+            /// </summary>
+            public Symbol? Symbol { get; set; }
 
             /// <summary>
             /// Initializes the <see cref="Parameter"/> with the given name and type.
