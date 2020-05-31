@@ -11,9 +11,9 @@ namespace Yoakke
     {
         static void Main(string[] args)
         {
-            var src = new Source(@$"
+            var src = new Source("some.yk", @$"
     const main = proc(x: i32) -> i32 {{
-        
+        y
     }}
 ");
             var tokens = Lexer.Lex(src);

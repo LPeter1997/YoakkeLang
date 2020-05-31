@@ -7,8 +7,12 @@ namespace Yoakke.Syntax
     /// <summary>
     /// Represents source code that can be accessed line-by-line.
     /// </summary>
-    struct Source
+    readonly struct Source
     {
+        /// <summary>
+        /// The path of the source.
+        /// </summary>
+        public readonly string Path;
         /// <summary>
         /// The source text itself.
         /// </summary>
@@ -21,11 +25,13 @@ namespace Yoakke.Syntax
         private readonly List<int> lineStarts;
 
         /// <summary>
-        /// Initializes a new <see cref="Source"/> with the given source text.
+        /// Initializes a new <see cref="Source"/>.
         /// </summary>
-        /// <param name="text">The source text to use.</param>
-        public Source(string text)
+        /// <param name="path">The path of the source text.</param>
+        /// <param name="text">The source text.</param>
+        public Source(string path, string text)
         {
+            Path = path;
             Text = NormalizeNewline(text);
             lineStarts = LineStarts(Text);
         }

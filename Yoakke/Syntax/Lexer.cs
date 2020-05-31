@@ -36,6 +36,7 @@ namespace Yoakke.Syntax
         private Lexer(Source source)
         {
             this.source = source;
+            this.position = new Position(source, line: 0, column: 0);
         }
 
         private Token Next()

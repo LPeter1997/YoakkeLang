@@ -44,7 +44,7 @@ namespace Yoakke.Semantic
 
         public void Define(Symbol symbol)
         {
-            symbols.Add(symbol.Name.Value, symbol);
+            symbols.Add(symbol.Name, symbol);
         }
 
         public Symbol Reference(string name)
@@ -63,12 +63,19 @@ namespace Yoakke.Semantic
 
     abstract class Symbol
     {
-        public Token Name { get; }
+        public string Name { get; }
+        public Position? Position { get; }
         public Type? Type { get; set; }
 
-        public Symbol(Token name)
+        public Symbol(string name)
         {
             Name = name;
+        }
+
+        public Symbol(Token token)
+            : this(token.Value)
+        {
+            Position = token.Position;
         }
     }
 
