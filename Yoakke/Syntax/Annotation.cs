@@ -60,29 +60,27 @@ namespace Yoakke.Syntax
         /// <summary>
         /// Annotates the source code using the default <see cref="AnnotationSettings"/>.
         /// </summary>
-        /// <param name="source">The source to annotate.</param>
-        /// <param name="position">The position of the source to annotate.</param>
+        /// <param name="position">The position to annotate.</param>
         /// <returns>The annotated source code.</returns>
-        public static string Annotate(Source source, Position position) =>
-            Annotate(source, position, AnnotationSettings.Default);
+        public static string Annotate(Position position) =>
+            Annotate(position, AnnotationSettings.Default);
 
         /// <summary>
         /// Annotates the source code using the given <see cref="AnnotationSettings"/>.
         /// </summary>
-        /// <param name="source">The source to annotate.</param>
-        /// <param name="position">The position of the source to annotate.</param>
+        /// <param name="position">The position to annotate.</param>
         /// <param name="settings">The settings to use for the annotation.</param>
         /// <returns>The annotated source code.</returns>
-        public static string Annotate(Source source, Position position, AnnotationSettings settings)
+        public static string Annotate(Position position, AnnotationSettings settings)
         {
             var result = new StringBuilder();
             int startIndex = Math.Max(position.Line - settings.LinesBefore, 0);
-            int endIndex = Math.Min(position.Line + settings.LinesAfter + 1, source.LineCount);
+            int endIndex = Math.Min(position.Line + settings.LinesAfter + 1, position.Source.LineCount);
             int paddingLength = (endIndex + 1).ToString().Length;
 
             for (int lineIndex = startIndex; lineIndex < endIndex; ++lineIndex)
             {
-                var line = source.Line(lineIndex);
+                var line = position.Source.Line(lineIndex);
                 WriteLineNumber(result, settings, lineIndex + 1, paddingLength);
                 if (lineIndex == position.Line)
                 {
@@ -106,7 +104,7 @@ namespace Yoakke.Syntax
                 }
             }
 
-            return result.ToString();
+            return result.ToString().Trim();
         }
 
         private static void IterateString(ReadOnlySpan<char> text, AnnotationSettings settings, Action<char, int, int> action)

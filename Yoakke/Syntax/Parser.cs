@@ -122,6 +122,7 @@ namespace Yoakke.Syntax
                     Expect(ref input, TokenType.CloseBrace);
                     break;
                 }
+                throw new NotImplementedException("Expected '}' or some statement!");
             }
             if (   returnValue == null 
                 && statements.Count > 0 

@@ -32,7 +32,9 @@ namespace Yoakke.Syntax
         public Source(string path, string text)
         {
             Path = path;
-            Text = NormalizeNewline(text);
+            text = NormalizeNewline(text);
+            if (!text.EndsWith("\n")) text = text + "\n";
+            Text = text;
             lineStarts = LineStarts(Text);
         }
 
@@ -54,7 +56,7 @@ namespace Yoakke.Syntax
         private static List<int> LineStarts(string source)
         {
             var result = new List<int> { 0 };
-            for (int i = 0; i < source.Length; ++i)
+            for (int i = 0; i < source.Length - 1; ++i)
             {
                 if (source[i] == '\n') result.Add(i + 1);
             }

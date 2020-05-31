@@ -11,11 +11,10 @@ namespace Yoakke.Syntax
     /// </summary>
     class Lexer
     {
-        private Source source;
         private int index;
         private Position position;
 
-        private bool IsEnd => index >= source.Text.Length;
+        private bool IsEnd => index >= position.Source.Text.Length;
 
         /// <summary>
         /// Lexes the whole source code.
@@ -35,7 +34,6 @@ namespace Yoakke.Syntax
 
         private Lexer(Source source)
         {
-            this.source = source;
             this.position = new Position(source, line: 0, column: 0);
         }
 
@@ -67,16 +65,30 @@ namespace Yoakke.Syntax
                 return null;
             }
             // Multi-line comment
+            var startPosition = position;
             if (Matches("/*"))
             {
+                var prevPosition = position;
                 int depth = 1;
                 while (depth > 0)
                 {
-                    if (IsEnd) throw new NotImplementedException("Unclosed nested comment!");
-                    
-                    if      (Matches("/*")) ++depth;
-                    else if (Matches("*/")) --depth;
-                    else                    Consume(1);
+                    if (IsEnd) throw new UnclosedCommentError(startPosition, prevPosition);
+
+                    if (Matches("/*"))
+                    {
+                        ++depth;
+                        prevPosition = position;
+                    }
+                    else if (Matches("*/"))
+                    {
+                        --depth;
+                        prevPosition = position;
+                    }
+                    else
+                    {
+                        var consumed = Consume(1);
+                        if (!char.IsControl(consumed[0])) prevPosition = position;
+                    }
                 }
                 return null;
             }
@@ -169,7 +181,7 @@ namespace Yoakke.Syntax
         private char Peek(int forward, char def = '\0')
         {
             var finalIndex = index + forward;
-            return finalIndex < source.Text.Length ? source.Text[finalIndex] : def;
+            return finalIndex < position.Source.Text.Length ? position.Source.Text[finalIndex] : def;
         }
 
         private string Consume(int amount)
