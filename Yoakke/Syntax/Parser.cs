@@ -42,7 +42,7 @@ namespace Yoakke.Syntax
             Peek(input) switch
             {
                 TokenType.KwConst => ParseConstDefinition(ref input),
-                _ => throw new NotImplementedException("Expected some declaration!"),
+                _ => throw new ExpectedError("declaration", input[0]),
             };
 
         private static Declaration ParseConstDefinition(ref Input input)
@@ -69,7 +69,7 @@ namespace Yoakke.Syntax
             var expressionStatement = TryParse(ref input, ParseExpressionStatement);
             if (expressionStatement != null) return expressionStatement;
 
-            throw new NotImplementedException("Expected statement!");
+            throw new ExpectedError("statement", input[0]);
         }
 
         private static Statement ParseExpressionStatement(ref Input input)
@@ -99,7 +99,7 @@ namespace Yoakke.Syntax
             if (Match(ref input, TokenType.Identifier, out var token)) return new IdentifierExpression(token);
             if (Match(ref input, TokenType.IntLiteral, out token)) return new IntLiteralExpression(token);
 
-            throw new NotImplementedException("Expected some atomic expression!");
+            throw new ExpectedError("expression", input[0]);
         }
 
         private static Expression ParseBlockExpression(ref Input input)
@@ -122,7 +122,7 @@ namespace Yoakke.Syntax
                     Expect(ref input, TokenType.CloseBrace);
                     break;
                 }
-                throw new NotImplementedException("Expected '}' or some statement!");
+                throw new ExpectedError("'}' or statement", input[0], "code block");
             }
             if (   returnValue == null 
                 && statements.Count > 0 
@@ -190,7 +190,7 @@ namespace Yoakke.Syntax
         {
             if (!Match(ref input, type, out token))
             {
-                throw new NotImplementedException($"Expected {type}!");
+                throw new ExpectedError(type.ToString(), token);
             }
         }
 
