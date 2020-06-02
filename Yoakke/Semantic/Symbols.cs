@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using Yoakke.Syntax;
+using Yoakke.Utils;
 
 namespace Yoakke.Semantic
 {
@@ -23,10 +25,7 @@ namespace Yoakke.Semantic
 
         public void PopScope()
         {
-            if (CurrentScope.Parent == null)
-            {
-                throw new NotImplementedException();
-            }
+            Assert.NonNull(CurrentScope.Parent);
             CurrentScope = CurrentScope.Parent;
         }
     }
@@ -47,9 +46,9 @@ namespace Yoakke.Semantic
             symbols.Add(symbol.Name, symbol);
         }
 
-        public Symbol Reference(string name)
+        public Symbol Reference(Token name)
         {
-            if (symbols.TryGetValue(name, out var symbol))
+            if (symbols.TryGetValue(name.Value, out var symbol))
             {
                 return symbol;
             }
@@ -57,7 +56,7 @@ namespace Yoakke.Semantic
             {
                 return Parent.Reference(name);
             }
-            throw new NotImplementedException($"Undefined symbol {name}!");
+            throw new UndefinedSymbolError(name);
         }
     }
 

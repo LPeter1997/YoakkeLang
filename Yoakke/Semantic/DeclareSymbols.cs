@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Yoakke.Ast;
 
-namespace Yoakke.Semantic.Steps
+namespace Yoakke.Semantic
 {
     static class DeclareSymbols
     {

@@ -4,7 +4,7 @@ using System.Text;
 using Yoakke.Ast;
 using Yoakke.Utils;
 
-namespace Yoakke.Semantic.Steps
+namespace Yoakke.Semantic
 {
     static class DefineSymbols
     {
@@ -44,7 +44,7 @@ namespace Yoakke.Semantic.Steps
             case IdentifierExpression identifier:
                 // We want to resolve the referred symbol
                 Assert.NonNull(identifier.Scope);
-                identifier.Symbol = identifier.Scope.Reference(identifier.Token.Value);
+                identifier.Symbol = identifier.Scope.Reference(identifier.Token);
                 break;
 
             case ProcExpression proc:

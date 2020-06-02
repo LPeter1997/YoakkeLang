@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using Yoakke.Semantic;
-using Yoakke.Semantic.Steps;
 using Yoakke.Syntax;
 using Type = Yoakke.Semantic.Type;
 
@@ -15,7 +14,7 @@ namespace Yoakke
             {
                 var src = new Source("some.yk", @$"
     const main = proc(x: i32) -> i32 {{
-        @
+        y
     }}
 ");
                 var tokens = Lexer.Lex(src);
@@ -31,7 +30,6 @@ namespace Yoakke
 
                 DeclareSymbols.Declare(symbolTable, ast);
                 DefineSymbols.Define(ast);
-                TypeChecker.CheckType(ast);
             }
             catch (CompileError error)
             {
