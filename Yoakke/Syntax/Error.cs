@@ -4,11 +4,25 @@ using System.Text;
 
 namespace Yoakke.Syntax
 {
+    /// <summary>
+    /// A syntax error for unclosed nested comments.
+    /// </summary>
     class UnclosedCommentError : CompileError
     {
+        /// <summary>
+        /// The opening position of the unclosed comment.
+        /// </summary>
         public Position StartPosition { get; set; }
+        /// <summary>
+        /// The end of file, where the unclosed comment causes the error.
+        /// </summary>
         public Position EndPosition { get; set; }
 
+        /// <summary>
+        /// Initializes a new <see cref="UnclosedCommentError"/>.
+        /// </summary>
+        /// <param name="startPosition">The opening position of the unclosed comment.</param>
+        /// <param name="endPosition">The end of file, where the unclosed comment causes the error.</param>
         public UnclosedCommentError(Position startPosition, Position endPosition)
         {
             StartPosition = startPosition;
@@ -25,12 +39,30 @@ namespace Yoakke.Syntax
         }
     }
 
+    /// <summary>
+    /// A syntax error, where a given construct was expected, but something else was found instead.
+    /// </summary>
     class ExpectedError : CompileError
     {
+        /// <summary>
+        /// The name of the expected construct.
+        /// </summary>
         public string Expected { get; set; }
+        /// <summary>
+        /// The token we got instead.
+        /// </summary>
         public Token Got { get; set; }
+        /// <summary>
+        /// An optional context. This is so we can append something like: "while parsing <context>".
+        /// </summary>
         public string? Context { get; set; }
 
+        /// <summary>
+        /// Initializes a new <see cref="ExpectedError"/>.
+        /// </summary>
+        /// <param name="expected">The name of the expected construct.</param>
+        /// <param name="got">The token we got instead.</param>
+        /// <param name="context">An optional context. Null by default.</param>
         public ExpectedError(string expected, Token got, string? context = null)
         {
             Expected = expected;

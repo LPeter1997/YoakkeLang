@@ -6,8 +6,15 @@ using Yoakke.Utils;
 
 namespace Yoakke.Semantic
 {
-    static class DefineSymbols
+    /// <summary>
+    /// Defines every symbol, also resolves each symbol reference.
+    /// </summary>
+    static class DefineSymbol
     {
+        /// <summary>
+        /// Defines the order-dependent symbols, resolves symbol references.
+        /// </summary>
+        /// <param name="statement">The statement to start the definitions from.</param>
         public static void Define(Statement statement)
         {
             switch (statement)

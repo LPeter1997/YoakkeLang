@@ -5,8 +5,17 @@ using Yoakke.Ast;
 
 namespace Yoakke.Semantic
 {
-    static class DeclareSymbols
+    /// <summary>
+    /// Declares every order-independent <see cref="Symbol"/>.
+    /// </summary>
+    static class DeclareSymbol
     {
+        /// <summary>
+        /// Declares every order-independent <see cref="Symbol"/> in the given <see cref="SymbolTable"/>.
+        /// Also assigns the scope for every syntax tree node.
+        /// </summary>
+        /// <param name="symbolTable">The symbol table to use.</param>
+        /// <param name="statement">The statement to start the declarations from.</param>
         public static void Declare(SymbolTable symbolTable, Statement statement)
         {
             statement.Scope = symbolTable.CurrentScope;

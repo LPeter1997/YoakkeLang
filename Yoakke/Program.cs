@@ -28,8 +28,8 @@ namespace Yoakke
                     symbolTable.GlobalScope.Define(i32_sym);
                 }
 
-                DeclareSymbols.Declare(symbolTable, ast);
-                DefineSymbols.Define(ast);
+                DeclareSymbol.Declare(symbolTable, ast);
+                DefineSymbol.Define(ast);
             }
             catch (CompileError error)
             {
