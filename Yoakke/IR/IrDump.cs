@@ -19,8 +19,10 @@ namespace Yoakke.IR
 
         private static void DumpProc(StringBuilder builder, Proc proc)
         {
+            builder.Append("proc ");
+            DumpType(builder, proc.ReturnType);
             builder
-                .Append("proc ")
+                .Append(' ')
                 .Append(proc.Name)
                 .Append('(');
             // TODO: Parameters
@@ -35,6 +37,24 @@ namespace Yoakke.IR
                 .Append(basicBlock.Name)
                 .Append(":\n");
             // TODO: Instructions
+        }
+
+        private static void DumpType(StringBuilder builder, Type type)
+        {
+            switch (type)
+            {
+            case VoidType voidType:
+                builder.Append("void");
+                break;
+
+            case IntType intType:
+                builder
+                    .Append('i')
+                    .Append(intType.Bits);
+                break;
+
+            default: throw new NotImplementedException();
+            }
         }
     }
 }
