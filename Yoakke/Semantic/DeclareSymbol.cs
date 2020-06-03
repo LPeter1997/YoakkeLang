@@ -34,7 +34,7 @@ namespace Yoakke.Semantic
                 // For safety, declare in type too
                 if (constDef.Type != null) Declare(symbolTable, constDef.Type);
                 // Declare this symbol, store it and add to the symbol
-                var symbol = new ConstSymbol(constDef.Name);
+                var symbol = new ConstSymbol(constDef);
                 constDef.Symbol = symbol;
                 symbolTable.CurrentScope.Define(symbol);
             }  

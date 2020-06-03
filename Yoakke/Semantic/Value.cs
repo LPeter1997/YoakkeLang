@@ -21,27 +21,16 @@ namespace Yoakke.Semantic
         }
     }
 
-    class ProcedureValue : Value
+    class ProcValue : Value
     {
-        private Type? type;
-        public override Type Type
-        {
-            get
-            {
-                if (type == null) type = EvaluateType();
-                return type;
-            }
-        }
+        private Type type;
+        public override Type Type => type;
         public readonly ProcExpression Node;
 
-        public ProcedureValue(ProcExpression node)
+        public ProcValue(ProcExpression node, Type type)
         {
             Node = node;
-        }
-
-        private Type EvaluateType()
-        {
-            throw new NotImplementedException();
+            this.type = type;
         }
     }
 }

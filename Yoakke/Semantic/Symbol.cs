@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using Yoakke.Ast;
 using Yoakke.Syntax;
 using Yoakke.Utils;
 
@@ -135,18 +136,24 @@ namespace Yoakke.Semantic
     class ConstSymbol : Symbol
     {
         /// <summary>
+        /// The corresponding <see cref="ConstDefinition"/> that has created this <see cref="ConstSymbol"/>.
+        /// </summary>
+        public readonly ConstDefinition? Definition;
+        /// <summary>
         /// The constant <see cref="Value"/> assigned to this <see cref="ConstSymbol"/>.
         /// </summary>
         public Value? Value { get; set; }
 
-        public ConstSymbol(string name)
+        public ConstSymbol(string name, Value value)
             : base(name)
         {
+            Value = value;
         }
 
-        public ConstSymbol(Token name) 
-            : base(name)
+        public ConstSymbol(ConstDefinition definition) 
+            : base(definition.Name)
         {
+            Definition = definition;
         }
     }
 
