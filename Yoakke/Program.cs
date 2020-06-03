@@ -1,4 +1,5 @@
 ﻿using System;
+using Yoakke.IR;
 using Yoakke.Semantic;
 using Yoakke.Syntax;
 using Type = Yoakke.Semantic.Type;
@@ -9,7 +10,7 @@ namespace Yoakke
     {
         static void Main(string[] args)
         {
-            try
+            /*try
             {
                 var src = new Source("some.yk", @$"
     const main = proc(x: i32) -> i32 {{
@@ -35,7 +36,13 @@ namespace Yoakke
             catch (CompileError error)
             {
                 error.Show();
-            }
+            }*/
+
+            var asm = new Assembly();
+            var proc = new Proc("main", IR.Type.I32);
+            proc.BasicBlocks.Add(new BasicBlock("start"));
+            asm.Procedures.Add(proc);
+            Console.WriteLine(IrDump.Dump(asm));
         }
     }
 }
