@@ -7,8 +7,16 @@ using Yoakke.Utils;
 
 namespace Yoakke.Semantic
 {
+    /// <summary>
+    /// Does constant-evaluation at compile-time.
+    /// </summary>
     static class EvaluateConst
     {
+        /// <summary>
+        /// Evaluates the given <see cref="Expression"/> at compile-time.
+        /// </summary>
+        /// <param name="expression">The <see cref="Expression"/> to evaluate.</param>
+        /// <returns>The compile-time <see cref="Value"/> of the <see cref="Expression"/>.</returns>
         public static Value Evaluate(Expression expression)
         {
             switch (expression)

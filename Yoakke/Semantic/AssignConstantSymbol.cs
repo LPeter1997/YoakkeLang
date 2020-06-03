@@ -6,8 +6,16 @@ using Yoakke.Utils;
 
 namespace Yoakke.Semantic
 {
+    /// <summary>
+    /// Does a constant evaluation and assingment on the AST, so every constant's <see cref="Symbol"/> 
+    /// is assigned a compile-time <see cref="Value"/>.
+    /// </summary>
     static class AssignConstantSymbol
     {
+        /// <summary>
+        /// Assigns constants inside a given <see cref="Statement"/>.
+        /// </summary>
+        /// <param name="statement">The <see cref="Statement"/> to assign the constants in.</param>
         public static void Assign(Statement statement)
         {
             switch (statement)
