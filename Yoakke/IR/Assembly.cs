@@ -6,14 +6,14 @@ namespace Yoakke.IR
 {
     class Assembly
     {
-        public List<Proc> Procedures { get; } = new List<Proc>();
+        public readonly List<Proc> Procedures = new List<Proc>();
     }
 
     class Proc
     {
         public readonly string Name;
         public readonly Type ReturnType;
-        public List<BasicBlock> BasicBlocks { get; } = new List<BasicBlock>();
+        public readonly List<BasicBlock> BasicBlocks = new List<BasicBlock>();
 
         public Proc(string name, Type returnType)
         {
@@ -25,6 +25,7 @@ namespace Yoakke.IR
     class BasicBlock
     {
         public readonly string Name;
+        public readonly List<Instruction> Instructions = new List<Instruction>();
 
         public BasicBlock(string name)
         {

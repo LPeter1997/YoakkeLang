@@ -36,7 +36,34 @@ namespace Yoakke.IR
             builder
                 .Append(basicBlock.Name)
                 .Append(":\n");
-            // TODO: Instructions
+
+            foreach (var ins in basicBlock.Instructions)
+            {
+                builder.Append("  ");
+                DumpInstruction(builder, ins);
+                builder.Append('\n');
+            }
+        }
+
+        private static void DumpInstruction(StringBuilder builder, Instruction instruction)
+        {
+            if (instruction is RegisterInstruction reg)
+            {
+                builder
+                    .Append('r')
+                    .Append(reg.Register)
+                    .Append(" = ");
+            }
+
+            switch (instruction)
+            {
+            case AllocInstruction alloc:
+                builder.Append("alloc ");
+                DumpType(builder, alloc.ElementType);
+                break;
+
+            default: throw new NotImplementedException();
+            }
         }
 
         private static void DumpType(StringBuilder builder, Type type)
@@ -51,6 +78,11 @@ namespace Yoakke.IR
                 builder
                     .Append('i')
                     .Append(intType.Bits);
+                break;
+
+            case PtrType ptrType:
+                builder.Append('*');
+                DumpType(builder, ptrType.ElementType);
                 break;
 
             default: throw new NotImplementedException();

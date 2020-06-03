@@ -40,8 +40,13 @@ namespace Yoakke
 
             var asm = new Assembly();
             var proc = new Proc("main", IR.Type.I32);
-            proc.BasicBlocks.Add(new BasicBlock("start"));
+            var bb = new BasicBlock("start");
+            proc.BasicBlocks.Add(bb);
             asm.Procedures.Add(proc);
+
+            bb.Instructions.Add(new AllocInstruction(0, IR.Type.I32));
+            bb.Instructions.Add(new AllocInstruction(1, IR.Type.I32));
+
             Console.WriteLine(IrDump.Dump(asm));
         }
     }
