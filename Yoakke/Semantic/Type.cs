@@ -17,6 +17,10 @@ namespace Yoakke.Semantic
         public static readonly IList<Type> EmptyList = new List<Type>();
 
         /// <summary>
+        /// The type of a type
+        /// </summary>
+        public static readonly Type Type_ = Primitive("type");
+        /// <summary>
         /// Unit type, used as no return type.
         /// </summary>
         public static readonly Type Unit = Tuple(EmptyList);

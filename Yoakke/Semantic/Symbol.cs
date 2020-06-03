@@ -108,10 +108,6 @@ namespace Yoakke.Semantic
         /// built-in symbol.
         /// </summary>
         public Position? Position { get; }
-        /// <summary>
-        /// The <see cref="Type"/> of this <see cref="Symbol"/>.
-        /// </summary>
-        public Type? Type { get; set; }
 
         /// <summary>
         /// Initializes a new <see cref="Symbol"/>.
@@ -138,6 +134,11 @@ namespace Yoakke.Semantic
     /// </summary>
     class ConstSymbol : Symbol
     {
+        /// <summary>
+        /// The constant <see cref="Value"/> assigned to this <see cref="ConstSymbol"/>.
+        /// </summary>
+        public Value? Value { get; set; }
+
         public ConstSymbol(string name)
             : base(name)
         {

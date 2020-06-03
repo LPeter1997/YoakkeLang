@@ -14,7 +14,7 @@ namespace Yoakke
             {
                 var src = new Source("some.yk", @$"
     const main = proc(x: i32) -> i32 {{
-        y
+        x
     }}
 ");
                 var tokens = Lexer.Lex(src);
@@ -23,8 +23,10 @@ namespace Yoakke
                 var symbolTable = new SymbolTable();
                 // Construct the i32 type
                 {
-                    var i32_sym = new ConstSymbol(new Token(new Position(), TokenType.Identifier, "i32"));
-                    i32_sym.Type = Type.I32;
+                    var i32_sym = new ConstSymbol("i32")
+                    {
+                        Value = new TypeValue(Type.I32),
+                    };
                     symbolTable.GlobalScope.Define(i32_sym);
                 }
 

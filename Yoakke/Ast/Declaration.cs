@@ -52,9 +52,9 @@ namespace Yoakke.Ast
         public Expression Value { get; set; }
 
         /// <summary>
-        /// The <see cref="Symbol"/> this constant defines.
+        /// The <see cref="ConstSymbol"/> this constant defines.
         /// </summary>
-        public Symbol? Symbol { get; set; }
+        public ConstSymbol? Symbol { get; set; }
 
         /// <summary>
         /// Initializes a new <see cref="ConstDefinition"/>.
