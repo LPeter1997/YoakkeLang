@@ -11,24 +11,45 @@ namespace Yoakke.Semantic
     class UndefinedSymbolError : CompileError
     {
         /// <summary>
-        /// The <see cref="Token"/> that referenced the symbol.
+        /// The referenced <see cref="Symbol"/>s name.
         /// </summary>
-        public Token Token { get; set; }
+        public string Name { get; set; }
+        /// <summary>
+        /// The <see cref="Position"/> of the reference, if any.
+        /// </summary>
+        public Position? Position { get; set; }
 
         /// <summary>
         /// Initialies a new <see cref="UndefinedSymbolError"/>.
         /// </summary>
-        /// <param name="token">The <see cref="Token"/> that referenced the symbol.</param>
-        public UndefinedSymbolError(Token token)
+        /// <param name="name">The name of the references <see cref="Symbol"/>.</param>
+        public UndefinedSymbolError(string name)
         {
-            Token = token;
+            Name = name;
+        }
+
+        /// <summary>
+        /// Initialies a new <see cref="UndefinedSymbolError"/>.
+        /// </summary>
+        /// <param name="token">The <see cref="Token"/> that referenced the <see cref="Symbol"/>.</param>
+        public UndefinedSymbolError(Token token)
+            : this(token.Value)
+        {
+            Position = token.Position;
         }
 
         public override void Show()
         {
-            Console.WriteLine($"Semantic error {Token.Position}!");
-            Console.WriteLine(Annotation.Annotate(Token.Position));
-            Console.WriteLine($"Undefined symbol '{Token.Value}'!");
+            if (Position == null)
+            {
+                Console.Write($"Semantic error: ");
+            }
+            else
+            {
+                Console.WriteLine($"Semantic error {Position.Value}!");
+                Console.WriteLine(Annotation.Annotate(Position.Value));
+            }
+            Console.WriteLine($"Undefined symbol '{Name}'!");
         }
     }
 }

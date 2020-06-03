@@ -81,17 +81,28 @@ namespace Yoakke.Semantic
         /// </summary>
         /// <param name="name">The symbol-referrnig <see cref="Token"/>.</param>
         /// <returns>The referred <see cref="Symbol"/>.</returns>
-        public Symbol Reference(Token name)
+        public Symbol Reference(Token name) =>
+            ReferenceInternal(name.Value, name);
+
+        /// <summary>
+        /// Same as <see cref="Reference(Token)"/>, but only requires a string name.
+        /// </summary>
+        public Symbol Reference(string name) =>
+            ReferenceInternal(name, null);
+
+        private Symbol ReferenceInternal(string name, Token? ident)
         {
-            if (symbols.TryGetValue(name.Value, out var symbol))
+            if (symbols.TryGetValue(name, out var symbol))
             {
                 return symbol;
             }
             if (Parent != null)
             {
-                return Parent.Reference(name);
+                return Parent.ReferenceInternal(name, ident);
             }
-            throw new UndefinedSymbolError(name);
+            // Error out
+            if (ident == null) throw new UndefinedSymbolError(name);
+            throw new UndefinedSymbolError(ident.Value);
         }
     }
 

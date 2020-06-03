@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using Yoakke.Semantic;
 using Yoakke.Syntax;
 using Type = Yoakke.Semantic.Type;
@@ -29,6 +28,9 @@ namespace Yoakke
 
                 DeclareSymbol.Declare(symbolTable, ast);
                 DefineSymbol.Define(ast);
+                AssignConstantSymbol.Assign(ast);
+
+                var entry = symbolTable.GlobalScope.Reference("main");
             }
             catch (CompileError error)
             {
