@@ -47,12 +47,10 @@ namespace Yoakke.IR
 
         private static void DumpInstruction(StringBuilder builder, Instruction instruction)
         {
-            if (instruction is RegisterInstruction reg)
+            if (instruction is ValueInstruction value)
             {
-                builder
-                    .Append('r')
-                    .Append(reg.Register)
-                    .Append(" = ");
+                DumpValue(builder, value.Value);
+                builder.Append(" = ");
             }
 
             switch (instruction)
@@ -62,7 +60,30 @@ namespace Yoakke.IR
                 DumpType(builder, alloc.ElementType);
                 break;
 
+            case RetInstruction ret:
+                builder.Append("ret");
+                if (ret.Value != null)
+                {
+                    builder.Append(' ');
+                    DumpValue(builder, ret.Value);
+                }
+                break;
+
             default: throw new NotImplementedException();
+            }
+        }
+
+        private static void DumpValue(StringBuilder builder, Value value)
+        {
+            switch (value)
+            {
+            case RegisterValue reg:
+                builder.Append('r').Append(reg.Index);
+                break;
+
+            case IntValue intVal:
+                builder.Append(intVal.Value);
+                break;
             }
         }
 
@@ -70,14 +91,12 @@ namespace Yoakke.IR
         {
             switch (type)
             {
-            case VoidType voidType:
+            case VoidType _:
                 builder.Append("void");
                 break;
 
             case IntType intType:
-                builder
-                    .Append('i')
-                    .Append(intType.Bits);
+                builder.Append('i').Append(intType.Bits);
                 break;
 
             case PtrType ptrType:

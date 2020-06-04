@@ -57,7 +57,12 @@ namespace Yoakke.Semantic
             }
         }
 
-        private static Type EvaluateToType(Expression expression)
+        /// <summary>
+        /// Evaluates the given <see cref="Expression"/> at compile-time as a <see cref="Type"/>.
+        /// </summary>
+        /// <param name="expression">The <see cref="Expression"/> to evaluate.</param>
+        /// <returns>The <see cref="Type"/> the <see cref="Expression"/> describes.</returns>
+        public static Type EvaluateToType(Expression expression)
         {
             var val = Evaluate(expression);
             Unifier.Unify(val.Type, Type.Type_);

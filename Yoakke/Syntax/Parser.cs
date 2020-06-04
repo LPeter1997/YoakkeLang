@@ -20,7 +20,7 @@ namespace Yoakke.Syntax
         /// </summary>
         /// <param name="tokens">The list of <see cref="Token"/>s to parse.</param>
         /// <returns>The parsed AST.</returns>
-        public static Declaration ParseProgram(IEnumerable<Token> tokens)
+        public static ProgramDeclaration ParseProgram(IEnumerable<Token> tokens)
         {
             Input input = tokens.ToArray().AsSpan();
             return ParseProgram(ref input);
@@ -28,7 +28,7 @@ namespace Yoakke.Syntax
 
         // Declarations ////////////////////////////////////////////////////////
 
-        private static Declaration ParseProgram(ref Input input)
+        private static ProgramDeclaration ParseProgram(ref Input input)
         {
             var declarations = new List<Declaration>();
             while (Peek(input) != TokenType.End)

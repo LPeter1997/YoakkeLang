@@ -8,28 +8,38 @@ namespace Yoakke.IR
     {
     }
 
-    abstract class RegisterInstruction : Instruction
+    abstract class ValueInstruction : Instruction
     {
-        public abstract Type StoredType { get; }
-        public int Register { get; set; }
+        public RegisterValue Value { get; set; }
 
-        public RegisterInstruction(int register)
+        public ValueInstruction(RegisterValue value)
         {
-            Register = register;
+            Value = value;
         }
     }
 
-    class AllocInstruction : RegisterInstruction
+    class AllocInstruction : ValueInstruction
     {
-        private Type storedType;
         public Type ElementType { get; }
-        public override Type StoredType => storedType;
 
-        public AllocInstruction(int register, Type elementType) 
-            : base(register)
+        public AllocInstruction(RegisterValue value) 
+            : base(value)
         {
-            storedType = Type.Ptr(elementType);
-            ElementType = elementType;
+            if (value.Type is PtrType ptr)
+            {
+                ElementType = ptr.ElementType;
+            }
+            else throw new ArgumentException("Allocation requires a pointer register type!", nameof(value));
+        }
+    }
+
+    class RetInstruction : Instruction
+    {
+        public Value? Value { get; set; }
+
+        public RetInstruction(Value? value = null)
+        {
+            Value = value;
         }
     }
 }

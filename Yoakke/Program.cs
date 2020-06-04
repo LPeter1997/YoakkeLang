@@ -1,4 +1,5 @@
 ﻿using System;
+using Yoakke.Ast;
 using Yoakke.IR;
 using Yoakke.Semantic;
 using Yoakke.Syntax;
@@ -10,11 +11,11 @@ namespace Yoakke
     {
         static void Main(string[] args)
         {
-            /*try
+            try
             {
                 var src = new Source("some.yk", @$"
-    const main = proc(x: i32) -> i32 {{
-        x
+    const main = proc() -> i32 {{
+        0
     }}
 ");
                 var tokens = Lexer.Lex(src);
@@ -31,23 +32,15 @@ namespace Yoakke
                 DefineSymbol.Define(ast);
                 AssignConstantSymbol.Assign(ast);
 
-                var entry = symbolTable.GlobalScope.Reference("main");
+                //var entry = symbolTable.GlobalScope.Reference("main");
+
+                var asm = Compiler.Compile(ast);
+                Console.WriteLine(IrDump.Dump(asm));
             }
             catch (CompileError error)
             {
                 error.Show();
-            }*/
-
-            var asm = new Assembly();
-            var proc = new Proc("main", IR.Type.I32);
-            var bb = new BasicBlock("start");
-            proc.BasicBlocks.Add(bb);
-            asm.Procedures.Add(proc);
-
-            bb.Instructions.Add(new AllocInstruction(0, IR.Type.I32));
-            bb.Instructions.Add(new AllocInstruction(1, IR.Type.I32));
-
-            Console.WriteLine(IrDump.Dump(asm));
+            }
         }
     }
 }
