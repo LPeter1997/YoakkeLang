@@ -6,34 +6,53 @@ using Yoakke.Utils;
 
 namespace Yoakke.IR
 {
+    /// <summary>
+    /// Helper to compile IR code into an <see cref="Assembly"/>.
+    /// </summary>
     class IrBuilder
     {
+        /// <summary>
+        /// The <see cref="Assembly"/> that holds the compiled IR code.
+        /// </summary>
         public readonly Assembly Assembly;
 
+        /// <summary>
+        /// The currently compiled <see cref="Proc"/>.
+        /// </summary>
         public Proc CurrentProc
         {
             get { Assert.NonNull(currentProc); return currentProc; }
         }
 
+        /// <summary>
+        /// The currently compiled <see cref="BasicBlock"/>.
+        /// </summary>
         public BasicBlock CurrentBasicBlock
         {
             get { Assert.NonNull(currentBB); return currentBB; }
         }
 
-        private Dictionary<ProcValue, Proc> compiledProcedures = new Dictionary<ProcValue, Proc>();
         private HashSet<string> globalNames = new HashSet<string>();
         private Proc? currentProc;
         private BasicBlock? currentBB;
         private HashSet<string>? currentLocalNames = null;
 
+        /// <summary>
+        /// Initializes a new <see cref="IrBuilder"/>.
+        /// </summary>
+        /// <param name="assembly">The <see cref="Assembly"/> to compile the IR into.</param>
         public IrBuilder(Assembly assembly)
         {
             Assembly = assembly;
         }
 
-        public bool TryGetProc(ProcValue procValue, out Proc? proc) =>
-            compiledProcedures.TryGetValue(procValue, out proc);
-
+        /// <summary>
+        /// Compiles a new <see cref="Proc"/>.
+        /// </summary>
+        /// <param name="name">The name of the procedure.</param>
+        /// <param name="returnType">The <see cref="Type"/> phe procedure returns.</param>
+        /// <param name="action">The callback that's being called, when the builder context switches to
+        /// this new procedure. After the callback, the context will switch back to the old one.</param>
         public void CreateProc(string name, Type returnType, Action action)
         {
             name = GlobalUniqueName(name);
@@ -43,6 +62,7 @@ namespace Yoakke.IR
             var lastLocalNames = currentLocalNames;
 
             currentProc = new Proc(name, returnType);
+            Assembly.Procedures.Add(currentProc);
             currentLocalNames = new HashSet<string>();
             CreateBasicBlock("begin");
             action();
@@ -52,6 +72,10 @@ namespace Yoakke.IR
             currentLocalNames = lastLocalNames;
         }
 
+        /// <summary>
+        /// Createsa new <see cref="BasicBlock"/> in the current procedure.
+        /// </summary>
+        /// <param name="name">The name of the <see cref="BasicBlock"/> to create.</param>
         public void CreateBasicBlock(string name)
         {
             Assert.NonNull(currentProc);
@@ -61,6 +85,10 @@ namespace Yoakke.IR
             currentProc.BasicBlocks.Add(currentBB);
         }
 
+        /// <summary>
+        /// Adds an <see cref="Instruction"/> to the current <see cref="BasicBlock"/>.
+        /// </summary>
+        /// <param name="instruction">The <see cref="Instruction"/> to add.</param>
         public void AddInstruction(Instruction instruction)
         {
             Assert.NonNull(currentBB);

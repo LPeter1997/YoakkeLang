@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Text;
 using Yoakke.Ast;
 
@@ -59,6 +60,31 @@ namespace Yoakke.Semantic
         {
             Node = node;
             this.type = type;
+        }
+    }
+
+    /// <summary>
+    /// A compile-time integral <see cref="Value"/>.
+    /// </summary>
+    class IntValue : Value
+    {
+        private readonly Type type;
+        public override Type Type => type;
+
+        /// <summary>
+        /// The integer value.
+        /// </summary>
+        public readonly BigInteger Value;
+
+        /// <summary>
+        /// Initializes a new <see cref="IntValue"/>.
+        /// </summary>
+        /// <param name="type">The type of the integer.</param>
+        /// <param name="value">The value of the integer.</param>
+        public IntValue(Type type, BigInteger value)
+        {
+            this.type = type;
+            Value = value;
         }
     }
 }

@@ -14,7 +14,7 @@ namespace Yoakke
             try
             {
                 var src = new Source("some.yk", @$"
-    const main = proc() -> i32 {{
+    const main = proc() {{
         0
     }}
 ");
@@ -31,6 +31,7 @@ namespace Yoakke
                 DeclareSymbol.Declare(symbolTable, ast);
                 DefineSymbol.Define(ast);
                 AssignConstantSymbol.Assign(ast);
+                AssignType.Assign(ast);
 
                 //var entry = symbolTable.GlobalScope.Reference("main");
 

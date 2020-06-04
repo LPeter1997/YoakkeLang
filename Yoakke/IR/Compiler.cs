@@ -9,8 +9,16 @@ using Yoakke.Utils;
 
 namespace Yoakke.IR
 {
+    /// <summary>
+    /// Compiles the AST into IR code.
+    /// </summary>
     static class Compiler
     {
+        /// <summary>
+        /// Compiles the given <see cref="ProgramDeclaration"/> into an IR <see cref="Assembly"/>.
+        /// </summary>
+        /// <param name="program">The <see cref="ProgramDeclaration"/> to compile.</param>
+        /// <returns>The compiled IR <see cref="Assembly"/>.</returns>
         public static Assembly Compile(ProgramDeclaration program)
         {
             var assembly = new Assembly();
@@ -23,8 +31,8 @@ namespace Yoakke.IR
 
         private static void CompileProcedure(IrBuilder builder, string name, ProcExpression proc)
         {
-            Assert.NonNull(proc.Type);
-            var procTy = (TypeConstructor)proc.Type.Substitution;
+            Assert.NonNull(proc.EvaluationType);
+            var procTy = (TypeConstructor)proc.EvaluationType.Substitution;
             if (procTy.Name != "procedure") throw new InvalidOperationException("The type of procedure is not a procedure type!");
             var retTy = Compile(procTy.Subtypes.Last());
             builder.CreateProc(name, retTy, () =>
@@ -72,8 +80,8 @@ namespace Yoakke.IR
             {
             case IntLiteralExpression intLit:
             {
-                Assert.NonNull(intLit.Type);
-                var ty = (IntType)Compile(intLit.Type);
+                Assert.NonNull(intLit.EvaluationType);
+                var ty = (IntType)Compile(intLit.EvaluationType);
                 return new IntValue(ty, BigInteger.Parse(intLit.Token.Value));
             }
 
@@ -128,6 +136,7 @@ namespace Yoakke.IR
         private static Type Compile(Semantic.Type type)
         {
             if (type == Semantic.Type.I32) return Type.I32;
+            if (type == Semantic.Type.Unit) return Type.Void;
 
             throw new NotImplementedException();
         }

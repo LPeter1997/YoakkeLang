@@ -4,8 +4,16 @@ using System.Text;
 
 namespace Yoakke.IR
 {
+    /// <summary>
+    /// Functionality to dump IR code as text.
+    /// </summary>
     static class IrDump
     {
+        /// <summary>
+        /// Dumps the given IR <see cref="Assembly"/> as human-readable text.
+        /// </summary>
+        /// <param name="assembly">The <see cref="Assembly"/> to dump.</param>
+        /// <returns>The string representation of the IR code.</returns>
         public static string Dump(Assembly assembly)
         {
             var result = new StringBuilder();

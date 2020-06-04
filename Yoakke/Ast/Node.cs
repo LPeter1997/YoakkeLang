@@ -104,8 +104,13 @@ namespace Yoakke.Ast
     abstract class Expression : Node
     {
         /// <summary>
+        /// The <see cref="Value"/> this <see cref="Expression"/> evaluates to compile-time, if it's being evaluated
+        /// compile-time.
+        /// </summary>
+        public Value? ConstantValue { get; set; }
+        /// <summary>
         /// The <see cref="Type"/> this <see cref="Expression"/> evaluates to.
         /// </summary>
-        public Type? Type { get; set; }
+        public Type? EvaluationType { get; set; }
     }
 }
