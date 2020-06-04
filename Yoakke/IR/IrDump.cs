@@ -22,7 +22,7 @@ namespace Yoakke.IR
                 DumpProc(result, proc);
                 result.Append('\n');
             }
-            return result.ToString();
+            return result.ToString().Trim();
         }
 
         private static void DumpProc(StringBuilder builder, Proc proc)
