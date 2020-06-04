@@ -135,6 +135,7 @@ namespace Yoakke.IR
 
         private static Type Compile(Semantic.Type type)
         {
+            type = type.Substitution;
             if (type == Semantic.Type.I32) return Type.I32;
             if (type == Semantic.Type.Unit) return Type.Void;
 
