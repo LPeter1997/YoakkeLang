@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Yoakke.IR;
+using Yoakke.Utils;
 
 namespace Yoakke.Backend
 {
@@ -35,14 +36,7 @@ namespace Yoakke.Backend
                 .Append(' ')
                 .Append(proc.Name)
                 .Append('(');
-            bool first = true;
-            foreach (var param in proc.Parameters)
-            {
-                if (!first) builder.Append(", ");
-                first = false;
-
-                Compile(builder, param.Type);
-            }
+            proc.Parameters.Intertwine(param => Compile(builder, param.Type), () => builder.Append(", "));
             builder.Append(");");
         }
 
@@ -53,16 +47,13 @@ namespace Yoakke.Backend
                 .Append(' ')
                 .Append(proc.Name)
                 .Append("(");
-            bool first = true;
-            foreach (var param in proc.Parameters)
+            proc.Parameters.Intertwine(param =>
             {
-                if (!first) builder.Append(", ");
-                first = false;
-
                 Compile(builder, param.Type);
                 builder.Append(' ');
                 Compile(builder, param);
-            }
+            },
+            () => builder.Append(", "));
             builder.Append(") {\n");
             foreach (var bb in proc.BasicBlocks) Compile(builder, bb);
             builder.Append("}\n");

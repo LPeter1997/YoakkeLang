@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Yoakke.Utils;
 
 namespace Yoakke.IR
 {
@@ -34,16 +35,13 @@ namespace Yoakke.IR
                 .Append(proc.Name)
                 .Append('(');
             // Parameters
-            bool first = true;
-            foreach (var param in proc.Parameters)
+            proc.Parameters.Intertwine(param =>
             {
-                if (!first) builder.Append(", ");
-                first = false;
-
                 DumpType(builder, param.Type);
                 builder.Append(' ');
                 DumpValue(builder, param);
-            }
+            },
+            () => builder.Append(", "));
             builder.Append("):\n");
 
             foreach (var bb in proc.BasicBlocks) DumpBasicBlock(builder, bb);
