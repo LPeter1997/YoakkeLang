@@ -22,6 +22,8 @@ namespace Yoakke.Semantic
         {
             if (expression.ConstantValue == null)
             {
+                // TODO: Re-consider where we can even do constant-cache -ing!
+                // Is there a case where mutability can affect us and we need to invalidate the cache?
                 expression.ConstantValue = EvaluateInternal(expression);
             }
             return expression.ConstantValue;

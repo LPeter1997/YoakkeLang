@@ -83,9 +83,9 @@ namespace Yoakke.Ast
             public Expression Type { get; set; }
 
             /// <summary>
-            /// The <see cref="Symbol"/> corresponding to this parameter.
+            /// The <see cref="VariableSymbol"/> corresponding to this parameter.
             /// </summary>
-            public Symbol? Symbol { get; set; }
+            public VariableSymbol? Symbol { get; set; }
 
             /// <summary>
             /// Initializes the <see cref="Parameter"/> with the given name and type.

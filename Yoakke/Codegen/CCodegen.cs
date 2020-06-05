@@ -34,7 +34,16 @@ namespace Yoakke.Backend
             builder
                 .Append(' ')
                 .Append(proc.Name)
-                .Append("();");
+                .Append('(');
+            bool first = true;
+            foreach (var param in proc.Parameters)
+            {
+                if (!first) builder.Append(", ");
+                first = false;
+
+                Compile(builder, param.Type);
+            }
+            builder.Append(");");
         }
 
         private void Compile(StringBuilder builder, Proc proc)
@@ -43,7 +52,18 @@ namespace Yoakke.Backend
             builder
                 .Append(' ')
                 .Append(proc.Name)
-                .Append("() {\n");
+                .Append("(");
+            bool first = true;
+            foreach (var param in proc.Parameters)
+            {
+                if (!first) builder.Append(", ");
+                first = false;
+
+                Compile(builder, param.Type);
+                builder.Append(' ');
+                Compile(builder, param);
+            }
+            builder.Append(") {\n");
             foreach (var bb in proc.BasicBlocks) Compile(builder, bb);
             builder.Append("}\n");
         }

@@ -35,7 +35,7 @@ namespace Yoakke.IR
         private HashSet<string> globalNames = new HashSet<string>();
         private Proc? currentProc;
         private BasicBlock? currentBB;
-        private HashSet<string>? currentLocalNames = null;
+        private HashSet<string>? currentLocalNames;
 
         /// <summary>
         /// Initializes a new <see cref="IrBuilder"/>.
@@ -65,6 +65,7 @@ namespace Yoakke.IR
             Assembly.Procedures.Add(currentProc);
             currentLocalNames = new HashSet<string>();
             CreateBasicBlock("begin");
+
             action();
             
             currentProc = lastProc;

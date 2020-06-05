@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -14,6 +15,18 @@ namespace Yoakke.IR
     /// </summary>
     static class Compiler
     {
+        private class ProcedureContext
+        {
+            public readonly Dictionary<VariableSymbol, RegisterValue> Registers = new Dictionary<VariableSymbol, RegisterValue>();
+
+            public RegisterValue AllocateRegister(VariableSymbol varSym, Type type)
+            {
+                var value = new RegisterValue(type, Registers.Count);
+                Registers.Add(varSym, value);
+                return value;
+            }
+        }
+
         /// <summary>
         /// Compiles the given <see cref="ProgramDeclaration"/> into an IR <see cref="Assembly"/>.
         /// </summary>
@@ -24,7 +37,7 @@ namespace Yoakke.IR
             var assembly = new Assembly();
             var builder = new IrBuilder(assembly);
 
-            Compile(builder, program);
+            Compile(builder, null, program);
 
             return assembly;
         }
@@ -33,20 +46,33 @@ namespace Yoakke.IR
         {
             Assert.NonNull(proc.EvaluationType);
             var procTy = (TypeConstructor)proc.EvaluationType.Substitution;
-            if (procTy.Name != "procedure") throw new InvalidOperationException("The type of procedure is not a procedure type!");
+            Debug.Assert(procTy.Name == "procedure");
             var retTy = Compile(procTy.Subtypes.Last());
             builder.CreateProc(name, retTy, () =>
             {
-                Compile(builder, proc.Body);
+                // New context for this procedure compilation
+                var ctx = new ProcedureContext();
+                // Allocate registers for the parameters
+                foreach (var param in proc.Parameters)
+                {
+                    Assert.NonNull(param.Symbol);
+                    Assert.NonNull(param.Symbol.Type);
+                    // Get type, get a register for it
+                    var type = Compile(param.Symbol.Type);
+                    var reg = ctx.AllocateRegister(param.Symbol, type);
+                    // Insert the register ar a parameter
+                    builder.CurrentProc.Parameters.Add(reg);
+                }
+                Compile(builder, ctx, proc.Body);
             });
         }
 
-        private static void Compile(IrBuilder builder, Statement statement)
+        private static void Compile(IrBuilder builder, ProcedureContext? ctx, Statement statement)
         {
             switch (statement)
             {
             case ProgramDeclaration program:
-                foreach (var decl in program.Declarations) Compile(builder, decl);
+                foreach (var decl in program.Declarations) Compile(builder, ctx, decl);
                 break;
 
             case ConstDefinition constDef:
@@ -67,14 +93,14 @@ namespace Yoakke.IR
             break;
 
             case ExpressionStatement expr:
-                Compile(builder, expr.Expression);
+                Compile(builder, ctx, expr.Expression);
                 break;
 
             default: throw new NotImplementedException();
             }
         }
 
-        private static Value? Compile(IrBuilder builder, Expression expression)
+        private static Value? Compile(IrBuilder builder, ProcedureContext? ctx, Expression expression)
         {
             switch (expression) 
             {
@@ -89,29 +115,35 @@ namespace Yoakke.IR
             {
                 Assert.NonNull(ident.Symbol);
                 var symbol = ident.Symbol;
-                if (symbol is ConstSymbol constSym)
+                switch (symbol)
                 {
+                case ConstSymbol constSym:
                     Assert.NonNull(constSym.Value);
                     return Compile(builder, constSym.Value);
-                }
-                else
+
+                case VariableSymbol varSym:
                 {
-                    throw new NotImplementedException();
+                    Assert.NonNull(ctx);
+                    return ctx.Registers[varSym];
+                }
+
+                default: throw new NotImplementedException();
                 }
             }
 
             case ProcExpression proc:
             {
                 CompileProcedure(builder, "anonymous", proc);
+                // TODO: We need some kind of value for it
                 throw new NotImplementedException();
             }
 
             case BlockExpression block:
             {
-                foreach (var stmt in block.Statements) Compile(builder, stmt);
+                foreach (var stmt in block.Statements) Compile(builder, ctx, stmt);
                 Value? retValue = block.Value == null
                                   ? null
-                                  : Compile(builder, block.Value);
+                                  : Compile(builder, ctx, block.Value);
                 // TODO: block-evaluation does not necessarily return from the function!!!
                 builder.AddInstruction(new RetInstruction(retValue));
                 return retValue;

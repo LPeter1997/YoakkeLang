@@ -62,6 +62,7 @@ namespace Yoakke.Semantic
                     Define(param.Type);
                     var symbol = new VariableSymbol(param.Name);
                     param.Symbol = symbol;
+                    // We use the type's scope to inject, as that's the same as the procedure's scope
                     Assert.NonNull(param.Type.Scope);
                     param.Type.Scope.Define(symbol);
                 }

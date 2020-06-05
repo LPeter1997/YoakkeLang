@@ -25,6 +25,10 @@ namespace Yoakke.IR
         /// </summary>
         public readonly string Name;
         /// <summary>
+        /// The parameters of the procedure.
+        /// </summary>
+        public readonly List<RegisterValue> Parameters = new List<RegisterValue>();
+        /// <summary>
         /// The return <see cref="Type"/> of the procedure.
         /// </summary>
         public readonly Type ReturnType;
@@ -47,7 +51,7 @@ namespace Yoakke.IR
 
     /// <summary>
     /// A single basic-block inside a <see cref="Proc"/>. A basic block is a sequence of instructions,
-    /// with a single enmtry point being the first instruction, and a single exit point being the last instruction.
+    /// with a single entry point being the first instruction, and a single exit point being the last instruction.
     /// </summary>
     class BasicBlock
     {

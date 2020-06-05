@@ -51,18 +51,16 @@ namespace Yoakke.Semantic
 
             case IdentifierExpression ident:
                 Assert.NonNull(ident.Symbol);
-                if (ident.Symbol is ConstSymbol constSym)
-                {
-                    Assert.NonNull(constSym.Value);
-                    return constSym.Value.Type;
-                }
-                else
-                {
-                    throw new NotImplementedException();
-                }
+                return ident.Symbol.AssumeHasType();
 
             case ProcExpression proc:
-                foreach (var param in proc.Parameters) Assign(param.Type);
+                foreach (var param in proc.Parameters)
+                {
+                    Assign(param.Type);
+                    var type = EvaluateConst.EvaluateToType(param.Type);
+                    Assert.NonNull(param.Symbol);
+                    param.Symbol.Type = type;
+                }
                 if (proc.ReturnType != null) Assign(proc.ReturnType);
                 Assign(proc.Body);
                 return EvaluateConst.Evaluate(proc).Type;

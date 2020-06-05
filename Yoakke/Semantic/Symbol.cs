@@ -139,6 +139,12 @@ namespace Yoakke.Semantic
         {
             Position = token.Position;
         }
+
+        /// <summary>
+        /// Gets the <see cref="Type"/> for this <see cref="Symbol"/>, assuming it already has one assigned.
+        /// </summary>
+        /// <returns>The <see cref="Type"/> associated with this <see cref="Symbol"/>.</returns>
+        public abstract Type AssumeHasType();
     }
 
     /// <summary>
@@ -166,6 +172,12 @@ namespace Yoakke.Semantic
         {
             Definition = definition;
         }
+
+        public override Type AssumeHasType()
+        {
+            Assert.NonNull(Value);
+            return Value.Type;
+        }
     }
 
     /// <summary>
@@ -173,9 +185,24 @@ namespace Yoakke.Semantic
     /// </summary>
     class VariableSymbol : Symbol
     {
+        /// <summary>
+        /// The inferred <see cref="Type"/> for this variable.
+        /// </summary>
+        public Type? Type { get; set; }
+
+        /// <summary>
+        /// Initializes a new <see cref="VariableSymbol"/>.
+        /// </summary>
+        /// <param name="name">The <see cref="Token"/> that named this variable at definition.</param>
         public VariableSymbol(Token name)
             : base(name)
         {
+        }
+
+        public override Type AssumeHasType()
+        {
+            Assert.NonNull(Type);
+            return Type;
         }
     }
 }

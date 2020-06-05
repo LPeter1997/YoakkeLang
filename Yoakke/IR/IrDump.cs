@@ -33,7 +33,17 @@ namespace Yoakke.IR
                 .Append(' ')
                 .Append(proc.Name)
                 .Append('(');
-            // TODO: Parameters
+            // Parameters
+            bool first = true;
+            foreach (var param in proc.Parameters)
+            {
+                if (!first) builder.Append(", ");
+                first = false;
+
+                DumpType(builder, param.Type);
+                builder.Append(' ');
+                DumpValue(builder, param);
+            }
             builder.Append("):\n");
 
             foreach (var bb in proc.BasicBlocks) DumpBasicBlock(builder, bb);
