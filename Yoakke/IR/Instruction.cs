@@ -79,11 +79,28 @@ namespace Yoakke.IR
         }
     }
 
+    /// <summary>
+    /// An <see cref="Instruction"/> to store a given <see cref="Value"/> at a given address.
+    /// 
+    /// Note, that this is not a <see cref="ValueInstruction"/> on purpose, as the instruction itself does
+    /// not produce a value, only uses them.
+    /// </summary>
     class StoreInstruction : Instruction
     {
+        /// <summary>
+        /// The target address.
+        /// </summary>
         public Value Target { get; set; }
+        /// <summary>
+        /// The <see cref="Value"/> to store.
+        /// </summary>
         public Value Value { get; set; }
 
+        /// <summary>
+        /// Initializes a new <see cref="StoreInstruction"/>.
+        /// </summary>
+        /// <param name="target">The target address to store the <see cref="Value"/> at.</param>
+        /// <param name="value">The <see cref="Value"/> to store.</param>
         public StoreInstruction(Value target, Value value)
         {
             if (!(target.Type is PtrType))
@@ -96,10 +113,21 @@ namespace Yoakke.IR
         }
     }
 
+    /// <summary>
+    /// Loads a <see cref="Value"/> from a given address.
+    /// </summary>
     class LoadInstruction : ValueInstruction
     {
+        /// <summary>
+        /// The address to load from.
+        /// </summary>
         public Value Source { get; set; }
 
+        /// <summary>
+        /// Initializes a new <see cref="LoadInstruction"/>.
+        /// </summary>
+        /// <param name="value">The register to store the loaded <see cref="Value"/> in.</param>
+        /// <param name="source">The address to load from.</param>
         public LoadInstruction(RegisterValue value, Value source) 
             : base(value)
         {
