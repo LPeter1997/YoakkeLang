@@ -17,13 +17,20 @@ namespace Yoakke.IR
     {
         private class ProcedureContext
         {
-            public readonly Dictionary<VariableSymbol, RegisterValue> Registers = new Dictionary<VariableSymbol, RegisterValue>();
+            public readonly Dictionary<VariableSymbol, RegisterValue> Variables = new Dictionary<VariableSymbol, RegisterValue>();
+
+            private int registerCount = 0;
 
             public RegisterValue AllocateRegister(VariableSymbol varSym, Type type)
             {
-                var value = new RegisterValue(type, Registers.Count);
-                Registers.Add(varSym, value);
+                var value = AllocateRegister(type);
+                Variables.Add(varSym, value);
                 return value;
+            }
+
+            public RegisterValue AllocateRegister(Type type)
+            {
+                return new RegisterValue(type, registerCount++);
             }
         }
 
@@ -59,9 +66,16 @@ namespace Yoakke.IR
                     Assert.NonNull(param.Symbol.Type);
                     // Get type, get a register for it
                     var type = Compile(param.Symbol.Type);
-                    var reg = ctx.AllocateRegister(param.Symbol, type);
-                    // Insert the register ar a parameter
+                    var reg = ctx.AllocateRegister(type);
+                    // Insert the register as a parameter
                     builder.CurrentProc.Parameters.Add(reg);
+                    // Store and load it to make it mutable
+                    // (in parameter list) ParamType rX
+                    // rY = alloc ParamType
+                    // store rY, rX
+                    var regMut = ctx.AllocateRegister(param.Symbol, Type.Ptr(type));
+                    builder.AddInstruction(new AllocInstruction(regMut));
+                    builder.AddInstruction(new StoreInstruction(regMut, reg));
                 }
                 Compile(builder, ctx, proc.Body);
             });
@@ -123,8 +137,13 @@ namespace Yoakke.IR
 
                 case VariableSymbol varSym:
                 {
+                    // rX = load ADDRESS
                     Assert.NonNull(ctx);
-                    return ctx.Registers[varSym];
+                    var varAddress = ctx.Variables[varSym];
+                    var varType = ((PtrType)varAddress.Type).ElementType;
+                    var varValue = ctx.AllocateRegister(varType);
+                    builder.AddInstruction(new LoadInstruction(varValue, varAddress));
+                    return varValue;
                 }
 
                 default: throw new NotImplementedException();

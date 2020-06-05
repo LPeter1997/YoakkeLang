@@ -78,4 +78,37 @@ namespace Yoakke.IR
             Value = value;
         }
     }
+
+    class StoreInstruction : Instruction
+    {
+        public Value Target { get; set; }
+        public Value Value { get; set; }
+
+        public StoreInstruction(Value target, Value value)
+        {
+            if (!(target.Type is PtrType))
+            {
+                throw new ArgumentException("The target of a load instruction must be a pointer type!", nameof(target));
+            }
+            // TODO: check if target.ElementType == value.Type
+            Target = target;
+            Value = value;
+        }
+    }
+
+    class LoadInstruction : ValueInstruction
+    {
+        public Value Source { get; set; }
+
+        public LoadInstruction(RegisterValue value, Value source) 
+            : base(value)
+        {
+            if (!(source.Type is PtrType))
+            {
+                throw new ArgumentException("The source of a load instruction must be a pointer type!", nameof(source));
+            }
+            // TODO: check if source.ElementType == value.Type
+            Source = source;
+        }
+    }
 }

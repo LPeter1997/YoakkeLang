@@ -85,6 +85,18 @@ namespace Yoakke.IR
                 }
                 break;
 
+            case StoreInstruction store:
+                builder.Append("store ");
+                DumpValue(builder, store.Target);
+                builder.Append(", ");
+                DumpValue(builder, store.Value);
+                break;
+
+            case LoadInstruction load:
+                builder.Append("load ");
+                DumpValue(builder, load.Source);
+                break;
+
             default: throw new NotImplementedException();
             }
         }

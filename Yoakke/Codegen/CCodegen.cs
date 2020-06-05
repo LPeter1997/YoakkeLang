@@ -87,8 +87,7 @@ namespace Yoakke.Backend
                 builder
                     .Append(" r")
                     .Append(alloc.Value.Index)
-                    .Append(" = &")
-                    .Append(" r")
+                    .Append(" = &r")
                     .Append(alloc.Value.Index)
                     .Append("_value");
                 break;
@@ -100,6 +99,21 @@ namespace Yoakke.Backend
                     builder.Append(' ');
                     Compile(builder, ret.Value);
                 }
+                break;
+
+            case StoreInstruction store:
+                builder.Append('*');
+                Compile(builder, store.Target);
+                builder.Append(" = ");
+                Compile(builder, store.Value);
+                break;
+
+            case LoadInstruction load:
+                Compile(builder, load.Value.Type);
+                builder.Append(' ');
+                Compile(builder, load.Value);
+                builder.Append(" = *");
+                Compile(builder, load.Source);
                 break;
 
             default: throw new NotImplementedException();
