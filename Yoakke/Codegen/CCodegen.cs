@@ -55,6 +55,10 @@ namespace Yoakke.Backend
             },
             () => builder.Append(", "));
             builder.Append(") {\n");
+            foreach (var bb in proc.BasicBlocks)
+            {
+                foreach (var ins in bb.Instructions) ForwardDeclare(builder, ins);
+            }
             foreach (var bb in proc.BasicBlocks) Compile(builder, bb);
             builder.Append("}\n");
         }
@@ -70,13 +74,14 @@ namespace Yoakke.Backend
             }
         }
 
-        private void Compile(StringBuilder builder, Instruction instruction)
+        private void ForwardDeclare(StringBuilder builder, Instruction instruction)
         {
             switch (instruction)
             {
             case AllocInstruction alloc:
                 // T rX_value;
                 // T* rX = &rX_value;
+                builder.Append("    ");
                 Compile(builder, alloc.ElementType);
                 builder
                     .Append(" r")
@@ -86,6 +91,33 @@ namespace Yoakke.Backend
                 Compile(builder, alloc.Value.Type);
                 builder
                     .Append(" r")
+                    .Append(alloc.Value.Index)
+                    .Append(";\n");
+                break;
+
+            case RetInstruction ret:
+            case StoreInstruction store:
+                break;
+
+            case LoadInstruction load:
+                builder.Append("    ");
+                Compile(builder, load.Value.Type);
+                builder.Append(' ');
+                Compile(builder, load.Value);
+                builder.Append(";\n");
+                break;
+
+            default: throw new NotImplementedException();
+            }
+        }
+
+        private void Compile(StringBuilder builder, Instruction instruction)
+        {
+            switch (instruction)
+            {
+            case AllocInstruction alloc:
+                builder
+                    .Append("r")
                     .Append(alloc.Value.Index)
                     .Append(" = &r")
                     .Append(alloc.Value.Index)
@@ -109,8 +141,6 @@ namespace Yoakke.Backend
                 break;
 
             case LoadInstruction load:
-                Compile(builder, load.Value.Type);
-                builder.Append(' ');
                 Compile(builder, load.Value);
                 builder.Append(" = *");
                 Compile(builder, load.Source);
