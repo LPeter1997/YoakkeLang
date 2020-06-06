@@ -47,12 +47,12 @@ namespace Yoakke.Semantic
         {
             switch (expression)
             {
-            case IntLiteralExpression intLit:
+            case Expression.IntLit intLit:
                 // TODO: The exact integer type should not be determined here!
                 // It should go through the inference-process, starting from a generic int value!
                 return new IntValue(Type.I32, BigInteger.Parse(intLit.Token.Value));
 
-            case IdentifierExpression ident:
+            case Expression.Ident ident:
             {
                 Assert.NonNull(ident.Symbol);
                 // We are in constant evaluation, the symbol must be a constant
@@ -70,7 +70,7 @@ namespace Yoakke.Semantic
                 throw new NotImplementedException("Non-constant symbol referenced in a constant expression!");
             }
 
-            case ProcExpression proc:
+            case Expression.Proc proc:
             {
                 var paramTypes = proc.Parameters.Select(x => EvaluateToType(x.Type)).ToList();
                 var returnType = proc.ReturnType == null ? Type.Unit : EvaluateToType(proc.ReturnType);
@@ -79,7 +79,7 @@ namespace Yoakke.Semantic
             }
 
             // TODO: Evaluate statements, block
-            case BlockExpression block: throw new NotImplementedException();
+            case Expression.Block block: throw new NotImplementedException();
 
             default: throw new NotImplementedException();
             }

@@ -19,19 +19,19 @@ namespace Yoakke.Semantic
         {
             switch (statement)
             {
-            case ProgramDeclaration program:
+            case Declaration.Program program:
                 // Just loop through every declaration
                 foreach (var decl in program.Declarations) Define(decl);
                 break;
 
-            case ConstDefinition constDef:
+            case Declaration.ConstDef constDef:
                 // First define everything in value
                 Define(constDef.Value);
                 // For safety, define in type too
                 if (constDef.Type != null) Define(constDef.Type);
                 break;
 
-            case ExpressionStatement expression:
+            case Statement.Expression_ expression:
                 // Define in the expression
                 Define(expression.Expression);
                 break;
@@ -44,17 +44,17 @@ namespace Yoakke.Semantic
         {
             switch (expression)
             {
-            case IntLiteralExpression intLiteral:
+            case Expression.IntLit intLiteral:
                 // Nothing to define, primitive literal
                 break;
 
-            case IdentifierExpression identifier:
+            case Expression.Ident identifier:
                 // We want to resolve the referred symbol
                 Assert.NonNull(identifier.Scope);
                 identifier.Symbol = identifier.Scope.Reference(identifier.Token);
                 break;
 
-            case ProcExpression proc:
+            case Expression.Proc proc:
                 // We define each parameter
                 foreach (var param in proc.Parameters)
                 {
@@ -72,7 +72,7 @@ namespace Yoakke.Semantic
                 Define(proc.Body);
                 break;
 
-            case BlockExpression block:
+            case Expression.Block block:
                 // Define in each statement
                 foreach (var stmt in block.Statements) Define(stmt);
                 // In return value too

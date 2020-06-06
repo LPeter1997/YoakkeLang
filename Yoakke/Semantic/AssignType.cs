@@ -19,15 +19,15 @@ namespace Yoakke.Semantic
         {
             switch (statement)
             {
-            case ProgramDeclaration program:
+            case Declaration.Program program:
                 foreach (var decl in program.Declarations) Assign(decl);
                 break;
 
-            case ConstDefinition constDef:
+            case Declaration.ConstDef constDef:
                 Assign(constDef.Value);
                 break;
 
-            case ExpressionStatement expression:
+            case Statement.Expression_ expression:
                 Assign(expression.Expression);
                 break;
 
@@ -45,15 +45,15 @@ namespace Yoakke.Semantic
         {
             switch (expression)
             {
-            case IntLiteralExpression intLit:
+            case Expression.IntLit intLit:
                 // TODO: This should have an abstract integral type instead!
                 return EvaluateConst.Evaluate(intLit).Type;
 
-            case IdentifierExpression ident:
+            case Expression.Ident ident:
                 Assert.NonNull(ident.Symbol);
                 return ident.Symbol.AssumeHasType();
 
-            case ProcExpression proc:
+            case Expression.Proc proc:
                 foreach (var param in proc.Parameters)
                 {
                     Assign(param.Type);
@@ -65,7 +65,7 @@ namespace Yoakke.Semantic
                 Assign(proc.Body);
                 return EvaluateConst.Evaluate(proc).Type;
 
-            case BlockExpression block:
+            case Expression.Block block:
                 foreach (var stmt in block.Statements) Assign(stmt);
                 if (block.Value != null)
                 {

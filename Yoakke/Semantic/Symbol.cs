@@ -155,7 +155,7 @@ namespace Yoakke.Semantic
         /// <summary>
         /// The corresponding <see cref="ConstDefinition"/> that has created this <see cref="ConstSymbol"/>.
         /// </summary>
-        public readonly ConstDefinition? Definition;
+        public readonly Declaration.ConstDef? Definition;
         /// <summary>
         /// The constant <see cref="Value"/> assigned to this <see cref="ConstSymbol"/>.
         /// </summary>
@@ -167,7 +167,7 @@ namespace Yoakke.Semantic
             Value = value;
         }
 
-        public ConstSymbol(ConstDefinition definition) 
+        public ConstSymbol(Declaration.ConstDef definition) 
             : base(definition.Name)
         {
             Definition = definition;

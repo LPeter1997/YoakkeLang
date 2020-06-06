@@ -20,7 +20,7 @@ namespace Yoakke.Syntax
         /// </summary>
         /// <param name="tokens">The list of <see cref="Token"/>s to parse.</param>
         /// <returns>The parsed AST.</returns>
-        public static ProgramDeclaration ParseProgram(IEnumerable<Token> tokens)
+        public static Declaration.Program ParseProgram(IEnumerable<Token> tokens)
         {
             Input input = tokens.ToArray().AsSpan();
             return ParseProgram(ref input);
@@ -28,14 +28,14 @@ namespace Yoakke.Syntax
 
         // Declarations ////////////////////////////////////////////////////////
 
-        private static ProgramDeclaration ParseProgram(ref Input input)
+        private static Declaration.Program ParseProgram(ref Input input)
         {
             var declarations = new List<Declaration>();
             while (Peek(input) != TokenType.End)
             {
                declarations.Add(ParseDeclaration(ref input));
             }
-            return new ProgramDeclaration(declarations);
+            return new Declaration.Program(declarations);
         }
 
         private static Declaration ParseDeclaration(ref Input input) =>
@@ -56,7 +56,7 @@ namespace Yoakke.Syntax
             Expect(ref input, TokenType.Assign);
             var value = ParseExpression(ref input);
 
-            return new ConstDefinition(name, type, value);
+            return new Declaration.ConstDef(name, type, value);
         }
 
         // Statements //////////////////////////////////////////////////////////
@@ -80,11 +80,11 @@ namespace Yoakke.Syntax
                 // ';' required
                 Expect(ref input, TokenType.Semicolon);
             }
-            return new ExpressionStatement(expression);
+            return new Statement.Expression_(expression);
         }
 
         private static bool IsBracedExpression(Expression expression) =>
-            expression is BlockExpression;
+            expression is Expression.Block;
 
         // Expressions /////////////////////////////////////////////////////////
 
@@ -96,8 +96,8 @@ namespace Yoakke.Syntax
             if (Peek(input) == TokenType.KwProc) return ParseProcExpression(ref input);
             if (Peek(input) == TokenType.OpenBrace) return ParseBlockExpression(ref input);
 
-            if (Match(ref input, TokenType.Identifier, out var token)) return new IdentifierExpression(token);
-            if (Match(ref input, TokenType.IntLiteral, out token)) return new IntLiteralExpression(token);
+            if (Match(ref input, TokenType.Identifier, out var token)) return new Expression.Ident(token);
+            if (Match(ref input, TokenType.IntLiteral, out token)) return new Expression.IntLit(token);
 
             throw new ExpectedError("expression", input[0]);
         }
@@ -126,13 +126,13 @@ namespace Yoakke.Syntax
             }
             if (   returnValue == null 
                 && statements.Count > 0 
-                && statements[statements.Count - 1] is ExpressionStatement expr
+                && statements[statements.Count - 1] is Statement.Expression_ expr
                 && IsBracedExpression(expr.Expression))
             {
                 statements.RemoveAt(statements.Count - 1);
                 returnValue = expr.Expression;
             }
-            return new BlockExpression(statements, returnValue);
+            return new Expression.Block(statements, returnValue);
         }
 
         private static Expression ParseProcExpression(ref Input input)
@@ -140,7 +140,7 @@ namespace Yoakke.Syntax
             Expect(ref input, TokenType.KwProc);
             Expect(ref input, TokenType.OpenParen);
             // Parameters
-            var parameters = new List<ProcExpression.Parameter>();
+            var parameters = new List<Expression.Proc.Parameter>();
             {
                 while (true)
                 {
@@ -157,15 +157,15 @@ namespace Yoakke.Syntax
             if (Match(ref input, TokenType.Arrow)) returnType = ParseExpression(ref input);
 
             var body = ParseBlockExpression(ref input);
-            return new ProcExpression(parameters, returnType, body);
+            return new Expression.Proc(parameters, returnType, body);
         }
     
-        private static ProcExpression.Parameter ParseProcParameter(ref Input input)
+        private static Expression.Proc.Parameter ParseProcParameter(ref Input input)
         {
             Expect(ref input, TokenType.Identifier, out var name);
             Expect(ref input, TokenType.Colon);
             var type = ParseExpression(ref input);
-            return new ProcExpression.Parameter(name, type);
+            return new Expression.Proc.Parameter(name, type);
         }
 
         // Helpers /////////////////////////////////////////////////////////////

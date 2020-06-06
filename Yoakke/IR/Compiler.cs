@@ -39,7 +39,7 @@ namespace Yoakke.IR
         /// </summary>
         /// <param name="program">The <see cref="ProgramDeclaration"/> to compile.</param>
         /// <returns>The compiled IR <see cref="Assembly"/>.</returns>
-        public static Assembly Compile(ProgramDeclaration program)
+        public static Assembly Compile(Declaration.Program program)
         {
             var assembly = new Assembly();
             var builder = new IrBuilder(assembly);
@@ -49,7 +49,7 @@ namespace Yoakke.IR
             return assembly;
         }
 
-        private static void CompileProcedure(IrBuilder builder, string name, ProcExpression proc)
+        private static void CompileProcedure(IrBuilder builder, string name, Expression.Proc proc)
         {
             Assert.NonNull(proc.EvaluationType);
             var procTy = (TypeConstructor)proc.EvaluationType.Substitution;
@@ -85,11 +85,11 @@ namespace Yoakke.IR
         {
             switch (statement)
             {
-            case ProgramDeclaration program:
+            case Declaration.Program program:
                 foreach (var decl in program.Declarations) Compile(builder, ctx, decl);
                 break;
 
-            case ConstDefinition constDef:
+            case Declaration.ConstDef constDef:
             {
                 Assert.NonNull(constDef.Symbol);
                 Assert.NonNull(constDef.Symbol.Value);
@@ -106,7 +106,7 @@ namespace Yoakke.IR
             }
             break;
 
-            case ExpressionStatement expr:
+            case Statement.Expression_ expr:
                 Compile(builder, ctx, expr.Expression);
                 break;
 
@@ -118,14 +118,14 @@ namespace Yoakke.IR
         {
             switch (expression) 
             {
-            case IntLiteralExpression intLit:
+            case Expression.IntLit intLit:
             {
                 Assert.NonNull(intLit.EvaluationType);
                 var ty = (IntType)Compile(intLit.EvaluationType);
                 return new IntValue(ty, BigInteger.Parse(intLit.Token.Value));
             }
 
-            case IdentifierExpression ident:
+            case Expression.Ident ident:
             {
                 Assert.NonNull(ident.Symbol);
                 var symbol = ident.Symbol;
@@ -150,14 +150,14 @@ namespace Yoakke.IR
                 }
             }
 
-            case ProcExpression proc:
+            case Expression.Proc proc:
             {
                 CompileProcedure(builder, "anonymous", proc);
                 // TODO: We need some kind of value for it
                 throw new NotImplementedException();
             }
 
-            case BlockExpression block:
+            case Expression.Block block:
             {
                 foreach (var stmt in block.Statements) Compile(builder, ctx, stmt);
                 Value? retValue = block.Value == null

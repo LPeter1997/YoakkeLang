@@ -22,12 +22,12 @@ namespace Yoakke.Semantic
 
             switch (statement)
             {
-            case ProgramDeclaration program:
+            case Declaration.Program program:
                 // Just loop through every declaration
                 foreach (var decl in program.Declarations) Declare(symbolTable, decl);
                 break;
 
-            case ConstDefinition constDef:
+            case Declaration.ConstDef constDef:
             {
                 // First declare everything in value
                 Declare(symbolTable, constDef.Value);
@@ -40,7 +40,7 @@ namespace Yoakke.Semantic
             }  
             break;
 
-            case ExpressionStatement expression:
+            case Statement.Expression_ expression:
                 // Declare in the expression
                 Declare(symbolTable, expression.Expression);
                 break;
@@ -55,12 +55,12 @@ namespace Yoakke.Semantic
 
             switch (expression)
             {
-            case IntLiteralExpression intLiteral: 
-            case IdentifierExpression identifier:
+            case Expression.IntLit intLiteral: 
+            case Expression.Ident identifier:
                 // Nothing to declare, leaf nodes
                 break;
 
-            case ProcExpression proc:
+            case Expression.Proc proc:
                 // Processes introduce a scope for their signature
                 symbolTable.PushScope();
                 // Declare in parameters
@@ -72,7 +72,7 @@ namespace Yoakke.Semantic
                 symbolTable.PopScope();
                 break;
 
-            case BlockExpression block:
+            case Expression.Block block:
                 // Blocks introduce a scope
                 symbolTable.PushScope();
                 // Declare in each statement

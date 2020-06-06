@@ -49,14 +49,14 @@ namespace Yoakke.Semantic
         /// <summary>
         /// The AST node of the procedure.
         /// </summary>
-        public readonly ProcExpression Node;
+        public readonly Expression.Proc Node;
 
         /// <summary>
         /// Initializes a new <see cref="ProcValue"/>.
         /// </summary>
         /// <param name="node">The AST node this procedure originates from.</param>
         /// <param name="type">The <see cref="Type"/> of this procedure.</param>
-        public ProcValue(ProcExpression node, Type type)
+        public ProcValue(Expression.Proc node, Type type)
         {
             Node = node;
             this.type = type;

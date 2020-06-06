@@ -20,11 +20,11 @@ namespace Yoakke.Semantic
         {
             switch (statement)
             {
-            case ProgramDeclaration program:
+            case Declaration.Program program:
                 foreach (var decl in program.Declarations) Assign(decl);
                 break;
 
-            case ConstDefinition constDef:
+            case Declaration.ConstDef constDef:
                 Assert.NonNull(constDef.Symbol);
                 if (constDef.Symbol.Value == null)
                 {
@@ -32,7 +32,7 @@ namespace Yoakke.Semantic
                 }
                 break;
 
-            case ExpressionStatement expression:
+            case Statement.Expression_ expression:
                 Assign(expression.Expression);
                 break;
 
@@ -45,17 +45,17 @@ namespace Yoakke.Semantic
             switch (expression)
             {
             // Nothing to do, leaf nodes
-            case IntLiteralExpression intLit:
-            case IdentifierExpression ident:
+            case Expression.IntLit intLit:
+            case Expression.Ident ident:
                 break;
 
-            case ProcExpression proc:
+            case Expression.Proc proc:
                 foreach (var param in proc.Parameters) Assign(param.Type);
                 if (proc.ReturnType != null) Assign(proc.ReturnType);
                 Assign(proc.Body);
                 break;
 
-            case BlockExpression block:
+            case Expression.Block block:
                 foreach (var stmt in block.Statements) Assign(stmt);
                 if (block.Value != null) Assign(block.Value);
                 break;

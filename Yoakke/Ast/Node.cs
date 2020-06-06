@@ -86,7 +86,7 @@ namespace Yoakke.Ast
     /// <summary>
     /// Base class for all statements.
     /// </summary>
-    abstract class Statement : Node
+    abstract partial class Statement : Node
     {
     }
 
@@ -94,14 +94,14 @@ namespace Yoakke.Ast
     /// Base class for all statements, that can have order-independence.
     /// They are called declarations.
     /// </summary>
-    abstract class Declaration : Statement
+    abstract partial class Declaration : Statement
     {
     }
 
     /// <summary>
     /// Base class for all expressions, that result in a value and can participate in other expressions.
     /// </summary>
-    abstract class Expression : Node
+    abstract partial class Expression : Node
     {
         /// <summary>
         /// The <see cref="Value"/> this <see cref="Expression"/> evaluates to compile-time, if it's being evaluated

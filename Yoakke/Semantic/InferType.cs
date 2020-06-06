@@ -20,16 +20,16 @@ namespace Yoakke.Semantic
         {
             switch (statement)
             {
-            case ProgramDeclaration program:
+            case Declaration.Program program:
                 foreach (var decl in program.Declarations) Infer(decl);
                 break;
 
-            case ConstDefinition constDef:
+            case Declaration.ConstDef constDef:
                 Infer(constDef.Value);
                 if (constDef.Type != null) Infer(constDef.Type);
                 break;
 
-            case ExpressionStatement expression:
+            case Statement.Expression_ expression:
                 Infer(expression.Expression);
                 break;
 
@@ -41,11 +41,11 @@ namespace Yoakke.Semantic
         {
             switch (expression)
             {
-            case IntLiteralExpression intLiteral:
-            case IdentifierExpression identifier:
+            case Expression.IntLit intLiteral:
+            case Expression.Ident identifier:
                 break;
 
-            case ProcExpression proc:
+            case Expression.Proc proc:
                 foreach (var param in proc.Parameters) Infer(param.Type);
                 if (proc.ReturnType != null) Infer(proc.ReturnType);
                 Infer(proc.Body);
@@ -56,7 +56,7 @@ namespace Yoakke.Semantic
                 Unifier.Unify(proc.Body.EvaluationType, returnType);
                 break;
 
-            case BlockExpression block:
+            case Expression.Block block:
                 foreach (var stmt in block.Statements) Infer(stmt);
                 if (block.Value != null) Infer(block.Value);
                 break;
