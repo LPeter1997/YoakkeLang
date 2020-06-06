@@ -8,7 +8,7 @@ namespace Yoakke.IR
     /// <summary>
     /// Base for values during IR compilation.
     /// </summary>
-    abstract class Value
+    abstract partial class Value
     {
         /// <summary>
         /// The <see cref="Type"/> of this <see cref="Value"/>.
@@ -16,51 +16,56 @@ namespace Yoakke.IR
         public abstract Type Type { get; }
     }
 
-    /// <summary>
-    /// A <see cref="Value"/> that's being stored inside a register.
-    /// </summary>
-    class RegisterValue : Value
-    {
-        private Type type;
-        public override Type Type => type;
-        /// <summary>
-        /// The index of the register.
-        /// </summary>
-        public int Index { get; set; }
+    // Variants
 
+    partial class Value
+    {
         /// <summary>
-        /// Initializes a new <see cref="RegisterValue"/>.
+        /// A <see cref="Value"/> that's being stored inside a register.
         /// </summary>
-        /// <param name="type">The <see cref="Type"/> the register needs to store.</param>
-        /// <param name="index">The index of the register.</param>
-        public RegisterValue(Type type, int index)
+        public class Register : Value
         {
-            this.type = type;
-            Index = index;
+            private Type type;
+            public override Type Type => type;
+            /// <summary>
+            /// The index of the register.
+            /// </summary>
+            public int Index { get; set; }
+
+            /// <summary>
+            /// Initializes a new <see cref="Register"/>.
+            /// </summary>
+            /// <param name="type">The <see cref="Type"/> the register needs to store.</param>
+            /// <param name="index">The index of the register.</param>
+            public Register(Type type, int index)
+            {
+                this.type = type;
+                Index = index;
+            }
         }
-    }
-
-    /// <summary>
-    /// An integral <see cref="Value"/>.
-    /// </summary>
-    class IntValue : Value
-    {
-        private IntType type;
-        public override Type Type => type;
-        /// <summary>
-        /// The actual numberic value.
-        /// </summary>
-        public BigInteger Value { get; set; }
 
         /// <summary>
-        /// Initializes a new <see cref="IntValue"/>.
+        /// An integral <see cref="Value"/>.
         /// </summary>
-        /// <param name="type">The <see cref="IntType"/> this integer value has.</param>
-        /// <param name="value">The actual integer value itself.</param>
-        public IntValue(IntType type, BigInteger value)
+        public class Int : Value
         {
-            this.type = type;
-            Value = value;
+            private Type.Int type;
+            public override Type Type => type;
+            /// <summary>
+            /// The actual numberic value.
+            /// </summary>
+            public BigInteger Value { get; set; }
+
+            /// <summary>
+            /// Initializes a new <see cref="Int"/>.
+            /// </summary>
+            /// <param name="type">The <see cref="IntType"/> this integer value has.</param>
+            /// <param name="value">The actual integer value itself.</param>
+            public Int(Type.Int type, BigInteger value)
+            {
+                this.type = type;
+                Value = value;
+            }
         }
     }
 }

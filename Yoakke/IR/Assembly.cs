@@ -27,7 +27,7 @@ namespace Yoakke.IR
         /// <summary>
         /// The parameters of the procedure.
         /// </summary>
-        public readonly List<RegisterValue> Parameters = new List<RegisterValue>();
+        public readonly List<Value.Register> Parameters = new List<Value.Register>();
         /// <summary>
         /// The return <see cref="Type"/> of the procedure.
         /// </summary>

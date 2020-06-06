@@ -71,12 +71,12 @@ namespace Yoakke.IR
 
             switch (instruction)
             {
-            case AllocInstruction alloc:
+            case Instruction.Alloc alloc:
                 builder.Append("alloc ");
                 DumpType(builder, alloc.ElementType);
                 break;
 
-            case RetInstruction ret:
+            case Instruction.Ret ret:
                 builder.Append("ret");
                 if (ret.Value != null)
                 {
@@ -85,14 +85,14 @@ namespace Yoakke.IR
                 }
                 break;
 
-            case StoreInstruction store:
+            case Instruction.Store store:
                 builder.Append("store ");
                 DumpValue(builder, store.Target);
                 builder.Append(", ");
                 DumpValue(builder, store.Value);
                 break;
 
-            case LoadInstruction load:
+            case Instruction.Load load:
                 builder.Append("load ");
                 DumpValue(builder, load.Source);
                 break;
@@ -105,11 +105,11 @@ namespace Yoakke.IR
         {
             switch (value)
             {
-            case RegisterValue reg:
+            case Value.Register reg:
                 builder.Append('r').Append(reg.Index);
                 break;
 
-            case IntValue intVal:
+            case Value.Int intVal:
                 builder.Append(intVal.Value);
                 break;
             }
@@ -119,15 +119,15 @@ namespace Yoakke.IR
         {
             switch (type)
             {
-            case VoidType _:
+            case IR.Type.Void _:
                 builder.Append("void");
                 break;
 
-            case IntType intType:
+            case IR.Type.Int intType:
                 builder.Append('i').Append(intType.Bits);
                 break;
 
-            case PtrType ptrType:
+            case IR.Type.Ptr ptrType:
                 builder.Append('*');
                 DumpType(builder, ptrType.ElementType);
                 break;

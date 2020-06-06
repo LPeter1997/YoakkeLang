@@ -7,25 +7,22 @@ namespace Yoakke.IR
     /// <summary>
     /// Base class for every IR type.
     /// </summary>
-    abstract class Type
+    abstract partial class Type
     {
         /// <summary>
         /// The <see cref="Type"/> constant for void (no return value).
         /// </summary>
-        public static readonly Type Void = new VoidType();
+        public static readonly Type Void_ = new Void();
         /// <summary>
         /// The <see cref="Type"/> constant for i32 type.
         /// </summary>
-        public static readonly Type I32 = new IntType(true, 32);
+        public static readonly Type I32 = new Int(true, 32);
+    }
 
-        /// <summary>
-        /// Creates a pointer <see cref="Type"/> for the given element <see cref="Type"/>.
-        /// </summary>
-        /// <param name="elementType">The element <see cref="Type"/> to create a pointer <see cref="Type"/> of.</param>
-        /// <returns>The pointer <see cref="Type"/>.</returns>
-        public static Type Ptr(Type elementType) =>
-            new PtrType(elementType);
+    // Operations
 
+    partial class Type
+    {
         /// <summary>
         /// Checks wether two <see cref="Type"/>s are the same.
         /// </summary>
@@ -35,58 +32,63 @@ namespace Yoakke.IR
         public static bool Same(Type t1, Type t2) =>
             t1 switch
             {
-                VoidType _ => t2 is VoidType,
-                IntType i1 => t2 is IntType i2 && i1.Signed == i2.Signed && i1.Bits == i2.Bits,
-                PtrType p1 => t2 is PtrType p2 && Same(p1.ElementType, p2.ElementType),
+                Void _ => t2 is Void,
+                Int i1 => t2 is Int i2 && i1.Signed == i2.Signed && i1.Bits == i2.Bits,
+                Ptr p1 => t2 is Ptr p2 && Same(p1.ElementType, p2.ElementType),
                 _ => throw new NotImplementedException(),
             };
     }
 
-    /// <summary>
-    /// Void <see cref="Type"/>.
-    /// </summary>
-    class VoidType : Type { }
+    // Variants
 
-    /// <summary>
-    /// Integral <see cref="Type"/>.
-    /// </summary>
-    class IntType : Type
+    partial class Type
     {
-        public readonly bool Signed;
         /// <summary>
-        /// The number of bits this <see cref="IntType"/> consists of.
+        /// Void <see cref="Type"/>.
         /// </summary>
-        public readonly int Bits;
+        public class Void : Type { }
 
         /// <summary>
-        /// Initializes a new <see cref="IntType"/>.
+        /// Integral <see cref="Type"/>.
         /// </summary>
-        /// <param name="signed">True, if this integer should be signed.</param>
-        /// <param name="bits">The number of bits this integer type should have.</param>
-        public IntType(bool signed, int bits)
+        public class Int : Type
         {
-            Signed = signed;
-            Bits = bits;
+            public readonly bool Signed;
+            /// <summary>
+            /// The number of bits this <see cref="Int"/> consists of.
+            /// </summary>
+            public readonly int Bits;
+
+            /// <summary>
+            /// Initializes a new <see cref="Int"/>.
+            /// </summary>
+            /// <param name="signed">True, if this integer should be signed.</param>
+            /// <param name="bits">The number of bits this integer type should have.</param>
+            public Int(bool signed, int bits)
+            {
+                Signed = signed;
+                Bits = bits;
+            }
         }
-    }
-
-    /// <summary>
-    /// A pointer to another <see cref="Type"/>.
-    /// </summary>
-    class PtrType : Type
-    {
-        /// <summary>
-        /// The <see cref="Type"/> this <see cref="PtrType"/> points to.
-        /// </summary>
-        public readonly Type ElementType;
 
         /// <summary>
-        /// Initializes a new <see cref="PtrType"/>.
+        /// A pointer to another <see cref="Type"/>.
         /// </summary>
-        /// <param name="elementType">The <see cref="Type"/> this <see cref="PtrType"/> should point to.</param>
-        public PtrType(Type elementType)
+        public class Ptr : Type
         {
-            ElementType = elementType;
+            /// <summary>
+            /// The <see cref="Type"/> this <see cref="Ptr"/> points to.
+            /// </summary>
+            public readonly Type ElementType;
+
+            /// <summary>
+            /// Initializes a new <see cref="Ptr"/>.
+            /// </summary>
+            /// <param name="elementType">The <see cref="Type"/> this <see cref="Ptr"/> should point to.</param>
+            public Ptr(Type elementType)
+            {
+                ElementType = elementType;
+            }
         }
     }
 }

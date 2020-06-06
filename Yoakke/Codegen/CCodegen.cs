@@ -78,7 +78,7 @@ namespace Yoakke.Backend
         {
             switch (instruction)
             {
-            case AllocInstruction alloc:
+            case Instruction.Alloc alloc:
                 // T rX_value;
                 // T* rX = &rX_value;
                 builder.Append("    ");
@@ -95,11 +95,11 @@ namespace Yoakke.Backend
                     .Append(";\n");
                 break;
 
-            case RetInstruction ret:
-            case StoreInstruction store:
+            case Instruction.Ret ret:
+            case Instruction.Store store:
                 break;
 
-            case LoadInstruction load:
+            case Instruction.Load load:
                 builder.Append("    ");
                 Compile(builder, load.Value.Type);
                 builder.Append(' ');
@@ -115,7 +115,7 @@ namespace Yoakke.Backend
         {
             switch (instruction)
             {
-            case AllocInstruction alloc:
+            case Instruction.Alloc alloc:
                 builder
                     .Append("r")
                     .Append(alloc.Value.Index)
@@ -124,7 +124,7 @@ namespace Yoakke.Backend
                     .Append("_value");
                 break;
 
-            case RetInstruction ret:
+            case Instruction.Ret ret:
                 builder.Append("return");
                 if (ret.Value != null)
                 {
@@ -133,14 +133,14 @@ namespace Yoakke.Backend
                 }
                 break;
 
-            case StoreInstruction store:
+            case Instruction.Store store:
                 builder.Append('*');
                 Compile(builder, store.Target);
                 builder.Append(" = ");
                 Compile(builder, store.Value);
                 break;
 
-            case LoadInstruction load:
+            case Instruction.Load load:
                 Compile(builder, load.Value);
                 builder.Append(" = *");
                 Compile(builder, load.Source);
@@ -154,11 +154,11 @@ namespace Yoakke.Backend
         {
             switch (value)
             {
-            case RegisterValue regVal:
+            case Value.Register regVal:
                 builder.Append('r').Append(regVal.Index);
                 break;
 
-            case IntValue intVal:
+            case Value.Int intVal:
                 builder.Append(intVal.Value);
                 break;
 
@@ -170,16 +170,16 @@ namespace Yoakke.Backend
         {
             switch (type)
             {
-            case VoidType voidType: 
+            case IR.Type.Void voidType: 
                 builder.Append("void");
                 break;
 
-            case IntType intType:
+            case IR.Type.Int intType:
                 if (!intType.Signed) builder.Append('u');
                 builder.Append($"int{intType.Bits}_t");
                 break;
 
-            case PtrType ptrType:
+            case IR.Type.Ptr ptrType:
                 Compile(builder, ptrType.ElementType);
                 builder.Append('*');
                 break;

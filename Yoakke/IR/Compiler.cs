@@ -17,20 +17,21 @@ namespace Yoakke.IR
     {
         private class ProcedureContext
         {
-            public readonly Dictionary<Symbol.Variable, RegisterValue> Variables = new Dictionary<Symbol.Variable, RegisterValue>();
+            public readonly Dictionary<Symbol.Variable, Value.Register> Variables = 
+                new Dictionary<Symbol.Variable, Value.Register>();
 
             private int registerCount = 0;
 
-            public RegisterValue AllocateRegister(Symbol.Variable varSym, Type type)
+            public Value.Register AllocateRegister(Symbol.Variable varSym, Type type)
             {
                 var value = AllocateRegister(type);
                 Variables.Add(varSym, value);
                 return value;
             }
 
-            public RegisterValue AllocateRegister(Type type)
+            public Value.Register AllocateRegister(Type type)
             {
-                return new RegisterValue(type, registerCount++);
+                return new Value.Register(type, registerCount++);
             }
         }
 
@@ -72,9 +73,9 @@ namespace Yoakke.IR
                     // (in parameter list) ParamType rX
                     // rY = alloc ParamType
                     // store rY, rX
-                    var regMut = ctx.AllocateRegister(param.Symbol, Type.Ptr(type));
-                    builder.AddInstruction(new AllocInstruction(regMut));
-                    builder.AddInstruction(new StoreInstruction(regMut, reg));
+                    var regMut = ctx.AllocateRegister(param.Symbol, new Type.Ptr(type));
+                    builder.AddInstruction(new Instruction.Alloc(regMut));
+                    builder.AddInstruction(new Instruction.Store(regMut, reg));
                 }
                 Compile(builder, ctx, proc.Body);
             });
@@ -120,8 +121,8 @@ namespace Yoakke.IR
             case Expression.IntLit intLit:
             {
                 Assert.NonNull(intLit.EvaluationType);
-                var ty = (IntType)Compile(intLit.EvaluationType);
-                return new IntValue(ty, BigInteger.Parse(intLit.Token.Value));
+                var ty = (Type.Int)Compile(intLit.EvaluationType);
+                return new Value.Int(ty, BigInteger.Parse(intLit.Token.Value));
             }
 
             case Expression.Ident ident:
@@ -139,9 +140,9 @@ namespace Yoakke.IR
                     // rX = load ADDRESS
                     Assert.NonNull(ctx);
                     var varAddress = ctx.Variables[varSym];
-                    var varType = ((PtrType)varAddress.Type).ElementType;
+                    var varType = ((IR.Type.Ptr)varAddress.Type).ElementType;
                     var varValue = ctx.AllocateRegister(varType);
-                    builder.AddInstruction(new LoadInstruction(varValue, varAddress));
+                    builder.AddInstruction(new Instruction.Load(varValue, varAddress));
                     return varValue;
                 }
 
@@ -163,7 +164,7 @@ namespace Yoakke.IR
                                   ? null
                                   : Compile(builder, ctx, block.Value);
                 // TODO: block-evaluation does not necessarily return from the function!!!
-                builder.AddInstruction(new RetInstruction(retValue));
+                builder.AddInstruction(new Instruction.Ret(retValue));
                 return retValue;
             }
 
@@ -186,7 +187,7 @@ namespace Yoakke.IR
         private static Type Compile(Semantic.Type type)
         {
             if (Semantic.Type.Same(type, Semantic.Type.I32)) return Type.I32;
-            if (Semantic.Type.Same(type, Semantic.Type.Unit)) return Type.Void;
+            if (Semantic.Type.Same(type, Semantic.Type.Unit)) return Type.Void_;
 
             throw new NotImplementedException();
         }
