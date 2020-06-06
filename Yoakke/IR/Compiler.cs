@@ -52,7 +52,7 @@ namespace Yoakke.IR
         private static void CompileProcedure(IrBuilder builder, string name, Expression.Proc proc)
         {
             Assert.NonNull(proc.EvaluationType);
-            var procTy = (TypeConstructor)proc.EvaluationType.Substitution;
+            var procTy = (Semantic.Type.Ctor)proc.EvaluationType.Substitution;
             Debug.Assert(procTy.Name == "procedure");
             var retTy = Compile(procTy.Subtypes.Last());
             builder.CreateProc(name, retTy, () =>

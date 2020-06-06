@@ -16,13 +16,13 @@ namespace Yoakke.Semantic
         /// <param name="t2">The second <see cref="Type"/> to unify.</param>
         public static void Unify(Type t1, Type t2)
         {
-            void UnifyVarVar(TypeVariable v1, TypeVariable v2)
+            void UnifyVarVar(Type.Var v1, Type.Var v2)
             {
                 if (ReferenceEquals(v1, v2)) return;
                 v2.SubstituteFor(v1);
             }
 
-            void UnifyCtorVar(TypeConstructor c1, TypeVariable v2)
+            void UnifyCtorVar(Type.Ctor c1, Type.Var v2)
             {
                 if (c1.Contains(v2))
                 {
@@ -31,7 +31,7 @@ namespace Yoakke.Semantic
                 v2.SubstituteFor(c1);
             }
 
-            void UnifyCtorCtor(TypeConstructor c1, TypeConstructor c2)
+            void UnifyCtorCtor(Type.Ctor c1, Type.Ctor c2)
             {
                 if (c1.Name != c2.Name)
                 {
@@ -49,27 +49,27 @@ namespace Yoakke.Semantic
 
             t1 = t1.Substitution;
             t2 = t2.Substitution;
-            if (t1 is TypeVariable v1)
+            if (t1 is Type.Var v1)
             {
-                if (t2 is TypeVariable v2)
+                if (t2 is Type.Var v2)
                 {
                     UnifyVarVar(v1, v2);
                     return;
                 }
-                if (t2 is TypeConstructor c2)
+                if (t2 is Type.Ctor c2)
                 {
                     UnifyCtorVar(c2, v1);
                     return;
                 }
             }
-            if (t1 is TypeConstructor c1)
+            if (t1 is Type.Ctor c1)
             {
-                if (t2 is TypeVariable v2)
+                if (t2 is Type.Var v2)
                 {
                     UnifyCtorVar(c1, v2);
                     return;
                 }
-                if (t2 is TypeConstructor c2)
+                if (t2 is Type.Ctor c2)
                 {
                     UnifyCtorCtor(c1, c2);
                     return;

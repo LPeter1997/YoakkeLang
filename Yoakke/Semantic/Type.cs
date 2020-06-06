@@ -9,7 +9,7 @@ namespace Yoakke.Semantic
     /// <summary>
     /// The base class for types in the compiler.
     /// </summary>
-    abstract class Type
+    abstract partial class Type
     {
         /// <summary>
         /// Constant for an empty <see cref="Type"/> list.
@@ -31,39 +31,39 @@ namespace Yoakke.Semantic
         public static readonly Type I32 = Primitive("i32");
 
         /// <summary>
-        /// Creates a <see cref="TypeVariable"/>.
+        /// Creates a <see cref="Var"/>.
         /// </summary>
-        /// <returns>A new, unique <see cref="TypeVariable"/>.</returns>
+        /// <returns>A new, unique <see cref="Var"/>.</returns>
         public static Type Variable() =>
-            new TypeVariable();
+            new Var();
 
         /// <summary>
         /// Creates a primitive type.
         /// </summary>
         /// <param name="name">The name of the primitive type.</param>
-        /// <returns>The <see cref="TypeConstructor"/> representing a primitive type.</returns>
+        /// <returns>The <see cref="Ctor"/> representing a primitive type.</returns>
         public static Type Primitive(string name) =>
-            new TypeConstructor(name, EmptyList);
+            new Ctor(name, EmptyList);
 
         /// <summary>
         /// Creates a tuple type.
         /// </summary>
         /// <param name="types">The list of <see cref="Type"/>s the tuple consists of.</param>
-        /// <returns>The <see cref="TypeConstructor"/> representing a tuple type.</returns>
+        /// <returns>The <see cref="Ctor"/> representing a tuple type.</returns>
         public static Type Tuple(IList<Type> types) =>
-            new TypeConstructor("tuple", types);
+            new Ctor("tuple", types);
 
         /// <summary>
         /// Creates a procedure type.
         /// </summary>
         /// <param name="parameters">The list of parameter <see cref="Type"/>s.</param>
         /// <param name="ret">The return <see cref="Type"/>.</param>
-        /// <returns>The <see cref="TypeConstructor"/> representing a procedure type.</returns>
+        /// <returns>The <see cref="Ctor"/> representing a procedure type.</returns>
         public static Type Procedure(IList<Type> parameters, Type ret)
         {
             var types = parameters.ToList();
             types.Add(ret);
-            return new TypeConstructor("procedure", types);
+            return new Ctor("procedure", types);
         }
 
         /// <summary>
@@ -72,11 +72,11 @@ namespace Yoakke.Semantic
         public virtual Type Substitution => this;
 
         /// <summary>
-        /// Checks, if this <see cref="Type"/> contains the given <see cref="TypeVariable"/>.
+        /// Checks, if this <see cref="Type"/> contains the given <see cref="Var"/>.
         /// </summary>
         /// <param name="typeVariable">The type variable to search for.</param>
-        /// <returns>True, if the <see cref="TypeVariable"/> is contained.</returns>
-        public abstract bool Contains(TypeVariable typeVariable);
+        /// <returns>True, if the <see cref="Var"/> is contained.</returns>
+        public abstract bool Contains(Var typeVariable);
 
         /// <summary>
         /// Checks wether two <see cref="Type"/>s are exactly the same.
@@ -89,11 +89,11 @@ namespace Yoakke.Semantic
         {
             t1 = t1.Substitution;
             t2 = t2.Substitution;
-            if (t1 is TypeVariable) throw new InvalidOperationException();
+            if (t1 is Var) throw new InvalidOperationException();
             return t1 switch
             {
-                TypeVariable _ => throw new InvalidOperationException(),
-                TypeConstructor c1 => t2 is TypeConstructor c2 
+                Var _ => throw new InvalidOperationException(),
+                Ctor c1 => t2 is Ctor c2 
                                    && c1.Name == c2.Name 
                                    && c1.Subtypes.Count == c2.Subtypes.Count
                                    && c1.Subtypes.Zip(c2.Subtypes).All((ts) => Same(ts.First, ts.Second)),
@@ -102,58 +102,61 @@ namespace Yoakke.Semantic
         }
     }
 
-    /// <summary>
-    /// Represents a <see cref="Type"/> that's not inferred yet, and could be substituted for another.
-    /// </summary>
-    class TypeVariable : Type
+    partial class Type
     {
-        private Type? substitution;
-        public override Type Substitution
+        /// <summary>
+        /// Represents a <see cref="Type"/> that's not inferred yet, and could be substituted for another.
+        /// </summary>
+        public class Var : Type
         {
-            get
+            private Type? substitution;
+            public override Type Substitution
             {
-                if (substitution == null) return this;
-                // Pruning
-                substitution = substitution.Substitution;
-                return substitution;
+                get
+                {
+                    if (substitution == null) return this;
+                    // Pruning
+                    substitution = substitution.Substitution;
+                    return substitution;
+                }
+            }
+
+            public override bool Contains(Var typeVariable) =>
+                ReferenceEquals(this, typeVariable);
+
+            /// <summary>
+            /// Substitutes this type variable for another <see cref="Type"/>.
+            /// </summary>
+            /// <param name="type">The <see cref="Type"/> to substitute for.</param>
+            public void SubstituteFor(Type type)
+            {
+                Debug.Assert(substitution == null, "Can only substitute for a type variable once!");
+                substitution = type;
             }
         }
 
-        public override bool Contains(TypeVariable typeVariable) =>
-            ReferenceEquals(this, typeVariable);
-
         /// <summary>
-        /// Substitutes this type variable for another <see cref="Type"/>.
+        /// Represents a concrete <see cref="Type"/> with a name and possible subtypes.
         /// </summary>
-        /// <param name="type">The <see cref="Type"/> to substitute for.</param>
-        public void SubstituteFor(Type type)
+        public class Ctor : Type
         {
-            Debug.Assert(substitution == null, "Can only substitute for a type variable once!");
-            substitution = type;
+            /// <summary>
+            /// The name of this type.
+            /// </summary>
+            public string Name { get; }
+            /// <summary>
+            /// The subtypes of this type.
+            /// </summary>
+            public IList<Type> Subtypes { get; }
+
+            internal Ctor(string name, IList<Type> subtypes)
+            {
+                Name = name;
+                Subtypes = subtypes;
+            }
+
+            public override bool Contains(Var typeVariable) =>
+                Subtypes.Any(ty => ty.Contains(typeVariable));
         }
-    }
-
-    /// <summary>
-    /// Represents a concrete <see cref="Type"/> with a name and possible subtypes.
-    /// </summary>
-    class TypeConstructor : Type
-    {
-        /// <summary>
-        /// The name of this type.
-        /// </summary>
-        public string Name { get; }
-        /// <summary>
-        /// The subtypes of this type.
-        /// </summary>
-        public IList<Type> Subtypes { get; }
-
-        internal TypeConstructor(string name, IList<Type> subtypes)
-        {
-            Name = name;
-            Subtypes = subtypes;
-        }
-
-        public override bool Contains(TypeVariable typeVariable) =>
-            Subtypes.Any(ty => ty.Contains(typeVariable));
     }
 }
