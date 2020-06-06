@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Yoakke.IR;
 using Yoakke.Utils;
+using Type = Yoakke.IR.Type;
 
 namespace Yoakke.Backend
 {
@@ -11,180 +12,169 @@ namespace Yoakke.Backend
     /// </summary>
     class CCodegen : ICodegen
     {
+        private StringBuilder builder = new StringBuilder();
+
         public string Compile(Assembly assembly)
         {
-            var result = new StringBuilder();
-            result.Append("#include <stdint.h>\n\n");
-            foreach (var proc in assembly.Procedures)
-            {
-                Declare(result, proc);
-                result.Append('\n');
-            }
-            result.Append('\n');
-            foreach (var proc in assembly.Procedures)
-            {
-                Compile(result, proc);
-                result.Append('\n');
-            }
-            return result.ToString().Trim();
+            return CompileAssembly(assembly);
         }
 
-        private void Declare(StringBuilder builder, Proc proc)
+        private string CompileAssembly(Assembly assembly)
         {
-            Compile(builder, proc.ReturnType);
-            builder
-                .Append(' ')
-                .Append(proc.Name)
-                .Append('(');
-            proc.Parameters.Intertwine(param => Compile(builder, param.Type), () => builder.Append(", "));
-            builder.Append(");");
+            Write("#include <stdint.h>\n\n");
+            foreach (var proc in assembly.Procedures)
+            {
+                DeclareProc(proc);
+                Write('\n');
+            }
+            Write('\n');
+            foreach (var proc in assembly.Procedures)
+            {
+                CompileProc(proc);
+                Write('\n');
+            }
+            return builder.ToString().Trim();
         }
 
-        private void Compile(StringBuilder builder, Proc proc)
+        private void DeclareProc(Proc proc)
         {
-            Compile(builder, proc.ReturnType);
-            builder
-                .Append(' ')
-                .Append(proc.Name)
-                .Append("(");
-            proc.Parameters.Intertwine(param =>
-            {
-                Compile(builder, param.Type);
-                builder.Append(' ');
-                Compile(builder, param);
-            },
-            () => builder.Append(", "));
-            builder.Append(") {\n");
+            Write(proc.ReturnType, $" {proc.Name}(");
+            proc.Parameters.Intertwine(param => Write(param.Type), () => Write(", "));
+            Write(");");
+        }
+
+        private void CompileProc(Proc proc)
+        {
+            Write(proc.ReturnType, $" {proc.Name}(");
+            proc.Parameters.Intertwine(
+                param => Write(param.Type, ' ', param),
+                () => Write(", "));
+            Write(") {\n");
             foreach (var bb in proc.BasicBlocks)
             {
-                foreach (var ins in bb.Instructions) ForwardDeclare(builder, ins);
+                foreach (var ins in bb.Instructions) ForwardDeclareVariable(ins);
             }
-            foreach (var bb in proc.BasicBlocks) Compile(builder, bb);
-            builder.Append("}\n");
+            foreach (var bb in proc.BasicBlocks) CompileBasicBlock(bb);
+            Write("}\n");
         }
 
-        private void Compile(StringBuilder builder, BasicBlock basicBlock)
+        private void CompileBasicBlock(BasicBlock basicBlock)
         {
-            builder.Append(basicBlock.Name).Append(":\n");
+            Write(basicBlock.Name, ":\n");
             foreach (var ins in basicBlock.Instructions)
             {
-                builder.Append("    ");
-                Compile(builder, ins);
-                builder.Append(";\n");
+                Write("    ", ins, ";\n");
             }
         }
 
-        private void ForwardDeclare(StringBuilder builder, Instruction instruction)
+        private void ForwardDeclareVariable(Instruction instruction)
         {
+            if (instruction is ValueInstruction vi)
+            {
+                Write("    ", vi.Value.Type, ' ', vi.Value, ";\n");
+            }
+
             switch (instruction)
             {
+            case Instruction.Ret _:
+            case Instruction.Store _:
+            case Instruction.Load _:
+                break;
+
             case Instruction.Alloc alloc:
                 // T rX_value;
                 // T* rX = &rX_value;
-                builder.Append("    ");
-                Compile(builder, alloc.ElementType);
-                builder
-                    .Append(" r")
-                    .Append(alloc.Value.Index)
-                    .Append("_value;\n")
-                    .Append("    ");
-                Compile(builder, alloc.Value.Type);
-                builder
-                    .Append(" r")
-                    .Append(alloc.Value.Index)
-                    .Append(";\n");
-                break;
-
-            case Instruction.Ret ret:
-            case Instruction.Store store:
-                break;
-
-            case Instruction.Load load:
-                builder.Append("    ");
-                Compile(builder, load.Value.Type);
-                builder.Append(' ');
-                Compile(builder, load.Value);
-                builder.Append(";\n");
+                Write("    ", alloc.ElementType, ' ', alloc.Value, "_value;\n");
                 break;
 
             default: throw new NotImplementedException();
             }
         }
 
-        private void Compile(StringBuilder builder, Instruction instruction)
+        private void CompileInstruction(Instruction instruction)
         {
             switch (instruction)
             {
             case Instruction.Alloc alloc:
-                builder
-                    .Append("r")
-                    .Append(alloc.Value.Index)
-                    .Append(" = &r")
-                    .Append(alloc.Value.Index)
-                    .Append("_value");
+                Write(alloc.Value, " = &", alloc.Value, "_value");
                 break;
 
             case Instruction.Ret ret:
-                builder.Append("return");
-                if (ret.Value != null)
-                {
-                    builder.Append(' ');
-                    Compile(builder, ret.Value);
-                }
+                Write("return");
+                if (ret.Value != null) Write(' ', ret.Value);
                 break;
 
             case Instruction.Store store:
-                builder.Append('*');
-                Compile(builder, store.Target);
-                builder.Append(" = ");
-                Compile(builder, store.Value);
+                Write('*', store.Target, " = ", store.Value);
                 break;
 
             case Instruction.Load load:
-                Compile(builder, load.Value);
-                builder.Append(" = *");
-                Compile(builder, load.Source);
+                Write(load.Value, " = *", load.Source);
                 break;
 
             default: throw new NotImplementedException();
             }    
         }
 
-        private void Compile(StringBuilder builder, IR.Value value)
+        private void CompileValue(Value value)
         {
             switch (value)
             {
             case Value.Register regVal:
-                builder.Append('r').Append(regVal.Index);
+                Write('r', regVal.Index);
                 break;
 
             case Value.Int intVal:
-                builder.Append(intVal.Value);
+                Write(intVal.Value);
                 break;
 
             default: throw new NotImplementedException();
             }
         }
 
-        private void Compile(StringBuilder builder, IR.Type type)
+        private void CompileType(Type type)
         {
             switch (type)
             {
-            case IR.Type.Void voidType: 
-                builder.Append("void");
+            case Type.Void _: 
+                Write("void");
                 break;
 
-            case IR.Type.Int intType:
-                if (!intType.Signed) builder.Append('u');
-                builder.Append($"int{intType.Bits}_t");
+            case Type.Int intType:
+                if (!intType.Signed) Write('u');
+                Write($"int{intType.Bits}_t");
                 break;
 
-            case IR.Type.Ptr ptrType:
-                Compile(builder, ptrType.ElementType);
-                builder.Append('*');
+            case Type.Ptr ptrType:
+                Write(ptrType.ElementType, '*');
                 break;
 
             default: throw new NotImplementedException();
+            }
+        }
+
+        private void Write(params object[] args)
+        {
+            foreach (var arg in args)
+            {
+                switch (arg)
+                {
+                case Type t:
+                    CompileType(t);
+                    break;
+
+                case Value v:
+                    CompileValue(v);
+                    break;
+
+                case Instruction i:
+                    CompileInstruction(i);
+                    break;
+
+                default:
+                    builder.Append(arg);
+                    break;
+                }
             }
         }
     }
