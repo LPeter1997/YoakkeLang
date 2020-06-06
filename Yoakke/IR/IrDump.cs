@@ -8,7 +8,7 @@ namespace Yoakke.IR
     /// <summary>
     /// Functionality to dump IR code as text.
     /// </summary>
-    static class IrDump
+    class IrDump
     {
         /// <summary>
         /// Dumps the given IR <see cref="Assembly"/> as human-readable text.
@@ -17,122 +17,131 @@ namespace Yoakke.IR
         /// <returns>The string representation of the IR code.</returns>
         public static string Dump(Assembly assembly)
         {
-            var result = new StringBuilder();
+            return new IrDump().DumpAssembly(assembly);
+        }
+
+        private StringBuilder builder = new StringBuilder();
+
+        private IrDump() { }
+
+        private string DumpAssembly(Assembly assembly)
+        {
             foreach (var proc in assembly.Procedures)
             {
-                DumpProc(result, proc);
-                result.Append('\n');
+                DumpProc(proc);
+                Write('\n');
             }
-            return result.ToString().Trim();
+            return builder.ToString().Trim();
         }
 
-        private static void DumpProc(StringBuilder builder, Proc proc)
+        private void DumpProc(Proc proc)
         {
-            builder.Append("proc ");
-            DumpType(builder, proc.ReturnType);
-            builder
-                .Append(' ')
-                .Append(proc.Name)
-                .Append('(');
+            Write("proc ", proc.ReturnType, $" {proc.Name}(");
             // Parameters
-            proc.Parameters.Intertwine(param =>
-            {
-                DumpType(builder, param.Type);
-                builder.Append(' ');
-                DumpValue(builder, param);
-            },
-            () => builder.Append(", "));
-            builder.Append("):\n");
+            proc.Parameters.Intertwine(
+                param => Write(param.Type, ' ', param),
+                () => Write(", "));
+            Write("):\n");
 
-            foreach (var bb in proc.BasicBlocks) DumpBasicBlock(builder, bb);
+            foreach (var bb in proc.BasicBlocks) DumpBasicBlock(bb);
         }
 
-        private static void DumpBasicBlock(StringBuilder builder, BasicBlock basicBlock)
+        private void DumpBasicBlock(BasicBlock basicBlock)
         {
-            builder
-                .Append(basicBlock.Name)
-                .Append(":\n");
+            Write($"{basicBlock.Name}:\n");
 
             foreach (var ins in basicBlock.Instructions)
             {
-                builder.Append("  ");
-                DumpInstruction(builder, ins);
-                builder.Append('\n');
+                Write("  ", ins, '\n');
             }
         }
 
-        private static void DumpInstruction(StringBuilder builder, Instruction instruction)
+        private void DumpInstruction(Instruction instruction)
         {
             if (instruction is ValueInstruction value)
             {
-                DumpValue(builder, value.Value);
-                builder.Append(" = ");
+                Write(value.Value, " = ");
             }
 
             switch (instruction)
             {
             case Instruction.Alloc alloc:
-                builder.Append("alloc ");
-                DumpType(builder, alloc.ElementType);
+                Write("alloc ", alloc.ElementType);
                 break;
 
             case Instruction.Ret ret:
-                builder.Append("ret");
-                if (ret.Value != null)
-                {
-                    builder.Append(' ');
-                    DumpValue(builder, ret.Value);
-                }
+                Write("ret");
+                if (ret.Value != null) Write(' ', ret.Value);
                 break;
 
             case Instruction.Store store:
-                builder.Append("store ");
-                DumpValue(builder, store.Target);
-                builder.Append(", ");
-                DumpValue(builder, store.Value);
+                Write("store ", store.Target, ", ", store.Value);
                 break;
 
             case Instruction.Load load:
-                builder.Append("load ");
-                DumpValue(builder, load.Source);
+                Write("load ", load.Source);
                 break;
 
             default: throw new NotImplementedException();
             }
         }
 
-        private static void DumpValue(StringBuilder builder, Value value)
+        private void DumpValue(Value value)
         {
             switch (value)
             {
             case Value.Register reg:
-                builder.Append('r').Append(reg.Index);
+                Write($"r{reg.Index}");
                 break;
 
             case Value.Int intVal:
-                builder.Append(intVal.Value);
+                Write(intVal.Value);
                 break;
             }
         }
 
-        private static void DumpType(StringBuilder builder, Type type)
+        private void DumpType(Type type)
         {
             switch (type)
             {
-            case IR.Type.Void _:
-                builder.Append("void");
+            case Type.Void _:
+                Write("void");
                 break;
 
-            case IR.Type.Int intType:
-                builder.Append('i').Append(intType.Bits);
+            case Type.Int i:
+                Write($"{(i.Signed ? 'i' : 'u')}{i.Bits}");
                 break;
 
-            case IR.Type.Ptr ptrType:
-                builder.Append('*');
-                DumpType(builder, ptrType.ElementType);
+            case Type.Ptr ptrType:
+                Write('*', ptrType.ElementType);
                 break;
 
             default: throw new NotImplementedException();
+            }
+        }
+
+        private void Write(params object[] args)
+        {
+            foreach (var arg in args)
+            {
+                switch (arg)
+                {
+                case Type t:
+                    DumpType(t);
+                    break;
+
+                case Value v:
+                    DumpValue(v);
+                    break;
+
+                case Instruction i:
+                    DumpInstruction(i);
+                    break;
+
+                default:
+                    builder.Append(arg);
+                    break;
+                }
             }
         }
     }
