@@ -29,14 +29,13 @@ namespace Yoakke.Semantic
 
             case Declaration.ConstDef constDef:
             {
+                // For safety, declare in type
+                if (constDef.Type != null) Declare(symbolTable, constDef.Type);
                 // First declare everything in value
                 Declare(symbolTable, constDef.Value);
-                // For safety, declare in type too
-                if (constDef.Type != null) Declare(symbolTable, constDef.Type);
-                // Declare this symbol, store it and add to the symbol
-                var symbol = new Symbol.Const(constDef);
-                constDef.Symbol = symbol;
-                symbolTable.CurrentScope.Define(symbol);
+                // Declare this symbol, store it and add to the symbol table
+                constDef.Symbol = new Symbol.Const(constDef);
+                symbolTable.CurrentScope.Define(constDef.Symbol);
             }  
             break;
 
@@ -55,8 +54,8 @@ namespace Yoakke.Semantic
 
             switch (expression)
             {
-            case Expression.IntLit intLiteral: 
-            case Expression.Ident identifier:
+            case Expression.IntLit _: 
+            case Expression.Ident _:
                 // Nothing to declare, leaf nodes
                 break;
 

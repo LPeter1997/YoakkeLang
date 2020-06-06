@@ -25,10 +25,10 @@ namespace Yoakke.Semantic
                 break;
 
             case Declaration.ConstDef constDef:
-                // First define everything in value
-                Define(constDef.Value);
-                // For safety, define in type too
+                // For safety, define in type
                 if (constDef.Type != null) Define(constDef.Type);
+                // Define everything in value
+                Define(constDef.Value);
                 break;
 
             case Statement.Expression_ expression:
@@ -44,7 +44,7 @@ namespace Yoakke.Semantic
         {
             switch (expression)
             {
-            case Expression.IntLit intLiteral:
+            case Expression.IntLit _:
                 // Nothing to define, primitive literal
                 break;
 
@@ -60,11 +60,10 @@ namespace Yoakke.Semantic
                 {
                     // Also define inside each parameter type
                     Define(param.Type);
-                    var symbol = new Symbol.Variable(param.Name);
-                    param.Symbol = symbol;
+                    param.Symbol = new Symbol.Variable(param.Name);
                     // We use the type's scope to inject, as that's the same as the procedure's scope
                     Assert.NonNull(param.Type.Scope);
-                    param.Type.Scope.Define(symbol);
+                    param.Type.Scope.Define(param.Symbol);
                 }
                 // Define in return-type
                 if (proc.ReturnType != null) Define(proc.ReturnType);

@@ -25,8 +25,15 @@ namespace Yoakke.Semantic
                 break;
 
             case Declaration.ConstDef constDef:
-                Infer(constDef.Value);
                 if (constDef.Type != null) Infer(constDef.Type);
+                Infer(constDef.Value);
+                if (constDef.Type != null)
+                {
+                    // Unify the defined type with the value type
+                    Assert.NonNull(constDef.Value.EvaluationType);
+                    var ty = EvaluateConst.EvaluateToType(constDef.Type);
+                    Type.Unify(constDef.Value.EvaluationType, ty);
+                }
                 break;
 
             case Statement.Expression_ expression:

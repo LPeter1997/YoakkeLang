@@ -25,6 +25,9 @@ namespace Yoakke.Semantic
                 break;
 
             case Declaration.ConstDef constDef:
+                if (constDef.Type != null) Assign(constDef.Type);
+                Assign(constDef.Value);
+                // We assign the compile-time value to the symbol
                 Assert.NonNull(constDef.Symbol);
                 if (constDef.Symbol.Value == null)
                 {
@@ -45,8 +48,8 @@ namespace Yoakke.Semantic
             switch (expression)
             {
             // Nothing to do, leaf nodes
-            case Expression.IntLit intLit:
-            case Expression.Ident ident:
+            case Expression.IntLit _:
+            case Expression.Ident _:
                 break;
 
             case Expression.Proc proc:

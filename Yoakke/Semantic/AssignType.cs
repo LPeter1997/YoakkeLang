@@ -24,6 +24,7 @@ namespace Yoakke.Semantic
                 break;
 
             case Declaration.ConstDef constDef:
+                if (constDef.Type != null) Assign(constDef.Type);
                 Assign(constDef.Value);
                 break;
 
