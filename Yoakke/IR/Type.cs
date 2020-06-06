@@ -16,7 +16,7 @@ namespace Yoakke.IR
         /// <summary>
         /// The <see cref="Type"/> constant for i32 type.
         /// </summary>
-        public static readonly Type I32 = new IntType(32);
+        public static readonly Type I32 = new IntType(true, 32);
 
         /// <summary>
         /// Creates a pointer <see cref="Type"/> for the given element <see cref="Type"/>.
@@ -25,6 +25,21 @@ namespace Yoakke.IR
         /// <returns>The pointer <see cref="Type"/>.</returns>
         public static Type Ptr(Type elementType) =>
             new PtrType(elementType);
+
+        /// <summary>
+        /// Checks wether two <see cref="Type"/>s are the same.
+        /// </summary>
+        /// <param name="t1">The first <see cref="Type"/> to compare.</param>
+        /// <param name="t2">The second <see cref="Type"/> to compare.</param>
+        /// <returns>True, if the two <see cref="Type"/>s are equal.</returns>
+        public static bool Same(Type t1, Type t2) =>
+            t1 switch
+            {
+                VoidType _ => t2 is VoidType,
+                IntType i1 => t2 is IntType i2 && i1.Signed == i2.Signed && i1.Bits == i2.Bits,
+                PtrType p1 => t2 is PtrType p2 && Same(p1.ElementType, p2.ElementType),
+                _ => throw new NotImplementedException(),
+            };
     }
 
     /// <summary>
@@ -37,6 +52,7 @@ namespace Yoakke.IR
     /// </summary>
     class IntType : Type
     {
+        public readonly bool Signed;
         /// <summary>
         /// The number of bits this <see cref="IntType"/> consists of.
         /// </summary>
@@ -45,9 +61,11 @@ namespace Yoakke.IR
         /// <summary>
         /// Initializes a new <see cref="IntType"/>.
         /// </summary>
+        /// <param name="signed">True, if this integer should be signed.</param>
         /// <param name="bits">The number of bits this integer type should have.</param>
-        public IntType(int bits)
+        public IntType(bool signed, int bits)
         {
+            Signed = signed;
             Bits = bits;
         }
     }

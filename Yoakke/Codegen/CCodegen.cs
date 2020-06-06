@@ -175,6 +175,7 @@ namespace Yoakke.Backend
                 break;
 
             case IntType intType:
+                if (!intType.Signed) builder.Append('u');
                 builder.Append($"int{intType.Bits}_t");
                 break;
 

@@ -24,6 +24,7 @@ namespace Yoakke.Semantic
         /// Unit type, used as no return type.
         /// </summary>
         public static readonly Type Unit = Tuple(EmptyList);
+        // TODO: We could make integer types dependent types too, where the dependant int would describe bit-width
         /// <summary>
         /// 32-bit signed integer type.
         /// </summary>
@@ -76,6 +77,29 @@ namespace Yoakke.Semantic
         /// <param name="typeVariable">The type variable to search for.</param>
         /// <returns>True, if the <see cref="TypeVariable"/> is contained.</returns>
         public abstract bool Contains(TypeVariable typeVariable);
+
+        /// <summary>
+        /// Checks wether two <see cref="Type"/>s are exactly the same.
+        /// This should be used after type-inference is done.
+        /// </summary>
+        /// <param name="t1">The first <see cref="Type"/> to compare.</param>
+        /// <param name="t2">The second <see cref="Type"/> to compare.</param>
+        /// <returns>True, if the two <see cref="Type"/>s are equal.</returns>
+        public static bool Same(Type t1, Type t2)
+        {
+            t1 = t1.Substitution;
+            t2 = t2.Substitution;
+            if (t1 is TypeVariable) throw new InvalidOperationException();
+            return t1 switch
+            {
+                TypeVariable _ => throw new InvalidOperationException(),
+                TypeConstructor c1 => t2 is TypeConstructor c2 
+                                   && c1.Name == c2.Name 
+                                   && c1.Subtypes.Count == c2.Subtypes.Count
+                                   && c1.Subtypes.Zip(c2.Subtypes).All((ts) => Same(ts.First, ts.Second)),
+                _ => throw new NotImplementedException(),
+            };
+        }
     }
 
     /// <summary>
