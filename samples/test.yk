@@ -1,0 +1,7 @@
+
+const identity = proc(x: i32) -> i32 {
+	x
+}
+
+const identity2 = proc(x: i32) {
+}

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using Yoakke.Ast;
 using Yoakke.Backend;
 using Yoakke.IR;
@@ -14,11 +15,7 @@ namespace Yoakke
         {
             try
             {
-                var src = new Source("some.yk", @$"
-    const identity = proc(x: i32) -> i32 {{
-        x
-    }}
-");
+                var src = new Source("some.yk", File.ReadAllText("../../../../samples/test.yk"));
                 var tokens = Lexer.Lex(src);
                 var ast = Parser.ParseProgram(tokens);
 
