@@ -41,8 +41,8 @@ namespace Yoakke.Semantic
         {
             switch (expression)
             {
-            case Expression.IntLit intLiteral:
-            case Expression.Ident identifier:
+            case Expression.IntLit _:
+            case Expression.Ident _:
                 break;
 
             case Expression.Proc proc:
@@ -53,7 +53,7 @@ namespace Yoakke.Semantic
                                 ? Type.Unit
                                 : EvaluateConst.EvaluateToType(proc.ReturnType);
                 Assert.NonNull(proc.Body.EvaluationType);
-                Unifier.Unify(proc.Body.EvaluationType, returnType);
+                Type.Unify(proc.Body.EvaluationType, returnType);
                 break;
 
             case Expression.Block block:

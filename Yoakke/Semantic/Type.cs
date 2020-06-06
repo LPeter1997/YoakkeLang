@@ -3,14 +3,16 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using Yoakke.Utils;
 
 namespace Yoakke.Semantic
 {
-    /// <summary>
-    /// The base class for types in the compiler.
-    /// </summary>
-    abstract partial class Type
+    // Constants, constructors
+
+    partial class Type
     {
+        // Constants
+
         /// <summary>
         /// Constant for an empty <see cref="Type"/> list.
         /// </summary>
@@ -29,6 +31,8 @@ namespace Yoakke.Semantic
         /// 32-bit signed integer type.
         /// </summary>
         public static readonly Type I32 = Primitive("i32");
+
+        // Constructors
 
         /// <summary>
         /// Creates a <see cref="Var"/>.
@@ -66,6 +70,27 @@ namespace Yoakke.Semantic
             return new Ctor("procedure", types);
         }
 
+        // Destructuring
+
+        /// <summary>
+        /// Destructures this <see cref="Type"/> as a procedure type.
+        /// </summary>
+        /// <param name="parameters">The parameters of this procedure type.</param>
+        /// <param name="returnType">The return <see cref="Type"/> of this procedure.</param>
+        public void AsProcedure(out IEnumerable<Type> parameters, out Type returnType)
+        {
+            var ctor = (Ctor)Substitution;
+            Debug.Assert(ctor.Name == "procedure");
+            parameters = ctor.Subtypes.Take(ctor.Subtypes.Count - 1);
+            returnType = ctor.Subtypes.Last();
+        }
+    }
+
+    /// <summary>
+    /// The base class for types in the compiler.
+    /// </summary>
+    abstract partial class Type
+    {
         /// <summary>
         /// Returns the substitution for this <see cref="Type"/>. Could be itself, if there's no substitution.
         /// </summary>
@@ -76,7 +101,81 @@ namespace Yoakke.Semantic
         /// </summary>
         /// <param name="typeVariable">The type variable to search for.</param>
         /// <returns>True, if the <see cref="Var"/> is contained.</returns>
-        public abstract bool Contains(Var typeVariable);
+        protected abstract bool Contains(Var typeVariable);
+    }
+
+    // Operations between types
+
+    partial class Type
+    {
+        /// <summary>
+        /// Tries to unify the given <see cref="Type"/>s.
+        /// </summary>
+        /// <param name="t1">The first <see cref="Type"/> to unify.</param>
+        /// <param name="t2">The second <see cref="Type"/> to unify.</param>
+        public static void Unify(Type t1, Type t2)
+        {
+            void UnifyVarVar(Var v1, Var v2)
+            {
+                if (ReferenceEquals(v1, v2)) return;
+                v2.SubstituteFor(v1);
+            }
+
+            void UnifyCtorVar(Ctor c1, Var v2)
+            {
+                if (c1.Contains(v2))
+                {
+                    throw new NotImplementedException("Type-recursion!");
+                }
+                v2.SubstituteFor(c1);
+            }
+
+            void UnifyCtorCtor(Ctor c1, Ctor c2)
+            {
+                if (c1.Name != c2.Name)
+                {
+                    throw new NotImplementedException("Type mismatch!");
+                }
+                if (c1.Subtypes.Count != c2.Subtypes.Count)
+                {
+                    throw new NotImplementedException("Subtype amount mismatch!");
+                }
+                for (int i = 0; i < c1.Subtypes.Count; ++i)
+                {
+                    Unify(c1.Subtypes[i], c2.Subtypes[i]);
+                }
+            }
+
+            t1 = t1.Substitution;
+            t2 = t2.Substitution;
+            if (t1 is Var v1)
+            {
+                if (t2 is Var v2)
+                {
+                    UnifyVarVar(v1, v2);
+                    return;
+                }
+                if (t2 is Ctor c2)
+                {
+                    UnifyCtorVar(c2, v1);
+                    return;
+                }
+            }
+            if (t1 is Ctor c1)
+            {
+                if (t2 is Var v2)
+                {
+                    UnifyCtorVar(c1, v2);
+                    return;
+                }
+                if (t2 is Ctor c2)
+                {
+                    UnifyCtorCtor(c1, c2);
+                    return;
+                }
+            }
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// Checks wether two <see cref="Type"/>s are exactly the same.
@@ -89,25 +188,26 @@ namespace Yoakke.Semantic
         {
             t1 = t1.Substitution;
             t2 = t2.Substitution;
-            if (t1 is Var) throw new InvalidOperationException();
+            if (t1 is Var || t2 is Var) throw new InvalidOperationException();
             return t1 switch
             {
-                Var _ => throw new InvalidOperationException(),
-                Ctor c1 => t2 is Ctor c2 
-                                   && c1.Name == c2.Name 
-                                   && c1.Subtypes.Count == c2.Subtypes.Count
-                                   && c1.Subtypes.Zip(c2.Subtypes).All((ts) => Same(ts.First, ts.Second)),
+                Ctor c1 => t2 is Ctor c2
+                        && c1.Name == c2.Name
+                        && c1.Subtypes.Count == c2.Subtypes.Count
+                        && c1.Subtypes.Zip(c2.Subtypes).All(ts => Same(ts.First, ts.Second)),
                 _ => throw new NotImplementedException(),
             };
         }
     }
+
+    // Variants
 
     partial class Type
     {
         /// <summary>
         /// Represents a <see cref="Type"/> that's not inferred yet, and could be substituted for another.
         /// </summary>
-        public class Var : Type
+        protected class Var : Type
         {
             private Type? substitution;
             public override Type Substitution
@@ -121,7 +221,7 @@ namespace Yoakke.Semantic
                 }
             }
 
-            public override bool Contains(Var typeVariable) =>
+            protected override bool Contains(Var typeVariable) =>
                 ReferenceEquals(this, typeVariable);
 
             /// <summary>
@@ -138,7 +238,7 @@ namespace Yoakke.Semantic
         /// <summary>
         /// Represents a concrete <see cref="Type"/> with a name and possible subtypes.
         /// </summary>
-        public class Ctor : Type
+        private class Ctor : Type
         {
             /// <summary>
             /// The name of this type.
@@ -155,7 +255,7 @@ namespace Yoakke.Semantic
                 Subtypes = subtypes;
             }
 
-            public override bool Contains(Var typeVariable) =>
+            protected override bool Contains(Var typeVariable) =>
                 Subtypes.Any(ty => ty.Contains(typeVariable));
         }
     }

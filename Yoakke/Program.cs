@@ -25,7 +25,7 @@ namespace Yoakke
                 var symbolTable = new SymbolTable();
                 // Construct the i32 type
                 {
-                    var i32_sym = new ConstSymbol("i32", new TypeValue(Type.I32));
+                    var i32_sym = new Symbol.Const("i32", new Semantic.Value.Type_(Type.I32));
                     symbolTable.GlobalScope.Define(i32_sym);
                 }
 

@@ -56,7 +56,7 @@ namespace Yoakke.Ast
             /// <summary>
             /// The <see cref="ConstSymbol"/> this constant defines.
             /// </summary>
-            public ConstSymbol? Symbol { get; set; }
+            public Symbol.Const? Symbol { get; set; }
 
             /// <summary>
             /// Initializes a new <see cref="ConstDef"/>.

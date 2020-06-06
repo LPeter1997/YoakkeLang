@@ -17,11 +17,11 @@ namespace Yoakke.IR
     {
         private class ProcedureContext
         {
-            public readonly Dictionary<VariableSymbol, RegisterValue> Variables = new Dictionary<VariableSymbol, RegisterValue>();
+            public readonly Dictionary<Symbol.Variable, RegisterValue> Variables = new Dictionary<Symbol.Variable, RegisterValue>();
 
             private int registerCount = 0;
 
-            public RegisterValue AllocateRegister(VariableSymbol varSym, Type type)
+            public RegisterValue AllocateRegister(Symbol.Variable varSym, Type type)
             {
                 var value = AllocateRegister(type);
                 Variables.Add(varSym, value);
@@ -52,9 +52,8 @@ namespace Yoakke.IR
         private static void CompileProcedure(IrBuilder builder, string name, Expression.Proc proc)
         {
             Assert.NonNull(proc.EvaluationType);
-            var procTy = (Semantic.Type.Ctor)proc.EvaluationType.Substitution;
-            Debug.Assert(procTy.Name == "procedure");
-            var retTy = Compile(procTy.Subtypes.Last());
+            proc.EvaluationType.AsProcedure(out _, out var semanticRetTy);
+            var retTy = Compile(semanticRetTy);
             builder.CreateProc(name, retTy, () =>
             {
                 // New context for this procedure compilation
@@ -95,7 +94,7 @@ namespace Yoakke.IR
                 Assert.NonNull(constDef.Symbol.Value);
                 var value = constDef.Symbol.Value;
                 
-                if (value is ProcValue proc)
+                if (value is Semantic.Value.Proc proc)
                 {
                     CompileProcedure(builder, constDef.Name.Value, proc.Node);
                 }
@@ -131,11 +130,11 @@ namespace Yoakke.IR
                 var symbol = ident.Symbol;
                 switch (symbol)
                 {
-                case ConstSymbol constSym:
+                case Symbol.Const constSym:
                     Assert.NonNull(constSym.Value);
                     return Compile(builder, constSym.Value);
 
-                case VariableSymbol varSym:
+                case Symbol.Variable varSym:
                 {
                     // rX = load ADDRESS
                     Assert.NonNull(ctx);
@@ -176,7 +175,7 @@ namespace Yoakke.IR
         {
             switch (value)
             {
-            case ProcValue proc:
+            case Semantic.Value.Proc proc:
                 CompileProcedure(builder, "anonymous", proc.Node);
                 throw new NotImplementedException();
 

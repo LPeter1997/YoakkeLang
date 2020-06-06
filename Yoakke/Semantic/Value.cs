@@ -9,7 +9,7 @@ namespace Yoakke.Semantic
     /// <summary>
     /// Represents a compile-time constant.
     /// </summary>
-    abstract class Value
+    abstract partial class Value
     {
         /// <summary>
         /// The <see cref="Type"/> of this constant value.
@@ -17,74 +17,79 @@ namespace Yoakke.Semantic
         public abstract Type Type { get; }
     }
 
-    /// <summary>
-    /// A compile-time <see cref="Value"/> that stores a <see cref="Type"/>.
-    /// </summary>
-    class TypeValue : Value
-    {
-        public override Type Type => Type.Type_;
-        /// <summary>
-        /// The <see cref="Type"/> this <see cref="TypeValue"/> stores.
-        /// </summary>
-        public Type Value { get; set; }
+    // Variants
 
+    partial class Value
+    {
         /// <summary>
-        /// Initializes a new <see cref="TypeValue"/>.
+        /// A compile-time <see cref="Value"/> that stores a <see cref="Type"/>.
         /// </summary>
-        /// <param name="value">The <see cref="Type"/> this value stores.</param>
-        public TypeValue(Type value)
+        public class Type_ : Value
         {
-            Value = value;
+            public override Type Type => Type.Type_;
+            /// <summary>
+            /// The <see cref="Type"/> this <see cref="Type_"/> stores.
+            /// </summary>
+            public Type Value { get; set; }
+
+            /// <summary>
+            /// Initializes a new <see cref="Type_"/>.
+            /// </summary>
+            /// <param name="value">The <see cref="Type"/> this value stores.</param>
+            public Type_(Type value)
+            {
+                Value = value;
+            }
         }
-    }
-
-    /// <summary>
-    /// A procedure as a compile-time <see cref="Value"/>.
-    /// </summary>
-    class ProcValue : Value
-    {
-        private Type type;
-        public override Type Type => type;
 
         /// <summary>
-        /// The AST node of the procedure.
+        /// A procedure as a compile-time <see cref="Value"/>.
         /// </summary>
-        public readonly Expression.Proc Node;
-
-        /// <summary>
-        /// Initializes a new <see cref="ProcValue"/>.
-        /// </summary>
-        /// <param name="node">The AST node this procedure originates from.</param>
-        /// <param name="type">The <see cref="Type"/> of this procedure.</param>
-        public ProcValue(Expression.Proc node, Type type)
+        public class Proc : Value
         {
-            Node = node;
-            this.type = type;
+            private Type type;
+            public override Type Type => type;
+
+            /// <summary>
+            /// The AST node of the procedure.
+            /// </summary>
+            public readonly Expression.Proc Node;
+
+            /// <summary>
+            /// Initializes a new <see cref="Proc"/>.
+            /// </summary>
+            /// <param name="node">The AST node this procedure originates from.</param>
+            /// <param name="type">The <see cref="Type"/> of this procedure.</param>
+            public Proc(Expression.Proc node, Type type)
+            {
+                Node = node;
+                this.type = type;
+            }
         }
-    }
-
-    /// <summary>
-    /// A compile-time integral <see cref="Value"/>.
-    /// </summary>
-    class IntValue : Value
-    {
-        private readonly Type type;
-        public override Type Type => type;
 
         /// <summary>
-        /// The integer value.
+        /// A compile-time integral <see cref="Value"/>.
         /// </summary>
-        public readonly BigInteger Value;
-
-        /// <summary>
-        /// Initializes a new <see cref="IntValue"/>.
-        /// </summary>
-        /// <param name="type">The type of the integer.</param>
-        /// <param name="value">The value of the integer.</param>
-        public IntValue(Type type, BigInteger value)
+        public class Int : Value
         {
-            this.type = type;
-            Value = value;
+            private readonly Type type;
+            public override Type Type => type;
+
+            /// <summary>
+            /// The integer value.
+            /// </summary>
+            public readonly BigInteger Value;
+
+            /// <summary>
+            /// Initializes a new <see cref="Int"/>.
+            /// </summary>
+            /// <param name="type">The type of the integer.</param>
+            /// <param name="value">The value of the integer.</param>
+            public Int(Type type, BigInteger value)
+            {
+                this.type = type;
+                Value = value;
+            }
         }
     }
 }

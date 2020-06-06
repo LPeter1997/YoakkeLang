@@ -109,7 +109,7 @@ namespace Yoakke.Semantic
     /// <summary>
     /// The base for every kind of symbol in the program.
     /// </summary>
-    abstract class Symbol
+    abstract partial class Symbol
     {
         /// <summary>
         /// The name of the <see cref="Symbol"/>.
@@ -147,62 +147,65 @@ namespace Yoakke.Semantic
         public abstract Type AssumeHasType();
     }
 
-    /// <summary>
-    /// A compile-time constant <see cref="Symbol"/>.
-    /// </summary>
-    class ConstSymbol : Symbol
+    partial class Symbol
     {
         /// <summary>
-        /// The corresponding <see cref="ConstDefinition"/> that has created this <see cref="ConstSymbol"/>.
+        /// A compile-time constant <see cref="Symbol"/>.
         /// </summary>
-        public readonly Declaration.ConstDef? Definition;
-        /// <summary>
-        /// The constant <see cref="Value"/> assigned to this <see cref="ConstSymbol"/>.
-        /// </summary>
-        public Value? Value { get; set; }
-
-        public ConstSymbol(string name, Value value)
-            : base(name)
+        public class Const : Symbol
         {
-            Value = value;
-        }
+            /// <summary>
+            /// The corresponding <see cref="ConstDefinition"/> that has created this <see cref="Const"/>.
+            /// </summary>
+            public readonly Declaration.ConstDef? Definition;
+            /// <summary>
+            /// The constant <see cref="Value"/> assigned to this <see cref="Const"/>.
+            /// </summary>
+            public Value? Value { get; set; }
 
-        public ConstSymbol(Declaration.ConstDef definition) 
-            : base(definition.Name)
-        {
-            Definition = definition;
-        }
+            public Const(string name, Value value)
+                : base(name)
+            {
+                Value = value;
+            }
 
-        public override Type AssumeHasType()
-        {
-            Assert.NonNull(Value);
-            return Value.Type;
-        }
-    }
+            public Const(Declaration.ConstDef definition)
+                : base(definition.Name)
+            {
+                Definition = definition;
+            }
 
-    /// <summary>
-    /// A user-defined variable <see cref="Symbol"/>. 
-    /// </summary>
-    class VariableSymbol : Symbol
-    {
-        /// <summary>
-        /// The inferred <see cref="Type"/> for this variable.
-        /// </summary>
-        public Type? Type { get; set; }
+            public override Type AssumeHasType()
+            {
+                Assert.NonNull(Value);
+                return Value.Type;
+            }
+        }
 
         /// <summary>
-        /// Initializes a new <see cref="VariableSymbol"/>.
+        /// A user-defined variable <see cref="Symbol"/>. 
         /// </summary>
-        /// <param name="name">The <see cref="Token"/> that named this variable at definition.</param>
-        public VariableSymbol(Token name)
-            : base(name)
+        public class Variable : Symbol
         {
-        }
+            /// <summary>
+            /// The inferred <see cref="Type"/> for this variable.
+            /// </summary>
+            public Type? Type { get; set; }
 
-        public override Type AssumeHasType()
-        {
-            Assert.NonNull(Type);
-            return Type;
+            /// <summary>
+            /// Initializes a new <see cref="Variable"/>.
+            /// </summary>
+            /// <param name="name">The <see cref="Token"/> that named this variable at definition.</param>
+            public Variable(Token name)
+                : base(name)
+            {
+            }
+
+            public override Type AssumeHasType()
+            {
+                Assert.NonNull(Type);
+                return Type;
+            }
         }
     }
 }

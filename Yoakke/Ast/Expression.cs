@@ -87,7 +87,7 @@ namespace Yoakke.Ast
                 /// <summary>
                 /// The <see cref="VariableSymbol"/> corresponding to this parameter.
                 /// </summary>
-                public VariableSymbol? Symbol { get; set; }
+                public Symbol.Variable? Symbol { get; set; }
 
                 /// <summary>
                 /// Initializes the <see cref="Parameter"/> with the given name and type.

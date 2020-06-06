@@ -37,10 +37,8 @@ namespace Yoakke.Semantic
         public static Type EvaluateToType(Expression expression)
         {
             var val = Evaluate(expression);
-            Unifier.Unify(val.Type, Type.Type_);
-            var paramVal = val as TypeValue;
-            Assert.NonNull(paramVal);
-            return paramVal.Value;
+            Type.Unify(val.Type, Type.Type_);
+            return ((Value.Type_)val).Value;
         }
 
         private static Value EvaluateInternal(Expression expression)
@@ -50,13 +48,13 @@ namespace Yoakke.Semantic
             case Expression.IntLit intLit:
                 // TODO: The exact integer type should not be determined here!
                 // It should go through the inference-process, starting from a generic int value!
-                return new IntValue(Type.I32, BigInteger.Parse(intLit.Token.Value));
+                return new Value.Int(Type.I32, BigInteger.Parse(intLit.Token.Value));
 
             case Expression.Ident ident:
             {
                 Assert.NonNull(ident.Symbol);
                 // We are in constant evaluation, the symbol must be a constant
-                if (ident.Symbol is ConstSymbol symbol)
+                if (ident.Symbol is Symbol.Const symbol)
                 {
                     if (symbol.Value == null)
                     {
@@ -75,7 +73,7 @@ namespace Yoakke.Semantic
                 var paramTypes = proc.Parameters.Select(x => EvaluateToType(x.Type)).ToList();
                 var returnType = proc.ReturnType == null ? Type.Unit : EvaluateToType(proc.ReturnType);
                 var procType = Type.Procedure(paramTypes, returnType);
-                return new ProcValue(proc, procType);
+                return new Value.Proc(proc, procType);
             }
 
             // TODO: Evaluate statements, block
