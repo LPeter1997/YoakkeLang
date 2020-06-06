@@ -29,6 +29,17 @@ namespace Yoakke.Semantic
         }
 
         /// <summary>
+        /// Defines a builtin <see cref="Type"/>.
+        /// </summary>
+        /// <param name="name">The name of the <see cref="Type"/>.</param>
+        /// <param name="type">The <see cref="Type"/> itself to define.</param>
+        public void DefineBuiltinType(string name, Type type)
+        {
+            var sym = new Symbol.Const(name, new Value.Type_(type));
+            GlobalScope.Define(sym);
+        }
+
+        /// <summary>
         /// Pushes a new <see cref="Scope"/>, so the current scope will be the pushed one.
         /// </summary>
         public void PushScope()
