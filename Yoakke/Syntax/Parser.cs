@@ -55,9 +55,16 @@ namespace Yoakke.Syntax
 
             Expect(ref input, TokenType.Assign);
             var value = ParseExpression(ref input);
+            if (!IsBracedExpressionForConstDeclaration(value))
+            {
+                Expect(ref input, TokenType.Semicolon);
+            }
 
             return new Declaration.ConstDef(name, type, value);
         }
+
+        private static bool IsBracedExpressionForConstDeclaration(Expression expression) =>
+            expression is Expression.Proc;
 
         // Statements //////////////////////////////////////////////////////////
 
@@ -75,7 +82,7 @@ namespace Yoakke.Syntax
         private static Statement ParseExpressionStatement(ref Input input)
         {
             var expression = ParseExpression(ref input);
-            if (!IsBracedExpression(expression))
+            if (!IsBracedExpressionForStatement(expression))
             {
                 // ';' required
                 Expect(ref input, TokenType.Semicolon);
@@ -83,7 +90,7 @@ namespace Yoakke.Syntax
             return new Statement.Expression_(expression);
         }
 
-        private static bool IsBracedExpression(Expression expression) =>
+        private static bool IsBracedExpressionForStatement(Expression expression) =>
             expression is Expression.Block;
 
         // Expressions /////////////////////////////////////////////////////////
@@ -128,7 +135,7 @@ namespace Yoakke.Syntax
             if (   returnValue == null 
                 && statements.Count > 0 
                 && statements[statements.Count - 1] is Statement.Expression_ expr
-                && IsBracedExpression(expr.Expression))
+                && IsBracedExpressionForStatement(expr.Expression))
             {
                 statements.RemoveAt(statements.Count - 1);
                 returnValue = expr.Expression;
