@@ -181,5 +181,35 @@ namespace Yoakke.Ast
                 Value = value;
             }
         }
+
+        /// <summary>
+        /// An expression calling a procedure.
+        /// Syntax:
+        /// ```
+        /// Expression(Arg1, Arg2, ...)
+        /// ```
+        /// </summary>
+        public class Call : Expression
+        {
+            /// <summary>
+            /// The procedure <see cref="Expression"/> that's being called.
+            /// </summary>
+            new public Expression Proc { get; set; }
+            /// <summary>
+            /// The arguments passed to the procedure.
+            /// </summary>
+            public List<Expression> Arguments { get; set; }
+
+            /// <summary>
+            /// Initializes a new <see cref="Call"/>.
+            /// </summary>
+            /// <param name="proc">The procedure <see cref="Expression"/> that's being called.</param>
+            /// <param name="arguments">The arguments passed to the procedure.</param>
+            public Call(Expression proc, List<Expression> arguments)
+            {
+                Proc = proc;
+                Arguments = arguments;
+            }
+        }
     }
 }

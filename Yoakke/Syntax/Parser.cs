@@ -96,7 +96,31 @@ namespace Yoakke.Syntax
         // Expressions /////////////////////////////////////////////////////////
 
         private static Expression ParseExpression(ref Input input) =>
-            ParseAtomicExpression(ref input);
+            ParsePostfixExpression(ref input);
+
+        private static Expression ParsePostfixExpression(ref Input input)
+        {
+            var result = ParseAtomicExpression(ref input);
+            while (true)
+            {
+                if (Match(ref input, TokenType.OpenParen))
+                {
+                    // Call expression
+                    var args = new List<Expression>();
+                    while (!Match(ref input, TokenType.CloseParen))
+                    {
+                        args.Add(ParseExpression(ref input));
+                        if (!Match(ref input, TokenType.Comma)) break;
+                    }
+                    result = new Expression.Call(result, args);
+                }
+                else
+                {
+                    break;
+                }
+            }
+            return result;
+        }
 
         private static Expression ParseAtomicExpression(ref Input input)
         {
