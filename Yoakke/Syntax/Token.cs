@@ -174,6 +174,10 @@ namespace Yoakke.Syntax
         /// </summary>
         Identifier,
         /// <summary>
+        /// Anything builtin by the compiler: '@[A-Za-z0-9_]*'.
+        /// </summary>
+        IntrinsicIdentifier,
+        /// <summary>
         /// Anything that matches the regex '[0-9]+'.
         /// </summary>
         IntLiteral,

@@ -143,7 +143,7 @@ namespace Yoakke.Syntax
                 return MakeToken(TokenType.IntLiteral, i);
             }
             // Identifier
-            if (IsIdent(ch))
+            if (IsIdent(ch) || ch == '@')
             {
                 int i = 1;
                 for (; IsIdent(Peek(i)); ++i) ;
@@ -158,6 +158,9 @@ namespace Yoakke.Syntax
                     "false" => TokenType.KwFalse,
                     _ => TokenType.Identifier,
                 };
+                // Builtin
+                if (ident.Value.StartsWith('@')) tokenType = TokenType.IntrinsicIdentifier;
+
                 return new Token(ident.Position, tokenType, ident.Value);
             }
             // TODO: String literal

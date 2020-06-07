@@ -54,6 +54,26 @@ namespace Yoakke.Ast
         }
 
         /// <summary>
+        /// An special identifier token that represents a compiler intrinsic.
+        /// </summary>
+        public class Intrinsic : Expression
+        {
+            /// <summary>
+            /// The identifier token.
+            /// </summary>
+            public Token Token { get; set; }
+
+            /// <summary>
+            /// Initializes a new <see cref="Intrinsic"/>.
+            /// </summary>
+            /// <param name="token">The special identifier token.</param>
+            public Intrinsic(Token token)
+            {
+                Token = token;
+            }
+        }
+
+        /// <summary>
         /// A procedure definition.
         /// They are in the form of:
         /// ```
