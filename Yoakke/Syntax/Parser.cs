@@ -107,10 +107,14 @@ namespace Yoakke.Syntax
                 {
                     // Call expression
                     var args = new List<Expression>();
-                    while (!Match(ref input, TokenType.CloseParen))
+                    while (true)
                     {
+                        if (Match(ref input, TokenType.CloseParen)) break;
                         args.Add(ParseExpression(ref input));
-                        if (!Match(ref input, TokenType.Comma)) break;
+                        if (Match(ref input, TokenType.Comma)) continue;
+
+                        Expect(ref input, TokenType.CloseParen);
+                        break;
                     }
                     result = new Expression.Call(result, args);
                 }
@@ -170,6 +174,21 @@ namespace Yoakke.Syntax
 
         private static Expression ParseProcExpression(ref Input input)
         {
+            // We just try both the type and the value
+            // First the value, as that's the more "elaborate" one
+
+            var procValue = TryParse(ref input, ParseProcValueExpression);
+            if (procValue != null) return procValue;
+
+            var procType = TryParse(ref input, ParseProcTypeExpression);
+            if (procType != null) return procType;
+
+            // NOTE: This is weird (calling it when already failed) but helps us raising better errors
+            return ParseProcValueExpression(ref input);
+        }
+
+        private static Expression ParseProcValueExpression(ref Input input)
+        {
             Expect(ref input, TokenType.KwProc);
             Expect(ref input, TokenType.OpenParen);
             // Parameters
@@ -190,7 +209,29 @@ namespace Yoakke.Syntax
             var body = ParseBlockExpression(ref input);
             return new Expression.Proc(parameters, returnType, body);
         }
-    
+
+        private static Expression ParseProcTypeExpression(ref Input input)
+        {
+            Expect(ref input, TokenType.KwProc);
+            Expect(ref input, TokenType.OpenParen);
+            // Arguments
+            var arguments = new List<Expression>();
+            while (true)
+            {
+                if (Match(ref input, TokenType.CloseParen)) break;
+                arguments.Add(ParseExpression(ref input));
+                if (Match(ref input, TokenType.Comma)) continue;
+
+                Expect(ref input, TokenType.CloseParen);
+                break;
+            }
+
+            Expression? returnType = null;
+            if (Match(ref input, TokenType.Arrow)) returnType = ParseExpression(ref input);
+
+            return new Expression.ProcType(arguments, returnType);
+        }
+
         private static Expression.Proc.Parameter ParseProcParameter(ref Input input)
         {
             Expect(ref input, TokenType.Identifier, out var name);
