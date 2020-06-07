@@ -5,28 +5,34 @@ using System.Text;
 namespace Yoakke.Syntax
 {
     /// <summary>
-    /// A syntax error for unclosed nested comments.
+    /// A syntax error for unclosed delimeters.
     /// </summary>
-    class UnclosedCommentError : CompileError
+    class UnclosedDelimeterError : CompileError
     {
         /// <summary>
-        /// The opening position of the unclosed comment.
+        /// The opening position of the unclosed delimeter.
         /// </summary>
         public Position StartPosition { get; set; }
         /// <summary>
-        /// The end of file, where the unclosed comment causes the error.
+        /// The end of file, where the unclosed delimeter causes the error.
         /// </summary>
         public Position EndPosition { get; set; }
+        /// <summary>
+        /// The name of the delimeter that was forgotten.
+        /// </summary>
+        public string Delimeter { get; set; }
 
         /// <summary>
-        /// Initializes a new <see cref="UnclosedCommentError"/>.
+        /// Initializes a new <see cref="UnclosedDelimeterError"/>.
         /// </summary>
         /// <param name="startPosition">The opening position of the unclosed comment.</param>
         /// <param name="endPosition">The end of file, where the unclosed comment causes the error.</param>
-        public UnclosedCommentError(Position startPosition, Position endPosition)
+        /// <param name="delimeter">The name of the delimeter that was forgotten.</param>
+        public UnclosedDelimeterError(Position startPosition, Position endPosition, string delimeter)
         {
             StartPosition = startPosition;
             EndPosition = endPosition;
+            Delimeter = delimeter;
         }
 
         public override void Show()
@@ -35,7 +41,7 @@ namespace Yoakke.Syntax
             Console.WriteLine(Annotation.Annotate(StartPosition, new AnnotationSettings { ArrowText = "starting here..." }));
             Console.WriteLine("...");
             Console.WriteLine(Annotation.Annotate(EndPosition, new AnnotationSettings { ArrowText = "missing here" }));
-            Console.WriteLine("Unclosed nested comment!");
+            Console.WriteLine($"Unclosed {Delimeter}!");
         }
     }
 

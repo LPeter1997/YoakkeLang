@@ -72,7 +72,7 @@ namespace Yoakke.Syntax
                 int depth = 1;
                 while (depth > 0)
                 {
-                    if (IsEnd) throw new UnclosedCommentError(startPosition, prevPosition);
+                    if (IsEnd) throw new UnclosedDelimeterError(startPosition, prevPosition, "nested comment");
 
                     if (Matches("/*"))
                     {
@@ -163,7 +163,26 @@ namespace Yoakke.Syntax
 
                 return new Token(ident.Position, tokenType, ident.Value);
             }
-            // TODO: String literal
+            // String literal
+            if (ch == '"')
+            {
+                int i = 1;
+                while (true)
+                {
+                    var peek = Peek(i);
+                    if (peek == '\0')
+                    {
+                        var start = position;
+                        Consume(i - 1);
+                        throw new UnclosedDelimeterError(start, position, "string literal");
+                    }
+                    if (peek == '"') break;
+                    if (peek == '\\') i += 2;
+                    else ++i;
+                }
+                // i + 1 because the last quote is not counted!
+                return MakeToken(TokenType.StringLiteral, i + 1);
+            }
 
             return MakeToken(TokenType.Unknown, 1);
         }

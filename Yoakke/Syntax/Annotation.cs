@@ -104,7 +104,7 @@ namespace Yoakke.Syntax
                 }
             }
 
-            return result.ToString().Trim();
+            return result.ToString().TrimEnd();
         }
 
         private static void IterateString(ReadOnlySpan<char> text, AnnotationSettings settings, Action<char, int, int> action)
