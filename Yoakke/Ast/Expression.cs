@@ -94,6 +94,40 @@ namespace Yoakke.Ast
         }
 
         /// <summary>
+        /// A procedure type definition.
+        /// Syntax:
+        /// ```
+        /// proc(ArgTypes...)
+        /// ```
+        /// or
+        /// ```
+        /// proc(ArgTypes...) -> RetType
+        /// ```
+        /// </summary>
+        public class ProcType : Expression
+        {
+            /// <summary>
+            /// The types of parameters this procedure type consists of.
+            /// </summary>
+            public List<Expression> ParameterTypes { get; set; }
+            /// <summary>
+            /// The optional return type of this procedure type. Can be null for "no return value" (unit type).
+            /// </summary>
+            public Expression? ReturnType { get; set; }
+
+            /// <summary>
+            /// Initializes a new <see cref="ProcType"/>.
+            /// </summary>
+            /// <param name="parameters">The parameter types.</param>
+            /// <param name="returnType">The optional return type.</param>
+            public ProcType(List<Expression> parameters, Expression? returnType)
+            {
+                ParameterTypes = parameters;
+                ReturnType = returnType;
+            }
+        }
+
+        /// <summary>
         /// A procedure definition.
         /// They are in the form of:
         /// ```

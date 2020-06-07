@@ -174,16 +174,14 @@ namespace Yoakke.Syntax
             Expect(ref input, TokenType.OpenParen);
             // Parameters
             var parameters = new List<Expression.Proc.Parameter>();
+            while (true)
             {
-                while (true)
-                {
-                    if (Match(ref input, TokenType.CloseParen)) break;
-                    parameters.Add(ParseProcParameter(ref input));
-                    if (Match(ref input, TokenType.Comma)) continue;
+                if (Match(ref input, TokenType.CloseParen)) break;
+                parameters.Add(ParseProcParameter(ref input));
+                if (Match(ref input, TokenType.Comma)) continue;
 
-                    Expect(ref input, TokenType.CloseParen);
-                    break;
-                }
+                Expect(ref input, TokenType.CloseParen);
+                break;
             }
 
             Expression? returnType = null;
@@ -241,7 +239,7 @@ namespace Yoakke.Syntax
             return false;
         }
 
-        private static TokenType Peek(Input input) =>
-            input[0].Type;
+        private static TokenType Peek(Input input, int ahead = 0) =>
+            ahead < input.Length ? input[ahead].Type : TokenType.End;
     }
 }
