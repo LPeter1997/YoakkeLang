@@ -29,6 +29,26 @@ namespace Yoakke.Ast
         }
 
         /// <summary>
+        /// A string literal token.
+        /// </summary>
+        public class StrLit : Expression
+        {
+            /// <summary>
+            /// The literal token itself.
+            /// </summary>
+            public Token Token { get; set; }
+
+            /// <summary>
+            /// Initializes a new <see cref="StrLit"/>.
+            /// </summary>
+            /// <param name="token">The literal token.</param>
+            public StrLit(Token token)
+            {
+                Token = token;
+            }
+        }
+
+        /// <summary>
         /// An identifier token.
         /// </summary>
         public class Ident : Expression

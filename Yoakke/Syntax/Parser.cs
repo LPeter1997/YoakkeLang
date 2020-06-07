@@ -130,6 +130,7 @@ namespace Yoakke.Syntax
             if (Match(ref input, TokenType.Identifier, out var token)) return new Expression.Ident(token);
             if (Match(ref input, TokenType.IntrinsicIdentifier, out token)) return new Expression.Intrinsic(token);
             if (Match(ref input, TokenType.IntLiteral, out token)) return new Expression.IntLit(token);
+            if (Match(ref input, TokenType.StringLiteral, out token)) return new Expression.StrLit(token);
 
             throw new ExpectedError("expression", input[0]);
         }
