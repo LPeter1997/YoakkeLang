@@ -49,7 +49,14 @@ namespace Yoakke.Semantic
             {
             // Nothing to do, leaf nodes
             case Expression.IntLit _:
+            case Expression.StrLit _:
             case Expression.Ident _:
+            case Expression.Intrinsic _:
+                break;
+
+            case Expression.ProcType procType:
+                foreach (var param in procType.ParameterTypes) Assign(param);
+                if (procType.ReturnType != null) Assign(procType.ReturnType);
                 break;
 
             case Expression.Proc proc:
@@ -61,6 +68,11 @@ namespace Yoakke.Semantic
             case Expression.Block block:
                 foreach (var stmt in block.Statements) Assign(stmt);
                 if (block.Value != null) Assign(block.Value);
+                break;
+
+            case Expression.Call call:
+                Assign(call.Proc);
+                foreach (var arg in call.Arguments) Assign(arg);
                 break;
 
             default: throw new NotImplementedException();

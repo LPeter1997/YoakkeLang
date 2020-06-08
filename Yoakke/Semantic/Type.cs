@@ -31,6 +31,10 @@ namespace Yoakke.Semantic
         /// 32-bit signed integer type.
         /// </summary>
         public static readonly Type I32 = Primitive("i32");
+        /// <summary>
+        /// String type.
+        /// </summary>
+        public static readonly Type Str = Primitive("str");
 
         // Constructors
 

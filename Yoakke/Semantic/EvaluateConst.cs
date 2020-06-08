@@ -50,6 +50,9 @@ namespace Yoakke.Semantic
                 // It should go through the inference-process, starting from a generic int value!
                 return new Value.Int(Type.I32, BigInteger.Parse(intLit.Token.Value));
 
+            case Expression.StrLit strLit:
+                return new Value.Str(strLit.Escape());
+
             case Expression.Ident ident:
             {
                 Assert.NonNull(ident.Symbol);
@@ -98,8 +101,22 @@ namespace Yoakke.Semantic
             // TODO: Evaluate statements, block
             case Expression.Block block: throw new NotImplementedException();
 
-            // TODO
-            case Expression.Call call: throw new NotImplementedException();
+            case Expression.Call call:
+            {
+                var proc = Evaluate(call.Proc);
+                var args = call.Arguments.Select(Evaluate).ToList();
+                if (proc is Value.IntrinsicProc intrinsic)
+                {
+                    // Just call it
+                    var func = intrinsic.Symbol.Function;
+                    return func(args);
+                }
+                else
+                {
+                    // TODO
+                    throw new NotImplementedException();
+                }
+            }
 
             default: throw new NotImplementedException();
             }

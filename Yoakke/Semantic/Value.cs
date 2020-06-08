@@ -114,5 +114,29 @@ namespace Yoakke.Semantic
                 Value = value;
             }
         }
+
+        // TODO: Later string value could be represented by a simple struct.
+        // It doesn't have to be a compiler builtin type. (except for the literal)
+        /// <summary>
+        /// A compile-time string <see cref="Value"/>.
+        /// </summary>
+        public class Str : Value
+        {
+            public override Type Type => Type.Str;
+
+            /// <summary>
+            /// The string value.
+            /// </summary>
+            public readonly string Value;
+
+            /// <summary>
+            /// Initializes a new <see cref="Str"/>.
+            /// </summary>
+            /// <param name="value">The value of the string.</param>
+            public Str(string value)
+            {
+                Value = value;
+            }
+        }
     }
 }

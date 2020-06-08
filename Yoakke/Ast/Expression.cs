@@ -46,6 +46,29 @@ namespace Yoakke.Ast
             {
                 Token = token;
             }
+
+            /// <summary>
+            /// Escapes this string value.
+            /// </summary>
+            /// <returns>The escaped string.</returns>
+            public string Escape()
+            {
+                var result = new StringBuilder(Token.Value.Length);
+                // Ignore first and last characters, they are the quotes
+                for (int i = 1; i < Token.Value.Length - 1; ++i)
+                {
+                    var ch = Token.Value[i];
+                    if (ch == '\\')
+                    {
+                        throw new NotImplementedException("Escapes are not implemented yet!");
+                    }
+                    else
+                    {
+                        result.Append(ch);
+                    }
+                }
+                return result.ToString();
+            }
         }
 
         /// <summary>

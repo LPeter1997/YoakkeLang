@@ -22,7 +22,12 @@ namespace Yoakke
                 var symbolTable = new SymbolTable();
                 symbolTable.DefineBuiltinType("i32", Type.I32);
 
-                symbolTable.DefineIntrinsicFunction("@extern_proc", x => throw new NotImplementedException());
+                symbolTable.DefineIntrinsicFunction("@extern",
+                    args =>
+                    {
+                        // TODO
+                        return new Semantic.Value.Int(Semantic.Type.I32, 0);
+                    });
 
                 DeclareSymbol.Declare(symbolTable, ast);
                 DefineSymbol.Define(ast);
