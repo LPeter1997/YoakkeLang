@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Yoakke.Ast;
+using Yoakke.IR;
 using Yoakke.Utils;
 
 namespace Yoakke.Semantic
@@ -48,11 +49,24 @@ namespace Yoakke.Semantic
             {
             case Expression.IntLit intLit:
                 // TODO: This should have an abstract integral type instead!
-                return EvaluateConst.Evaluate(intLit).Type;
+                return Type.I32;
+                //return EvaluateConst.Evaluate(intLit).Type;
+
+            case Expression.StrLit _:
+                return Type.Str;
 
             case Expression.Ident ident:
                 Assert.NonNull(ident.Symbol);
                 return ident.Symbol.AssumeHasType();
+
+            case Expression.Intrinsic intrinsic:
+                return EvaluateConst.Evaluate(intrinsic).Type;
+
+            case Expression.ProcType procType:
+                foreach (var param in procType.ParameterTypes) Assign(param);
+                if (procType.ReturnType != null) Assign(procType.ReturnType);
+                // ProcType explicitly describes a type, so we know that
+                return Type.Type_;
 
             case Expression.Proc proc:
                 foreach (var param in proc.Parameters)
@@ -78,6 +92,12 @@ namespace Yoakke.Semantic
                 {
                     return Type.Unit;
                 }
+
+            case Expression.Call call:
+                Assign(call.Proc);
+                foreach (var arg in call.Arguments) Assign(arg);
+                // TODO: This is incorrect
+                return Type.Variable();
 
             default: throw new NotImplementedException();
             }

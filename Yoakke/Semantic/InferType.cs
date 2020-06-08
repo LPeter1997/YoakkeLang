@@ -49,7 +49,14 @@ namespace Yoakke.Semantic
             switch (expression)
             {
             case Expression.IntLit _:
+            case Expression.StrLit _:
             case Expression.Ident _:
+            case Expression.Intrinsic _:
+                break;
+
+            case Expression.ProcType procType:
+                foreach (var param in procType.ParameterTypes) Infer(param);
+                if (procType.ReturnType != null) Infer(procType.ReturnType);
                 break;
 
             case Expression.Proc proc:
@@ -66,6 +73,11 @@ namespace Yoakke.Semantic
             case Expression.Block block:
                 foreach (var stmt in block.Statements) Infer(stmt);
                 if (block.Value != null) Infer(block.Value);
+                break;
+
+            case Expression.Call call:
+                Infer(call.Proc);
+                foreach (var arg in call.Arguments) Infer(arg);
                 break;
 
             default: throw new NotImplementedException();

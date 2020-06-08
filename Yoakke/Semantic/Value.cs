@@ -72,8 +72,8 @@ namespace Yoakke.Semantic
         /// </summary>
         public class IntrinsicProc : Value
         {
-            // TODO
-            public override Type Type => throw new NotImplementedException();
+            // TODO: Possibly wrong
+            public override Type Type => Type.Variable();
 
             /// <summary>
             /// The intrinsic <see cref="Symbol"/>.
