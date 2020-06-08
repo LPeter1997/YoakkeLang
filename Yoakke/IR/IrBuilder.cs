@@ -47,6 +47,15 @@ namespace Yoakke.IR
         }
 
         /// <summary>
+        /// Declares an external <see cref="Value"/>.
+        /// </summary>
+        /// <param name="external">The <see cref="Value.Extern"/> to declare.</param>
+        public void DeclareExternal(Value.Extern external)
+        {
+            Assembly.Externals.Add(external);
+        }
+
+        /// <summary>
         /// Compiles a new <see cref="Proc"/>.
         /// </summary>
         /// <param name="name">The name of the procedure.</param>

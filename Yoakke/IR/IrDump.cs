@@ -26,12 +26,23 @@ namespace Yoakke.IR
 
         private string DumpAssembly(Assembly assembly)
         {
+            foreach (var external in assembly.Externals)
+            {
+                DumpExternalDeclaration(external.Name, external.Type);
+                Write(";\n");
+            }
+            Write('\n');
             foreach (var proc in assembly.Procedures)
             {
                 DumpProc(proc);
                 Write('\n');
             }
             return builder.ToString().Trim();
+        }
+
+        private void DumpExternalDeclaration(string name, Type type)
+        {
+            Write("extern ", type, $" {name}");
         }
 
         private void DumpProc(Proc proc)
@@ -114,6 +125,12 @@ namespace Yoakke.IR
 
             case Type.Ptr ptrType:
                 Write('*', ptrType.ElementType);
+                break;
+
+            case Type.Proc p:
+                Write("proc(");
+                p.Parameters.Intertwine(param => Write(param), () => Write(", "));
+                Write(") -> ", p.ReturnType);
                 break;
 
             default: throw new NotImplementedException();

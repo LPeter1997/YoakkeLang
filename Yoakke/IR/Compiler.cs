@@ -113,6 +113,8 @@ namespace Yoakke.IR
                 {
                     var externalType = Compile(externSym.Type);
                     var external = new Value.Extern(externalType, externSym.Name);
+                    // Store it as a map from symbol to value, and define it in the assembly
+                    builder.DeclareExternal(external);
                     asm.Externals.Add(constDef.Symbol, external);
                 }
                 else
