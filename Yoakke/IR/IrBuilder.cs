@@ -62,7 +62,8 @@ namespace Yoakke.IR
         /// <param name="returnType">The <see cref="Type"/> phe procedure returns.</param>
         /// <param name="action">The callback that's being called, when the builder context switches to
         /// this new procedure. After the callback, the context will switch back to the old one.</param>
-        public void CreateProc(string name, Type returnType, Action action)
+        /// <returns>The created <see cref="Proc"/>.</returns>
+        public Proc CreateProc(string name, Type returnType, Action action)
         {
             name = GlobalUniqueName(name);
 
@@ -70,7 +71,8 @@ namespace Yoakke.IR
             var lastBB = currentBB;
             var lastLocalNames = currentLocalNames;
 
-            currentProc = new Proc(name, returnType);
+            var createdProc = new Proc(name, returnType); ;
+            currentProc = createdProc;
             Assembly.Procedures.Add(currentProc);
             currentLocalNames = new HashSet<string>();
             CreateBasicBlock("begin");
@@ -80,6 +82,8 @@ namespace Yoakke.IR
             currentProc = lastProc;
             currentBB = lastBB;
             currentLocalNames = lastLocalNames;
+
+            return createdProc;
         }
 
         /// <summary>

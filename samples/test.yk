@@ -1,11 +1,6 @@
 
-const other_proc = @extern("some_c_func", proc(i32) -> i32);
-const other_proc2 = @extern("some_c_func1", proc());
-const some_value = @extern("a_constant", i32);
+const foo = proc() -> i32 { 0 }
 
-const identity = proc(x: i32) -> i32 {
-	x
-}
-
-const identity2 = proc(x: i32) {
+const main = proc() {
+	foo();
 }

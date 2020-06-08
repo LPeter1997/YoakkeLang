@@ -20,6 +20,8 @@ namespace Yoakke.IR
 
         private class AssemblyContext
         {
+            public readonly Dictionary<Expression.Proc, Proc> Procedures =
+                new Dictionary<Expression.Proc, Proc>();
             public readonly Dictionary<Symbol.Const, Value.Extern> Externals =
                 new Dictionary<Symbol.Const, Value.Extern>();
         }
@@ -60,13 +62,19 @@ namespace Yoakke.IR
             return assembly;
         }
 
-        private static void CompileProcedure(IrBuilder builder, AssemblyContext asm, string name, Expression.Proc proc)
+        private static Value.Proc CompileProcedure(IrBuilder builder, AssemblyContext asm, string name, Expression.Proc proc)
         {
+            if (asm.Procedures.TryGetValue(proc, out var definedProc))
+            {
+                return new Value.Proc(definedProc);
+            }
             Assert.NonNull(proc.EvaluationType);
             proc.EvaluationType.AsProcedure(out _, out var semanticRetTy);
             var retTy = Compile(semanticRetTy);
-            builder.CreateProc(name, retTy, () =>
+            var created = builder.CreateProc(name, retTy, () =>
             {
+                // Add it to the defined procedures
+                asm.Procedures.Add(proc, builder.CurrentProc);
                 // New context for this procedure compilation
                 var ctx = new ProcedureContext();
                 // Allocate registers for the parameters
@@ -89,6 +97,7 @@ namespace Yoakke.IR
                 }
                 Compile(builder, asm, ctx, proc.Body);
             });
+            return new Value.Proc(created);
         }
 
         private static void Compile(IrBuilder builder, AssemblyContext asm, ProcedureContext? ctx, Statement statement)
@@ -186,6 +195,24 @@ namespace Yoakke.IR
                 return retValue;
             }
 
+            case Expression.Call call:
+            {
+                Assert.NonNull(ctx);
+                var proc = Compile(builder, asm, ctx, call.Proc);
+                Assert.NonNull(proc);
+                var args = call.Arguments.Select(x =>
+                {
+                    var val = Compile(builder, asm, ctx, x);
+                    Assert.NonNull(val);
+                    return val;
+                }).ToList();
+                var procTy = (Type.Proc)proc.Type;
+                var retTy = procTy.ReturnType;
+                var retRegister = ctx.AllocateRegister(retTy);
+                builder.AddInstruction(new Instruction.Call(retRegister, proc, args));
+                return Type.Same(retTy, Type.Void_) ? null : retRegister;
+            }
+
             default: throw new NotImplementedException();
             }
         }
@@ -195,8 +222,7 @@ namespace Yoakke.IR
             switch (value)
             {
             case Semantic.Value.Proc proc:
-                CompileProcedure(builder, asm, "anonymous", proc.Node);
-                throw new NotImplementedException();
+                return CompileProcedure(builder, asm, "anonymous", proc.Node);
 
             default: throw new NotImplementedException();
             }

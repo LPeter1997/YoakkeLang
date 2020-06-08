@@ -20,25 +20,7 @@ namespace Yoakke
                 var tokens = Lexer.Lex(src);
                 var ast = Parser.ParseProgram(tokens);
 
-                var symbolTable = new SymbolTable();
-                symbolTable.DefineBuiltinType("type", Type.Type_);
-                symbolTable.DefineBuiltinType("i32", Type.I32);
-
-                symbolTable.DefineIntrinsicFunction("@extern",
-                    args =>
-                    {
-                        // TODO: Help type assertions
-                        Debug.Assert(args.Count == 2);
-                        var symbolName = (Semantic.Value.Str)args[0];
-                        var symbolType = (Semantic.Value.Type_)args[1];
-                        return new Semantic.Value.ExternSymbol(symbolName.Value, symbolType.Value);
-                    });
-
-                DeclareSymbol.Declare(symbolTable, ast);
-                DefineSymbol.Define(ast);
-                AssignConstantSymbol.Assign(ast);
-                AssignType.Assign(ast);
-                InferType.Infer(ast);
+                Checks.CheckAll(ast);
 
                 //var entry = symbolTable.GlobalScope.Reference("main");
 

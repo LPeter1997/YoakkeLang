@@ -143,5 +143,33 @@ namespace Yoakke.IR
                 Source = source;
             }
         }
+
+        /// <summary>
+        /// Calls a <see cref="Value"/> with the given argument <see cref="Value"/>s.
+        /// </summary>
+        public class Call : ValueInstruction
+        {
+            /// <summary>
+            /// The procedure value to call.
+            /// </summary>
+            public Value Proc { get; set; }
+            /// <summary>
+            /// The arguments to call the procedure with.
+            /// </summary>
+            public List<Value> Arguments { get; set; }
+
+            /// <summary>
+            /// Initializes a new <see cref="Call"/>.
+            /// </summary>
+            /// <param name="value">The register to store the result in.</param>
+            /// <param name="proc">The procedure to call.</param>
+            /// <param name="arguments">The arguments to call the procedure with.</param>
+            public Call(Value.Register value, Value proc, List<Value> arguments) 
+                : base(value)
+            {
+                Proc = proc;
+                Arguments = arguments;
+            }
+        }
     }
 }

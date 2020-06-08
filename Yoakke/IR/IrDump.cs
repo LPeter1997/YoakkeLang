@@ -71,7 +71,11 @@ namespace Yoakke.IR
         {
             if (instruction is ValueInstruction value)
             {
-                Write(value.Value, " = ");
+                // If it's a call and is a void return, don't bother writing the assignee
+                if (!(instruction is Instruction.Call call) || !Type.Same(call.Value.Type, Type.Void_))
+                {
+                    Write(value.Value, " = ");
+                }
             }
 
             switch (instruction)
@@ -93,6 +97,12 @@ namespace Yoakke.IR
                 Write("load ", load.Source);
                 break;
 
+            case Instruction.Call call:
+                Write("call ", call.Proc, '(');
+                call.Arguments.Intertwine(x => Write(x), () => Write(", "));
+                Write(')');
+                break;
+
             default: throw new NotImplementedException();
             }
         }
@@ -108,6 +118,12 @@ namespace Yoakke.IR
             case Value.Int intVal:
                 Write(intVal.Value);
                 break;
+
+            case Value.Proc proc:
+                Write(proc.Proc_.Name);
+                break;
+
+            default: throw new NotImplementedException();
             }
         }
 
