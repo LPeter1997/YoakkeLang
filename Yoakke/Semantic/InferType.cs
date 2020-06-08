@@ -76,6 +76,7 @@ namespace Yoakke.Semantic
                 break;
 
             case Expression.Call call:
+                // TODO
                 Infer(call.Proc);
                 foreach (var arg in call.Arguments) Infer(arg);
                 break;
