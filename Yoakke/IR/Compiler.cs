@@ -15,6 +15,15 @@ namespace Yoakke.IR
     /// </summary>
     static class Compiler
     {
+        // TODO: These contexts are really ugly
+        // They should probably belong to the IR builder type.
+
+        private class AssemblyContext
+        {
+            public readonly Dictionary<Symbol.Const, Value.Extern> Externals =
+                new Dictionary<Symbol.Const, Value.Extern>();
+        }
+
         private class ProcedureContext
         {
             public readonly Dictionary<Symbol.Variable, Value.Register> Variables = 
@@ -44,13 +53,14 @@ namespace Yoakke.IR
         {
             var assembly = new Assembly();
             var builder = new IrBuilder(assembly);
+            var ctx = new AssemblyContext();
 
-            Compile(builder, null, program);
+            Compile(builder, ctx, null, program);
 
             return assembly;
         }
 
-        private static void CompileProcedure(IrBuilder builder, string name, Expression.Proc proc)
+        private static void CompileProcedure(IrBuilder builder, AssemblyContext asm, string name, Expression.Proc proc)
         {
             Assert.NonNull(proc.EvaluationType);
             proc.EvaluationType.AsProcedure(out _, out var semanticRetTy);
@@ -77,16 +87,16 @@ namespace Yoakke.IR
                     builder.AddInstruction(new Instruction.Alloc(regMut));
                     builder.AddInstruction(new Instruction.Store(regMut, reg));
                 }
-                Compile(builder, ctx, proc.Body);
+                Compile(builder, asm, ctx, proc.Body);
             });
         }
 
-        private static void Compile(IrBuilder builder, ProcedureContext? ctx, Statement statement)
+        private static void Compile(IrBuilder builder, AssemblyContext asm, ProcedureContext? ctx, Statement statement)
         {
             switch (statement)
             {
             case Declaration.Program program:
-                foreach (var decl in program.Declarations) Compile(builder, ctx, decl);
+                foreach (var decl in program.Declarations) Compile(builder, asm, ctx, decl);
                 break;
 
             case Declaration.ConstDef constDef:
@@ -97,14 +107,13 @@ namespace Yoakke.IR
                 
                 if (value is Semantic.Value.Proc proc)
                 {
-                    CompileProcedure(builder, constDef.Name.Value, proc.Node);
+                    CompileProcedure(builder, asm, constDef.Name.Value, proc.Node);
                 }
                 else if (value is Semantic.Value.ExternSymbol externSym)
                 {
                     var externalType = Compile(externSym.Type);
                     var external = new Value.Extern(externalType, externSym.Name);
-                    // TODO: Save the external
-                    throw new NotImplementedException();
+                    asm.Externals.Add(constDef.Symbol, external);
                 }
                 else
                 {
@@ -114,14 +123,14 @@ namespace Yoakke.IR
             break;
 
             case Statement.Expression_ expr:
-                Compile(builder, ctx, expr.Expression);
+                Compile(builder, asm, ctx, expr.Expression);
                 break;
 
             default: throw new NotImplementedException();
             }
         }
 
-        private static Value? Compile(IrBuilder builder, ProcedureContext? ctx, Expression expression)
+        private static Value? Compile(IrBuilder builder, AssemblyContext asm, ProcedureContext? ctx, Expression expression)
         {
             switch (expression) 
             {
@@ -140,7 +149,7 @@ namespace Yoakke.IR
                 {
                 case Symbol.Const constSym:
                     Assert.NonNull(constSym.Value);
-                    return Compile(builder, constSym.Value);
+                    return Compile(builder, asm, constSym.Value);
 
                 case Symbol.Variable varSym:
                 {
@@ -159,17 +168,17 @@ namespace Yoakke.IR
 
             case Expression.Proc proc:
             {
-                CompileProcedure(builder, "anonymous", proc);
+                CompileProcedure(builder, asm, "anonymous", proc);
                 // TODO: We need some kind of value for it
                 throw new NotImplementedException();
             }
 
             case Expression.Block block:
             {
-                foreach (var stmt in block.Statements) Compile(builder, ctx, stmt);
+                foreach (var stmt in block.Statements) Compile(builder, asm, ctx, stmt);
                 Value? retValue = block.Value == null
                                   ? null
-                                  : Compile(builder, ctx, block.Value);
+                                  : Compile(builder, asm, ctx, block.Value);
                 // TODO: block-evaluation does not necessarily return from the function!!!
                 builder.AddInstruction(new Instruction.Ret(retValue));
                 return retValue;
@@ -179,12 +188,12 @@ namespace Yoakke.IR
             }
         }
 
-        private static Value Compile(IrBuilder builder, Semantic.Value value)
+        private static Value Compile(IrBuilder builder, AssemblyContext asm, Semantic.Value value)
         {
             switch (value)
             {
             case Semantic.Value.Proc proc:
-                CompileProcedure(builder, "anonymous", proc.Node);
+                CompileProcedure(builder, asm, "anonymous", proc.Node);
                 throw new NotImplementedException();
 
             default: throw new NotImplementedException();
@@ -195,6 +204,12 @@ namespace Yoakke.IR
         {
             if (Semantic.Type.Same(type, Semantic.Type.I32)) return Type.I32;
             if (Semantic.Type.Same(type, Semantic.Type.Unit)) return Type.Void_;
+
+            if (type.IsProcedure())
+            {
+                type.AsProcedure(out var ps, out var ret);
+                return new Type.Proc(ps.Select(Compile).ToList(), Compile(ret));
+            }
 
             throw new NotImplementedException();
         }

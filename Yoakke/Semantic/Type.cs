@@ -74,6 +74,15 @@ namespace Yoakke.Semantic
             return new Ctor("procedure", types);
         }
 
+        // Observers
+
+        /// <summary>
+        /// Checks, if this <see cref="Type"/> is a procedure type.
+        /// </summary>
+        /// <returns>True, if it's a procedure type.</returns>
+        public bool IsProcedure() => 
+            Substitution is Ctor ctor && ctor.Name == "procedure";
+
         // Destructuring
 
         /// <summary>
@@ -83,8 +92,8 @@ namespace Yoakke.Semantic
         /// <param name="returnType">The return <see cref="Type"/> of this procedure.</param>
         public void AsProcedure(out IEnumerable<Type> parameters, out Type returnType)
         {
+            Debug.Assert(IsProcedure());
             var ctor = (Ctor)Substitution;
-            Debug.Assert(ctor.Name == "procedure");
             parameters = ctor.Subtypes.Take(ctor.Subtypes.Count - 1);
             returnType = ctor.Subtypes.Last();
         }
