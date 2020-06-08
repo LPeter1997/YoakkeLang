@@ -21,6 +21,7 @@ namespace Yoakke
                 var ast = Parser.ParseProgram(tokens);
 
                 var symbolTable = new SymbolTable();
+                symbolTable.DefineBuiltinType("type", Type.Type_);
                 symbolTable.DefineBuiltinType("i32", Type.I32);
 
                 symbolTable.DefineIntrinsicFunction("@extern",
