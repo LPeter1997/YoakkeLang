@@ -67,5 +67,29 @@ namespace Yoakke.IR
                 Value = value;
             }
         }
+
+        /// <summary>
+        /// An external symbol <see cref="Value"/>.
+        /// </summary>
+        public class Extern : Value
+        {
+            private Type type;
+            public override Type Type => type;
+            /// <summary>
+            /// The name of the external symbol.
+            /// </summary>
+            public readonly string Name;
+
+            /// <summary>
+            /// Initializes a new <see cref="Extern"/>.
+            /// </summary>
+            /// <param name="type">The <see cref="Type"/> of the external.</param>
+            /// <param name="name">The name of the external.</param>
+            public Extern(Type type, string name)
+            {
+                this.type = type;
+                Name = name;
+            }
+        }
     }
 }

@@ -99,6 +99,13 @@ namespace Yoakke.IR
                 {
                     CompileProcedure(builder, constDef.Name.Value, proc.Node);
                 }
+                else if (value is Semantic.Value.ExternSymbol externSym)
+                {
+                    var externalType = Compile(externSym.Type);
+                    var external = new Value.Extern(externalType, externSym.Name);
+                    // TODO: Save the external
+                    throw new NotImplementedException();
+                }
                 else
                 {
                     throw new NotImplementedException();
@@ -140,7 +147,7 @@ namespace Yoakke.IR
                     // rX = load ADDRESS
                     Assert.NonNull(ctx);
                     var varAddress = ctx.Variables[varSym];
-                    var varType = ((IR.Type.Ptr)varAddress.Type).ElementType;
+                    var varType = ((Type.Ptr)varAddress.Type).ElementType;
                     var varValue = ctx.AllocateRegister(varType);
                     builder.AddInstruction(new Instruction.Load(varValue, varAddress));
                     return varValue;

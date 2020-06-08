@@ -10,6 +10,10 @@ namespace Yoakke.IR
     class Assembly
     {
         /// <summary>
+        /// The list of external symbols.
+        /// </summary>
+        public readonly List<Value.Extern> Externals = new List<Value.Extern>();
+        /// <summary>
         /// The compiled <see cref="Proc"/>s.
         /// </summary>
         public readonly List<Proc> Procedures = new List<Proc>();

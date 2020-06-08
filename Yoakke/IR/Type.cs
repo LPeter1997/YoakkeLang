@@ -90,5 +90,31 @@ namespace Yoakke.IR
                 ElementType = elementType;
             }
         }
+
+        /// <summary>
+        /// A callable procedure <see cref="Type"/>.
+        /// </summary>
+        public class Proc : Type
+        {
+            /// <summary>
+            /// The list of parameter <see cref="Type"/>s.
+            /// </summary>
+            public readonly List<Type> Parameters;
+            /// <summary>
+            /// The return <see cref="Type"/>.
+            /// </summary>
+            public readonly Type ReturnType;
+
+            /// <summary>
+            /// Initializes a new <see cref="Proc"/>.
+            /// </summary>
+            /// <param name="parameters">The list of parameter <see cref="Type"/>s.</param>
+            /// <param name="returnType">The return <see cref="Type"/>.</param>
+            public Proc(List<Type> parameters, Type returnType)
+            {
+                Parameters = parameters;
+                ReturnType = returnType;
+            }
+        }
     }
 }
