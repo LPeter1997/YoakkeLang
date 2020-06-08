@@ -62,7 +62,9 @@ namespace Yoakke.Semantic
                 break;
 
             case Expression.ProcType procType:
+                // Declare in parameter types
                 foreach (var param in procType.ParameterTypes) Declare(symbolTable, param);
+                // Declare in return type, if needed
                 if (procType.ReturnType != null) Declare(symbolTable, procType.ReturnType);
                 break;
 
@@ -89,7 +91,9 @@ namespace Yoakke.Semantic
                 break;
 
             case Expression.Call call:
+                // Declare in called procedure
                 Declare(symbolTable, call.Proc);
+                // Declare in arguments
                 foreach (var arg in call.Arguments) Declare(symbolTable, arg);
                 break;
 

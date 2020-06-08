@@ -1,6 +1,5 @@
 
 const other_proc = @extern_proc("some_c_func", proc(i32) -> i32);
-const other_proc2: proc(i32) -> i32 = @extern_proc("some_c_func", _);
 
 const identity = proc(x: i32) -> i32 {
 	x

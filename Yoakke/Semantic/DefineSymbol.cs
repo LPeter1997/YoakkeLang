@@ -45,6 +45,7 @@ namespace Yoakke.Semantic
             switch (expression)
             {
             case Expression.IntLit _:
+            case Expression.StrLit _:
                 // Nothing to define, primitive literal
                 break;
 
@@ -52,6 +53,20 @@ namespace Yoakke.Semantic
                 // We want to resolve the referred symbol
                 Assert.NonNull(identifier.Scope);
                 identifier.Symbol = identifier.Scope.Reference(identifier.Token);
+                break;
+
+            case Expression.Intrinsic intrinsic:
+                // Resolve the referred symbol
+                // It must be an intrinsic symbol type
+                Assert.NonNull(intrinsic.Scope);
+                intrinsic.Symbol = (Symbol.Intrinsic)intrinsic.Scope.Reference(intrinsic.Token);
+                break;
+
+            case Expression.ProcType procType:
+                // Define inside each parameter type
+                foreach (var param in procType.ParameterTypes) Define(param);
+                // Define in return type, if needed
+                if (procType.ReturnType != null) Define(procType.ReturnType);
                 break;
 
             case Expression.Proc proc:
@@ -76,6 +91,13 @@ namespace Yoakke.Semantic
                 foreach (var stmt in block.Statements) Define(stmt);
                 // In return value too
                 if (block.Value != null) Define(block.Value);
+                break;
+
+            case Expression.Call call:
+                // Define in the called expression
+                Define(call.Proc);
+                // Define in arguments
+                foreach (var arg in call.Arguments) Define(arg);
                 break;
 
             default: throw new NotImplementedException();

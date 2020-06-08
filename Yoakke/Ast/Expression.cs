@@ -84,6 +84,11 @@ namespace Yoakke.Ast
             public Token Token { get; set; }
 
             /// <summary>
+            /// The <see cref="Symbol"/> this intrinsic identifier refers to.
+            /// </summary>
+            public Symbol.Intrinsic? Symbol { get; set; }
+
+            /// <summary>
             /// Initializes a new <see cref="Intrinsic"/>.
             /// </summary>
             /// <param name="token">The special identifier token.</param>

@@ -40,6 +40,17 @@ namespace Yoakke.Semantic
         }
 
         /// <summary>
+        /// Defines an intrinsic function.
+        /// </summary>
+        /// <param name="name">The name of the intrinsic function.</param>
+        /// <param name="function">The called <see cref="Func{T, TResult}"/> to perform the action when called.</param>
+        public void DefineIntrinsicFunction(string name, Func<List<Value>, Value> function)
+        {
+            var sym = new Symbol.Intrinsic(name, function);
+            GlobalScope.Define(sym);
+        }
+
+        /// <summary>
         /// Pushes a new <see cref="Scope"/>, so the current scope will be the pushed one.
         /// </summary>
         public void PushScope()
@@ -190,6 +201,33 @@ namespace Yoakke.Semantic
             {
                 Assert.NonNull(Value);
                 return Value.Type;
+            }
+        }
+
+        /// <summary>
+        /// A <see cref="Symbol"/> for compiler intrinsic behavior.
+        /// </summary>
+        public class Intrinsic : Symbol
+        {
+            // TODO: This is severely limiting, intrinsics should be allowed to interact with IR and such too!
+            // Intrinsics should come in multiple forms for multiple compiler phases.
+            // For now, this is OK enough.
+            /// <summary>
+            /// The <see cref="Func{T, TResult}"/> that gets evaluated compile-time.
+            /// </summary>
+            public readonly Func<List<Value>, Value> Function;
+
+            public Intrinsic(string name, Func<List<Value>, Value> function) 
+                : base(name)
+            {
+                Debug.Assert(name[0] == '@', "Intrinsic identifiers must start with an '@'!");
+                Function = function;
+            }
+
+            public override Type AssumeHasType()
+            {
+                // TODO
+                throw new NotImplementedException();
             }
         }
 
