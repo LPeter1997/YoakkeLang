@@ -94,6 +94,7 @@ namespace Yoakke.Backend
             case Instruction.Ret _:
             case Instruction.Store _:
             case Instruction.Load _:
+            case Instruction.Call _:
                 break;
 
             case Instruction.Alloc alloc:
@@ -127,6 +128,16 @@ namespace Yoakke.Backend
                 Write(builder, load.Value, " = *", load.Source);
                 break;
 
+            case Instruction.Call call:
+                if (!Type.Same(call.Value.Type, Type.Void_))
+                {
+                    Write(builder, call.Value, " = ");
+                }
+                Write(builder, call.Proc, '(');
+                call.Arguments.Intertwine(x => Write(builder, x), () => Write(builder, ", "));
+                Write(builder, ')');
+                break;
+
             default: throw new NotImplementedException();
             }    
         }
@@ -141,6 +152,14 @@ namespace Yoakke.Backend
 
             case Value.Int intVal:
                 Write(builder, intVal.Value);
+                break;
+
+            case Value.Proc procVal:
+                Write(builder, procVal.Proc_.Name);
+                break;
+
+            case Value.Extern external:
+                Write(builder, external.Name);
                 break;
 
             default: throw new NotImplementedException();

@@ -224,6 +224,12 @@ namespace Yoakke.IR
             case Semantic.Value.Proc proc:
                 return CompileProcedure(builder, asm, "anonymous", proc.Node);
 
+            case Semantic.Value.ExternSymbol external:
+            {
+                var ty = Compile(external.Type);
+                return new Value.Extern(ty, external.Name);
+            }
+
             default: throw new NotImplementedException();
             }
         }

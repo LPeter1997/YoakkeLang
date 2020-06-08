@@ -123,6 +123,10 @@ namespace Yoakke.IR
                 Write(proc.Proc_.Name);
                 break;
 
+            case Value.Extern external:
+                Write(external.Name);
+                break;
+
             default: throw new NotImplementedException();
             }
         }

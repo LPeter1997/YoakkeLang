@@ -1,5 +1,5 @@
 
-const foo = proc() -> i32 { 0 }
+const foo = @extern("some_c_func", proc() -> i32);
 
 const main = proc() {
 	foo();
