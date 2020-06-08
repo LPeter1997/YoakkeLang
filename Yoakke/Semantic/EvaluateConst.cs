@@ -68,16 +68,38 @@ namespace Yoakke.Semantic
                 throw new NotImplementedException("Non-constant symbol referenced in a constant expression!");
             }
 
+            case Expression.Intrinsic intrinsic:
+                // Simply wrap the corresponding symbol
+                Assert.NonNull(intrinsic.Symbol);
+                return new Value.IntrinsicProc(intrinsic.Symbol);
+
+            case Expression.ProcType procType:
+            {
+                // Evaluate types
+                var paramTypes = procType.ParameterTypes.Select(EvaluateToType).ToList();
+                var returnType = procType.ReturnType == null ? Type.Unit : EvaluateToType(procType.ReturnType);
+                // Create a procedure type
+                var type = Type.Procedure(paramTypes, returnType);
+                // Wrap it in a value
+                return new Value.Type_(type);
+            }
+
             case Expression.Proc proc:
             {
+                // Evaluate types
                 var paramTypes = proc.Parameters.Select(x => EvaluateToType(x.Type)).ToList();
                 var returnType = proc.ReturnType == null ? Type.Unit : EvaluateToType(proc.ReturnType);
+                // Create a procedure type
                 var procType = Type.Procedure(paramTypes, returnType);
+                // Wrap the node into a value
                 return new Value.Proc(proc, procType);
             }
 
             // TODO: Evaluate statements, block
             case Expression.Block block: throw new NotImplementedException();
+
+            // TODO
+            case Expression.Call call: throw new NotImplementedException();
 
             default: throw new NotImplementedException();
             }

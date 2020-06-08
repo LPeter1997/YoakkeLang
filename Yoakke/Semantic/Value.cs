@@ -68,6 +68,29 @@ namespace Yoakke.Semantic
         }
 
         /// <summary>
+        /// A compiler intrinsic function <see cref="Value"/>.
+        /// </summary>
+        public class IntrinsicProc : Value
+        {
+            // TODO
+            public override Type Type => throw new NotImplementedException();
+
+            /// <summary>
+            /// The intrinsic <see cref="Symbol"/>.
+            /// </summary>
+            public readonly Symbol.Intrinsic Symbol;
+
+            /// <summary>
+            /// Initializes a new <see cref="IntrinsicProc"/>.
+            /// </summary>
+            /// <param name="symbol">The intrinsic <see cref="Symbol"/>.</param>
+            public IntrinsicProc(Symbol.Intrinsic symbol)
+            {
+                Symbol = symbol;
+            }
+        }
+
+        /// <summary>
         /// A compile-time integral <see cref="Value"/>.
         /// </summary>
         public class Int : Value
