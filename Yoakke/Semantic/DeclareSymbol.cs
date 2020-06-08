@@ -55,8 +55,15 @@ namespace Yoakke.Semantic
             switch (expression)
             {
             case Expression.IntLit _: 
+            case Expression.StrLit _:
             case Expression.Ident _:
+            case Expression.Intrinsic _:
                 // Nothing to declare, leaf nodes
+                break;
+
+            case Expression.ProcType procType:
+                foreach (var param in procType.ParameterTypes) Declare(symbolTable, param);
+                if (procType.ReturnType != null) Declare(symbolTable, procType.ReturnType);
                 break;
 
             case Expression.Proc proc:
@@ -79,6 +86,11 @@ namespace Yoakke.Semantic
                 // In return value too
                 if (block.Value != null) Declare(symbolTable, block.Value);
                 symbolTable.PopScope();
+                break;
+
+            case Expression.Call call:
+                Declare(symbolTable, call.Proc);
+                foreach (var arg in call.Arguments) Declare(symbolTable, arg);
                 break;
 
             default: throw new NotImplementedException();
