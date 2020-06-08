@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using Yoakke.Ast;
 using Yoakke.Backend;
@@ -25,8 +26,11 @@ namespace Yoakke
                 symbolTable.DefineIntrinsicFunction("@extern",
                     args =>
                     {
-                        // TODO
-                        return new Semantic.Value.Int(Semantic.Type.I32, 0);
+                        // TODO: Help type assertions
+                        Debug.Assert(args.Count == 2);
+                        var symbolName = (Semantic.Value.Str)args[0];
+                        var symbolType = (Semantic.Value.Type_)args[1];
+                        return new Semantic.Value.ExternSymbol(symbolName.Value, symbolType.Value);
                     });
 
                 DeclareSymbol.Declare(symbolTable, ast);

@@ -91,6 +91,31 @@ namespace Yoakke.Semantic
         }
 
         /// <summary>
+        /// An external symbol as a <see cref="Value"/>.
+        /// </summary>
+        public class ExternSymbol : Value
+        {
+            private Type type;
+            public override Type Type => type;
+
+            /// <summary>
+            /// The name of this external symbol.
+            /// </summary>
+            public readonly string Name;
+
+            /// <summary>
+            /// Initializes a new <see cref="ExternSymbol"/>.
+            /// </summary>
+            /// <param name="name">The name of the external symbol.</param>
+            /// <param name="type">The <see cref="Type"/> of the external symbol.</param>
+            public ExternSymbol(string name, Type type)
+            {
+                this.type = type;
+                Name = name;
+            }
+        }
+
+        /// <summary>
         /// A compile-time integral <see cref="Value"/>.
         /// </summary>
         public class Int : Value
