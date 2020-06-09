@@ -38,7 +38,8 @@ namespace Yoakke.Semantic
 
             // Step one
             // ========
-            // Preconditions: None
+            // Preconditions: 
+            //   None.
             // Description:
             //   Assigns each node it's corresponding scope.
             //   Also creates and registers a symbol for each constant definition.
@@ -49,7 +50,9 @@ namespace Yoakke.Semantic
 
             // Step two
             // ========
-            // Preconditions: Every order-independent symbol must be defined already
+            // Preconditions: 
+            //   Every order-independent symbol must be defined already.
+            //   Every node has Scope != null.
             // Description:
             //   Defines each order-dependent symbol.
             //   Also resolves every symbol reference.
