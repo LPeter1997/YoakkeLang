@@ -24,15 +24,15 @@ namespace Yoakke.Semantic
             symbolTable.DefineBuiltinType("type", Type.Type_);
             symbolTable.DefineBuiltinType("i32", Type.I32);
 
-            /*symbolTable.DefineIntrinsicFunction("@extern",
+            symbolTable.DefineIntrinsicFunction("@extern",
                 args =>
                 {
                     // TODO: Help type assertions
                     Debug.Assert(args.Count == 2);
                     var symbolName = (Value.Str)args[0];
-                    var symbolType = (Value.Type_)args[1];
-                    return new Value.ExternSymbol(symbolName.Value, symbolType.Value);
-                });*/
+                    var symbolType = (Type)args[1];
+                    return new Value.Extern(symbolName.Value, symbolType);
+                });
 
             // Actual checks ///////////////////////////////////////////////////
 
@@ -74,13 +74,13 @@ namespace Yoakke.Semantic
              */
 
             // For every constant definition they call EvaluateConst.Evaluate and store the result in the symbol.
-            AssignConstantSymbol.Assign(program);
+            //AssignConstantSymbol.Assign(program);
 
             // For every expression it tries to assign some type.
-            AssignType.Assign(program);
+            //AssignType.Assign(program);
             
             // Does type unification where needed.
-            InferType.Infer(program);
+            //InferType.Infer(program);
 
             // Finally, EvaluateConst.Evaluate is a mess!
         }

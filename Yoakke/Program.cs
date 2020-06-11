@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using Yoakke.Ast;
 using Yoakke.Backend;
 using Yoakke.IR;
@@ -20,6 +21,8 @@ namespace Yoakke
                 var src = new Source("some.yk", File.ReadAllText("../../../../samples/test.yk"));
                 var tokens = Lexer.Lex(src);
                 var ast = Parser.ParseProgram(tokens);
+
+                Checks.CheckAll(ast);
 
                 /*Checks.CheckAll(ast);
 

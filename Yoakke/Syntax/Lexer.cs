@@ -220,7 +220,8 @@ namespace Yoakke.Syntax
                     builder.Append('\n');
                     continue;
                 }
-                if (!char.IsControl(ch)) position = position.Advance();
+                // TODO: This could be still incorrect
+                if (char.IsWhiteSpace(ch) || !char.IsControl(ch)) position = position.Advance();
                 builder.Append(ch);
             }
             index += i;

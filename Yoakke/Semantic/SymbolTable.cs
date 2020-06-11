@@ -33,9 +33,8 @@ namespace Yoakke.Semantic
         /// <param name="type">The <see cref="Type"/> itself to define.</param>
         public void DefineBuiltinType(string name, Type type)
         {
-            //var sym = new Symbol.Const(name, new Value.Type_(type));
-            //GlobalScope.Define(sym);
-            throw new NotImplementedException();
+            var sym = new Symbol.Const(name, type);
+            GlobalScope.Define(sym);
         }
 
         /// <summary>
