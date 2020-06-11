@@ -24,5 +24,25 @@ namespace Yoakke.Utils
                 element(e);
             }
         }
+
+        /// <summary>
+        /// Joins the given <see cref="IEnumerable{string}"/>.
+        /// </summary>
+        /// <param name="enumerable">The <see cref="IEnumerable{T}"/> to join.</param>
+        /// <param name="joiner">The string to join the elements with.</param>
+        /// <returns>The joined string.</returns>
+        public static string StringJoin(this IEnumerable<string?> enumerable, string joiner)
+        {
+            var builder = new StringBuilder();
+            bool first = true;
+            foreach (var e in enumerable)
+            {
+                if (!first) builder.Append(joiner);
+                first = false;
+
+                builder.Append(e);
+            }
+            return builder.ToString();
+        }
     }
 }

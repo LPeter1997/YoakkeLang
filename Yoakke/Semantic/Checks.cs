@@ -24,7 +24,7 @@ namespace Yoakke.Semantic
             symbolTable.DefineBuiltinType("type", Type.Type_);
             symbolTable.DefineBuiltinType("i32", Type.I32);
 
-            symbolTable.DefineIntrinsicFunction("@extern",
+            /*symbolTable.DefineIntrinsicFunction("@extern",
                 args =>
                 {
                     // TODO: Help type assertions
@@ -32,7 +32,7 @@ namespace Yoakke.Semantic
                     var symbolName = (Value.Str)args[0];
                     var symbolType = (Value.Type_)args[1];
                     return new Value.ExternSymbol(symbolName.Value, symbolType.Value);
-                });
+                });*/
 
             // Actual checks ///////////////////////////////////////////////////
 

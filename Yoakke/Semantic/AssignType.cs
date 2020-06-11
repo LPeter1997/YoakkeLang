@@ -97,7 +97,7 @@ namespace Yoakke.Semantic
                 Assign(call.Proc);
                 foreach (var arg in call.Arguments) Assign(arg);
                 // TODO: This is incorrect
-                return Type.Variable();
+                return new Type.Var();
 
             default: throw new NotImplementedException();
             }

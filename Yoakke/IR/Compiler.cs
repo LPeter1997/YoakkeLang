@@ -69,8 +69,8 @@ namespace Yoakke.IR
                 return new Value.Proc(definedProc);
             }
             Assert.NonNull(proc.EvaluationType);
-            proc.EvaluationType.AsProcedure(out _, out var semanticRetTy);
-            var retTy = Compile(semanticRetTy);
+            var procTy = Assert.NonNullValue(proc.EvaluationType as Semantic.Type.Proc);
+            var retTy = Compile(procTy.Return);
             var created = builder.CreateProc(name, retTy, () =>
             {
                 // Add it to the defined procedures
@@ -118,7 +118,7 @@ namespace Yoakke.IR
                 {
                     CompileProcedure(builder, asm, constDef.Name.Value, proc.Node);
                 }
-                else if (value is Semantic.Value.ExternSymbol externSym)
+                else if (value is Semantic.Value.Extern externSym)
                 {
                     var externalType = Compile(externSym.Type);
                     var external = new Value.Extern(externalType, externSym.Name);
@@ -224,7 +224,7 @@ namespace Yoakke.IR
             case Semantic.Value.Proc proc:
                 return CompileProcedure(builder, asm, "anonymous", proc.Node);
 
-            case Semantic.Value.ExternSymbol external:
+            case Semantic.Value.Extern external:
             {
                 var ty = Compile(external.Type);
                 return new Value.Extern(ty, external.Name);
@@ -236,14 +236,14 @@ namespace Yoakke.IR
 
         private static Type Compile(Semantic.Type type)
         {
-            if (Semantic.Type.Same(type, Semantic.Type.I32)) return Type.I32;
-            if (Semantic.Type.Same(type, Semantic.Type.Unit)) return Type.Void_;
-
-            if (type.IsProcedure())
-            {
-                type.AsProcedure(out var ps, out var ret);
-                return new Type.Proc(ps.Select(Compile).ToList(), Compile(ret));
-            }
+            //if (Semantic.Type.Same(type, Semantic.Type.I32)) return Type.I32;
+            //if (Semantic.Type.Same(type, Semantic.Type.Unit)) return Type.Void_;
+            //
+            //if (type.IsProcedure())
+            //{
+            //    type.AsProcedure(out var ps, out var ret);
+            //    return new Type.Proc(ps.Select(Compile).ToList(), Compile(ret));
+            //}
 
             throw new NotImplementedException();
         }

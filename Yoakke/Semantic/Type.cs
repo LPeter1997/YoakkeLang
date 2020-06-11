@@ -11,206 +11,58 @@ namespace Yoakke.Semantic
 
     partial class Type
     {
-        // Constants
-
-        /// <summary>
-        /// Constant for an empty <see cref="Type"/> list.
-        /// </summary>
-        public static readonly IList<Type> EmptyList = new List<Type>();
-
-        /// <summary>
-        /// The type of a type
-        /// </summary>
-        public static readonly Type Type_ = Primitive("type");
-        /// <summary>
-        /// Unit type, used as no return type.
-        /// </summary>
-        public static readonly Type Unit = Tuple(EmptyList);
-        // TODO: We could make integer types dependent types too, where the dependant int would describe bit-width
-        /// <summary>
-        /// 32-bit signed integer type.
-        /// </summary>
-        public static readonly Type I32 = Primitive("i32");
-        /// <summary>
-        /// String type.
-        /// </summary>
-        public static readonly Type Str = Primitive("str");
-
-        // Constructors
-
-        /// <summary>
-        /// Creates a <see cref="Var"/>.
-        /// </summary>
-        /// <returns>A new, unique <see cref="Var"/>.</returns>
-        public static Type Variable() =>
-            new Var();
-
-        /// <summary>
-        /// Creates a primitive type.
-        /// </summary>
-        /// <param name="name">The name of the primitive type.</param>
-        /// <returns>The <see cref="Ctor"/> representing a primitive type.</returns>
-        public static Type Primitive(string name) =>
-            new Ctor(name, EmptyList);
-
-        /// <summary>
-        /// Creates a tuple type.
-        /// </summary>
-        /// <param name="types">The list of <see cref="Type"/>s the tuple consists of.</param>
-        /// <returns>The <see cref="Ctor"/> representing a tuple type.</returns>
-        public static Type Tuple(IList<Type> types) =>
-            new Ctor("tuple", types);
-
-        /// <summary>
-        /// Creates a procedure type.
-        /// </summary>
-        /// <param name="parameters">The list of parameter <see cref="Type"/>s.</param>
-        /// <param name="ret">The return <see cref="Type"/>.</param>
-        /// <returns>The <see cref="Ctor"/> representing a procedure type.</returns>
-        public static Type Procedure(IList<Type> parameters, Type ret)
-        {
-            var types = parameters.ToList();
-            types.Add(ret);
-            return new Ctor("procedure", types);
-        }
-
-        // Observers
-
-        /// <summary>
-        /// Checks, if this <see cref="Type"/> is a procedure type.
-        /// </summary>
-        /// <returns>True, if it's a procedure type.</returns>
-        public bool IsProcedure() => 
-            Substitution is Ctor ctor && ctor.Name == "procedure";
-
-        // Destructuring
-
-        /// <summary>
-        /// Destructures this <see cref="Type"/> as a procedure type.
-        /// </summary>
-        /// <param name="parameters">The parameters of this procedure type.</param>
-        /// <param name="returnType">The return <see cref="Type"/> of this procedure.</param>
-        public void AsProcedure(out IEnumerable<Type> parameters, out Type returnType)
-        {
-            Debug.Assert(IsProcedure());
-            var ctor = (Ctor)Substitution;
-            parameters = ctor.Subtypes.Take(ctor.Subtypes.Count - 1);
-            returnType = ctor.Subtypes.Last();
-        }
+        public static readonly Type Unit = new Tuple(new List<Type>());
+        public static readonly Type Type_ = new Primitive("type");
+        new public static readonly Type Str = new Primitive("str");
+        public static readonly Type I32 = new Primitive("i32");
     }
 
     /// <summary>
     /// The base class for types in the compiler.
     /// </summary>
-    abstract partial class Type
+    abstract partial class Type : Value
     {
         /// <summary>
         /// Returns the substitution for this <see cref="Type"/>. Could be itself, if there's no substitution.
         /// </summary>
-        public virtual Type Substitution => this;
+        protected virtual Type Substitution => this;
+
+        public override bool EqualsNonNull(Value other) =>
+            other is Type t && Substitution.EqualsNonNull(t.Substitution);
 
         /// <summary>
-        /// Checks, if this <see cref="Type"/> contains the given <see cref="Var"/>.
+        /// Checks, if another <see cref="Type"/> equals with this one.
         /// </summary>
-        /// <param name="typeVariable">The type variable to search for.</param>
-        /// <returns>True, if the <see cref="Var"/> is contained.</returns>
-        protected abstract bool Contains(Var typeVariable);
-    }
-
-    // Operations between types
-
-    partial class Type
-    {
-        /// <summary>
-        /// Tries to unify the given <see cref="Type"/>s.
-        /// </summary>
-        /// <param name="t1">The first <see cref="Type"/> to unify.</param>
-        /// <param name="t2">The second <see cref="Type"/> to unify.</param>
-        public static void Unify(Type t1, Type t2)
-        {
-            void UnifyVarVar(Var v1, Var v2)
-            {
-                if (ReferenceEquals(v1, v2)) return;
-                v2.SubstituteFor(v1);
-            }
-
-            void UnifyCtorVar(Ctor c1, Var v2)
-            {
-                if (c1.Contains(v2))
-                {
-                    throw new NotImplementedException("Type-recursion!");
-                }
-                v2.SubstituteFor(c1);
-            }
-
-            void UnifyCtorCtor(Ctor c1, Ctor c2)
-            {
-                if (c1.Name != c2.Name)
-                {
-                    throw new NotImplementedException("Type mismatch!");
-                }
-                if (c1.Subtypes.Count != c2.Subtypes.Count)
-                {
-                    throw new NotImplementedException("Subtype amount mismatch!");
-                }
-                for (int i = 0; i < c1.Subtypes.Count; ++i)
-                {
-                    Unify(c1.Subtypes[i], c2.Subtypes[i]);
-                }
-            }
-
-            t1 = t1.Substitution;
-            t2 = t2.Substitution;
-            if (t1 is Var v1)
-            {
-                if (t2 is Var v2)
-                {
-                    UnifyVarVar(v1, v2);
-                    return;
-                }
-                if (t2 is Ctor c2)
-                {
-                    UnifyCtorVar(c2, v1);
-                    return;
-                }
-            }
-            if (t1 is Ctor c1)
-            {
-                if (t2 is Var v2)
-                {
-                    UnifyCtorVar(c1, v2);
-                    return;
-                }
-                if (t2 is Ctor c2)
-                {
-                    UnifyCtorCtor(c1, c2);
-                    return;
-                }
-            }
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Checks wether two <see cref="Type"/>s are exactly the same.
-        /// This should be used after type-inference is done.
-        /// </summary>
-        /// <param name="t1">The first <see cref="Type"/> to compare.</param>
-        /// <param name="t2">The second <see cref="Type"/> to compare.</param>
+        /// <param name="other">The other <see cref="Type"/> to compare.</param>
         /// <returns>True, if the two <see cref="Type"/>s are equal.</returns>
-        public static bool Same(Type t1, Type t2)
+        public abstract bool EqualsNonNull(Type other);
+
+        /// <summary>
+        /// Checks, if this <see cref="Type"/> contains the given <see cref="Type"/>.
+        /// This is useful for unification.
+        /// </summary>
+        /// <param name="type">The type to search for.</param>
+        /// <returns>True, if the <see cref="Type"/> is contained.</returns>
+        protected abstract bool Contains(Type type);
+
+        /// <summary>
+        /// Unifies this <see cref="Type"/> with another one.
+        /// </summary>
+        /// <param name="other">The other <see cref="Type"/> to unify this one with.</param>
+        public void Unify(Type other)
         {
-            t1 = t1.Substitution;
-            t2 = t2.Substitution;
-            if (t1 is Var || t2 is Var) throw new InvalidOperationException();
-            return t1 switch
-            {
-                Ctor c1 => t2 is Ctor c2
-                        && c1.Name == c2.Name
-                        && c1.Subtypes.Count == c2.Subtypes.Count
-                        && c1.Subtypes.Zip(c2.Subtypes).All(ts => Same(ts.First, ts.Second)),
-                _ => throw new NotImplementedException(),
-            };
+            var s1 = Substitution;
+            var s2 = other.Substitution;
+            if (s2 is Var v) v.UnifyInternal(s1);
+            else s1.UnifyInternal(s2);
         }
+
+        /// <summary>
+        /// Unifies this <see cref="Type"/> with another one.
+        /// This is the internal version that always has substitutions passed in.
+        /// </summary>
+        /// <param name="other">The other <see cref="Type"/> to unify this one with.</param>
+        protected abstract void UnifyInternal(Type other);
     }
 
     // Variants
@@ -220,10 +72,12 @@ namespace Yoakke.Semantic
         /// <summary>
         /// Represents a <see cref="Type"/> that's not inferred yet, and could be substituted for another.
         /// </summary>
-        protected class Var : Type
+        public class Var : Type
         {
+            public override Type Type => Type_;
+
             private Type? substitution;
-            public override Type Substitution
+            protected override Type Substitution
             {
                 get
                 {
@@ -234,42 +88,185 @@ namespace Yoakke.Semantic
                 }
             }
 
-            protected override bool Contains(Var typeVariable) =>
-                ReferenceEquals(this, typeVariable);
+            public override bool EqualsNonNull(Type other) =>
+                ReferenceEquals(Substitution, other.Substitution);
 
-            /// <summary>
-            /// Substitutes this type variable for another <see cref="Type"/>.
-            /// </summary>
-            /// <param name="type">The <see cref="Type"/> to substitute for.</param>
-            public void SubstituteFor(Type type)
+            protected override bool Contains(Type type) =>
+                ReferenceEquals(Substitution, type);
+
+            protected override void UnifyInternal(Type other)
             {
                 Debug.Assert(substitution == null, "Can only substitute for a type variable once!");
-                substitution = type;
+                // Other type variable
+                if (other is Var var)
+                {
+                    if (ReferenceEquals(this, var)) return;
+                    substitution = other;
+                    return;
+                }
+                // Something else
+                if (other.Contains(this)) throw new NotImplementedException("Type-recursion!");
+                // Free to substitute
+                substitution = other;
             }
         }
 
         /// <summary>
-        /// Represents a concrete <see cref="Type"/> with a name and possible subtypes.
+        /// A primitive <see cref="Type"/>.
         /// </summary>
-        private class Ctor : Type
+        public class Primitive : Type
         {
             /// <summary>
-            /// The name of this type.
+            /// The name of this primitive <see cref="Type"/>.
             /// </summary>
-            public string Name { get; }
-            /// <summary>
-            /// The subtypes of this type.
-            /// </summary>
-            public IList<Type> Subtypes { get; }
+            public readonly string Name;
 
-            internal Ctor(string name, IList<Type> subtypes)
+            public override Type Type => Type_;
+
+            /// <summary>
+            /// Initializes a new <see cref="Primitive"/>.
+            /// </summary>
+            /// <param name="name">The name of this primitive.</param>
+            public Primitive(string name)
             {
                 Name = name;
-                Subtypes = subtypes;
             }
 
-            protected override bool Contains(Var typeVariable) =>
-                Subtypes.Any(ty => ty.Contains(typeVariable));
+            public override bool EqualsNonNull(Type other) =>
+                ReferenceEquals(this, other.Substitution);
+
+            protected override bool Contains(Type type) =>
+                EqualsNonNull(type);
+
+            protected override void UnifyInternal(Type other)
+            {
+                if (!EqualsNonNull(other.Substitution)) throw new Exception($"Type mismatch {this} vs {other}");
+            }
+
+            public override string ToString() => Name;
+        }
+
+        /// <summary>
+        /// Abstraction for product <see cref="Type"/>s.
+        /// </summary>
+        public abstract class Product : Type
+        {
+            public override Type Type => Type_;
+
+            /// <summary>
+            /// The components this <see cref="Product"/> type consists of.
+            /// </summary>
+            public abstract IEnumerable<Value> Components { get; }
+
+            public override bool EqualsNonNull(Type other)
+            {
+                // Check if other is a product
+                if (!(other.Substitution is Product p)) return false;
+                // Check for same implementation types
+                if (GetType() != other.GetType()) return false;
+                // Check for sub-component count
+                if (Components.Count() != p.Components.Count()) return false;
+                // Check for sub-component equality
+                return Components.Zip(p.Components).All(x => x.First.EqualsNonNull(x.Second));
+            }
+
+            protected override bool Contains(Type type)
+            {
+                if (ReferenceEquals(this, type.Substitution)) return true;
+                foreach (var c in Components)
+                {
+                    if (c is Type t && t.Substitution.Contains(type)) return true;
+                }
+                return false;
+            }
+
+            protected override void UnifyInternal(Type other)
+            {
+                // Check if other is a product
+                if (!(other.Substitution is Product p)) throw new Exception($"Type mismatch {this} vs {other.Substitution}");
+                // Check for same implementation types
+                if (GetType() != other.GetType()) throw new Exception($"Type mismatch {this} vs {other.Substitution}");
+                // Check for sub-component count
+                if (Components.Count() != p.Components.Count()) throw new Exception($"Type mismatch {this} vs {other.Substitution}");
+                // Unify sub-components
+                var i1 = Components.GetEnumerator();
+                var i2 = p.Components.GetEnumerator();
+                while (i1.MoveNext() && i2.MoveNext())
+                {
+                    var c1 = i1.Current;
+                    var c2 = i2.Current;
+                    if (c1 is Type t1 && c2 is Type t2)
+                    {
+                        // Type-type
+                        t1.Unify(t2);
+                    }
+                    else if (c1 is Type || c2 is Type)
+                    {
+                        throw new Exception("Type-value mismatch!");
+                    }
+                    else if(!c1.Equals(c2))
+                    {
+                        // Value-value
+                        throw new Exception("Value mismatch!");
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// A list of <see cref="Type"/>s, known as a tuple.
+        /// </summary>
+        public class Tuple : Product
+        {
+            /// <summary>
+            /// The <see cref="Type"/>s this <see cref="Tuple"/> type consists of.
+            /// </summary>
+            public readonly IList<Type> Types;
+
+            public override IEnumerable<Value> Components => Types;
+
+            /// <summary>
+            /// Initializes a new <see cref="Tuple"/>.
+            /// </summary>
+            /// <param name="types">The <see cref="Type"/>s the tuple consists of.</param>
+            public Tuple(IList<Type> types)
+            {
+                Types = types;
+            }
+
+            public override string ToString() =>
+                $"({Types.Select(x => x.Substitution.ToString()).StringJoin(", ")})";
+        }
+
+        /// <summary>
+        /// A procedure's <see cref="Type"/>.
+        /// </summary>
+        new public class Proc : Product
+        {
+            /// <summary>
+            /// The parameter <see cref="Type"/>s of this procedure <see cref="Type"/>.
+            /// </summary>
+            public readonly IList<Type> Parameters;
+            /// <summary>
+            /// The return <see cref="Type"/>.
+            /// </summary>
+            public readonly Type Return;
+
+            public override IEnumerable<Value> Components => Parameters.Append(Return);
+
+            /// <summary>
+            /// Initializes a new <see cref="Proc"/>.
+            /// </summary>
+            /// <param name="parameters">The parameter <see cref="Type"/>s.</param>
+            /// <param name="ret">The return <see cref="Type"/>.</param>
+            public Proc(IList<Type> parameters, Type ret)
+            {
+                Parameters = parameters;
+                Return = ret;
+            }
+
+            public override string ToString() =>
+                $"proc({Parameters.Select(x => x.ToString()).StringJoin(", ")}) -> {Return.Substitution}";
         }
     }
 }

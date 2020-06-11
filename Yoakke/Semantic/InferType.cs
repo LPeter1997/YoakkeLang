@@ -32,7 +32,7 @@ namespace Yoakke.Semantic
                     // Unify the defined type with the value type
                     Assert.NonNull(constDef.Value.EvaluationType);
                     var ty = EvaluateConst.EvaluateToType(constDef.Type);
-                    Type.Unify(constDef.Value.EvaluationType, ty);
+                    //Type.Unify(constDef.Value.EvaluationType, ty);
                 }
                 break;
 
@@ -67,7 +67,7 @@ namespace Yoakke.Semantic
                                 ? Type.Unit
                                 : EvaluateConst.EvaluateToType(proc.ReturnType);
                 Assert.NonNull(proc.Body.EvaluationType);
-                Type.Unify(proc.Body.EvaluationType, returnType);
+                //Type.Unify(proc.Body.EvaluationType, returnType);
                 break;
 
             case Expression.Block block:

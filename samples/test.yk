@@ -1,6 +1,6 @@
 
-const foo = @extern("some_c_func", proc() -> i32);
+const foo = proc(x: i32) -> i32 { x }
 
 const main = proc() {
-	foo();
+	foo()
 }

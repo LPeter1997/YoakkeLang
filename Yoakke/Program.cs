@@ -20,7 +20,7 @@ namespace Yoakke
                 var tokens = Lexer.Lex(src);
                 var ast = Parser.ParseProgram(tokens);
 
-                Checks.CheckAll(ast);
+                /*Checks.CheckAll(ast);
 
                 //var entry = symbolTable.GlobalScope.Reference("main");
 
@@ -30,7 +30,7 @@ namespace Yoakke
                 Console.WriteLine(IrDump.Dump(asm));
                 Console.WriteLine("\n\nC code:\n");
                 var cBackend = new CCodegen();
-                Console.WriteLine(cBackend.Compile(asm));
+                Console.WriteLine(cBackend.Compile(asm));*/
             }
             catch (CompileError error)
             {

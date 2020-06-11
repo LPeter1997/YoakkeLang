@@ -1,20 +1,37 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Text;
 using Yoakke.Ast;
+using Yoakke.Utils;
 
 namespace Yoakke.Semantic
 {
     /// <summary>
     /// Represents a compile-time constant.
     /// </summary>
-    abstract partial class Value
+#pragma warning disable CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
+    abstract partial class Value : IEquatable<Value>
+#pragma warning restore CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
     {
         /// <summary>
         /// The <see cref="Type"/> of this constant value.
         /// </summary>
         public abstract Type Type { get; }
+
+        public override bool Equals(object? obj) =>
+            obj is Value v && Equals(v);
+
+        public bool Equals(Value? other) =>
+            other != null && EqualsNonNull(other);
+
+        /// <summary>
+        /// Checks, if another <see cref="Value"/> equals with this one.
+        /// </summary>
+        /// <param name="other">The other <see cref="Value"/> to compare.</param>
+        /// <returns>True, if the two <see cref="Value"/>s are equal.</returns>
+        public abstract bool EqualsNonNull(Value other);
     }
 
     // Variants
@@ -22,49 +39,28 @@ namespace Yoakke.Semantic
     partial class Value
     {
         /// <summary>
-        /// A compile-time <see cref="Value"/> that stores a <see cref="Type"/>.
-        /// </summary>
-        public class Type_ : Value
-        {
-            public override Type Type => Type.Type_;
-            /// <summary>
-            /// The <see cref="Type"/> this <see cref="Type_"/> stores.
-            /// </summary>
-            public Type Value { get; set; }
-
-            /// <summary>
-            /// Initializes a new <see cref="Type_"/>.
-            /// </summary>
-            /// <param name="value">The <see cref="Type"/> this value stores.</param>
-            public Type_(Type value)
-            {
-                Value = value;
-            }
-        }
-
-        /// <summary>
         /// A procedure as a compile-time <see cref="Value"/>.
         /// </summary>
         public class Proc : Value
         {
-            private Type type;
-            public override Type Type => type;
-
             /// <summary>
             /// The AST node of the procedure.
             /// </summary>
             public readonly Expression.Proc Node;
 
+            public override Type Type => Assert.NonNullValue(Node.EvaluationType);
+
             /// <summary>
             /// Initializes a new <see cref="Proc"/>.
             /// </summary>
             /// <param name="node">The AST node this procedure originates from.</param>
-            /// <param name="type">The <see cref="Type"/> of this procedure.</param>
-            public Proc(Expression.Proc node, Type type)
+            public Proc(Expression.Proc node)
             {
                 Node = node;
-                this.type = type;
             }
+
+            public override bool EqualsNonNull(Value other) =>
+                other is Proc o && ReferenceEquals(Node, o.Node);
         }
 
         /// <summary>
@@ -72,13 +68,13 @@ namespace Yoakke.Semantic
         /// </summary>
         public class IntrinsicProc : Value
         {
-            // TODO: Possibly wrong
-            public override Type Type => Type.Variable();
-
             /// <summary>
             /// The intrinsic <see cref="Symbol"/>.
             /// </summary>
             public readonly Symbol.Intrinsic Symbol;
+
+            // TODO: Possibly wrong
+            public override Type Type => new Type.Var();
 
             /// <summary>
             /// Initializes a new <see cref="IntrinsicProc"/>.
@@ -88,31 +84,40 @@ namespace Yoakke.Semantic
             {
                 Symbol = symbol;
             }
+
+            public override bool EqualsNonNull(Value other) =>
+                throw new NotImplementedException();
         }
 
         /// <summary>
         /// An external symbol as a <see cref="Value"/>.
         /// </summary>
-        public class ExternSymbol : Value
+        public class Extern : Value
         {
-            private Type type;
-            public override Type Type => type;
-
             /// <summary>
             /// The name of this external symbol.
             /// </summary>
             public readonly string Name;
 
+            private Type type;
+            public override Type Type => type;
+
             /// <summary>
-            /// Initializes a new <see cref="ExternSymbol"/>.
+            /// Initializes a new <see cref="Extern"/>.
             /// </summary>
             /// <param name="name">The name of the external symbol.</param>
             /// <param name="type">The <see cref="Type"/> of the external symbol.</param>
-            public ExternSymbol(string name, Type type)
+            public Extern(string name, Type type)
             {
                 this.type = type;
                 Name = name;
             }
+
+            public override bool EqualsNonNull(Value other) =>
+                   other is Extern e
+                && Name == e.Name
+                && Type.EqualsNonNull(e.Type)
+                ;
         }
 
         /// <summary>
@@ -120,14 +125,15 @@ namespace Yoakke.Semantic
         /// </summary>
         public class Int : Value
         {
-            private readonly Type type;
-            public override Type Type => type;
-
             /// <summary>
             /// The integer value.
             /// </summary>
             public readonly BigInteger Value;
 
+            private readonly Type type;
+            public override Type Type => type;
+
+            // TODO: Make sure the passed in type is int?
             /// <summary>
             /// Initializes a new <see cref="Int"/>.
             /// </summary>
@@ -138,6 +144,13 @@ namespace Yoakke.Semantic
                 this.type = type;
                 Value = value;
             }
+
+            // TODO: Do we count in the type?
+            public override bool EqualsNonNull(Value other) =>
+                   other is Int i
+                && type.EqualsNonNull(i.Type)
+                && Value == i.Value
+                ;
         }
 
         // TODO: Later string value could be represented by a simple struct.
@@ -147,12 +160,12 @@ namespace Yoakke.Semantic
         /// </summary>
         public class Str : Value
         {
-            public override Type Type => Type.Str;
-
             /// <summary>
             /// The string value.
             /// </summary>
             public readonly string Value;
+
+            public override Type Type => Type.Str;
 
             /// <summary>
             /// Initializes a new <see cref="Str"/>.
@@ -162,6 +175,9 @@ namespace Yoakke.Semantic
             {
                 Value = value;
             }
+
+            public override bool EqualsNonNull(Value other) =>
+                other is Str s && Value == s.Value;
         }
     }
 }

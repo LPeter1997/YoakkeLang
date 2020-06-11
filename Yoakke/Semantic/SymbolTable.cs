@@ -33,8 +33,9 @@ namespace Yoakke.Semantic
         /// <param name="type">The <see cref="Type"/> itself to define.</param>
         public void DefineBuiltinType(string name, Type type)
         {
-            var sym = new Symbol.Const(name, new Value.Type_(type));
-            GlobalScope.Define(sym);
+            //var sym = new Symbol.Const(name, new Value.Type_(type));
+            //GlobalScope.Define(sym);
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -61,8 +62,7 @@ namespace Yoakke.Semantic
         /// </summary>
         public void PopScope()
         {
-            Assert.NonNull(CurrentScope.Parent);
-            CurrentScope = CurrentScope.Parent;
+            CurrentScope = Assert.NonNullValue(CurrentScope.Parent);
         }
     }
 

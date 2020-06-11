@@ -36,9 +36,10 @@ namespace Yoakke.Semantic
         /// <returns>The <see cref="Type"/> the <see cref="Expression"/> describes.</returns>
         public static Type EvaluateToType(Expression expression)
         {
-            var val = Evaluate(expression);
+            /*var val = Evaluate(expression);
             Type.Unify(val.Type, Type.Type_);
-            return ((Value.Type_)val).Value;
+            return ((Value.Type_)val).Value;*/
+            throw new NotImplementedException();
         }
 
         private static Value EvaluateInternal(Expression expression)
@@ -63,7 +64,8 @@ namespace Yoakke.Semantic
                     {
                         // If value is null, it hasn't been calculated yet
                         Assert.NonNull(symbol.Definition);
-                        symbol.Value = Evaluate(symbol.Definition.Value);
+                        //symbol.Value = Evaluate(symbol.Definition.Value);
+                        throw new NotImplementedException();
                     }
                     // Value is surely calculated here
                     return symbol.Value;
@@ -74,7 +76,8 @@ namespace Yoakke.Semantic
             case Expression.Intrinsic intrinsic:
                 // Simply wrap the corresponding symbol
                 Assert.NonNull(intrinsic.Symbol);
-                return new Value.IntrinsicProc(intrinsic.Symbol);
+                //return new Value.IntrinsicProc(intrinsic.Symbol);
+                throw new NotImplementedException();
 
             case Expression.ProcType procType:
             {
@@ -82,9 +85,10 @@ namespace Yoakke.Semantic
                 var paramTypes = procType.ParameterTypes.Select(EvaluateToType).ToList();
                 var returnType = procType.ReturnType == null ? Type.Unit : EvaluateToType(procType.ReturnType);
                 // Create a procedure type
-                var type = Type.Procedure(paramTypes, returnType);
+                //var type = Type.Procedure(paramTypes, returnType);
                 // Wrap it in a value
-                return new Value.Type_(type);
+                //return new Value.Type_(type);
+                throw new NotImplementedException();
             }
 
             case Expression.Proc proc:
@@ -93,9 +97,10 @@ namespace Yoakke.Semantic
                 var paramTypes = proc.Parameters.Select(x => EvaluateToType(x.Type)).ToList();
                 var returnType = proc.ReturnType == null ? Type.Unit : EvaluateToType(proc.ReturnType);
                 // Create a procedure type
-                var procType = Type.Procedure(paramTypes, returnType);
+                //var procType = Type.Procedure(paramTypes, returnType);
                 // Wrap the node into a value
-                return new Value.Proc(proc, procType);
+                //return new Value.Proc(proc, procType);
+                throw new NotImplementedException();
             }
 
             // TODO: Evaluate statements, block
