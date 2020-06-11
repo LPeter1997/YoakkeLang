@@ -204,7 +204,7 @@ namespace Yoakke.Semantic
                     {
                         throw new Exception("Type-value mismatch!");
                     }
-                    else if(!c1.Equals(c2))
+                    else if (!c1.Equals(c2))
                     {
                         // Value-value
                         throw new Exception("Value mismatch!");
