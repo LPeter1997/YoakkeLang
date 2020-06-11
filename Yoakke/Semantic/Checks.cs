@@ -60,6 +60,14 @@ namespace Yoakke.Semantic
             //   Every node has Symbol != null.
             DefineSymbol.Define(program);
 
+            // Step three
+            // ==========
+            // Preconditions: 
+            //   Every node has Scope != null.
+            // Description:
+            //   For each implicit return finds the corresponding return target scope.
+            // Postconditions:
+            //   Every node with implicit return has ReturnTarget != null.
             AssignReturnTarget.Assign(program);
 
             /*
