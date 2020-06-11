@@ -253,6 +253,11 @@ namespace Yoakke.Ast
             public Expression? Value { get; set; }
 
             /// <summary>
+            /// The <see cref="Scope"/> the value is returned to.
+            /// </summary>
+            public Scope? ReturnTarget { get; set; }
+
+            /// <summary>
             /// Initializes a new <see cref="Block"/>.
             /// </summary>
             /// <param name="statements">The list of <see cref="Statement"/>s this block consists of.</param>

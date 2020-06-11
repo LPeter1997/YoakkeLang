@@ -4,5 +4,13 @@ const bar = @extern("asd", i32);
 const foo = proc(x: i32) -> i32 { x }
 
 const main = proc() {
-	foo()
+
+	{
+		{
+			{
+			
+			foo()
+			}
+		}
+	}
 }

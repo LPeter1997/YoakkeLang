@@ -60,6 +60,8 @@ namespace Yoakke.Semantic
             //   Every node has Symbol != null.
             DefineSymbol.Define(program);
 
+            AssignReturnTarget.Assign(program);
+
             /*
              Plan for proper steps after this:
                For each expression we need it's type.

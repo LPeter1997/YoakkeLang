@@ -36,10 +36,9 @@ namespace Yoakke.Semantic
         /// <returns>The <see cref="Type"/> the <see cref="Expression"/> describes.</returns>
         public static Type EvaluateToType(Expression expression)
         {
-            /*var val = Evaluate(expression);
-            Type.Unify(val.Type, Type.Type_);
-            return ((Value.Type_)val).Value;*/
-            throw new NotImplementedException();
+            var val = Evaluate(expression);
+            val.Type.Unify(Type.Type_);
+            return (Type)val;
         }
 
         private static Value EvaluateInternal(Expression expression)

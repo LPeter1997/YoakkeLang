@@ -74,6 +74,18 @@ namespace Yoakke.Semantic
         /// </summary>
         public class Var : Type
         {
+            /// <summary>
+            /// Utility to construct a list of <see cref="Var"/>s.
+            /// </summary>
+            /// <param name="amount">The amount of <see cref="Var"/>s to add to the list.</param>
+            /// <returns>A list of <see cref="Var"/>s.</returns>
+            public static IList<Type> ListOf(int amount)
+            {
+                var result = new List<Type>(amount);
+                for (int i = 0; i < amount; ++i) result.Add(new Var());
+                return result;
+            }
+
             public override Type Type => Type_;
 
             private Type? substitution;
