@@ -41,10 +41,11 @@ namespace Yoakke.Semantic
         /// Defines an intrinsic function.
         /// </summary>
         /// <param name="name">The name of the intrinsic function.</param>
+        /// <param name="type">The <see cref="Type"/> of the intrinsic function.</param>
         /// <param name="function">The called <see cref="Func{T, TResult}"/> to perform the action when called.</param>
-        public void DefineIntrinsicFunction(string name, Func<List<Value>, Value> function)
+        public void DefineIntrinsicFunction(string name, Type type, Func<List<Value>, Value> function)
         {
-            var sym = new Symbol.Intrinsic(name, function);
+            var sym = new Symbol.Intrinsic(name, type, function);
             GlobalScope.Define(sym);
         }
 

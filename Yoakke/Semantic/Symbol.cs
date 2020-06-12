@@ -41,12 +41,6 @@ namespace Yoakke.Semantic
         {
             Position = token.Position;
         }
-
-        /// <summary>
-        /// Gets the <see cref="Type"/> for this <see cref="Symbol"/>, assuming it already has one assigned.
-        /// </summary>
-        /// <returns>The <see cref="Type"/> associated with this <see cref="Symbol"/>.</returns>
-        public abstract Type AssumeHasType();
     }
 
     partial class Symbol
@@ -76,12 +70,6 @@ namespace Yoakke.Semantic
             {
                 Definition = definition;
             }
-
-            public override Type AssumeHasType()
-            {
-                Assert.NonNull(Value);
-                return Value.Type;
-            }
         }
 
         /// <summary>
@@ -97,17 +85,17 @@ namespace Yoakke.Semantic
             /// </summary>
             public readonly Func<List<Value>, Value> Function;
 
-            public Intrinsic(string name, Func<List<Value>, Value> function) 
+            /// <summary>
+            /// The <see cref="Type"/> of this intrinsic function.
+            /// </summary>
+            public readonly Type Type;
+
+            public Intrinsic(string name, Type type, Func<List<Value>, Value> function) 
                 : base(name)
             {
                 Debug.Assert(name[0] == '@', "Intrinsic identifiers must start with an '@'!");
+                Type = type;
                 Function = function;
-            }
-
-            public override Type AssumeHasType()
-            {
-                // TODO
-                throw new NotImplementedException();
             }
         }
 
@@ -128,12 +116,6 @@ namespace Yoakke.Semantic
             public Variable(Token name)
                 : base(name)
             {
-            }
-
-            public override Type AssumeHasType()
-            {
-                Assert.NonNull(Type);
-                return Type;
             }
         }
     }

@@ -73,8 +73,7 @@ namespace Yoakke.Semantic
             /// </summary>
             public readonly Symbol.Intrinsic Symbol;
 
-            // TODO: Possibly wrong
-            public override Type Type => new Type.Var();
+            public override Type Type => Symbol.Type;
 
             /// <summary>
             /// Initializes a new <see cref="IntrinsicProc"/>.

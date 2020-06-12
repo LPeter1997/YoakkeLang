@@ -177,14 +177,23 @@ namespace Yoakke.Syntax
             // We just try both the type and the value
             // First the value, as that's the more "elaborate" one
 
+            var input2 = input;
+
             var procValue = TryParse(ref input, ParseProcValueExpression);
             if (procValue != null) return procValue;
 
             var procType = TryParse(ref input, ParseProcTypeExpression);
-            if (procType != null) return procType;
+            if (procType != null)
+            {
+                // This check eases the errors a bit
+                if (((Expression.ProcType)procType).ParameterTypes.Count > 0 || Peek(input) != TokenType.OpenBrace)
+                {
+                    return procType;
+                }
+            }
 
             // NOTE: This is weird (calling it when already failed) but helps us raising better errors
-            return ParseProcValueExpression(ref input);
+            return ParseProcValueExpression(ref input2);
         }
 
         private static Expression ParseProcValueExpression(ref Input input)

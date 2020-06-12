@@ -25,6 +25,7 @@ namespace Yoakke.Semantic
             symbolTable.DefineBuiltinType("i32", Type.I32);
 
             symbolTable.DefineIntrinsicFunction("@extern",
+                new Type.Proc(new List<Type> { Type.Str, Type.Type_ }, Type.Any_),
                 args =>
                 {
                     // TODO: Help type assertions

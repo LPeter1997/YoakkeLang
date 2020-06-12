@@ -11,6 +11,7 @@ namespace Yoakke.Semantic
 
     partial class Type
     {
+        public static readonly Type Any_ = new Any();
         public static readonly Type Unit = new Tuple(new List<Type>());
         public static readonly Type Type_ = new Primitive("type");
         new public static readonly Type Str = new Primitive("str");
@@ -53,7 +54,7 @@ namespace Yoakke.Semantic
         {
             var s1 = Substitution;
             var s2 = other.Substitution;
-            if (s2 is Var v) v.UnifyInternal(s1);
+            if (s2 is Variable v) v.UnifyInternal(s1);
             else s1.UnifyInternal(s2);
         }
 
@@ -72,17 +73,17 @@ namespace Yoakke.Semantic
         /// <summary>
         /// Represents a <see cref="Type"/> that's not inferred yet, and could be substituted for another.
         /// </summary>
-        public class Var : Type
+        public class Variable : Type
         {
             /// <summary>
-            /// Utility to construct a list of <see cref="Var"/>s.
+            /// Utility to construct a list of <see cref="Variable"/>s.
             /// </summary>
-            /// <param name="amount">The amount of <see cref="Var"/>s to add to the list.</param>
-            /// <returns>A list of <see cref="Var"/>s.</returns>
+            /// <param name="amount">The amount of <see cref="Variable"/>s to add to the list.</param>
+            /// <returns>A list of <see cref="Variable"/>s.</returns>
             public static IList<Type> ListOf(int amount)
             {
                 var result = new List<Type>(amount);
-                for (int i = 0; i < amount; ++i) result.Add(new Var());
+                for (int i = 0; i < amount; ++i) result.Add(new Variable());
                 return result;
             }
 
@@ -110,7 +111,7 @@ namespace Yoakke.Semantic
             {
                 Debug.Assert(substitution == null, "Can only substitute for a type variable once!");
                 // Other type variable
-                if (other is Var var)
+                if (other is Variable var)
                 {
                     if (ReferenceEquals(this, var)) return;
                     substitution = other;
@@ -120,6 +121,25 @@ namespace Yoakke.Semantic
                 if (other.Contains(this)) throw new NotImplementedException("Type-recursion!");
                 // Free to substitute
                 substitution = other;
+            }
+        }
+
+        /// <summary>
+        /// A simple way to do type-erasure, a <see cref="Type"/> that will unify with every other <see cref="Type"/>.
+        /// </summary>
+        public class Any : Type
+        {
+            public override Type Type => Type.Type_;
+
+            public override bool EqualsNonNull(Type other) =>
+                ReferenceEquals(this, other);
+
+            protected override bool Contains(Type type) =>
+                EqualsNonNull(type);
+
+            protected override void UnifyInternal(Type other)
+            {
+                // NO-OP
             }
         }
 
