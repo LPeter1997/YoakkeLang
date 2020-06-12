@@ -199,7 +199,7 @@ namespace Yoakke.Semantic
             {
                 // Evaluate the procedure and the arguments
                 var proc = Evaluate(callStack, call.Proc);
-                var args = call.Arguments.Select(x => Evaluate(callStack, x));
+                var args = call.Arguments.Select(x => Evaluate(callStack, x)).ToList();
 
                 if (proc is Value.Proc procValue)
                 {
@@ -210,7 +210,7 @@ namespace Yoakke.Semantic
                     // The call-site type
                     var callSiteProcType = new Type.Proc(argTypes, retType);
                     // Unify with the procedure type itself
-                    proc.Type.Unify(callSiteProcType);
+                    procValue.Type.Unify(callSiteProcType);
                     // Now actually call the procedure
                     callStack.Push(new StackFrame());
                     // Define arguments
@@ -226,7 +226,15 @@ namespace Yoakke.Semantic
                 }
                 else if (proc is Value.IntrinsicProc intrinsic)
                 {
-                    throw new NotImplementedException();
+                    var argTypes = args.Select(x => x.Type).ToList();
+                    // For now we ignore the return type on purpose
+                    var retType = new Type.Variable();
+                    // The call-site type
+                    var callSiteProcType = new Type.Proc(argTypes, retType);
+                    // Unify with the procedure type itself
+                    intrinsic.Type.Unify(callSiteProcType);
+                    // Call it
+                    return intrinsic.Symbol.Function(args.ToList());
                 }
                 else
                 {

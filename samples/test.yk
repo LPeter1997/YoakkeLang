@@ -1,6 +1,2 @@
 
-const foo = proc(x: get_type()) -> get_type() { x }
-
-const bar: get_type() = foo(1);
-
-const get_type = proc() -> type { i32 }
+const aaa: proc(i32) -> i32 = @extern("asd", proc(i32) -> i32);
