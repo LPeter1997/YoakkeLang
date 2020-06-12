@@ -51,10 +51,10 @@ namespace Yoakke.Syntax
             Expect(ref input, TokenType.Identifier, out var name);
 
             Expression? type = null;
-            if (Match(ref input, TokenType.Colon)) type = ParseExpression(ref input);
+            if (Match(ref input, TokenType.Colon)) type = ParseExpression(ref input, false);
 
             Expect(ref input, TokenType.Assign);
-            var value = ParseExpression(ref input);
+            var value = ParseExpression(ref input, false);
             if (!IsBracedExpressionForConstDeclaration(value))
             {
                 Expect(ref input, TokenType.Semicolon);
@@ -81,7 +81,7 @@ namespace Yoakke.Syntax
 
         private static Statement ParseExpressionStatement(ref Input input)
         {
-            var expression = ParseExpression(ref input);
+            var expression = ParseExpression(ref input, false);
             if (!IsBracedExpressionForStatement(expression))
             {
                 // ';' required
@@ -95,12 +95,12 @@ namespace Yoakke.Syntax
 
         // Expressions /////////////////////////////////////////////////////////
 
-        private static Expression ParseExpression(ref Input input) =>
-            ParsePostfixExpression(ref input);
+        private static Expression ParseExpression(ref Input input, bool typeOnly) =>
+            ParsePostfixExpression(ref input, typeOnly);
 
-        private static Expression ParsePostfixExpression(ref Input input)
+        private static Expression ParsePostfixExpression(ref Input input, bool typeOnly)
         {
-            var result = ParseAtomicExpression(ref input);
+            var result = ParseAtomicExpression(ref input, typeOnly);
             while (true)
             {
                 if (Match(ref input, TokenType.OpenParen))
@@ -110,7 +110,7 @@ namespace Yoakke.Syntax
                     while (true)
                     {
                         if (Match(ref input, TokenType.CloseParen)) break;
-                        args.Add(ParseExpression(ref input));
+                        args.Add(ParseExpression(ref input, false));
                         if (Match(ref input, TokenType.Comma)) continue;
 
                         Expect(ref input, TokenType.CloseParen);
@@ -126,9 +126,9 @@ namespace Yoakke.Syntax
             return result;
         }
 
-        private static Expression ParseAtomicExpression(ref Input input)
+        private static Expression ParseAtomicExpression(ref Input input, bool typeOnly)
         {
-            if (Peek(input) == TokenType.KwProc) return ParseProcExpression(ref input);
+            if (Peek(input) == TokenType.KwProc) return ParseProcExpression(ref input, typeOnly);
             if (Peek(input) == TokenType.OpenBrace) return ParseBlockExpression(ref input);
 
             if (Match(ref input, TokenType.Identifier, out var token)) return new Expression.Ident(token);
@@ -152,7 +152,7 @@ namespace Yoakke.Syntax
                     statements.Add(statement);
                     continue;
                 }
-                var expression = TryParse(ref input, ParseExpression);
+                var expression = TryParse(ref input, (ref Input i) => ParseExpression(ref i, false));
                 if (expression != null)
                 {
                     returnValue = expression;
@@ -172,15 +172,18 @@ namespace Yoakke.Syntax
             return new Expression.Block(statements, returnValue);
         }
 
-        private static Expression ParseProcExpression(ref Input input)
+        private static Expression ParseProcExpression(ref Input input, bool typeOnly)
         {
             // We just try both the type and the value
             // First the value, as that's the more "elaborate" one
 
             var input2 = input;
 
-            var procValue = TryParse(ref input, ParseProcValueExpression);
-            if (procValue != null) return procValue;
+            if (!typeOnly)
+            {
+                var procValue = TryParse(ref input, ParseProcValueExpression);
+                if (procValue != null) return procValue;
+            }
 
             var procType = TryParse(ref input, ParseProcTypeExpression);
             if (procType != null)
@@ -193,7 +196,7 @@ namespace Yoakke.Syntax
             }
 
             // NOTE: This is weird (calling it when already failed) but helps us raising better errors
-            return ParseProcValueExpression(ref input2);
+            return typeOnly ? ParseProcTypeExpression(ref input2) : ParseProcValueExpression(ref input2);
         }
 
         private static Expression ParseProcValueExpression(ref Input input)
@@ -213,7 +216,7 @@ namespace Yoakke.Syntax
             }
 
             Expression? returnType = null;
-            if (Match(ref input, TokenType.Arrow)) returnType = ParseExpression(ref input);
+            if (Match(ref input, TokenType.Arrow)) returnType = ParseExpression(ref input, true);
 
             var body = ParseBlockExpression(ref input);
             return new Expression.Proc(parameters, returnType, body);
@@ -228,7 +231,7 @@ namespace Yoakke.Syntax
             while (true)
             {
                 if (Match(ref input, TokenType.CloseParen)) break;
-                arguments.Add(ParseExpression(ref input));
+                arguments.Add(ParseExpression(ref input, true));
                 if (Match(ref input, TokenType.Comma)) continue;
 
                 Expect(ref input, TokenType.CloseParen);
@@ -236,7 +239,7 @@ namespace Yoakke.Syntax
             }
 
             Expression? returnType = null;
-            if (Match(ref input, TokenType.Arrow)) returnType = ParseExpression(ref input);
+            if (Match(ref input, TokenType.Arrow)) returnType = ParseExpression(ref input, true);
 
             return new Expression.ProcType(arguments, returnType);
         }
@@ -245,7 +248,7 @@ namespace Yoakke.Syntax
         {
             Expect(ref input, TokenType.Identifier, out var name);
             Expect(ref input, TokenType.Colon);
-            var type = ParseExpression(ref input);
+            var type = ParseExpression(ref input, true);
             return new Expression.Proc.Parameter(name, type);
         }
 

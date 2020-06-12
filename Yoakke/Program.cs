@@ -22,6 +22,8 @@ namespace Yoakke
                 var tokens = Lexer.Lex(src);
                 var ast = Parser.ParseProgram(tokens);
 
+                //Console.WriteLine(ast.DumpTree());
+
                 Checks.CheckAll(ast);
 
                 ConstEval.Evaluate(ast);
