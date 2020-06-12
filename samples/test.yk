@@ -1,8 +1,6 @@
 
-const bar = @extern("asd", i32);
+const foo = proc(x: get_type()) -> get_type() { x }
 
-const foo = proc(x: i32) -> i32 { x }
+const bar: get_type() = foo(1);
 
-const main = proc() {
-	let x = 23;
-}
+const get_type = proc() -> type { i32 }

@@ -12,7 +12,7 @@ namespace Yoakke.Semantic
     partial class Type
     {
         public static readonly Type Any_ = new Any();
-        public static readonly Type Unit = new Tuple(new List<Type>());
+        new public static readonly Type Unit = new Tuple(new List<Type>());
         public static readonly Type Type_ = new Primitive("type");
         new public static readonly Type Str = new Primitive("str");
         public static readonly Type I32 = new Primitive("i32");
@@ -124,6 +124,7 @@ namespace Yoakke.Semantic
             }
         }
 
+        // TODO: This would require some proper subtyping. For now it's good enough for builtins.
         /// <summary>
         /// A simple way to do type-erasure, a <see cref="Type"/> that will unify with every other <see cref="Type"/>.
         /// </summary>
@@ -248,7 +249,7 @@ namespace Yoakke.Semantic
         /// <summary>
         /// A list of <see cref="Type"/>s, known as a tuple.
         /// </summary>
-        public class Tuple : Product
+        new public class Tuple : Product
         {
             /// <summary>
             /// The <see cref="Type"/>s this <see cref="Tuple"/> type consists of.

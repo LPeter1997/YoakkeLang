@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Numerics;
 using System.Text;
 using Yoakke.Ast;
@@ -8,6 +9,15 @@ using Yoakke.Utils;
 
 namespace Yoakke.Semantic
 {
+    // Constants
+
+#pragma warning disable CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
+    partial class Value
+#pragma warning restore CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
+    {
+        public static readonly Value Unit = new Tuple(new List<Value>());
+    }
+
     /// <summary>
     /// Represents a compile-time constant.
     /// </summary>
@@ -48,15 +58,18 @@ namespace Yoakke.Semantic
             /// </summary>
             public readonly Expression.Proc Node;
 
-            public override Type Type => Assert.NonNullValue(Node.EvaluationType);
+            private Type type;
+            public override Type Type => Assert.NonNullValue(type);
 
             /// <summary>
             /// Initializes a new <see cref="Proc"/>.
             /// </summary>
             /// <param name="node">The AST node this procedure originates from.</param>
-            public Proc(Expression.Proc node)
+            /// <param name="type">The <see cref="Type"/> of the procedure.</param>
+            public Proc(Expression.Proc node, Type type)
             {
                 Node = node;
+                this.type = type;
             }
 
             public override bool EqualsNonNull(Value other) =>
@@ -85,7 +98,10 @@ namespace Yoakke.Semantic
             }
 
             public override bool EqualsNonNull(Value other) =>
-                throw new NotImplementedException();
+                other is IntrinsicProc i && ReferenceEquals(Symbol, i.Symbol);
+
+            public override string ToString() =>
+                Symbol.Name;
         }
 
         /// <summary>
@@ -117,6 +133,9 @@ namespace Yoakke.Semantic
                 && Name == e.Name
                 && Type.EqualsNonNull(e.Type)
                 ;
+
+            public override string ToString() =>
+                $"external({Name})";
         }
 
         /// <summary>
@@ -150,6 +169,9 @@ namespace Yoakke.Semantic
                 && type.EqualsNonNull(i.Type)
                 && Value == i.Value
                 ;
+
+            public override string ToString() =>
+                Value.ToString();
         }
 
         // TODO: Later string value could be represented by a simple struct.
@@ -177,6 +199,41 @@ namespace Yoakke.Semantic
 
             public override bool EqualsNonNull(Value other) =>
                 other is Str s && Value == s.Value;
+
+            public override string ToString() =>
+                $"\"{Value}\"";
+        }
+
+        /// <summary>
+        /// A tuple of <see cref="Value"/>s.
+        /// </summary>
+        public class Tuple : Value
+        {
+            /// <summary>
+            /// The list of <see cref="Value"/>s this <see cref="Tuple"/> consists of.
+            /// </summary>
+            public readonly IList<Value> Values;
+
+            private Type type;
+            public override Type Type => type;
+
+            /// <summary>
+            /// Initializes a new <see cref="Tuple"/>.
+            /// </summary>
+            /// <param name="values">The list of <see cref="Value"/>s this tuple consists of.</param>
+            public Tuple(IList<Value> values)
+            {
+                Values = values;
+                type = new Type.Tuple(values.Select(x => x.Type).ToList());
+            }
+
+            public override bool EqualsNonNull(Value other) =>
+                   other is Tuple t
+                && Values.Count == t.Values.Count
+                && Values.Zip(t.Values).All(vs => vs.First.EqualsNonNull(vs.Second));
+
+            public override string ToString() =>
+                $"({Values.Select(x => x.ToString()).StringJoin(", ")})";
         }
     }
 }

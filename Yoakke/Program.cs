@@ -24,6 +24,8 @@ namespace Yoakke
 
                 Checks.CheckAll(ast);
 
+                ConstEval.Evaluate(ast);
+
                 /*Checks.CheckAll(ast);
 
                 //var entry = symbolTable.GlobalScope.Reference("main");
