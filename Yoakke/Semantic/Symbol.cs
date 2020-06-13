@@ -71,6 +71,7 @@ namespace Yoakke.Semantic
                 Definition = definition;
             }
 
+            // TODO: Doc
             public Value GetValue()
             {
                 if (Value == null)

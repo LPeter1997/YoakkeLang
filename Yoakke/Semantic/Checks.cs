@@ -61,29 +61,8 @@ namespace Yoakke.Semantic
             //   Every node has Symbol != null.
             DefineSymbol.Define(program);
 
-            /*
-             Plan for proper steps after this:
-               For each expression we need it's type.
-               For types, we might need to evaluate constants.
-               For constants we might need to evaluate types, which means this whole thing is circular, can't really separate steps.
-               To deduce types, we need to enforce the strongest inference possible immediately, so that can't be a separate step either.
-               If something has a constant value, it **must also have a type along with it**.
-
-               We want signatures to be fully typed, so a procedure's signature must be fully typed, before we even consider it's body.
-               We want each procedure body to be fully typed, so each overload and type variable must be fully determined when we are
-               about to leave the function body.
-             */
-
-            // For every constant definition they call EvaluateConst.Evaluate and store the result in the symbol.
-            //AssignConstantSymbol.Assign(program);
-
-            // For every expression it tries to assign some type.
-            //AssignType.Assign(program);
-            
-            // Does type unification where needed.
-            //InferType.Infer(program);
-
-            // Finally, EvaluateConst.Evaluate is a mess!
+            // TODO: Doc
+            TypeCheck.Check(program);
         }
     }
 }

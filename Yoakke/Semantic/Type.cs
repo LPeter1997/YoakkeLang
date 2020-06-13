@@ -219,9 +219,9 @@ namespace Yoakke.Semantic
                 // Check if other is a product
                 if (!(other.Substitution is Product p)) throw new Exception($"Type mismatch {this} vs {other.Substitution}");
                 // Check for same implementation types
-                if (GetType() != other.GetType()) throw new Exception($"Type mismatch {this} vs {other.Substitution}");
+                if (GetType() != p.GetType()) throw new Exception($"Type mismatch {this} vs {p}");
                 // Check for sub-component count
-                if (Components.Count() != p.Components.Count()) throw new Exception($"Type mismatch {this} vs {other.Substitution}");
+                if (Components.Count() != p.Components.Count()) throw new Exception($"Type mismatch {this} vs {p}");
                 // Unify sub-components
                 var i1 = Components.GetEnumerator();
                 var i2 = p.Components.GetEnumerator();

@@ -98,20 +98,6 @@ namespace Yoakke.Semantic
                     var type = (Type)constDef.Type.ConstantValue;
                     type.Unify(constDef.Value.ConstantValue.Type);
                 }
-
-                // TODO: This is just for debugging
-                if (constDef.Type == null)
-                {
-                    Console.WriteLine($"const {constDef.Name.Value} = {constDef.Value.ConstantValue}");
-                    Assert.NonNull(constDef.Value.ConstantValue);
-                    Console.WriteLine($"  deduced type: {constDef.Value.ConstantValue.Type}");
-                }
-                else
-                {
-                    Console.WriteLine($"const {constDef.Name.Value}: {constDef.Type.ConstantValue} = {constDef.Value.ConstantValue}");
-                    Assert.NonNull(constDef.Value.ConstantValue);
-                    Console.WriteLine($"  deduced type: {constDef.Value.ConstantValue.Type}");
-                }
                 break;
 
             case Statement.Expression_ expression:

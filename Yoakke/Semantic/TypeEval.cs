@@ -8,6 +8,7 @@ using Yoakke.Utils;
 
 namespace Yoakke.Semantic
 {
+    // TODO: Doc
     static class TypeEval
     {
         public static Type Evaluate(Expression expression)
