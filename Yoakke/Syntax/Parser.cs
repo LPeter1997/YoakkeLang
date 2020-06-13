@@ -82,12 +82,19 @@ namespace Yoakke.Syntax
         private static Statement ParseExpressionStatement(ref Input input)
         {
             var expression = ParseExpression(ref input, false);
+            bool hasSemicolon = false;
             if (!IsBracedExpressionForStatement(expression))
             {
                 // ';' required
                 Expect(ref input, TokenType.Semicolon);
+                hasSemicolon = true;
             }
-            return new Statement.Expression_(expression);
+            else
+            {
+                // ';' is optional
+                hasSemicolon = Match(ref input, TokenType.Semicolon);
+            }
+            return new Statement.Expression_(expression, hasSemicolon);
         }
 
         private static bool IsBracedExpressionForStatement(Expression expression) =>

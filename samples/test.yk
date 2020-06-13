@@ -1,6 +1,6 @@
 
-const bar = proc(x: proc()) {}
+const bar = proc() -> i32 { 0 }
 
 const main = proc() {
-	bar(proc() { 0 })
+	bar();
 }

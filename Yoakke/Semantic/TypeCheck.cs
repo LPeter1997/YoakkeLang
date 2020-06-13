@@ -39,9 +39,8 @@ namespace Yoakke.Semantic
                 Check(expression.Expression);
                 // We force evaluation here to ensure checks
                 var ty = TypeEval.Evaluate(expression.Expression);
-                // TODO: Except when we explicitly put a semicolon!
-                // An expression in a statement's position must produce a unit type
-                Type.Unit.Unify(ty);
+                // An expression in a statement's position must produce a unit type, if it's not terminated by a semicolon
+                if (!expression.HasSemicolon) Type.Unit.Unify(ty);
             }
             break;
 
