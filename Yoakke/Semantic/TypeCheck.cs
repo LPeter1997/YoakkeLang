@@ -37,6 +37,9 @@ namespace Yoakke.Semantic
             {
                 // Check subelement
                 Check(expression.Expression);
+                // NOTE: This is one of the most important calls here, as most of our type-safety rules are enforced by 
+                // evaluating every expression's type!
+                // The only other major place comes from unifying return type and block return type for procedures.
                 // We force evaluation here to ensure checks
                 var ty = TypeEval.Evaluate(expression.Expression);
                 // An expression in a statement's position must produce a unit type, if it's not terminated by a semicolon

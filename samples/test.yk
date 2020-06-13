@@ -1,6 +1,4 @@
 
-const bar = proc() -> i32 { 0 }
 
-const main = proc() {
-	bar();
+const f3 = proc() {
 }
