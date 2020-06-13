@@ -68,8 +68,8 @@ namespace Yoakke.IR
             {
                 return new Value.Proc(definedProc);
             }
-            Assert.NonNull(proc.EvaluationType);
-            var procTy = Assert.NonNullValue(proc.EvaluationType as Semantic.Type.Proc);
+
+            var procTy = Assert.NonNullValue(TypeEval.Evaluate(proc) as Semantic.Type.Proc);
             var retTy = Compile(procTy.Return);
             var created = builder.CreateProc(name, retTy, () =>
             {
@@ -128,7 +128,7 @@ namespace Yoakke.IR
                 }
                 else
                 {
-                    throw new NotImplementedException();
+                    // PASS
                 }
             }
             break;
@@ -230,14 +230,13 @@ namespace Yoakke.IR
 
         private static Type Compile(Semantic.Type type)
         {
-            //if (Semantic.Type.Same(type, Semantic.Type.I32)) return Type.I32;
-            //if (Semantic.Type.Same(type, Semantic.Type.Unit)) return Type.Void_;
-            //
-            //if (type.IsProcedure())
-            //{
-            //    type.AsProcedure(out var ps, out var ret);
-            //    return new Type.Proc(ps.Select(Compile).ToList(), Compile(ret));
-            //}
+            if (Semantic.Type.I32.EqualsNonNull(type)) return Type.I32;
+            if (Semantic.Type.Unit.EqualsNonNull(type)) return Type.Void_;
+
+            if (type is Semantic.Type.Proc proc)
+            { 
+                return new Type.Proc(proc.Parameters.Select(Compile).ToList(), Compile(proc.Return));
+            }
 
             throw new NotImplementedException();
         }

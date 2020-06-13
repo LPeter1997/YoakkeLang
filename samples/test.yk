@@ -1,4 +1,6 @@
 
+const ty = i32;
 
-const f3 = proc() {
+const f3 = proc(x: ty) -> ty {
+	x
 }

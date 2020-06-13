@@ -86,7 +86,8 @@ namespace Yoakke.IR
 
             case Instruction.Ret ret:
                 Write("ret");
-                if (ret.Value != null) Write(' ', ret.Value);
+                // Only write return value if it's non-void
+                if (!Type.Void_.EqualsNonNull(ret.Value.Type)) Write(' ', ret.Value);
                 break;
 
             case Instruction.Store store:
@@ -111,6 +112,9 @@ namespace Yoakke.IR
         {
             switch (value)
             {
+            case Value.Void _:
+                break;
+
             case Value.Register reg:
                 Write($"r{reg.Index}");
                 break;

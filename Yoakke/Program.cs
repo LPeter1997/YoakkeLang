@@ -26,19 +26,13 @@ namespace Yoakke
 
                 Checks.CheckAll(ast);
 
-                ConstEval.Evaluate(ast);
-
-                /*Checks.CheckAll(ast);
-
-                //var entry = symbolTable.GlobalScope.Reference("main");
-
                 var asm = Compiler.Compile(ast);
-
                 Console.WriteLine("IR code:\n");
                 Console.WriteLine(IrDump.Dump(asm));
+
                 Console.WriteLine("\n\nC code:\n");
                 var cBackend = new CCodegen();
-                Console.WriteLine(cBackend.Compile(asm));*/
+                Console.WriteLine(cBackend.Compile(asm));
             }
             catch (CompileError error)
             {

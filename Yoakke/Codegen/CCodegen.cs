@@ -117,7 +117,8 @@ namespace Yoakke.Backend
 
             case Instruction.Ret ret:
                 Write(builder, "return");
-                if (ret.Value != null) Write(builder, ' ', ret.Value);
+                // Only write return value if it's non-void
+                if (!Type.Void_.EqualsNonNull(ret.Value.Type)) Write(builder, ' ', ret.Value);
                 break;
 
             case Instruction.Store store:
@@ -146,6 +147,9 @@ namespace Yoakke.Backend
         {
             switch (value)
             {
+            case Value.Void _:
+                break;
+
             case Value.Register regVal:
                 Write(builder, 'r', regVal.Index);
                 break;

@@ -71,13 +71,13 @@ namespace Yoakke.IR
             /// <summary>
             /// The return <see cref="Value"/>, if there's any.
             /// </summary>
-            public Value? Value { get; set; }
+            public Value Value { get; set; }
 
             /// <summary>
             /// Initializes a new <see cref="Ret"/>.
             /// </summary>
             /// <param name="value">The <see cref="Value"/> to return.</param>
-            public Ret(Value? value = null)
+            public Ret(Value value)
             {
                 Value = value;
             }
