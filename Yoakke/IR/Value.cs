@@ -6,6 +6,13 @@ using System.Text;
 
 namespace Yoakke.IR
 {
+    // Constants
+
+    partial class Value
+    {
+        public static readonly Value Void_ = new Void();
+    }
+
     /// <summary>
     /// Base for values during IR compilation.
     /// </summary>
@@ -21,6 +28,14 @@ namespace Yoakke.IR
 
     partial class Value
     {
+        /// <summary>
+        /// A <see cref="Value"/> representing no-value.
+        /// </summary>
+        public class Void : Value
+        {
+            public override Type Type => Type.Void_;
+        }
+
         /// <summary>
         /// A <see cref="Value"/> that's being stored inside a register.
         /// </summary>

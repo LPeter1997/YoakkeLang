@@ -129,7 +129,7 @@ namespace Yoakke.Backend
                 break;
 
             case Instruction.Call call:
-                if (!Type.Same(call.Value.Type, Type.Void_))
+                if (!Type.Void_.EqualsNonNull(call.Value.Type))
                 {
                     Write(builder, call.Value, " = ");
                 }

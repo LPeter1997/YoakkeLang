@@ -72,7 +72,7 @@ namespace Yoakke.IR
             if (instruction is ValueInstruction value)
             {
                 // If it's a call and is a void return, don't bother writing the assignee
-                if (!(instruction is Instruction.Call call) || !Type.Same(call.Value.Type, Type.Void_))
+                if (!(instruction is Instruction.Call call) || !Type.Void_.EqualsNonNull(call.Value.Type))
                 {
                     Write(value.Value, " = ");
                 }

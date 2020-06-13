@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Text;
 
 namespace Yoakke.IR
@@ -7,7 +9,9 @@ namespace Yoakke.IR
     /// <summary>
     /// Base class for every IR type.
     /// </summary>
-    abstract partial class Type
+#pragma warning disable CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
+    abstract partial class Type : IEquatable<Type>
+#pragma warning restore CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
     {
         /// <summary>
         /// The <see cref="Type"/> constant for void (no return value).
@@ -17,26 +21,19 @@ namespace Yoakke.IR
         /// The <see cref="Type"/> constant for i32 type.
         /// </summary>
         public static readonly Type I32 = new Int(true, 32);
-    }
 
-    // Operations
+        public override bool Equals(object? obj) =>
+            obj is Type t && Equals(t);
 
-    partial class Type
-    {
+        public bool Equals(Type? other) =>
+            other != null && EqualsNonNull(other);
+
         /// <summary>
-        /// Checks wether two <see cref="Type"/>s are the same.
+        /// Checks, if another <see cref="Type"/> equals with this one.
         /// </summary>
-        /// <param name="t1">The first <see cref="Type"/> to compare.</param>
-        /// <param name="t2">The second <see cref="Type"/> to compare.</param>
+        /// <param name="other">The other <see cref="Type"/> to compare.</param>
         /// <returns>True, if the two <see cref="Type"/>s are equal.</returns>
-        public static bool Same(Type t1, Type t2) =>
-            t1 switch
-            {
-                Void _ => t2 is Void,
-                Int i1 => t2 is Int i2 && i1.Signed == i2.Signed && i1.Bits == i2.Bits,
-                Ptr p1 => t2 is Ptr p2 && Same(p1.ElementType, p2.ElementType),
-                _ => throw new NotImplementedException(),
-            };
+        public abstract bool EqualsNonNull(Type other);
     }
 
     // Variants
@@ -46,7 +43,11 @@ namespace Yoakke.IR
         /// <summary>
         /// Void <see cref="Type"/>.
         /// </summary>
-        public class Void : Type { }
+        public class Void : Type
+        {
+            public override bool EqualsNonNull(Type other) =>
+                ReferenceEquals(this, other);
+        }
 
         /// <summary>
         /// Integral <see cref="Type"/>.
@@ -69,6 +70,9 @@ namespace Yoakke.IR
                 Signed = signed;
                 Bits = bits;
             }
+
+            public override bool EqualsNonNull(Type other) =>
+                other is Int i && Bits == i.Bits && Signed == i.Signed;
         }
 
         /// <summary>
@@ -89,6 +93,9 @@ namespace Yoakke.IR
             {
                 ElementType = elementType;
             }
+
+            public override bool EqualsNonNull(Type other) =>
+                other is Ptr p && ElementType.EqualsNonNull(p.ElementType);
         }
 
         /// <summary>
@@ -115,6 +122,12 @@ namespace Yoakke.IR
                 Parameters = parameters;
                 ReturnType = returnType;
             }
+
+            public override bool EqualsNonNull(Type other) =>
+                   other is Proc p
+                && ReturnType.EqualsNonNull(p.ReturnType)
+                && Parameters.Count == p.Parameters.Count
+                && Parameters.Zip(p.Parameters).All(ts => ts.First.EqualsNonNull(ts.Second));
         }
     }
 }

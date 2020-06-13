@@ -141,7 +141,7 @@ namespace Yoakke.IR
             }
         }
 
-        private static Value? Compile(IrBuilder builder, AssemblyContext asm, ProcedureContext? ctx, Expression expression)
+        private static Value Compile(IrBuilder builder, AssemblyContext asm, ProcedureContext? ctx, Expression expression)
         {
             switch (expression) 
             {
@@ -187,9 +187,9 @@ namespace Yoakke.IR
             case Expression.Block block:
             {
                 foreach (var stmt in block.Statements) Compile(builder, asm, ctx, stmt);
-                Value? retValue = block.Value == null
-                                  ? null
-                                  : Compile(builder, asm, ctx, block.Value);
+                Value retValue = block.Value == null
+                                 ? Value.Void_
+                                 : Compile(builder, asm, ctx, block.Value);
                 // TODO: block-evaluation does not necessarily return from the function!!!
                 builder.AddInstruction(new Instruction.Ret(retValue));
                 return retValue;
@@ -199,18 +199,12 @@ namespace Yoakke.IR
             {
                 Assert.NonNull(ctx);
                 var proc = Compile(builder, asm, ctx, call.Proc);
-                Assert.NonNull(proc);
-                var args = call.Arguments.Select(x =>
-                {
-                    var val = Compile(builder, asm, ctx, x);
-                    Assert.NonNull(val);
-                    return val;
-                }).ToList();
+                var args = call.Arguments.Select(x => Compile(builder, asm, ctx, x)).ToList();
                 var procTy = (Type.Proc)proc.Type;
                 var retTy = procTy.ReturnType;
                 var retRegister = ctx.AllocateRegister(retTy);
                 builder.AddInstruction(new Instruction.Call(retRegister, proc, args));
-                return Type.Same(retTy, Type.Void_) ? null : retRegister;
+                return Type.Void_.EqualsNonNull(retTy) ? Value.Void_ : retRegister;
             }
 
             default: throw new NotImplementedException();
