@@ -158,12 +158,12 @@ namespace Yoakke.Backend
                 Write(builder, intVal.Value);
                 break;
 
-            case Value.Proc procVal:
-                Write(builder, procVal.Proc_.Name);
-                break;
-
             case Value.Extern external:
                 Write(builder, external.Name);
+                break;
+
+            case Proc procVal:
+                Write(builder, procVal.Name);
                 break;
 
             default: throw new NotImplementedException();
