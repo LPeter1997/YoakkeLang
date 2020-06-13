@@ -71,7 +71,11 @@ namespace Yoakke.Semantic
                 Definition = definition;
             }
 
-            // TODO: Doc
+            /// <summary>
+            /// Retrieves the <see cref="Value"/> associated with this constant.
+            /// If it's not calculated yet, enforces the calculation.
+            /// </summary>
+            /// <returns>The <see cref="Value"/> of this constant.</returns>
             public Value GetValue()
             {
                 if (Value == null)

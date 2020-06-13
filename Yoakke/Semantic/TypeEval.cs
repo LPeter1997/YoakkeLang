@@ -8,9 +8,16 @@ using Yoakke.Utils;
 
 namespace Yoakke.Semantic
 {
-    // TODO: Doc
+    /// <summary>
+    /// Does type-evaluation at compile-time.
+    /// </summary>
     static class TypeEval
     {
+        /// <summary>
+        /// Evaluates the <see cref="Type"/> of a given <see cref="Expression"/>.
+        /// </summary>
+        /// <param name="expression">The <see cref="Expression"/> to get the <see cref="Type"/> of.</param>
+        /// <returns>The <see cref="Type"/> of the given <see cref="Expression"/>.</returns>
         public static Type Evaluate(Expression expression)
         {
             if (expression.EvaluationType == null)

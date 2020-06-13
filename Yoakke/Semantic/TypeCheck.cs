@@ -8,9 +8,15 @@ using Yoakke.Utils;
 
 namespace Yoakke.Semantic
 {
-    // TODO: Doc
+    /// <summary>
+    /// Enforces type-checking rules in the program.
+    /// </summary>
     static class TypeCheck
     {
+        /// <summary>
+        /// Type-checks the given <see cref="Statement"/>.
+        /// </summary>
+        /// <param name="statement">The <see cref="Statement"/> to type-check.</param>
         public static void Check(Statement statement)
         {
             switch (statement)
@@ -61,6 +67,7 @@ namespace Yoakke.Semantic
                 break;
 
             case Expression.Proc proc:
+            {
                 // Check argument and return type
                 foreach (var param in proc.Parameters) Check(param.Type);
                 if (proc.ReturnType != null) Check(proc.ReturnType);
@@ -73,7 +80,12 @@ namespace Yoakke.Semantic
                 }
                 // Now we can check the body
                 Check(proc.Body);
-                break;
+                // Unify the return type with the body's return type
+                var procRetTy = proc.ReturnType == null ? Type.Unit : ConstEval.EvaluateAsType(proc.ReturnType);
+                var bodyRetTy = TypeEval.Evaluate(proc.Body);
+                procRetTy.Unify(bodyRetTy);
+            }
+            break;
 
             case Expression.Block block:
                 // Just check subelements

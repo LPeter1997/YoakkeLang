@@ -61,7 +61,9 @@ namespace Yoakke.Semantic
             //   Every node has Symbol != null.
             DefineSymbol.Define(program);
 
-            // TODO: Doc
+            // Step three
+            // ==========
+            // This is a complicated step, so no description yet, as things are subject to change here.
             TypeCheck.Check(program);
         }
     }
