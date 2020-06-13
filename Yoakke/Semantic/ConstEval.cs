@@ -22,7 +22,7 @@ namespace Yoakke.Semantic
         {
             var callStk = new Stack<StackFrame>();
             callStk.Push(new StackFrame());
-            Evaluate(callStk, statement);
+            Evaluate(callStk, statement, true);
         }
 
         /// <summary>
@@ -34,7 +34,7 @@ namespace Yoakke.Semantic
         {
             var callStk = new Stack<StackFrame>();
             callStk.Push(new StackFrame());
-            return Evaluate(callStk, expression);
+            return Evaluate(callStk, expression, true);
         }
 
         /// <summary>
@@ -46,7 +46,7 @@ namespace Yoakke.Semantic
         {
             var callStk = new Stack<StackFrame>();
             callStk.Push(new StackFrame());
-            return EvaluateAsType(callStk, expression);
+            return EvaluateAsType(callStk, expression, true);
         }
 
         private class StackFrame
@@ -54,40 +54,53 @@ namespace Yoakke.Semantic
             public Dictionary<Symbol.Variable, Value> Variables = new Dictionary<Symbol.Variable, Value>();
         }
 
-        private static Value Evaluate(Stack<StackFrame> callStack, Expression expression)
+        private static Value Evaluate(Stack<StackFrame> callStack, Expression expression, bool canCache)
         {
+            // NOTE: We need canCache because we can't cache *everything*. For example, we can't cache the values of
+            // procedure bodies, as that would result in the same value for each evaluation of the procedure body, since once it's
+            // cached, it will stay cached.
+            // We could still cache, if we make caching dependent on the actual state, I.E. the call stack.
+            // For now we just re-evaluate when we can't cache for sure.
+
             // Some simple cache-ing mechanism
-            if (expression.ConstantValue == null)
+            if (canCache)
             {
-                expression.ConstantValue = EvaluateImpl(callStack, expression);
+                if (expression.ConstantValue == null)
+                {
+                    expression.ConstantValue = EvaluateImpl(callStack, expression, canCache);
+                }
+                return expression.ConstantValue;
             }
-            return expression.ConstantValue;
+            else
+            {
+                return EvaluateImpl(callStack, expression, canCache);
+            }
         }
 
-        private static Type EvaluateAsType(Stack<StackFrame> callStack, Expression expression)
+        private static Type EvaluateAsType(Stack<StackFrame> callStack, Expression expression, bool canCache)
         {
-            var value = Evaluate(callStack, expression);
+            var value = Evaluate(callStack, expression, canCache);
             value.Type.Unify(Type.Type_);
             return (Type)value;
         }
 
-        private static void Evaluate(Stack<StackFrame> callStack, Statement statement)
+        private static void Evaluate(Stack<StackFrame> callStack, Statement statement, bool canCache)
         {
             switch (statement)
             {
             case Declaration.Program program:
-                foreach (var decl in program.Declarations) Evaluate(callStack, decl);
+                foreach (var decl in program.Declarations) Evaluate(callStack, decl, true);
                 break;
 
             case Declaration.ConstDef constDef:
                 Assert.NonNull(constDef.Symbol);
                 // Evaluate the type, if there's any
-                if (constDef.Type != null) EvaluateAsType(callStack, constDef.Type);
+                if (constDef.Type != null) EvaluateAsType(callStack, constDef.Type, true);
                 // Evaluate the value
                 if (constDef.Symbol.Value == null)
                 {
                     // This is still unevaluated, evaluate and assign to symbol
-                    constDef.Symbol.Value = Evaluate(callStack, constDef.Value);
+                    constDef.Symbol.Value = Evaluate(callStack, constDef.Value, true);
                 }
                 // If has a type, unify with value
                 if (constDef.Type != null)
@@ -102,7 +115,7 @@ namespace Yoakke.Semantic
 
             case Statement.Expression_ expression:
             {
-                var value = Evaluate(callStack, expression.Expression);
+                var value = Evaluate(callStack, expression.Expression, canCache);
                 value.Type.Unify(Type.Unit);
             }
             break;
@@ -111,7 +124,7 @@ namespace Yoakke.Semantic
             }
         }
 
-        private static Value EvaluateImpl(Stack<StackFrame> callStack, Expression expression)
+        private static Value EvaluateImpl(Stack<StackFrame> callStack, Expression expression, bool canCache)
         {
             switch (expression)
             {
@@ -155,9 +168,9 @@ namespace Yoakke.Semantic
             case Expression.ProcType procType:
             {
                 // Evaluate parameters
-                var parameters = procType.ParameterTypes.Select(x => EvaluateAsType(callStack, x)).ToList();
+                var parameters = procType.ParameterTypes.Select(x => EvaluateAsType(callStack, x, canCache)).ToList();
                 // Evaluate return type, if any
-                var ret = procType.ReturnType == null ? Type.Unit : EvaluateAsType(callStack, procType.ReturnType);
+                var ret = procType.ReturnType == null ? Type.Unit : EvaluateAsType(callStack, procType.ReturnType, canCache);
                 // Create the procedure type
                 return new Type.Proc(parameters, ret);
             }
@@ -165,9 +178,9 @@ namespace Yoakke.Semantic
             case Expression.Proc proc:
             {
                 // Evaluate parameters
-                var parameters = proc.Parameters.Select(x => EvaluateAsType(callStack, x.Type)).ToList();
+                var parameters = proc.Parameters.Select(x => EvaluateAsType(callStack, x.Type, canCache)).ToList();
                 // Evaluate return type, if any
-                var ret = proc.ReturnType == null ? Type.Unit : EvaluateAsType(callStack, proc.ReturnType);
+                var ret = proc.ReturnType == null ? Type.Unit : EvaluateAsType(callStack, proc.ReturnType, canCache);
                 // Type-check the body
                 var bodyType = TypeEval.Evaluate(proc.Body);
                 // Unify with return type
@@ -180,15 +193,15 @@ namespace Yoakke.Semantic
 
             case Expression.Block block:
             {
-                foreach (var stmt in block.Statements) Evaluate(callStack, stmt);
-                return block.Value == null ? Value.Unit : Evaluate(callStack, block.Value);
+                foreach (var stmt in block.Statements) Evaluate(callStack, stmt, canCache);
+                return block.Value == null ? Value.Unit : Evaluate(callStack, block.Value, canCache);
             }
 
             case Expression.Call call:
             {
                 // Evaluate the procedure and the arguments
-                var proc = Evaluate(callStack, call.Proc);
-                var args = call.Arguments.Select(x => Evaluate(callStack, x)).ToList();
+                var proc = Evaluate(callStack, call.Proc, canCache);
+                var args = call.Arguments.Select(x => Evaluate(callStack, x, canCache)).ToList();
 
                 if (proc is Value.Proc procValue)
                 {
@@ -209,7 +222,7 @@ namespace Yoakke.Semantic
                         callStack.Peek().Variables.Add(arg.Second, arg.First);
                     }
                     // Evaluate the body
-                    var value = Evaluate(callStack, procValue.Node.Body);
+                    var value = Evaluate(callStack, procValue.Node.Body, false);
                     callStack.Pop();
                     return value;
                 }
