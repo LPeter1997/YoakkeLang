@@ -70,6 +70,17 @@ namespace Yoakke.Semantic
             {
                 Definition = definition;
             }
+
+            public Value GetValue()
+            {
+                if (Value == null)
+                {
+                    Assert.NonNull(Definition);
+                    ConstEval.Evaluate(Definition);
+                }
+                Assert.NonNull(Value);
+                return Value;
+            }
         }
 
         /// <summary>

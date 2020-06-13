@@ -1,7 +1,10 @@
 
+const indirect2 = proc() { }
+const indirect = 4;
+const foo = proc() { indirect2() }
 
-const some_other_type = type_getter();
-const some_type = type_getter_getter()();
+const some_other_type: type_getter() = 0;
+const some_type: type_getter_getter()() = 0;
 
 const type_getter = type_getter_getter();
 const type_getter_getter = proc() -> proc() -> type { proc() -> type { i32 } }

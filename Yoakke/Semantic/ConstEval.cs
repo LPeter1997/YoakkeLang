@@ -182,7 +182,10 @@ namespace Yoakke.Semantic
                 var parameters = proc.Parameters.Select(x => EvaluateAsType(callStack, x.Type)).ToList();
                 // Evaluate return type, if any
                 var ret = proc.ReturnType == null ? Type.Unit : EvaluateAsType(callStack, proc.ReturnType);
-                // TODO: Type-check body, unify with return-type
+                // Type-check the body
+                var bodyType = TypeEval.Evaluate(proc.Body);
+                // Unify with return type
+                ret.Unify(bodyType);
                 // Create the procedure type
                 var procType = new Type.Proc(parameters, ret);
                 // Wrap it up in a value
