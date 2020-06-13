@@ -1,6 +1,8 @@
 
-const ty = i32;
+const get_type = proc(x: type) -> type { x }
 
-const f3 = proc(x: ty) -> ty {
-	x
+const some_type = get_type(i32);
+
+const main = proc() -> get_type(i32) {
+	0
 }

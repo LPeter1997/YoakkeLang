@@ -44,7 +44,7 @@ namespace Yoakke.Semantic
         /// </summary>
         /// <param name="type">The type to search for.</param>
         /// <returns>True, if the <see cref="Type"/> is contained.</returns>
-        protected abstract bool Contains(Type type);
+        public abstract bool Contains(Type type);
 
         /// <summary>
         /// Unifies this <see cref="Type"/> with another one.
@@ -105,7 +105,7 @@ namespace Yoakke.Semantic
             public override bool EqualsNonNull(Type other) =>
                 ReferenceEquals(Substitution, other.Substitution);
 
-            protected override bool Contains(Type type) =>
+            public override bool Contains(Type type) =>
                 ReferenceEquals(Substitution, type);
 
             protected override void UnifyInternal(Type other)
@@ -136,7 +136,7 @@ namespace Yoakke.Semantic
             public override bool EqualsNonNull(Type other) =>
                 ReferenceEquals(this, other);
 
-            protected override bool Contains(Type type) =>
+            public override bool Contains(Type type) =>
                 EqualsNonNull(type);
 
             protected override void UnifyInternal(Type other)
@@ -169,7 +169,7 @@ namespace Yoakke.Semantic
             public override bool EqualsNonNull(Type other) =>
                 ReferenceEquals(this, other.Substitution);
 
-            protected override bool Contains(Type type) =>
+            public override bool Contains(Type type) =>
                 EqualsNonNull(type);
 
             protected override void UnifyInternal(Type other)
@@ -204,7 +204,7 @@ namespace Yoakke.Semantic
                 return Components.Zip(p.Components).All(x => x.First.EqualsNonNull(x.Second));
             }
 
-            protected override bool Contains(Type type)
+            public override bool Contains(Type type)
             {
                 if (ReferenceEquals(this, type.Substitution)) return true;
                 foreach (var c in Components)

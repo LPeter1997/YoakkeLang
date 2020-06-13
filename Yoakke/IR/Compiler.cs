@@ -62,7 +62,7 @@ namespace Yoakke.IR
             return assembly;
         }
 
-        private static Value.Proc CompileProcedure(IrBuilder builder, AssemblyContext asm, string name, Expression.Proc proc)
+        private static Value.Proc? CompileProcedure(IrBuilder builder, AssemblyContext asm, string name, Expression.Proc proc)
         {
             if (asm.Procedures.TryGetValue(proc, out var definedProc))
             {
@@ -70,6 +70,12 @@ namespace Yoakke.IR
             }
 
             var procTy = Assert.NonNullValue(TypeEval.Evaluate(proc) as Semantic.Type.Proc);
+            if (procTy.Contains(Semantic.Type.Type_))
+            {
+                // TODO: Not the best way to determine
+                return null;
+            }
+
             var retTy = Compile(procTy.Return);
             var created = builder.CreateProc(name, retTy, () =>
             {
@@ -216,7 +222,7 @@ namespace Yoakke.IR
             switch (value)
             {
             case Semantic.Value.Proc proc:
-                return CompileProcedure(builder, asm, "anonymous", proc.Node);
+                return Assert.NonNullValue(CompileProcedure(builder, asm, "anonymous", proc.Node));
 
             case Semantic.Value.Extern external:
             {
