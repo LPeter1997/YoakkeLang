@@ -59,11 +59,11 @@ namespace Yoakke.IR
         /// Compiles a new <see cref="Proc"/>.
         /// </summary>
         /// <param name="name">The name of the procedure.</param>
-        /// <param name="returnType">The <see cref="Type"/> phe procedure returns.</param>
+        /// <param name="type">The <see cref="Type"/> of this procedure.</param>
         /// <param name="action">The callback that's being called, when the builder context switches to
         /// this new procedure. After the callback, the context will switch back to the old one.</param>
         /// <returns>The created <see cref="Proc"/>.</returns>
-        public Proc CreateProc(string name, Type returnType, Action action)
+        public Proc CreateProc(string name, Type type, Action action)
         {
             name = GlobalUniqueName(name);
 
@@ -71,7 +71,7 @@ namespace Yoakke.IR
             var lastBB = currentBB;
             var lastLocalNames = currentLocalNames;
 
-            var createdProc = new Proc(name, returnType); ;
+            var createdProc = new Proc(name, type);
             currentProc = createdProc;
             Assembly.Procedures.Add(currentProc);
             currentLocalNames = new HashSet<string>();

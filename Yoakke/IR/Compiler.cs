@@ -62,11 +62,11 @@ namespace Yoakke.IR
             return assembly;
         }
 
-        private static Value.Proc? CompileProcedure(IrBuilder builder, AssemblyContext asm, string name, Expression.Proc proc)
+        private static Proc? CompileProcedure(IrBuilder builder, AssemblyContext asm, string name, Expression.Proc proc)
         {
             if (asm.Procedures.TryGetValue(proc, out var definedProc))
             {
-                return new Value.Proc(definedProc);
+                return definedProc;
             }
 
             var procTy = Assert.NonNullValue(TypeEval.Evaluate(proc) as Semantic.Type.Proc);
@@ -76,8 +76,8 @@ namespace Yoakke.IR
                 return null;
             }
 
-            var retTy = Compile(procTy.Return);
-            var created = builder.CreateProc(name, retTy, () =>
+            var compiledProcTy = Compile(procTy);
+            var created = builder.CreateProc(name, compiledProcTy, () =>
             {
                 // Add it to the defined procedures
                 asm.Procedures.Add(proc, builder.CurrentProc);
@@ -103,7 +103,7 @@ namespace Yoakke.IR
                 }
                 Compile(builder, asm, ctx, proc.Body);
             });
-            return new Value.Proc(created);
+            return created;
         }
 
         private static void Compile(IrBuilder builder, AssemblyContext asm, ProcedureContext? ctx, Statement statement)

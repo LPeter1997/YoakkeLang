@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Yoakke.IR
@@ -22,7 +23,7 @@ namespace Yoakke.IR
     /// <summary>
     /// A single procedure compiled to IR.
     /// </summary>
-    class Proc
+    class Proc : Value
     {
         /// <summary>
         /// The name of the procedure.
@@ -31,25 +32,33 @@ namespace Yoakke.IR
         /// <summary>
         /// The parameters of the procedure.
         /// </summary>
-        public readonly List<Value.Register> Parameters = new List<Value.Register>();
+        public readonly List<Register> Parameters = new List<Register>();
+        /// <summary>
+        /// The parameter <see cref="Type"/>s of the procedure.
+        /// </summary>
+        public List<Type> ParameterTypes => type.Parameters;
         /// <summary>
         /// The return <see cref="Type"/> of the procedure.
         /// </summary>
-        public readonly Type ReturnType;
+        public Type ReturnType => type.ReturnType;
         /// <summary>
         /// The list of <see cref="BasicBlock"/>s this procedure consists of.
         /// </summary>
         public readonly List<BasicBlock> BasicBlocks = new List<BasicBlock>();
 
+        private Type.Proc type;
+        public override Type Type => type;
+
         /// <summary>
         /// Initializes a new <see cref="Proc"/>.
         /// </summary>
         /// <param name="name">The name of the procedure. Assumed to be globally unique.</param>
+        /// <param name="parameters">The parameter <see cref="Value.Register"/>s of this procedure.</param>
         /// <param name="returnType">The <see cref="Type"/> the procedure returns with.</param>
-        public Proc(string name, Type returnType)
+        public Proc(string name, Type type)
         {
+            this.type = (Type.Proc)type;
             Name = name;
-            ReturnType = returnType;
         }
     }
 

@@ -123,8 +123,8 @@ namespace Yoakke.IR
                 Write(intVal.Value);
                 break;
 
-            case Value.Proc proc:
-                Write(proc.Proc_.Name);
+            case Proc proc:
+                Write(proc.Name);
                 break;
 
             case Value.Extern external:
