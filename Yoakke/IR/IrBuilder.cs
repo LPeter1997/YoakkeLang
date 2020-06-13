@@ -19,18 +19,12 @@ namespace Yoakke.IR
         /// <summary>
         /// The currently compiled <see cref="Proc"/>.
         /// </summary>
-        public Proc CurrentProc
-        {
-            get { Assert.NonNull(currentProc); return currentProc; }
-        }
+        public Proc CurrentProc => Assert.NonNullValue(currentProc);
 
         /// <summary>
         /// The currently compiled <see cref="BasicBlock"/>.
         /// </summary>
-        public BasicBlock CurrentBasicBlock
-        {
-            get { Assert.NonNull(currentBB); return currentBB; }
-        }
+        public BasicBlock CurrentBasicBlock => Assert.NonNullValue(currentBB);
 
         private HashSet<string> globalNames = new HashSet<string>();
         private Proc? currentProc;
