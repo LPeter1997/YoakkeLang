@@ -28,7 +28,7 @@ namespace Yoakke.IR
         {
             foreach (var external in assembly.Externals)
             {
-                DumpExternalDeclaration(external.Name, external.Type);
+                DumpExternalDeclaration(external.LinkName, external.Type);
                 Write(";\n");
             }
             Write('\n');
@@ -132,7 +132,7 @@ namespace Yoakke.IR
                 //break;
 
             case Value.Extern external:
-                Write(external.Name);
+                Write(external.LinkName);
                 break;
 
             default: throw new NotImplementedException();

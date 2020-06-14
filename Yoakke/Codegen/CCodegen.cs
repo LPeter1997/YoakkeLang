@@ -48,7 +48,7 @@ namespace Yoakke.Backend
 
         private void DeclareExternal(Value.Extern external)
         {
-            Write(builder, "extern ", external.Type, ' ', external.Name, ';');
+            Write(builder, "extern ", external.Type, ' ', external.LinkName, ';');
         }
 
         private void DeclareProc(Proc proc)
@@ -162,7 +162,7 @@ namespace Yoakke.Backend
                 break;
 
             case Value.Extern external:
-                Write(builder, external.Name);
+                Write(builder, external.LinkName);
                 break;
 
             case Proc procVal:

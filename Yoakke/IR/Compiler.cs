@@ -15,103 +15,84 @@ namespace Yoakke.IR
     /// </summary>
     static class Compiler
     {
-        // TODO: These contexts are really ugly
-        // They should probably belong to the IR builder type.
-
-        private class AssemblyContext
-        {
-            public readonly Dictionary<Expression.Proc, Proc> Procedures =
-                new Dictionary<Expression.Proc, Proc>();
-            public readonly Dictionary<Symbol.Const, Value.Extern> Externals =
-                new Dictionary<Symbol.Const, Value.Extern>();
-        }
-
-        private class ProcedureContext
-        {
-            public readonly Dictionary<Symbol.Variable, Value.Register> Variables = 
-                new Dictionary<Symbol.Variable, Value.Register>();
-
-            private int registerCount = 0;
-
-            public Value.Register AllocateRegister(Symbol.Variable varSym, Type type)
-            {
-                var value = AllocateRegister(type);
-                Variables.Add(varSym, value);
-                return value;
-            }
-
-            public Value.Register AllocateRegister(Type type)
-            {
-                return new Value.Register(type, registerCount++);
-            }
-        }
-
         /// <summary>
-        /// Compiles the given <see cref="ProgramDeclaration"/> into an IR <see cref="Assembly"/>.
+        /// Compiles the given <see cref="Declaration.Program"/> into an IR <see cref="Assembly"/>.
         /// </summary>
-        /// <param name="program">The <see cref="ProgramDeclaration"/> to compile.</param>
+        /// <param name="program">The <see cref="Declaration.Program"/> to compile.</param>
         /// <returns>The compiled IR <see cref="Assembly"/>.</returns>
         public static Assembly Compile(Declaration.Program program)
         {
             var assembly = new Assembly();
             var builder = new IrBuilder(assembly);
-            var ctx = new AssemblyContext();
 
-            Compile(builder, ctx, null, program);
+            Compile(builder, program);
 
             return assembly;
         }
 
-        private static Proc? CompileProcedure(IrBuilder builder, AssemblyContext asm, Expression.Proc proc)
+        private static Proc? CompileProcedure(IrBuilder builder, Expression.Proc proc)
         {
-            if (asm.Procedures.TryGetValue(proc, out var definedProc))
-            {
-                return definedProc;
-            }
+            // If it's already compiled, just return that
+            if (builder.Globals.TryGetValue(proc, out var alreadyDefined)) return (Proc)alreadyDefined;
 
-            var procTy = Assert.NonNullValue(TypeEval.Evaluate(proc) as Semantic.Type.Proc);
-            if (procTy.Contains(Semantic.Type.Type_))
+            // Get the semantic type of the procedure
+            var semanticProcType = TypeEval.Evaluate(proc);
+            // We need to find out, if this procedure fiddles with types or not
+            if (semanticProcType.Contains(Semantic.Type.Type_))
             {
-                // TODO: Not the best way to determine
+                // TODO: Not the best way to determine it, but for now this is a deal-breaker
                 return null;
             }
 
-            var compiledProcTy = Compile(procTy);
-            var created = builder.CreateProc(compiledProcTy, () =>
+            // Compile the type
+            var procType = Compile(semanticProcType);
+            // We begin our new procedure
+            var compiledProc = builder.CreateProcBegin(procType, proc);
+            // Allocate registers for the parameters
+            foreach (var param in proc.Parameters)
             {
-                // Add it to the defined procedures
-                asm.Procedures.Add(proc, builder.CurrentProc);
-                // New context for this procedure compilation
-                var ctx = new ProcedureContext();
-                // Allocate registers for the parameters
-                foreach (var param in proc.Parameters)
-                {
-                    Assert.NonNull(param.Symbol);
-                    Assert.NonNull(param.Symbol.Type);
-                    // Get type, get a register for it
-                    var type = Compile(param.Symbol.Type);
-                    var reg = ctx.AllocateRegister(type);
-                    // Insert the register as a parameter
-                    builder.CurrentProc.Parameters.Add(reg);
-                    // Store and load it to make it mutable
-                    // (in parameter list) ParamType rX
-                    // rY = alloc ParamType
-                    // store rY, rX
-                    var regMut = ctx.AllocateRegister(param.Symbol, new Type.Ptr(type));
-                    builder.AddInstruction(new Instruction.Alloc(regMut));
-                    builder.AddInstruction(new Instruction.Store(regMut, reg));
-                }
-                Compile(builder, asm, ctx, proc.Body);
-            });
-            return created;
+                Assert.NonNull(param.Symbol);
+                Assert.NonNull(param.Symbol.Type);
+                // Compile it's type
+                var paramType = Compile(param.Symbol.Type);
+                // Allocate a register for the received value
+                // We won't ever refer to this ever again, so we don't associate it with a key
+                var receiveReg = builder.AllocateParameter(paramType, null);
+                // To make it mutable, we instantly allocate space on the stack and store the value there
+                var storeReg = builder.AllocateRegister(new Type.Ptr(paramType), param.Symbol);
+                // (in parameter list) ParamType rX
+                // rY = alloc ParamType
+                // store rY, rX
+                builder.AddInstruction(new Instruction.Alloc(storeReg));
+                builder.AddInstruction(new Instruction.Store(storeReg, receiveReg));
+            }
+            // Now we just compile the body
+            var bodyValue = Compile(builder, proc.Body);
+            // We append the return statement
+            builder.AddInstruction(new Instruction.Ret(bodyValue));
+            // Compilation is done
+            builder.CreateProcEnd();
+
+            return compiledProc;
         }
 
-        private static void Compile(IrBuilder builder, AssemblyContext asm, ProcedureContext? ctx, Statement statement)
+        private static Value CompileExtern(IrBuilder builder, Semantic.Value.Extern external, Symbol symbol)
+        {
+            // If it's already compiled, just return that
+            if (builder.Globals.TryGetValue(symbol, out var value)) return value;
+
+            var externalType = Compile(external.Type);
+            var createdValue = builder.CreateExtern(external.Name, externalType, symbol);
+
+            return createdValue;
+        }
+
+        private static void Compile(IrBuilder builder, Statement statement)
         {
             switch (statement)
             {
             case Declaration.Program program:
-                foreach (var decl in program.Declarations) Compile(builder, asm, ctx, decl);
+                foreach (var decl in program.Declarations) Compile(builder, decl);
                 break;
 
             case Declaration.ConstDef constDef:
@@ -122,15 +103,16 @@ namespace Yoakke.IR
                 
                 if (value is Semantic.Value.Proc proc)
                 {
-                    CompileProcedure(builder, asm, proc.Node);
+                    var compiledProc = CompileProcedure(builder, proc.Node);
+                    if (compiledProc != null)
+                    {
+                        // TODO: This is not required, only if we export the function
+                        compiledProc.LinkName = constDef.Name.Value;
+                    }
                 }
-                else if (value is Semantic.Value.Extern externSym)
+                else if (value is Semantic.Value.Extern external)
                 {
-                    var externalType = Compile(externSym.Type);
-                    var external = new Value.Extern(externalType, externSym.Name);
-                    // Store it as a map from symbol to value, and define it in the assembly
-                    builder.DeclareExternal(external);
-                    asm.Externals.Add(constDef.Symbol, external);
+                    CompileExtern(builder, external, constDef.Symbol);
                 }
                 else
                 {
@@ -140,14 +122,14 @@ namespace Yoakke.IR
             break;
 
             case Statement.Expression_ expr:
-                Compile(builder, asm, ctx, expr.Expression);
+                Compile(builder, expr.Expression);
                 break;
 
             default: throw new NotImplementedException();
             }
         }
 
-        private static Value Compile(IrBuilder builder, AssemblyContext asm, ProcedureContext? ctx, Expression expression)
+        private static Value Compile(IrBuilder builder, Expression expression)
         {
             switch (expression) 
             {
@@ -166,15 +148,14 @@ namespace Yoakke.IR
                 {
                 case Symbol.Const constSym:
                     Assert.NonNull(constSym.Value);
-                    return Compile(builder, asm, constSym.Value);
+                    return Compile(builder, constSym.Value);
 
                 case Symbol.Variable varSym:
                 {
                     // rX = load ADDRESS
-                    Assert.NonNull(ctx);
-                    var varAddress = ctx.Variables[varSym];
+                    var varAddress = builder.Locals[varSym];
                     var varType = ((Type.Ptr)varAddress.Type).ElementType;
-                    var varValue = ctx.AllocateRegister(varType);
+                    var varValue = builder.AllocateRegister(varType, null);
                     builder.AddInstruction(new Instruction.Load(varValue, varAddress));
                     return varValue;
                 }
@@ -185,44 +166,41 @@ namespace Yoakke.IR
 
             case Expression.Proc proc:
             {
-                CompileProcedure(builder, asm, proc);
+                CompileProcedure(builder, proc);
                 // TODO: We need some kind of value for it
                 throw new NotImplementedException();
             }
 
             case Expression.Block block:
             {
-                foreach (var stmt in block.Statements) Compile(builder, asm, ctx, stmt);
+                foreach (var stmt in block.Statements) Compile(builder, stmt);
                 Value retValue = block.Value == null
                                  ? Value.Void_
-                                 : Compile(builder, asm, ctx, block.Value);
-                // TODO: block-evaluation does not necessarily return from the function!!!
-                builder.AddInstruction(new Instruction.Ret(retValue));
+                                 : Compile(builder, block.Value);
                 return retValue;
             }
 
             case Expression.Call call:
             {
-                Assert.NonNull(ctx);
-                var proc = Compile(builder, asm, ctx, call.Proc);
-                var args = call.Arguments.Select(x => Compile(builder, asm, ctx, x)).ToList();
+                var proc = Compile(builder, call.Proc);
+                var args = call.Arguments.Select(x => Compile(builder, x)).ToList();
                 var procTy = (Type.Proc)proc.Type;
                 var retTy = procTy.ReturnType;
-                var retRegister = ctx.AllocateRegister(retTy);
+                var retRegister = builder.AllocateRegister(retTy, null);
                 builder.AddInstruction(new Instruction.Call(retRegister, proc, args));
-                return Type.Void_.EqualsNonNull(retTy) ? Value.Void_ : retRegister;
+                return retRegister;
             }
 
             default: throw new NotImplementedException();
             }
         }
 
-        private static Value Compile(IrBuilder builder, AssemblyContext asm, Semantic.Value value)
+        private static Value Compile(IrBuilder builder, Semantic.Value value)
         {
             switch (value)
             {
             case Semantic.Value.Proc proc:
-                return Assert.NonNullValue(CompileProcedure(builder, asm, proc.Node));
+                return Assert.NonNullValue(CompileProcedure(builder, proc.Node));
 
             case Semantic.Value.Extern external:
             {
@@ -240,8 +218,10 @@ namespace Yoakke.IR
             if (Semantic.Type.Unit.EqualsNonNull(type)) return Type.Void_;
 
             if (type is Semantic.Type.Proc proc)
-            { 
-                return new Type.Proc(proc.Parameters.Select(Compile).ToList(), Compile(proc.Return));
+            {
+                var paramTypes = proc.Parameters.Select(Compile).ToList();
+                var returnType = Compile(proc.Return);
+                return new Type.Proc(paramTypes, returnType);
             }
 
             throw new NotImplementedException();

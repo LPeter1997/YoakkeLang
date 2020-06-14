@@ -41,12 +41,13 @@ namespace Yoakke.IR
         /// </summary>
         public class Register : Value
         {
-            private Type type;
-            public override Type Type => type;
             /// <summary>
             /// The index of the register.
             /// </summary>
             public int Index { get; set; }
+
+            private Type type;
+            public override Type Type => type;
 
             /// <summary>
             /// Initializes a new <see cref="Register"/>.
@@ -65,12 +66,13 @@ namespace Yoakke.IR
         /// </summary>
         public class Int : Value
         {
-            private Type.Int type;
-            public override Type Type => type;
             /// <summary>
             /// The actual numberic value.
             /// </summary>
             public BigInteger Value { get; set; }
+
+            private Type.Int type;
+            public override Type Type => type;
 
             /// <summary>
             /// Initializes a new <see cref="Int"/>.
@@ -89,12 +91,13 @@ namespace Yoakke.IR
         /// </summary>
         public class Extern : Value
         {
+            /// <summary>
+            /// The link name of the external symbol.
+            /// </summary>
+            public readonly string LinkName;
+
             private Type type;
             public override Type Type => type;
-            /// <summary>
-            /// The name of the external symbol.
-            /// </summary>
-            public readonly string Name;
 
             /// <summary>
             /// Initializes a new <see cref="Extern"/>.
@@ -104,7 +107,7 @@ namespace Yoakke.IR
             public Extern(Type type, string name)
             {
                 this.type = type;
-                Name = name;
+                LinkName = name;
             }
         }
     }
