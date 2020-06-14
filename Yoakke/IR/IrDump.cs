@@ -47,24 +47,27 @@ namespace Yoakke.IR
 
         private void DumpProc(Proc proc)
         {
-            Write("proc ", proc.ReturnType, $" {proc.Name}(");
+            /*Write("proc ", proc.ReturnType, $" {proc.Name}(");
             // Parameters
             proc.Parameters.Intertwine(
                 param => Write(param.Type, ' ', param),
                 () => Write(", "));
             Write("):\n");
 
-            foreach (var bb in proc.BasicBlocks) DumpBasicBlock(bb);
+            foreach (var bb in proc.BasicBlocks) DumpBasicBlock(bb);*/
+            throw new NotImplementedException();
         }
 
         private void DumpBasicBlock(BasicBlock basicBlock)
         {
-            Write($"{basicBlock.Name}:\n");
+            /*Write($"{basicBlock.Name}:\n");
 
             foreach (var ins in basicBlock.Instructions)
             {
                 Write("  ", ins, '\n');
-            }
+            }*/
+
+            throw new NotImplementedException();
         }
 
         private void DumpInstruction(Instruction instruction)
@@ -124,8 +127,9 @@ namespace Yoakke.IR
                 break;
 
             case Proc proc:
-                Write(proc.Name);
-                break;
+                //Write(proc.Name);
+                throw new NotImplementedException();
+                //break;
 
             case Value.Extern external:
                 Write(external.Name);

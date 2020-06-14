@@ -53,14 +53,15 @@ namespace Yoakke.Backend
 
         private void DeclareProc(Proc proc)
         {
-            Write(builder, proc.ReturnType, $" {proc.Name}(");
+            /*Write(builder, proc.ReturnType, $" {proc.Name}(");
             proc.Parameters.Intertwine(param => Write(builder, param.Type), () => Write(builder, ", "));
-            Write(builder, ");");
+            Write(builder, ");");*/
+            throw new NotImplementedException();
         }
 
         private void CompileProc(Proc proc)
         {
-            Write(builder, proc.ReturnType, $" {proc.Name}(");
+            /*Write(builder, proc.ReturnType, $" {proc.Name}(");
             proc.Parameters.Intertwine(
                 param => Write(builder, param.Type, ' ', param),
                 () => Write(builder, ", "));
@@ -70,16 +71,18 @@ namespace Yoakke.Backend
                 foreach (var ins in bb.Instructions) ForwardDeclareVariable(ins);
             }
             foreach (var bb in proc.BasicBlocks) CompileBasicBlock(bb);
-            Write(builder, "}\n");
+            Write(builder, "}\n");*/
+            throw new NotImplementedException();
         }
 
         private void CompileBasicBlock(BasicBlock basicBlock)
         {
-            Write(builder, basicBlock.Name, ":\n");
+            /*Write(builder, basicBlock.Name, ":\n");
             foreach (var ins in basicBlock.Instructions)
             {
                 Write(builder, "    ", ins, ";\n");
-            }
+            }*/
+            throw new NotImplementedException();
         }
 
         private void ForwardDeclareVariable(Instruction instruction)
@@ -163,8 +166,9 @@ namespace Yoakke.Backend
                 break;
 
             case Proc procVal:
-                Write(builder, procVal.Name);
-                break;
+                //Write(builder, procVal.Name);
+                throw new NotImplementedException();
+                //break;
 
             default: throw new NotImplementedException();
             }

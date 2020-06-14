@@ -26,10 +26,8 @@ namespace Yoakke.IR
         /// </summary>
         public BasicBlock CurrentBasicBlock => Assert.NonNullValue(currentBB);
 
-        private HashSet<string> globalNames = new HashSet<string>();
         private Proc? currentProc;
         private BasicBlock? currentBB;
-        private HashSet<string>? currentLocalNames;
 
         /// <summary>
         /// Initializes a new <see cref="IrBuilder"/>.
@@ -52,30 +50,24 @@ namespace Yoakke.IR
         /// <summary>
         /// Compiles a new <see cref="Proc"/>.
         /// </summary>
-        /// <param name="name">The name of the procedure.</param>
         /// <param name="type">The <see cref="Type"/> of this procedure.</param>
         /// <param name="action">The callback that's being called, when the builder context switches to
         /// this new procedure. After the callback, the context will switch back to the old one.</param>
         /// <returns>The created <see cref="Proc"/>.</returns>
-        public Proc CreateProc(string name, Type type, Action action)
+        public Proc CreateProc(Type type, Action action)
         {
-            name = GlobalUniqueName(name);
-
             var lastProc = currentProc;
             var lastBB = currentBB;
-            var lastLocalNames = currentLocalNames;
 
-            var createdProc = new Proc(name, type);
+            var createdProc = new Proc(type);
             currentProc = createdProc;
             Assembly.Procedures.Add(currentProc);
-            currentLocalNames = new HashSet<string>();
             CreateBasicBlock("begin");
 
             action();
             
             currentProc = lastProc;
             currentBB = lastBB;
-            currentLocalNames = lastLocalNames;
 
             return createdProc;
         }
@@ -88,8 +80,7 @@ namespace Yoakke.IR
         {
             Assert.NonNull(currentProc);
 
-            name = LocalUniqueName(name);
-            currentBB = new BasicBlock(name);
+            currentBB = new BasicBlock();
             currentProc.BasicBlocks.Add(currentBB);
         }
 
@@ -102,29 +93,6 @@ namespace Yoakke.IR
             Assert.NonNull(currentBB);
 
             currentBB.Instructions.Add(instruction);
-        }
-
-        private string LocalUniqueName(string name)
-        {
-            Assert.NonNull(currentLocalNames);
-
-            if (!globalNames.Contains(name) && currentLocalNames.Add(name)) return name;
-            for (int i = 0; ; ++i)
-            {
-                var numberedName = $"{name}{i}";
-                if (!globalNames.Contains(numberedName) 
-                  && currentLocalNames.Add(numberedName)) return numberedName;
-            }
-        }
-
-        private string GlobalUniqueName(string name)
-        {
-            if (globalNames.Add(name)) return name;
-            for (int i = 0; ; ++i)
-            {
-                var numberedName = $"{name}{i}";
-                if (globalNames.Add(numberedName)) return numberedName;
-            }
         }
     }
 }

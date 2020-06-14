@@ -62,7 +62,7 @@ namespace Yoakke.IR
             return assembly;
         }
 
-        private static Proc? CompileProcedure(IrBuilder builder, AssemblyContext asm, string name, Expression.Proc proc)
+        private static Proc? CompileProcedure(IrBuilder builder, AssemblyContext asm, Expression.Proc proc)
         {
             if (asm.Procedures.TryGetValue(proc, out var definedProc))
             {
@@ -77,7 +77,7 @@ namespace Yoakke.IR
             }
 
             var compiledProcTy = Compile(procTy);
-            var created = builder.CreateProc(name, compiledProcTy, () =>
+            var created = builder.CreateProc(compiledProcTy, () =>
             {
                 // Add it to the defined procedures
                 asm.Procedures.Add(proc, builder.CurrentProc);
@@ -122,7 +122,7 @@ namespace Yoakke.IR
                 
                 if (value is Semantic.Value.Proc proc)
                 {
-                    CompileProcedure(builder, asm, constDef.Name.Value, proc.Node);
+                    CompileProcedure(builder, asm, proc.Node);
                 }
                 else if (value is Semantic.Value.Extern externSym)
                 {
@@ -185,7 +185,7 @@ namespace Yoakke.IR
 
             case Expression.Proc proc:
             {
-                CompileProcedure(builder, asm, "anonymous", proc);
+                CompileProcedure(builder, asm, proc);
                 // TODO: We need some kind of value for it
                 throw new NotImplementedException();
             }
@@ -222,7 +222,7 @@ namespace Yoakke.IR
             switch (value)
             {
             case Semantic.Value.Proc proc:
-                return Assert.NonNullValue(CompileProcedure(builder, asm, "anonymous", proc.Node));
+                return Assert.NonNullValue(CompileProcedure(builder, asm, proc.Node));
 
             case Semantic.Value.Extern external:
             {

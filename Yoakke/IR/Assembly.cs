@@ -26,9 +26,9 @@ namespace Yoakke.IR
     class Proc : Value
     {
         /// <summary>
-        /// The name of the procedure.
+        /// The linking name to export this procedure with, if any.
         /// </summary>
-        public readonly string Name;
+        public string? LinkName { get; set; }
         /// <summary>
         /// The parameters of the procedure.
         /// </summary>
@@ -52,13 +52,10 @@ namespace Yoakke.IR
         /// <summary>
         /// Initializes a new <see cref="Proc"/>.
         /// </summary>
-        /// <param name="name">The name of the procedure. Assumed to be globally unique.</param>
-        /// <param name="parameters">The parameter <see cref="Value.Register"/>s of this procedure.</param>
-        /// <param name="returnType">The <see cref="Type"/> the procedure returns with.</param>
-        public Proc(string name, Type type)
+        /// <param name="type">The <see cref="Type"/> of the procedure.</param>
+        public Proc(Type type)
         {
             this.type = (Type.Proc)type;
-            Name = name;
         }
     }
 
@@ -69,21 +66,8 @@ namespace Yoakke.IR
     class BasicBlock
     {
         /// <summary>
-        /// The name of the <see cref="BasicBlock"/>.
-        /// </summary>
-        public readonly string Name;
-        /// <summary>
         /// The <see cref="Instruction"/>s contain within this block.
         /// </summary>
         public readonly List<Instruction> Instructions = new List<Instruction>();
-
-        /// <summary>
-        /// Initializes a new <see cref="BasicBlock"/>.
-        /// </summary>
-        /// <param name="name">The name of this <see cref="BasicBlock"/>. Assumed to be locally unique.</param>
-        public BasicBlock(string name)
-        {
-            Name = name;
-        }
     }
 }
