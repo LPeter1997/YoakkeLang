@@ -3,6 +3,11 @@ const get_type = proc(x: type) -> type { x }
 
 const some_type: get_type(type) = get_type(i32);
 
+const foo = proc(x: i32) -> i32 { x }
+
+const bar = proc() {}
+
 const main = proc() -> get_type(i32) {
-	0
+	foo(2);
+	3
 }

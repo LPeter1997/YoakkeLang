@@ -21,53 +21,72 @@ namespace Yoakke.IR
         }
 
         private StringBuilder builder = new StringBuilder();
+        private HashSet<string> globalNames = new HashSet<string>();
+        private HashSet<string> localNames = new HashSet<string>();
+        private Dictionary<object, string> names = new Dictionary<object, string>();
 
         private IrDump() { }
 
         private string DumpAssembly(Assembly assembly)
         {
+            // Preallocate global link-names
+            PreallocateGlobalNames(assembly);
+
+            // Dump the externals
             foreach (var external in assembly.Externals)
             {
-                DumpExternalDeclaration(external.LinkName, external.Type);
+                DumpExternal(external.LinkName, external.Type);
                 Write(";\n");
             }
+
             Write('\n');
+
+            // Then the procedures
             foreach (var proc in assembly.Procedures)
             {
                 DumpProc(proc);
                 Write('\n');
             }
+
             return builder.ToString().Trim();
         }
 
-        private void DumpExternalDeclaration(string name, Type type)
+        private void PreallocateGlobalNames(Assembly assembly)
+        {
+            // First externals
+            foreach (var external in assembly.Externals) globalNames.Add(external.LinkName);
+            // Then procedures that have link name
+            foreach (var proc in assembly.Procedures)
+            {
+                if (proc.LinkName != null) globalNames.Add(proc.LinkName);
+            }
+        }
+
+        private void DumpExternal(string name, Type type)
         {
             Write("extern ", type, $" {name}");
         }
 
         private void DumpProc(Proc proc)
         {
-            /*Write("proc ", proc.ReturnType, $" {proc.Name}(");
+            Write("proc ", proc.ReturnType, $" {GetProcName(proc)}(");
             // Parameters
             proc.Parameters.Intertwine(
                 param => Write(param.Type, ' ', param),
                 () => Write(", "));
             Write("):\n");
 
-            foreach (var bb in proc.BasicBlocks) DumpBasicBlock(bb);*/
-            throw new NotImplementedException();
+            foreach (var bb in proc.BasicBlocks) DumpBasicBlock(bb);
         }
 
         private void DumpBasicBlock(BasicBlock basicBlock)
         {
-            /*Write($"{basicBlock.Name}:\n");
+            Write($"{GetBasicBlockName(basicBlock)}:\n");
 
             foreach (var ins in basicBlock.Instructions)
             {
                 Write("  ", ins, '\n');
-            }*/
-
-            throw new NotImplementedException();
+            }
         }
 
         private void DumpInstruction(Instruction instruction)
@@ -127,9 +146,8 @@ namespace Yoakke.IR
                 break;
 
             case Proc proc:
-                //Write(proc.Name);
-                throw new NotImplementedException();
-                //break;
+                Write(GetProcName(proc));
+                break;
 
             case Value.Extern external:
                 Write(external.LinkName);
@@ -187,6 +205,46 @@ namespace Yoakke.IR
                     builder.Append(arg);
                     break;
                 }
+            }
+        }
+
+        private string GetProcName(Proc proc)
+        {
+            if (names.TryGetValue(proc, out var name)) return name;
+            name = proc.LinkName ?? GlobalUniqueName("proc");
+            names.Add(proc, name);
+            return name;
+        }
+
+        private string GetBasicBlockName(BasicBlock basicBlock)
+        {
+            if (names.TryGetValue(basicBlock, out var name)) return name;
+            name = LocalUniqueName("label");
+            names.Add(basicBlock, name);
+            return name;
+        }
+
+        private string GlobalUniqueName(string name)
+        {
+            if (!globalNames.Contains(name)) return name;
+            int i = 0;
+            while (true)
+            {
+                string nextName = $"name{i}";
+                if (!globalNames.Contains(nextName)) return nextName;
+                ++i;
+            }
+        }
+
+        private string LocalUniqueName(string name)
+        {
+            if (!globalNames.Contains(name) && !localNames.Contains(name)) return name;
+            int i = 0;
+            while (true)
+            {
+                string nextName = $"name{i}";
+                if (!globalNames.Contains(nextName) && !localNames.Contains(name)) return nextName;
+                ++i;
             }
         }
     }
