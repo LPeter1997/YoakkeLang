@@ -21,6 +21,7 @@ namespace Yoakke.IR
         }
 
         private StringBuilder builder = new StringBuilder();
+        // TODO: We could just have a map of Proc -> name and (Proc, BB) -> name dict
         private HashSet<string> globalNames = new HashSet<string>();
         private HashSet<string> localNames = new HashSet<string>();
         private Dictionary<object, string> names = new Dictionary<object, string>();
@@ -44,6 +45,7 @@ namespace Yoakke.IR
             // Then the procedures
             foreach (var proc in assembly.Procedures)
             {
+                localNames.Clear();
                 DumpProc(proc);
                 Write('\n');
             }
@@ -226,24 +228,24 @@ namespace Yoakke.IR
 
         private string GlobalUniqueName(string name)
         {
-            if (!globalNames.Contains(name)) return name;
+            if (globalNames.Add(name)) return name;
             int i = 0;
             while (true)
             {
                 string nextName = $"name{i}";
-                if (!globalNames.Contains(nextName)) return nextName;
+                if (globalNames.Add(nextName)) return nextName;
                 ++i;
             }
         }
 
         private string LocalUniqueName(string name)
         {
-            if (!globalNames.Contains(name) && !localNames.Contains(name)) return name;
+            if (!globalNames.Contains(name) && localNames.Add(name)) return name;
             int i = 0;
             while (true)
             {
-                string nextName = $"name{i}";
-                if (!globalNames.Contains(nextName) && !localNames.Contains(name)) return nextName;
+                string nextName = $"{name}{i}";
+                if (!globalNames.Contains(nextName) && localNames.Add(nextName)) return nextName;
                 ++i;
             }
         }
