@@ -64,7 +64,8 @@ namespace Yoakke.Syntax
         }
 
         private static bool IsBracedExpressionForConstDeclaration(Expression expression) =>
-            expression is Expression.Proc;
+               expression is Expression.Proc
+            || expression is Expression.StructType;
 
         // Statements //////////////////////////////////////////////////////////
 
@@ -136,6 +137,7 @@ namespace Yoakke.Syntax
         private static Expression ParseAtomicExpression(ref Input input, bool typeOnly)
         {
             if (Peek(input) == TokenType.KwProc) return ParseProcExpression(ref input, typeOnly);
+            if (Peek(input) == TokenType.KwStruct) return ParseStructTypeExpression(ref input);
             if (Peek(input) == TokenType.OpenBrace) return ParseBlockExpression(ref input);
 
             if (Match(ref input, TokenType.Identifier, out var token)) return new Expression.Ident(token);
@@ -204,6 +206,27 @@ namespace Yoakke.Syntax
 
             // NOTE: This is weird (calling it when already failed) but helps us raising better errors
             return typeOnly ? ParseProcTypeExpression(ref input2) : ParseProcValueExpression(ref input2);
+        }
+
+        private static Expression ParseStructTypeExpression(ref Input input)
+        {
+            Expect(ref input, TokenType.KwStruct);
+            Expect(ref input, TokenType.OpenBrace);
+
+            var fields = new List<(Token, Expression)>();
+
+            while (!Match(ref input, TokenType.CloseBrace))
+            {
+                // We parse a field
+                // It's in the form of `identifier: Type expression`
+                Expect(ref input, TokenType.Identifier, out var ident);
+                Expect(ref input, TokenType.Colon);
+                var type = ParseExpression(ref input, true);
+                Expect(ref input, TokenType.Semicolon);
+                fields.Add((ident, type));
+            }
+
+            return new Expression.StructType(fields);
         }
 
         private static Expression ParseProcValueExpression(ref Input input)

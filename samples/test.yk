@@ -12,6 +12,18 @@ const bar = proc() {}
 
 const rec = proc(x: i32) -> i32 { rec(x) }
 
+const Person = struct {
+	name: str;
+	age : i32;
+}
+
+const List = proc(T: type) -> type {
+	struct {
+		data  : T  ;
+		length: u32;
+	}
+}
+
 const main = proc() -> get_type(i32) {
 	bar();
 	foo(2);

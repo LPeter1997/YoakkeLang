@@ -122,6 +122,33 @@ namespace Yoakke.Ast
         }
 
         /// <summary>
+        /// A structure type definition.
+        /// Syntax:
+        /// ```
+        /// struct {
+        ///     name1: Type1;
+        ///     ...
+        /// }
+        /// ```
+        /// </summary>
+        public class StructType : Expression
+        {
+            /// <summary>
+            /// The field definition tuples, being the tuple of identifier and the type of the field.
+            /// </summary>
+            public List<(Token, Expression)> Fields { get; set; }
+
+            /// <summary>
+            /// Initializes a new <see cref="StructType"/>.
+            /// </summary>
+            /// <param name="fields">The field definitions.</param>
+            public StructType(List<(Token, Expression)> fields)
+            {
+                Fields = fields;
+            }
+        }
+
+        /// <summary>
         /// A procedure type definition.
         /// Syntax:
         /// ```
