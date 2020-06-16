@@ -19,11 +19,10 @@ const Author = Person {
 	age = 5;
 };
 
+const Magic = 5;
+
 const baz = proc() -> Person {
-	Person {
-		name = 3;
-		age  = 4;
-	}
+	Author
 }
 
 const main = proc() -> i32 {

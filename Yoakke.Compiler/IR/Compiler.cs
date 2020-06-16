@@ -96,6 +96,30 @@ namespace Yoakke.IR
             return createdValue;
         }
 
+        private Value CompileStructValue(Semantic.Type semType, IEnumerable<(string, Value)> values)
+        {
+            // Compile the struct type
+            var type = Compile(semType);
+            // Allocate a register for the mutable value
+            var mutReg = builder.AllocateRegister(new Type.Ptr(type), null);
+            builder.AddInstruction(new Instruction.Alloc(mutReg));
+            // Now store the fields
+            foreach (var (name, value) in values)
+            {
+                // Allocate a register for the field pointer
+                var ptrReg = builder.AllocateRegister(new Type.Ptr(value.Type), null);
+                // Load the pointer of the proper field
+                var index = new Value.Int(Type.I32, structFields[(semType, name)]);
+                builder.AddInstruction(new Instruction.ElementPtr(ptrReg, mutReg, index));
+                // Store the value
+                builder.AddInstruction(new Instruction.Store(ptrReg, value));
+            }
+            // Load value
+            var valueReg = builder.AllocateRegister(type, null);
+            builder.AddInstruction(new Instruction.Load(valueReg, mutReg));
+            return valueReg;
+        }
+
         private void Compile(Statement statement)
         {
             switch (statement)
@@ -175,29 +199,9 @@ namespace Yoakke.IR
 
             case Expression.StructValue structValue:
             {
-                // Compile the struct type
                 var structTy = (Semantic.Type.Struct)ConstEval.EvaluateAsType(structValue.StructType);
-                var ty = Compile(structTy);
-                // Allocate a register for the mutable value
-                var mutReg = builder.AllocateRegister(new Type.Ptr(ty), null);
-                builder.AddInstruction(new Instruction.Alloc(mutReg));
-                // Now store the fields
-                foreach (var field in structValue.Fields)
-                {
-                    // Compile the value
-                    var value = Compile(field.Item2);
-                    // Allocate a register for the field pointer
-                    var ptrReg = builder.AllocateRegister(new Type.Ptr(value.Type), null);
-                    // Load the pointer of the proper field
-                    var index = new Value.Int(Type.I32, structFields[(structTy, field.Item1.Value)]);
-                    builder.AddInstruction(new Instruction.ElementPtr(ptrReg, mutReg, index));
-                    // Store the value
-                    builder.AddInstruction(new Instruction.Store(ptrReg, value));
-                }
-                // Load value
-                var valueReg = builder.AllocateRegister(ty, null);
-                builder.AddInstruction(new Instruction.Load(valueReg, mutReg));
-                return valueReg;
+                return CompileStructValue(structTy, 
+                    structValue.Fields.Select(f => (f.Item1.Value, Compile(f.Item2))));
             }
 
             case Expression.Proc proc:
@@ -243,6 +247,16 @@ namespace Yoakke.IR
                 var ty = Compile(external.Type);
                 return new Value.Extern(ty, external.Name);
             }
+
+            case Semantic.Value.Int i:
+            {
+                var ty = Compile(i.Type);
+                return new Value.Int(ty, i.Value);
+            }
+
+            case Semantic.Value.Struct structure:
+                return CompileStructValue(structure.Type, 
+                    structure.Fields.Select(f => (f.Key, Compile(f.Value))));
 
             default: throw new NotImplementedException();
             }
