@@ -103,6 +103,9 @@ namespace Yoakke.Ast
     /// </summary>
     abstract partial class Expression : Node
     {
+        // TODO: The same way we could remove names from IR, we could remove these and other crud from the tree
+        // That would make the tree purely syntactic
+
         /// <summary>
         /// The <see cref="Value"/> this <see cref="Expression"/> evaluates to compile-time, if it's being evaluated
         /// compile-time.

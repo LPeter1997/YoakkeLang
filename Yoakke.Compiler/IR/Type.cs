@@ -129,5 +129,31 @@ namespace Yoakke.IR
                 && Parameters.Count == p.Parameters.Count
                 && Parameters.Zip(p.Parameters).All(ts => ts.First.EqualsNonNull(ts.Second));
         }
+
+        /// <summary>
+        /// A structure <see cref="Type"/>. Note that in this IR names are dropped, the structure fields are referred by
+        /// index.
+        /// </summary>
+        public class Struct : Type
+        {
+            /// <summary>
+            /// The list of field <see cref="Type"/>s of this <see cref="Struct"/>.
+            /// </summary>
+            public readonly List<Type> Fields;
+
+            /// <summary>
+            /// Initializes a new <see cref="Struct"/>.
+            /// </summary>
+            /// <param name="fields">The field <see cref="Type"/>s of this struct.</param>
+            public Struct(List<Type> fields)
+            {
+                Fields = fields;
+            }
+
+            public override bool EqualsNonNull(Type other) =>
+                   other is Struct s
+                && Fields.Count == s.Fields.Count
+                && Fields.Zip(s.Fields).All(fs => fs.First.EqualsNonNull(fs.Second));
+        }
     }
 }

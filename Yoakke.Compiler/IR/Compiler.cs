@@ -13,7 +13,7 @@ namespace Yoakke.IR
     /// <summary>
     /// Compiles the AST into IR code.
     /// </summary>
-    static class Compiler
+    class Compiler
     {
         /// <summary>
         /// Compiles the given <see cref="Declaration.Program"/> into an IR <see cref="Assembly"/>.
@@ -25,12 +25,16 @@ namespace Yoakke.IR
             var assembly = new Assembly();
             var builder = new IrBuilder(assembly);
 
-            Compile(builder, program);
+            new Compiler().Compile(builder, program);
 
             return assembly;
         }
 
-        private static Proc? CompileProcedure(IrBuilder builder, Expression.Proc proc)
+        private Dictionary<Semantic.Type, Type> compiledTypes = new Dictionary<Semantic.Type, Type>();
+
+        private Compiler() { }
+
+        private Proc? CompileProcedure(IrBuilder builder, Expression.Proc proc)
         {
             // If it's already compiled, just return that
             if (builder.Globals.TryGetValue(proc, out var alreadyDefined)) return (Proc)alreadyDefined;
@@ -76,7 +80,7 @@ namespace Yoakke.IR
             return compiledProc;
         }
 
-        private static Value CompileExtern(IrBuilder builder, Semantic.Value.Extern external, Symbol symbol)
+        private Value CompileExtern(IrBuilder builder, Semantic.Value.Extern external, Symbol symbol)
         {
             // If it's already compiled, just return that
             if (builder.Globals.TryGetValue(symbol, out var value)) return value;
@@ -87,7 +91,7 @@ namespace Yoakke.IR
             return createdValue;
         }
 
-        private static void Compile(IrBuilder builder, Statement statement)
+        private void Compile(IrBuilder builder, Statement statement)
         {
             switch (statement)
             {
@@ -129,7 +133,7 @@ namespace Yoakke.IR
             }
         }
 
-        private static Value Compile(IrBuilder builder, Expression expression)
+        private Value Compile(IrBuilder builder, Expression expression)
         {
             switch (expression) 
             {
@@ -195,7 +199,7 @@ namespace Yoakke.IR
             }
         }
 
-        private static Value Compile(IrBuilder builder, Semantic.Value value)
+        private Value Compile(IrBuilder builder, Semantic.Value value)
         {
             switch (value)
             {
@@ -212,7 +216,7 @@ namespace Yoakke.IR
             }
         }
 
-        private static Type Compile(Semantic.Type type)
+        private Type Compile(Semantic.Type type)
         {
             if (Semantic.Type.I32.EqualsNonNull(type)) return Type.I32;
             if (Semantic.Type.Unit.EqualsNonNull(type)) return Type.Void_;
@@ -222,6 +226,18 @@ namespace Yoakke.IR
                 var paramTypes = proc.Parameters.Select(Compile).ToList();
                 var returnType = Compile(proc.Return);
                 return new Type.Proc(paramTypes, returnType);
+            }
+
+            if (type is Semantic.Type.Struct structure)
+            {
+                // We cache structs
+                if (compiledTypes.TryGetValue(structure, out var compiled)) return compiled;
+                // Not in the cache, compile it
+                var fields = structure.Fields.Values.Select(Compile).ToList();
+                var result = new Type.Struct(fields);
+                // Store, return
+                compiledTypes.Add(structure, result);
+                return result;
             }
 
             throw new NotImplementedException();
