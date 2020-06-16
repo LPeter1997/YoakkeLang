@@ -50,6 +50,19 @@ namespace Yoakke.IR
         }
 
         /// <summary>
+        /// Gets the name for the given <see cref="Type"/>.
+        /// </summary>
+        /// <param name="type">The <see cref="Type"/> to get the name of.</param>
+        /// <returns>The name for the <see cref="Type"/>.</returns>
+        public string GetTypeName(Type type)
+        {
+            if (names.TryGetValue(type, out var name)) return name;
+            name = GetNewGlobalName("usertype");
+            names.Add(type, name);
+            return name;
+        }
+
+        /// <summary>
         /// Gets the name for the given <see cref="Proc"/>. If it has a link name, that will be returned.
         /// </summary>
         /// <param name="proc">The <see cref="Proc"/> to get the name of.</param>

@@ -31,6 +31,7 @@ namespace Yoakke.IR
         }
 
         private IrBuilder builder;
+        private HashSet<Type> compiledTypes = new HashSet<Type>();
 
         private Compiler(IrBuilder builder) 
         {
@@ -228,17 +229,23 @@ namespace Yoakke.IR
             {
                 var paramTypes = proc.Parameters.Select(Compile).ToList();
                 var returnType = Compile(proc.Return);
-                return new Type.Proc(paramTypes, returnType);
+                return CacheType(new Type.Proc(paramTypes, returnType));
             }
 
             if (type is Semantic.Type.Struct structure)
             {
-                // TODO: Cache structs with same fields?
                 var fields = structure.Fields.Values.Select(Compile).ToList();
-                return new Type.Struct(fields);
+                return CacheType(new Type.Struct(fields));
             }
 
             throw new NotImplementedException();
+        }
+
+        private Type CacheType(Type type)
+        {
+            if (compiledTypes.TryGetValue(type, out var alreadyPresent)) return alreadyPresent;
+            compiledTypes.Add(type);
+            return type;
         }
     }
 }

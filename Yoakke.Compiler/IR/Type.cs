@@ -3,15 +3,14 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
+using Yoakke.Compiler.Utils;
 
 namespace Yoakke.IR
 {
     /// <summary>
     /// Base class for every IR type.
     /// </summary>
-#pragma warning disable CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
     abstract partial class Type : IEquatable<Type>
-#pragma warning restore CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
     {
         /// <summary>
         /// The <see cref="Type"/> constant for void (no return value).
@@ -34,6 +33,8 @@ namespace Yoakke.IR
         /// <param name="other">The other <see cref="Type"/> to compare.</param>
         /// <returns>True, if the two <see cref="Type"/>s are equal.</returns>
         public abstract bool EqualsNonNull(Type other);
+
+        public override abstract int GetHashCode();
     }
 
     // Variants
@@ -47,6 +48,9 @@ namespace Yoakke.IR
         {
             public override bool EqualsNonNull(Type other) =>
                 ReferenceEquals(this, other);
+
+            public override int GetHashCode() =>
+                HashCode.Combine(GetType());
         }
 
         /// <summary>
@@ -73,6 +77,9 @@ namespace Yoakke.IR
 
             public override bool EqualsNonNull(Type other) =>
                 other is Int i && Bits == i.Bits && Signed == i.Signed;
+
+            public override int GetHashCode() =>
+                HashCode.Combine(GetType(), Signed, Bits);
         }
 
         /// <summary>
@@ -96,6 +103,9 @@ namespace Yoakke.IR
 
             public override bool EqualsNonNull(Type other) =>
                 other is Ptr p && ElementType.EqualsNonNull(p.ElementType);
+
+            public override int GetHashCode() =>
+                HashCode.Combine(GetType(), ElementType);
         }
 
         /// <summary>
@@ -128,6 +138,9 @@ namespace Yoakke.IR
                 && ReturnType.EqualsNonNull(p.ReturnType)
                 && Parameters.Count == p.Parameters.Count
                 && Parameters.Zip(p.Parameters).All(ts => ts.First.EqualsNonNull(ts.Second));
+
+            public override int GetHashCode() =>
+                HashCode.Combine(GetType(), HashList.Combine(Parameters), ReturnType);
         }
 
         /// <summary>
@@ -154,6 +167,9 @@ namespace Yoakke.IR
                    other is Struct s
                 && Fields.Count == s.Fields.Count
                 && Fields.Zip(s.Fields).All(fs => fs.First.EqualsNonNull(fs.Second));
+
+            public override int GetHashCode() =>
+                HashCode.Combine(GetType(), HashList.Combine(Fields));
         }
     }
 }

@@ -26,7 +26,7 @@ namespace Yoakke
 
                 Checks.CheckAll(ast);
 
-                var asm = Compiler.Compile(ast);
+                var asm = IR.Compiler.Compile(ast);
                 var namingCtx = new NamingContext(asm);
 
                 Console.WriteLine("IR code:\n");

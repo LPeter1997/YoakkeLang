@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO.Pipes;
 using System.Text;
 using Yoakke.Utils;
 
@@ -22,6 +23,7 @@ namespace Yoakke.IR
 
         private StringBuilder builder = new StringBuilder();
         private StringBuilder typeDeclarations = new StringBuilder();
+        private Dictionary<Type, string> compiledTypes = new Dictionary<Type, string>();
         private NamingContext namingContext;
 
         private IrDump(NamingContext namingContext) 
@@ -170,14 +172,20 @@ namespace Yoakke.IR
 
             case Type.Struct s:
             {
-                // Allocate a name for it
-                var name = namingContext.GetNewGlobalName("structure");
-                // Add it to the declarations
-                Write(typeDeclarations, name, " = struct { ");
-                s.Fields.Intertwine(
-                    t => Write(typeDeclarations, t), 
-                    () => Write(typeDeclarations, ", "));
-                Write(typeDeclarations, " }\n");
+                if (!compiledTypes.TryGetValue(s, out var name))
+                {
+                    // First time seeing this type, add it to the declaration
+                    // Allocate a name for it
+                    name = namingContext.GetTypeName(s);
+                    // Append it here
+                    compiledTypes.Add(s, name);
+                    // Add it to the declarations
+                    Write(typeDeclarations, name, " = struct { ");
+                    s.Fields.Intertwine(
+                        t => Write(typeDeclarations, t),
+                        () => Write(typeDeclarations, ", "));
+                    Write(typeDeclarations, " }\n");
+                }
                 // Write it to the output
                 Write(builder, name);
             }

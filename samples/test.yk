@@ -12,6 +12,7 @@ const List = proc(T: type) -> type {
 }
 
 const foo = proc(x: Person) {}
+const bar = proc(x: List(Person)) {}
 
 const main = proc() -> i32 {
 	0
