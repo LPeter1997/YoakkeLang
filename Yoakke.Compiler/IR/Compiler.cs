@@ -32,6 +32,7 @@ namespace Yoakke.IR
 
         private IrBuilder builder;
         private HashSet<Type> compiledTypes = new HashSet<Type>();
+        private Dictionary<(Semantic.Type, string), int> structFields = new Dictionary<(Semantic.Type, string), int>();
 
         private Compiler(IrBuilder builder) 
         {
@@ -175,14 +176,24 @@ namespace Yoakke.IR
             case Expression.StructValue structValue:
             {
                 // Compile the struct type
-                var structTy = ConstEval.EvaluateAsType(structValue.StructType);
+                var structTy = (Semantic.Type.Struct)ConstEval.EvaluateAsType(structValue.StructType);
                 var ty = Compile(structTy);
                 // Allocate a register for the mutable value
                 var mutReg = builder.AllocateRegister(new Type.Ptr(ty), null);
                 builder.AddInstruction(new Instruction.Alloc(mutReg));
                 // Now store the fields
-                // TODO
-                throw new NotImplementedException();
+                foreach (var field in structValue.Fields)
+                {
+                    // Compile the value
+                    var value = Compile(field.Item2);
+                    // Allocate a register for the field pointer
+                    var ptrReg = builder.AllocateRegister(new Type.Ptr(value.Type), null);
+                    // Load the pointer of the proper field
+                    var index = new Value.Int(Type.I32, structFields[(structTy, field.Item1.Value)]);
+                    builder.AddInstruction(new Instruction.ElementPtr(ptrReg, mutReg, index));
+                    // Store the value
+                    builder.AddInstruction(new Instruction.Store(ptrReg, value));
+                }
                 // Load value
                 var valueReg = builder.AllocateRegister(ty, null);
                 builder.AddInstruction(new Instruction.Load(valueReg, mutReg));
@@ -251,7 +262,13 @@ namespace Yoakke.IR
 
             if (type is Semantic.Type.Struct structure)
             {
-                var fields = structure.Fields.Values.Select(Compile).ToList();
+                var fields = new List<Type>();
+                int idx = 0;
+                foreach (var field in structure.Fields)
+                {
+                    fields.Add(Compile(field.Value));
+                    structFields[(type, field.Key)] = idx++;
+                }
                 return CacheType(new Type.Struct(fields));
             }
 

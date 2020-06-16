@@ -171,5 +171,41 @@ namespace Yoakke.IR
                 Arguments = arguments;
             }
         }
+
+        /// <summary>
+        /// Gets a pointer to an element of another <see cref="Value"/>.
+        /// </summary>
+        public class ElementPtr : ValueInstruction
+        {
+            /// <summary>
+            /// The source <see cref="Value"/> to load the element pointer of.
+            /// </summary>
+            public Value Source { get; set; }
+            /// <summary>
+            /// The index of the element.
+            /// </summary>
+            public Value Index { get; set; }
+
+            /// <summary>
+            /// Initializes a new <see cref="ElementPtr"/>.
+            /// </summary>
+            /// <param name="value">The register to store the result in.</param>
+            /// <param name="source">The source <see cref="Value"/> to load the element pointer of.</param>
+            /// <param name="index">The index of the element.</param>
+            public ElementPtr(Value.Register value, Value source, Value index) 
+                : base(value)
+            {
+                if (!(source.Type is Type.Ptr))
+                {
+                    throw new ArgumentException("The source of an element ptr instruction must be a pointer type!", nameof(source));
+                }
+                if (!(index.Type is Type.Int))
+                {
+                    throw new ArgumentException("The index of an element ptr instruction must be an integer type!", nameof(index));
+                }
+                Source = source;
+                Index = index;
+            }
+        }
     }
 }

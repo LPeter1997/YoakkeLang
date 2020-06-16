@@ -82,13 +82,9 @@ namespace Yoakke.IR
 
         private void DumpInstruction(StringBuilder builder, Instruction instruction)
         {
-            if (instruction is ValueInstruction value)
+            if (instruction is ValueInstruction value && !Type.Void_.EqualsNonNull(value.Value.Type))
             {
-                // If it's a call and is a void return, don't bother writing the assignee
-                if (!(instruction is Instruction.Call call) || !Type.Void_.EqualsNonNull(call.Value.Type))
-                {
-                    Write(builder, value.Value, " = ");
-                }
+                Write(builder, value.Value, " = ");
             }
 
             switch (instruction)
@@ -115,6 +111,10 @@ namespace Yoakke.IR
                 Write(builder, "call ", call.Proc, '(');
                 call.Arguments.Intertwine(x => Write(builder, x), () => Write(builder, ", "));
                 Write(builder, ')');
+                break;
+
+            case Instruction.ElementPtr elementPtr:
+                Write(builder, "elementptr ", elementPtr.Source, ", ", elementPtr.Index);
                 break;
 
             default: throw new NotImplementedException();

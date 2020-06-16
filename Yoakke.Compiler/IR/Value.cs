@@ -79,9 +79,9 @@ namespace Yoakke.IR
             /// </summary>
             /// <param name="type">The <see cref="IntType"/> this integer value has.</param>
             /// <param name="value">The actual integer value itself.</param>
-            public Int(Type.Int type, BigInteger value)
+            public Int(Type type, BigInteger value)
             {
-                this.type = type;
+                this.type = (Type.Int)type;
                 Value = value;
             }
         }

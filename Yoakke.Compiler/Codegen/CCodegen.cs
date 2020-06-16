@@ -102,6 +102,7 @@ namespace Yoakke.Backend
             case Instruction.Store _:
             case Instruction.Load _:
             case Instruction.Call _:
+            case Instruction.ElementPtr _:
                 break;
 
             case Instruction.Alloc alloc:
@@ -116,6 +117,7 @@ namespace Yoakke.Backend
 
         private void CompileInstruction(StringBuilder builder, Instruction instruction)
         {
+            // TODO: Ignore voids?
             switch (instruction)
             {
             case Instruction.Alloc alloc:
@@ -145,6 +147,25 @@ namespace Yoakke.Backend
                 call.Arguments.Intertwine(x => Write(builder, x), () => Write(builder, ", "));
                 Write(builder, ')');
                 break;
+
+            case Instruction.ElementPtr elementPtr:
+            {
+                var srcPtrTy = (Type.Ptr)elementPtr.Source.Type;
+                if (srcPtrTy.ElementType is Type.Struct)
+                {
+                    if (!(elementPtr.Index.Type is Type.Int))
+                    {
+                        throw new NotImplementedException("Can't access a non-constant index field of a struct!");
+                    }
+                    Write(builder, elementPtr.Value, " = &", elementPtr.Source, "->f", elementPtr.Index);
+                }
+                else
+                {
+                    // TODO
+                    throw new NotImplementedException();
+                }
+            }
+            break;
 
             default: throw new NotImplementedException();
             }    
