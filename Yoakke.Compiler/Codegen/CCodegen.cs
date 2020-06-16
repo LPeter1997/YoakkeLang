@@ -15,6 +15,7 @@ namespace Yoakke.Backend
         private NamingContext namingContext = new NamingContext(new Assembly());
         private StringBuilder builder = new StringBuilder();
         private StringBuilder typeDeclarations = new StringBuilder();
+        private Dictionary<Type, string> compiledTypes = new Dictionary<Type, string>();
 
         public string Compile(NamingContext namingContext)
         {
@@ -195,18 +196,42 @@ namespace Yoakke.Backend
 
             case Type.Proc procType:
             {
-                // We declare it and just refer to it
-                // First declare return type and params, if any of them needs that
-                var returnTypeBuilder = new StringBuilder();
-                CompileType(returnTypeBuilder, procType.ReturnType);
-                var paramTypesBuilder = new StringBuilder();
-                procType.Parameters.Intertwine(
-                    param => Write(paramTypesBuilder, param),
-                    () => Write(paramTypesBuilder, ", "));
-                // Now create our new type
-                var typeName = namingContext.GetNewGlobalName("func");
-                Write(typeDeclarations, "typedef ", returnTypeBuilder, $"({typeName})(", paramTypesBuilder ,");\n");
-                // Now write the built type's identifier to the correct place
+                if (!compiledTypes.TryGetValue(procType, out var typeName))
+                {
+                    // We need to declare it
+                    // Allocate a name for it
+                    typeName = namingContext.GetTypeName(procType);
+                    // Register it
+                    compiledTypes.Add(procType, typeName);
+                    // Declare return type and params
+                    var returnTypeBuilder = new StringBuilder();
+                    CompileType(returnTypeBuilder, procType.ReturnType);
+                    var paramTypesBuilder = new StringBuilder();
+                    procType.Parameters.Intertwine(
+                        param => Write(paramTypesBuilder, param),
+                        () => Write(paramTypesBuilder, ", "));
+                    // Write out the typedef
+                    Write(typeDeclarations, "typedef ", returnTypeBuilder, $"({typeName})(", paramTypesBuilder, ");\n");
+                }
+                Write(builder, typeName);
+            }
+            break;
+
+            case Type.Struct structType:
+            {
+                if (!compiledTypes.TryGetValue(structType, out var typeName))
+                {
+                    // We need to declare it
+                    // Allocate a name for it
+                    typeName = namingContext.GetTypeName(structType);
+                    // Register it
+                    compiledTypes.Add(structType, typeName);
+                    // Write out the typedef
+                    Write(typeDeclarations, "typedef struct ", typeName, " {\n");
+                    int idx = 0;
+                    foreach (var f in structType.Fields) Write(typeDeclarations, "    ", f, " f", idx++, ";\n");
+                    Write(typeDeclarations, "} ", typeName, ";\n");
+                }
                 Write(builder, typeName);
             }
             break;
