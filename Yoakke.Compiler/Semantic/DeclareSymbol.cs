@@ -61,6 +61,11 @@ namespace Yoakke.Semantic
                 // Nothing to declare, leaf nodes
                 break;
 
+            case Expression.StructType structType:
+                // Declare in field types
+                foreach (var (_, type) in structType.Fields) Declare(symbolTable, type);
+                break;
+
             case Expression.ProcType procType:
                 // Declare in parameter types
                 foreach (var param in procType.ParameterTypes) Declare(symbolTable, param);

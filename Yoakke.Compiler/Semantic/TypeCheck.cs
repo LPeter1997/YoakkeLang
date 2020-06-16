@@ -62,6 +62,11 @@ namespace Yoakke.Semantic
             case Expression.Intrinsic _:
                 break;
 
+            case Expression.StructType structType:
+                // Just check field types
+                foreach (var (_, type) in structType.Fields) Check(type);
+                break;
+
             case Expression.ProcType procType:
                 // Just check subelements
                 foreach (var param in procType.ParameterTypes) Check(param);

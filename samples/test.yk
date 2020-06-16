@@ -13,14 +13,14 @@ const bar = proc() {}
 const rec = proc(x: i32) -> i32 { rec(x) }
 
 const Person = struct {
-	name: str;
+	name: i32;
 	age : i32;
 }
 
 const List = proc(T: type) -> type {
 	struct {
 		data  : T  ;
-		length: u32;
+		length: i32;
 	}
 }
 

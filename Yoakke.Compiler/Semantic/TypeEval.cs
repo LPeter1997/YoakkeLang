@@ -33,9 +33,13 @@ namespace Yoakke.Semantic
             switch (expression)
             {
             // TODO: Some generic integer type instead!
-            case Expression.IntLit intLit: return Type.I32;
-            case Expression.StrLit strLit: return Type.Str;
-            case Expression.ProcType procTy: return Type.Type_;
+            case Expression.IntLit _: return Type.I32;
+            case Expression.StrLit _: return Type.Str;
+
+            // We know these are just types
+            case Expression.StructType _:
+            case Expression.ProcType _: 
+                return Type.Type_;
 
             case Expression.Proc proc: return ConstEval.Evaluate(proc).Type;
 

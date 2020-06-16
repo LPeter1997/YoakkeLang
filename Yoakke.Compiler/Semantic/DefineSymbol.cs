@@ -62,6 +62,11 @@ namespace Yoakke.Semantic
                 intrinsic.Symbol = (Symbol.Intrinsic)intrinsic.Scope.Reference(intrinsic.Token);
                 break;
 
+            case Expression.StructType structType:
+                // Define in field types
+                foreach (var (_, type) in structType.Fields) Define(type);
+                break;
+
             case Expression.ProcType procType:
                 // Define inside each parameter type
                 foreach (var param in procType.ParameterTypes) Define(param);
