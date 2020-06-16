@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using Yoakke.Ast;
 using Yoakke.IR;
@@ -66,6 +67,32 @@ namespace Yoakke.Semantic
                 // Just check field types
                 foreach (var (_, type) in structType.Fields) Check(type);
                 break;
+
+            case Expression.StructValue structValue:
+            {
+                // Check field values
+                foreach (var (_, value) in structValue.Fields) Check(value);
+                // We need to get the struct type
+                var structType = ConstEval.EvaluateAsType(structValue.StructType);
+                // TODO: Is this OK? Can we enforce that it's a struct right here?
+                if (!(structType is Type.Struct ty)) throw new NotImplementedException("Not a struct!");
+                // Check if all fields are initialized to their correct type
+                var uninitFields = ty.Fields.Keys.ToHashSet();
+                foreach (var field in structValue.Fields)
+                {
+                    var fieldName = field.Item1.Value;
+                    if (!uninitFields.Remove(fieldName))
+                    {
+                        // Something is wrong with the name, either double-initialization or unknown field
+                        if (ty.Fields.ContainsKey(fieldName)) throw new NotImplementedException("Double field init!");
+                        else throw new NotImplementedException("Struct has no field!");
+                    }
+                    // Unify type with the initialization value's type
+                    var fieldType = ty.Fields[fieldName];
+                    TypeEval.Evaluate(field.Item2).Unify(fieldType);
+                }
+            }
+            break;
 
             case Expression.ProcType procType:
                 // Just check subelements

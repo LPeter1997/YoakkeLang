@@ -41,7 +41,11 @@ namespace Yoakke.Semantic
             case Expression.ProcType _: 
                 return Type.Type_;
 
-            case Expression.Proc proc: return ConstEval.Evaluate(proc).Type;
+            case Expression.StructValue structValue:
+                return ConstEval.EvaluateAsType(structValue.StructType);
+
+            case Expression.Proc proc: 
+                return ConstEval.Evaluate(proc).Type;
 
             case Expression.Intrinsic intrinsic:
                 Assert.NonNull(intrinsic.Symbol);

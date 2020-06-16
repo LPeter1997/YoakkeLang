@@ -181,6 +181,14 @@ namespace Yoakke.Semantic
                 return new Type.Struct(structType.Token, fields);
             }
 
+            case Expression.StructValue structValue:
+            {
+                // First we get the type
+                var structType = EvaluateAsType(callStack, structValue.StructType, canCache);
+                // TODO
+                throw new NotImplementedException();
+            }
+
             case Expression.ProcType procType:
             {
                 // Evaluate parameters

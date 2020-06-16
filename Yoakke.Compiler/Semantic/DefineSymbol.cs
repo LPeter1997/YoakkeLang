@@ -67,6 +67,13 @@ namespace Yoakke.Semantic
                 foreach (var (_, type) in structType.Fields) Define(type);
                 break;
 
+            case Expression.StructValue structValue:
+                // Define in the struct type expression
+                Define(structValue.StructType);
+                // Define in field values
+                foreach (var (_, value) in structValue.Fields) Define(value);
+                break;
+
             case Expression.ProcType procType:
                 // Define inside each parameter type
                 foreach (var param in procType.ParameterTypes) Define(param);

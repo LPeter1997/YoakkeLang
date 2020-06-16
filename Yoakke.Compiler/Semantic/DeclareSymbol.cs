@@ -66,6 +66,13 @@ namespace Yoakke.Semantic
                 foreach (var (_, type) in structType.Fields) Declare(symbolTable, type);
                 break;
 
+            case Expression.StructValue structValue:
+                // Declare in the struct type expression
+                Declare(symbolTable, structValue.StructType);
+                // Declare in field values
+                foreach (var (_, value) in structValue.Fields) Declare(symbolTable, value);
+                break;
+
             case Expression.ProcType procType:
                 // Declare in parameter types
                 foreach (var param in procType.ParameterTypes) Declare(symbolTable, param);
