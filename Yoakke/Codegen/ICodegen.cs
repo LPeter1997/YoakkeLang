@@ -13,8 +13,8 @@ namespace Yoakke.Backend
         /// <summary>
         /// Compiles the given IR <see cref="Assembly"/> to another representation.
         /// </summary>
-        /// <param name="assembly">The <see cref="Assembly"/> to compile.</param>
+        /// <param name="namingContext">The <see cref="NamingContext"/> of the <see cref="Assembly"/> to compile.</param>
         /// <returns>Another representation of the IR code.</returns>
-        string Compile(Assembly assembly);
+        string Compile(NamingContext namingContext);
     }
 }

@@ -3,6 +3,9 @@ const get_type = proc(x: type) -> type { x }
 
 const some_type: get_type(type) = get_type(i32);
 
+const some_c_fun = @extern("hello", i32);
+const c_method = @extern("bye", proc(i32) -> i32);
+
 const foo = proc(x: i32) -> i32 { x }
 
 const bar = proc() {}
@@ -12,5 +15,6 @@ const rec = proc(x: i32) -> i32 { rec(x) }
 const main = proc() -> get_type(i32) {
 	bar();
 	foo(2);
-	3
+	c_method(56);
+	some_c_fun
 }

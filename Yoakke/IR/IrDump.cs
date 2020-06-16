@@ -13,28 +13,25 @@ namespace Yoakke.IR
         /// <summary>
         /// Dumps the given IR <see cref="Assembly"/> as human-readable text.
         /// </summary>
-        /// <param name="assembly">The <see cref="Assembly"/> to dump.</param>
+        /// <param name="namingContext">The <see cref="NamingContext"/> of the <see cref="Assembly"/> to dump.</param>
         /// <returns>The string representation of the IR code.</returns>
-        public static string Dump(Assembly assembly)
+        public static string Dump(NamingContext namingContext)
         {
-            return new IrDump().DumpAssembly(assembly);
+            return new IrDump(namingContext).DumpAssembly();
         }
 
         private StringBuilder builder = new StringBuilder();
-        // TODO: We could just have a map of Proc -> name and (Proc, BB) -> name dict
-        private HashSet<string> globalNames = new HashSet<string>();
-        private HashSet<string> localNames = new HashSet<string>();
-        private Dictionary<object, string> names = new Dictionary<object, string>();
+        private NamingContext namingContext;
 
-        private IrDump() { }
-
-        private string DumpAssembly(Assembly assembly)
+        private IrDump(NamingContext namingContext) 
         {
-            // Preallocate global link-names
-            PreallocateGlobalNames(assembly);
+            this.namingContext = namingContext;
+        }
 
+        private string DumpAssembly()
+        {
             // Dump the externals
-            foreach (var external in assembly.Externals)
+            foreach (var external in namingContext.Assembly.Externals)
             {
                 DumpExternal(external.LinkName, external.Type);
                 Write(";\n");
@@ -43,25 +40,14 @@ namespace Yoakke.IR
             Write('\n');
 
             // Then the procedures
-            foreach (var proc in assembly.Procedures)
+            foreach (var proc in namingContext.Assembly.Procedures)
             {
-                localNames.Clear();
+                namingContext.NewLocals();
                 DumpProc(proc);
                 Write('\n');
             }
 
             return builder.ToString().Trim();
-        }
-
-        private void PreallocateGlobalNames(Assembly assembly)
-        {
-            // First externals
-            foreach (var external in assembly.Externals) globalNames.Add(external.LinkName);
-            // Then procedures that have link name
-            foreach (var proc in assembly.Procedures)
-            {
-                if (proc.LinkName != null) globalNames.Add(proc.LinkName);
-            }
         }
 
         private void DumpExternal(string name, Type type)
@@ -71,7 +57,7 @@ namespace Yoakke.IR
 
         private void DumpProc(Proc proc)
         {
-            Write("proc ", proc.ReturnType, $" {GetProcName(proc)}(");
+            Write("proc ", proc.ReturnType, $" {namingContext.GetProcName(proc)}(");
             // Parameters
             proc.Parameters.Intertwine(
                 param => Write(param.Type, ' ', param),
@@ -83,7 +69,7 @@ namespace Yoakke.IR
 
         private void DumpBasicBlock(BasicBlock basicBlock)
         {
-            Write($"{GetBasicBlockName(basicBlock)}:\n");
+            Write($"{namingContext.GetBasicBlockName(basicBlock)}:\n");
 
             foreach (var ins in basicBlock.Instructions)
             {
@@ -140,7 +126,7 @@ namespace Yoakke.IR
                 break;
 
             case Value.Register reg:
-                Write($"r{reg.Index}");
+                Write(namingContext.GetRegisterName(reg));
                 break;
 
             case Value.Int intVal:
@@ -148,7 +134,7 @@ namespace Yoakke.IR
                 break;
 
             case Proc proc:
-                Write(GetProcName(proc));
+                Write(namingContext.GetProcName(proc));
                 break;
 
             case Value.Extern external:
@@ -207,46 +193,6 @@ namespace Yoakke.IR
                     builder.Append(arg);
                     break;
                 }
-            }
-        }
-
-        private string GetProcName(Proc proc)
-        {
-            if (names.TryGetValue(proc, out var name)) return name;
-            name = proc.LinkName ?? GlobalUniqueName("proc");
-            names.Add(proc, name);
-            return name;
-        }
-
-        private string GetBasicBlockName(BasicBlock basicBlock)
-        {
-            if (names.TryGetValue(basicBlock, out var name)) return name;
-            name = LocalUniqueName("label");
-            names.Add(basicBlock, name);
-            return name;
-        }
-
-        private string GlobalUniqueName(string name)
-        {
-            if (globalNames.Add(name)) return name;
-            int i = 0;
-            while (true)
-            {
-                string nextName = $"name{i}";
-                if (globalNames.Add(nextName)) return nextName;
-                ++i;
-            }
-        }
-
-        private string LocalUniqueName(string name)
-        {
-            if (!globalNames.Contains(name) && localNames.Add(name)) return name;
-            int i = 0;
-            while (true)
-            {
-                string nextName = $"{name}{i}";
-                if (!globalNames.Contains(nextName) && localNames.Add(nextName)) return nextName;
-                ++i;
             }
         }
     }

@@ -12,32 +12,35 @@ namespace Yoakke.Backend
     /// </summary>
     class CCodegen : ICodegen
     {
+        private NamingContext namingContext = new NamingContext(new Assembly());
         private StringBuilder builder = new StringBuilder();
         private StringBuilder typeDeclarations = new StringBuilder();
-        private int typeCounter = 0;
 
-        public string Compile(Assembly assembly)
+        public string Compile(NamingContext namingContext)
         {
-            return CompileAssembly(assembly);
+            builder.Clear();
+            typeDeclarations.Clear();
+            this.namingContext = namingContext;
+            return CompileAssembly();
         }
 
-        private string CompileAssembly(Assembly assembly)
+        private string CompileAssembly()
         {
             // We want the include to be on top
             Write(typeDeclarations, "#include <stdint.h>\n\n");
-            foreach (var external in assembly.Externals)
+            foreach (var external in namingContext.Assembly.Externals)
             {
                 DeclareExternal(external);
                 Write(builder, '\n');
             }
             Write(builder, '\n');
-            foreach (var proc in assembly.Procedures)
+            foreach (var proc in namingContext.Assembly.Procedures)
             {
                 DeclareProc(proc);
                 Write(builder, '\n');
             }
             Write(builder, '\n');
-            foreach (var proc in assembly.Procedures)
+            foreach (var proc in namingContext.Assembly.Procedures)
             {
                 CompileProc(proc);
                 Write(builder, '\n');
@@ -53,15 +56,14 @@ namespace Yoakke.Backend
 
         private void DeclareProc(Proc proc)
         {
-            /*Write(builder, proc.ReturnType, $" {proc.Name}(");
+            Write(builder, proc.ReturnType, $" {namingContext.GetProcName(proc)}(");
             proc.Parameters.Intertwine(param => Write(builder, param.Type), () => Write(builder, ", "));
-            Write(builder, ");");*/
-            throw new NotImplementedException();
+            Write(builder, ");");
         }
 
         private void CompileProc(Proc proc)
         {
-            /*Write(builder, proc.ReturnType, $" {proc.Name}(");
+            Write(builder, proc.ReturnType, $" {namingContext.GetProcName(proc)}(");
             proc.Parameters.Intertwine(
                 param => Write(builder, param.Type, ' ', param),
                 () => Write(builder, ", "));
@@ -71,24 +73,25 @@ namespace Yoakke.Backend
                 foreach (var ins in bb.Instructions) ForwardDeclareVariable(ins);
             }
             foreach (var bb in proc.BasicBlocks) CompileBasicBlock(bb);
-            Write(builder, "}\n");*/
-            throw new NotImplementedException();
+            Write(builder, "}\n");
         }
 
         private void CompileBasicBlock(BasicBlock basicBlock)
         {
-            /*Write(builder, basicBlock.Name, ":\n");
+            Write(builder, namingContext.GetBasicBlockName(basicBlock), ":\n");
             foreach (var ins in basicBlock.Instructions)
             {
                 Write(builder, "    ", ins, ";\n");
-            }*/
-            throw new NotImplementedException();
+            }
         }
 
         private void ForwardDeclareVariable(Instruction instruction)
         {
             if (instruction is ValueInstruction vi)
             {
+                // We don't print void types
+                if (Type.Void_.EqualsNonNull(vi.Value.Type)) return;
+
                 Write(builder, "    ", vi.Value.Type, ' ', vi.Value, ";\n");
             }
 
@@ -166,9 +169,8 @@ namespace Yoakke.Backend
                 break;
 
             case Proc procVal:
-                //Write(builder, procVal.Name);
-                throw new NotImplementedException();
-                //break;
+                Write(builder, namingContext.GetProcName(procVal));
+                break;
 
             default: throw new NotImplementedException();
             }
@@ -202,7 +204,7 @@ namespace Yoakke.Backend
                     param => Write(paramTypesBuilder, param),
                     () => Write(paramTypesBuilder, ", "));
                 // Now create our new type
-                var typeName = $"func{typeCounter++}_t";
+                var typeName = namingContext.GetNewGlobalName("func");
                 Write(typeDeclarations, "typedef ", returnTypeBuilder, $"({typeName})(", paramTypesBuilder ,");\n");
                 // Now write the built type's identifier to the correct place
                 Write(builder, typeName);
