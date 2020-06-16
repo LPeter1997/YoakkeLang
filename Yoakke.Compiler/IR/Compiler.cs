@@ -25,16 +25,19 @@ namespace Yoakke.IR
             var assembly = new Assembly();
             var builder = new IrBuilder(assembly);
 
-            new Compiler().Compile(builder, program);
+            new Compiler(builder).Compile(program);
 
             return assembly;
         }
 
-        private Dictionary<Semantic.Type, Type> compiledTypes = new Dictionary<Semantic.Type, Type>();
+        private IrBuilder builder;
 
-        private Compiler() { }
+        private Compiler(IrBuilder builder) 
+        {
+            this.builder = builder;
+        }
 
-        private Proc? CompileProcedure(IrBuilder builder, Expression.Proc proc)
+        private Proc? CompileProcedure(Expression.Proc proc)
         {
             // If it's already compiled, just return that
             if (builder.Globals.TryGetValue(proc, out var alreadyDefined)) return (Proc)alreadyDefined;
@@ -71,7 +74,7 @@ namespace Yoakke.IR
                 builder.AddInstruction(new Instruction.Store(storeReg, receiveReg));
             }
             // Now we just compile the body
-            var bodyValue = Compile(builder, proc.Body);
+            var bodyValue = Compile(proc.Body);
             // We append the return statement
             builder.AddInstruction(new Instruction.Ret(bodyValue));
             // Compilation is done
@@ -80,7 +83,7 @@ namespace Yoakke.IR
             return compiledProc;
         }
 
-        private Value CompileExtern(IrBuilder builder, Semantic.Value.Extern external, Symbol symbol)
+        private Value CompileExtern(Semantic.Value.Extern external, Symbol symbol)
         {
             // If it's already compiled, just return that
             if (builder.Globals.TryGetValue(symbol, out var value)) return value;
@@ -91,12 +94,12 @@ namespace Yoakke.IR
             return createdValue;
         }
 
-        private void Compile(IrBuilder builder, Statement statement)
+        private void Compile(Statement statement)
         {
             switch (statement)
             {
             case Declaration.Program program:
-                foreach (var decl in program.Declarations) Compile(builder, decl);
+                foreach (var decl in program.Declarations) Compile(decl);
                 break;
 
             case Declaration.ConstDef constDef:
@@ -107,7 +110,7 @@ namespace Yoakke.IR
                 
                 if (value is Semantic.Value.Proc proc)
                 {
-                    var compiledProc = CompileProcedure(builder, proc.Node);
+                    var compiledProc = CompileProcedure(proc.Node);
                     if (compiledProc != null)
                     {
                         // TODO: This is not required, only if we export the function
@@ -116,7 +119,7 @@ namespace Yoakke.IR
                 }
                 else if (value is Semantic.Value.Extern external)
                 {
-                    CompileExtern(builder, external, constDef.Symbol);
+                    CompileExtern(external, constDef.Symbol);
                 }
                 else
                 {
@@ -126,14 +129,14 @@ namespace Yoakke.IR
             break;
 
             case Statement.Expression_ expr:
-                Compile(builder, expr.Expression);
+                Compile(expr.Expression);
                 break;
 
             default: throw new NotImplementedException();
             }
         }
 
-        private Value Compile(IrBuilder builder, Expression expression)
+        private Value Compile(Expression expression)
         {
             switch (expression) 
             {
@@ -152,7 +155,7 @@ namespace Yoakke.IR
                 {
                 case Symbol.Const constSym:
                     Assert.NonNull(constSym.Value);
-                    return Compile(builder, constSym.Value);
+                    return Compile(constSym.Value);
 
                 case Symbol.Variable varSym:
                 {
@@ -170,24 +173,24 @@ namespace Yoakke.IR
 
             case Expression.Proc proc:
             {
-                CompileProcedure(builder, proc);
+                CompileProcedure( proc);
                 // TODO: We need some kind of value for it
                 throw new NotImplementedException();
             }
 
             case Expression.Block block:
             {
-                foreach (var stmt in block.Statements) Compile(builder, stmt);
+                foreach (var stmt in block.Statements) Compile(stmt);
                 Value retValue = block.Value == null
                                  ? Value.Void_
-                                 : Compile(builder, block.Value);
+                                 : Compile(block.Value);
                 return retValue;
             }
 
             case Expression.Call call:
             {
-                var proc = Compile(builder, call.Proc);
-                var args = call.Arguments.Select(x => Compile(builder, x)).ToList();
+                var proc = Compile(call.Proc);
+                var args = call.Arguments.Select(x => Compile(x)).ToList();
                 var procTy = (Type.Proc)proc.Type;
                 var retTy = procTy.ReturnType;
                 var retRegister = builder.AllocateRegister(retTy, null);
@@ -199,12 +202,12 @@ namespace Yoakke.IR
             }
         }
 
-        private Value Compile(IrBuilder builder, Semantic.Value value)
+        private Value Compile(Semantic.Value value)
         {
             switch (value)
             {
             case Semantic.Value.Proc proc:
-                return Assert.NonNullValue(CompileProcedure(builder, proc.Node));
+                return Assert.NonNullValue(CompileProcedure(proc.Node));
 
             case Semantic.Value.Extern external:
             {
@@ -230,14 +233,9 @@ namespace Yoakke.IR
 
             if (type is Semantic.Type.Struct structure)
             {
-                // We cache structs
-                if (compiledTypes.TryGetValue(structure, out var compiled)) return compiled;
-                // Not in the cache, compile it
+                // TODO: Cache structs with same fields?
                 var fields = structure.Fields.Values.Select(Compile).ToList();
-                var result = new Type.Struct(fields);
-                // Store, return
-                compiledTypes.Add(structure, result);
-                return result;
+                return new Type.Struct(fields);
             }
 
             throw new NotImplementedException();
