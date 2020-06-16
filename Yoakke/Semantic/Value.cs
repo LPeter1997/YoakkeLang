@@ -49,6 +49,21 @@ namespace Yoakke.Semantic
     partial class Value
     {
         /// <summary>
+        /// A special <see cref="Value"/> to denote that it's under evaluation.
+        /// Used to avoid infinite recursion.
+        /// </summary>
+        public class UnderEvaluation : Value
+        {
+            private Type type = new Type.Variable();
+            public override Type Type => type;
+
+            public override bool EqualsNonNull(Value other)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        /// <summary>
         /// A procedure as a compile-time <see cref="Value"/>.
         /// </summary>
         public class Proc : Value

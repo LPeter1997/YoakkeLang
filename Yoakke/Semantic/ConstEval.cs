@@ -100,7 +100,13 @@ namespace Yoakke.Semantic
                 if (constDef.Symbol.Value == null)
                 {
                     // This is still unevaluated, evaluate and assign to symbol
+                    // First we assign the symbol a pseudo-value to avoid problems with recursion
+                    var pseudoValue = new Value.UnderEvaluation();
+                    constDef.Symbol.Value = pseudoValue;
+                    // Then we do the actual evaluation
                     constDef.Symbol.Value = Evaluate(callStack, constDef.Value, true);
+                    // Finally we unify the types of the two values to not to lose inference information
+                    constDef.Symbol.Value.Type.Unify(pseudoValue.Type);
                 }
                 // If has a type, unify with value
                 if (constDef.Type != null)

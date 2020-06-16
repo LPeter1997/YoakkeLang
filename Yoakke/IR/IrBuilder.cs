@@ -18,6 +18,7 @@ namespace Yoakke.IR
             public readonly Proc Proc;
             public BasicBlock CurrentBasicBlock { get; private set; }
             public readonly Dictionary<object, Value.Register> Locals = new Dictionary<object, Value.Register>();
+            public int RegisterCount { get; set; } = 0;
 
             public ProcContext(Proc proc)
             {
@@ -127,7 +128,7 @@ namespace Yoakke.IR
         public Value.Register AllocateRegister(Type type, object? key)
         {
             var currentContext = contextStack.Peek();
-            var reg = new Value.Register(type, currentContext.Locals.Count);
+            var reg = new Value.Register(type, currentContext.RegisterCount++);
             if (key != null) currentContext.Locals.Add(key, reg);
             return reg;
         }
