@@ -21,8 +21,11 @@ const Author = Person {
 
 const Magic = 5;
 
-const baz = proc() -> Person {
-	Author
+const baz = proc() -> List(proc()) {
+	List(proc()) {
+		data = proc() {};
+		length = 6;
+	}
 }
 
 const main = proc() -> i32 {

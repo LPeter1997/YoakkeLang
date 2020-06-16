@@ -205,11 +205,7 @@ namespace Yoakke.IR
             }
 
             case Expression.Proc proc:
-            {
-                CompileProcedure( proc);
-                // TODO: We need some kind of value for it
-                throw new NotImplementedException();
-            }
+                return Assert.NonNullValue(CompileProcedure( proc));
 
             case Expression.Block block:
             {

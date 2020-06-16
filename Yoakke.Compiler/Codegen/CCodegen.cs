@@ -232,7 +232,7 @@ namespace Yoakke.Backend
                         param => Write(paramTypesBuilder, param),
                         () => Write(paramTypesBuilder, ", "));
                     // Write out the typedef
-                    Write(typeDeclarations, "typedef ", returnTypeBuilder, $"({typeName})(", paramTypesBuilder, ");\n");
+                    Write(typeDeclarations, "typedef ", returnTypeBuilder, $"(*{typeName})(", paramTypesBuilder, ");\n");
                 }
                 Write(builder, typeName);
             }
@@ -248,10 +248,13 @@ namespace Yoakke.Backend
                     // Register it
                     compiledTypes.Add(structType, typeName);
                     // Write out the typedef
-                    Write(typeDeclarations, "typedef struct ", typeName, " {\n");
+                    var structTypeBuilder = new StringBuilder();
+                    Write(structTypeBuilder, "typedef struct ", typeName, " {\n");
                     int idx = 0;
-                    foreach (var f in structType.Fields) Write(typeDeclarations, "    ", f, " f", idx++, ";\n");
-                    Write(typeDeclarations, "} ", typeName, ";\n");
+                    foreach (var f in structType.Fields) Write(structTypeBuilder, "    ", f, " f", idx++, ";\n");
+                    Write(structTypeBuilder, "} ", typeName, ";\n");
+                    // Write it out
+                    Write(typeDeclarations, structTypeBuilder);
                 }
                 Write(builder, typeName);
             }
