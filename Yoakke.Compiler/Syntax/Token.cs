@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace Yoakke.Syntax
@@ -7,7 +8,9 @@ namespace Yoakke.Syntax
     /// <summary>
     /// Represents an atom in the language's grammar and the lowest level element of parsing.
     /// </summary>
-    readonly struct Token
+#pragma warning disable CS0659, CS0661
+    readonly struct Token : IEquatable<Token>
+#pragma warning restore CS0661, CS0659
     {
         /// <summary>
         /// The <see cref="Position"/> of this <see cref="Token"/>.
@@ -39,6 +42,19 @@ namespace Yoakke.Syntax
             Type = type;
             Value = value;
         }
+
+        public override bool Equals(object? obj) =>
+            obj != null && obj is Token t && Equals(t);
+
+        public bool Equals(Token other) =>
+            // NOTE: This must uniquely identify the token
+            Position == other.Position;
+
+        public static bool operator ==(Token t1, Token t2) =>
+            t1.Equals(t2);
+
+        public static bool operator !=(Token t1, Token t2) =>
+            !(t1 == t2);
     }
 
     /// <summary>

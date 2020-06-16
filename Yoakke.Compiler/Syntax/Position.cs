@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace Yoakke.Syntax
@@ -7,7 +8,9 @@ namespace Yoakke.Syntax
     /// <summary>
     /// Position in the souce text.
     /// </summary>
-    readonly struct Position
+#pragma warning disable CS0659, CS0661
+    readonly struct Position : IEquatable<Position>
+#pragma warning restore CS0661, CS0659
     {
         /// <summary>
         /// The <see cref="Source"/> this <see cref="Position"/> belongs to.
@@ -34,6 +37,20 @@ namespace Yoakke.Syntax
             Line = line;
             Column = column;
         }
+
+        public override bool Equals(object? obj) =>
+            obj != null && obj is Position p && Equals(p);
+
+        public bool Equals(Position o) =>
+                   Line == o.Line 
+                && Column == o.Column 
+                && Source.Path == o.Source.Path;
+
+        public static bool operator ==(Position p1, Position p2) =>
+            p1.Equals(p2);
+
+        public static bool operator !=(Position p1, Position p2) =>
+            !(p1 == p2);
 
         /// <summary>
         /// Creates a <see cref="Position"/> that's advanced in the current line by the given amount.

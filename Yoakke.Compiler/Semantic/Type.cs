@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using Yoakke.Syntax;
 using Yoakke.Utils;
 
 namespace Yoakke.Semantic
@@ -301,6 +302,55 @@ namespace Yoakke.Semantic
 
             public override string ToString() =>
                 $"proc({Parameters.Select(x => x.ToString()).StringJoin(", ")}) -> {Return.Substitution}";
+        }
+
+        /// <summary>
+        /// A user-defined structure with named fields.
+        /// </summary>
+        public class Struct : Product
+        {
+            /// <summary>
+            /// The 'struct' <see cref="Token"/> that defined this <see cref="Struct"/>.
+            /// </summary>
+            public readonly Token Token;
+            /// <summary>
+            /// The data fields, each with a name and <see cref="Type"/>.
+            /// </summary>
+            public readonly IDictionary<string, Type> Fields;
+
+            public override IEnumerable<Value> Components => Fields.Values;
+
+            /// <summary>
+            /// Initializes a new <see cref="Struct"/>.
+            /// </summary>
+            /// <param name="token">The 'struct' <see cref="Token"/> that defined this struct.</param>
+            /// <param name="fields">The data fields, each with a name and <see cref="Type"/>.</param>
+            public Struct(Token token, IDictionary<string, Type> fields)
+            {
+                Token = token;
+                Fields = fields;
+            }
+
+            public override bool EqualsNonNull(Type other) =>
+                   other is Struct s 
+                && Token == s.Token 
+                && Fields.Keys.Count == s.Fields.Keys.Count
+                && Fields.Keys.All(k => s.Fields.ContainsKey(k))
+                && base.EqualsNonNull(other);
+
+            protected override void UnifyInternal(Type other)
+            {
+                // Check if other is a struct
+                // NOTE: This is repeated in Product.UnifyInternal, but we need to check field names here
+                // so we need to cast other to a struct
+                if (!(other.Substitution is Struct s)) throw new Exception($"Type mismatch {this} vs {other.Substitution}");
+                if (Fields.Count != s.Fields.Count) throw new Exception($"Type mismatch {this} vs {other.Substitution}");
+                foreach (var f in Fields.Keys)
+                {
+                    if (!s.Fields.ContainsKey(f)) throw new Exception($"Type mismatch {this} vs {other.Substitution}");
+                }
+                base.UnifyInternal(s);
+            }
         }
     }
 }
