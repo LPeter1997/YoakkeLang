@@ -34,7 +34,7 @@
 		"builtin_types": {
 			"patterns": [{
 				"name": "storage.type.yoakke",
-				"match": "\\b(proc|type|i32)\\b"
+				"match": "\\b(struct|proc|type|i32)\\b"
 			}]
 		},
 		"intrinsic_procedures": {
