@@ -156,6 +156,39 @@ namespace Yoakke.Ast
         }
 
         /// <summary>
+        /// A structure type instantiation.
+        /// Syntax:
+        /// ```
+        /// Struct Type {
+        ///     Field1 = Value 1;
+        ///     ...
+        /// }
+        /// ```
+        /// </summary>
+        public class StructValue : Expression
+        {
+            /// <summary>
+            /// The structure type to instantiate,
+            /// </summary>
+            new public Expression StructType { get; set; }
+            /// <summary>
+            /// The fields of the structure. An identifier and an assigned value.
+            /// </summary>
+            public List<(Token, Expression)> Fields { get; set; }
+
+            /// <summary>
+            /// Initializes a new <see cref="StructValue"/>.
+            /// </summary>
+            /// <param name="structType">The type of the struct to instantiate.</param>
+            /// <param name="fields">The list of field initializations. Each a pair of name and value.</param>
+            public StructValue(Expression structType, List<(Token, Expression)> fields)
+            {
+                StructType = structType;
+                Fields = fields;
+            }
+        }
+
+        /// <summary>
         /// A procedure type definition.
         /// Syntax:
         /// ```

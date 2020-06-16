@@ -14,6 +14,13 @@ const List = proc(T: type) -> type {
 const foo = proc(x: Person) {}
 const bar = proc(x: List(Person)) {}
 
+const baz = proc() -> Person {
+	Person {
+		name = 1233;
+		age  = 2345;
+	}
+}
+
 const main = proc() -> i32 {
 	0
 }

@@ -126,6 +126,20 @@ namespace Yoakke.Syntax
                     }
                     result = new Expression.Call(result, args);
                 }
+                else if (!typeOnly && Match(ref input, TokenType.OpenBrace))
+                {
+                    var fields = new List<(Token, Expression)>();
+                    while (!Match(ref input, TokenType.CloseBrace))
+                    {
+                        Expect(ref input, TokenType.Identifier, out var name);
+                        Expect(ref input, TokenType.Assign);
+                        var value = ParseExpression(ref input, false);
+                        Expect(ref input, TokenType.Semicolon);
+
+                        fields.Add((name, value));
+                    }
+                    result = new Expression.StructValue(result, fields);
+                }
                 else
                 {
                     break;
