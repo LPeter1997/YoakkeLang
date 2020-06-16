@@ -99,7 +99,7 @@ namespace Yoakke.IR
             int i = 0;
             while (true)
             {
-                string nextName = $"name{i}";
+                string nextName = $"{name}{i}";
                 if (globalNames.Add(nextName)) return nextName;
                 ++i;
             }

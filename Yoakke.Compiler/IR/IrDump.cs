@@ -21,6 +21,7 @@ namespace Yoakke.IR
         }
 
         private StringBuilder builder = new StringBuilder();
+        private StringBuilder typeDeclarations = new StringBuilder();
         private NamingContext namingContext;
 
         private IrDump(NamingContext namingContext) 
@@ -34,91 +35,91 @@ namespace Yoakke.IR
             foreach (var external in namingContext.Assembly.Externals)
             {
                 DumpExternal(external.LinkName, external.Type);
-                Write(";\n");
+                Write(builder, ";\n");
             }
 
-            Write('\n');
+            Write(builder, '\n');
 
             // Then the procedures
             foreach (var proc in namingContext.Assembly.Procedures)
             {
                 namingContext.NewLocals();
                 DumpProc(proc);
-                Write('\n');
+                Write(builder, '\n');
             }
 
-            return builder.ToString().Trim();
+            return typeDeclarations.Append(builder).Append('\n').ToString().Trim();
         }
 
         private void DumpExternal(string name, Type type)
         {
-            Write("extern ", type, $" {name}");
+            Write(builder, "extern ", type, $" {name}");
         }
 
         private void DumpProc(Proc proc)
         {
-            Write("proc ", proc.ReturnType, $" {namingContext.GetProcName(proc)}(");
+            Write(builder, "proc ", proc.ReturnType, $" {namingContext.GetProcName(proc)}(");
             // Parameters
             proc.Parameters.Intertwine(
-                param => Write(param.Type, ' ', param),
-                () => Write(", "));
-            Write("):\n");
+                param => Write(builder, param.Type, ' ', param),
+                () => Write(builder, ", "));
+            Write(builder, "):\n");
 
             foreach (var bb in proc.BasicBlocks) DumpBasicBlock(bb);
         }
 
         private void DumpBasicBlock(BasicBlock basicBlock)
         {
-            Write($"{namingContext.GetBasicBlockName(basicBlock)}:\n");
+            Write(builder, $"{namingContext.GetBasicBlockName(basicBlock)}:\n");
 
             foreach (var ins in basicBlock.Instructions)
             {
-                Write("  ", ins, '\n');
+                Write(builder, "  ", ins, '\n');
             }
         }
 
-        private void DumpInstruction(Instruction instruction)
+        private void DumpInstruction(StringBuilder builder, Instruction instruction)
         {
             if (instruction is ValueInstruction value)
             {
                 // If it's a call and is a void return, don't bother writing the assignee
                 if (!(instruction is Instruction.Call call) || !Type.Void_.EqualsNonNull(call.Value.Type))
                 {
-                    Write(value.Value, " = ");
+                    Write(builder, value.Value, " = ");
                 }
             }
 
             switch (instruction)
             {
             case Instruction.Alloc alloc:
-                Write("alloc ", alloc.ElementType);
+                Write(builder, "alloc ", alloc.ElementType);
                 break;
 
             case Instruction.Ret ret:
-                Write("ret");
+                Write(builder, "ret");
                 // Only write return value if it's non-void
-                if (!Type.Void_.EqualsNonNull(ret.Value.Type)) Write(' ', ret.Value);
+                if (!Type.Void_.EqualsNonNull(ret.Value.Type)) Write(builder, ' ', ret.Value);
                 break;
 
             case Instruction.Store store:
-                Write("store ", store.Target, ", ", store.Value);
+                Write(builder, "store ", store.Target, ", ", store.Value);
                 break;
 
             case Instruction.Load load:
-                Write("load ", load.Source);
+                Write(builder, "load ", load.Source);
                 break;
 
             case Instruction.Call call:
-                Write("call ", call.Proc, '(');
-                call.Arguments.Intertwine(x => Write(x), () => Write(", "));
-                Write(')');
+                Write(builder, "call ", call.Proc, '(');
+                call.Arguments.Intertwine(x => Write(builder, x), () => Write(builder, ", "));
+                Write(builder, ')');
                 break;
 
             default: throw new NotImplementedException();
             }
         }
 
-        private void DumpValue(Value value)
+        private void DumpValue(StringBuilder builder, Value value)
         {
             switch (value)
             {
@@ -126,67 +127,82 @@ namespace Yoakke.IR
                 break;
 
             case Value.Register reg:
-                Write(namingContext.GetRegisterName(reg));
+                Write(builder, namingContext.GetRegisterName(reg));
                 break;
 
             case Value.Int intVal:
-                Write(intVal.Value);
+                Write(builder, intVal.Value);
                 break;
 
             case Proc proc:
-                Write(namingContext.GetProcName(proc));
+                Write(builder, namingContext.GetProcName(proc));
                 break;
 
             case Value.Extern external:
-                Write(external.LinkName);
+                Write(builder, external.LinkName);
                 break;
 
             default: throw new NotImplementedException();
             }
         }
 
-        private void DumpType(Type type)
+        private void DumpType(StringBuilder builder, Type type)
         {
             switch (type)
             {
             case Type.Void _:
-                Write("void");
+                Write(builder, "void");
                 break;
 
             case Type.Int i:
-                Write($"{(i.Signed ? 'i' : 'u')}{i.Bits}");
+                Write(builder, $"{(i.Signed ? 'i' : 'u')}{i.Bits}");
                 break;
 
             case Type.Ptr ptrType:
-                Write('*', ptrType.ElementType);
+                Write(builder, '*', ptrType.ElementType);
                 break;
 
             case Type.Proc p:
-                Write("proc(");
-                p.Parameters.Intertwine(param => Write(param), () => Write(", "));
-                Write(") -> ", p.ReturnType);
+                Write(builder, "proc(");
+                p.Parameters.Intertwine(param => Write(builder, param), () => Write(builder, ", "));
+                Write(builder, ") -> ", p.ReturnType);
                 break;
+
+            case Type.Struct s:
+            {
+                // Allocate a name for it
+                var name = namingContext.GetNewGlobalName("structure");
+                // Add it to the declarations
+                Write(typeDeclarations, name, " = struct { ");
+                s.Fields.Intertwine(
+                    t => Write(typeDeclarations, t), 
+                    () => Write(typeDeclarations, ", "));
+                Write(typeDeclarations, " }\n");
+                // Write it to the output
+                Write(builder, name);
+            }
+            break;
 
             default: throw new NotImplementedException();
             }
         }
 
-        private void Write(params object[] args)
+        private void Write(StringBuilder builder, params object[] args)
         {
             foreach (var arg in args)
             {
                 switch (arg)
                 {
                 case Type t:
-                    DumpType(t);
+                    DumpType(builder, t);
                     break;
 
                 case Value v:
-                    DumpValue(v);
+                    DumpValue(builder, v);
                     break;
 
                 case Instruction i:
-                    DumpInstruction(i);
+                    DumpInstruction(builder, i);
                     break;
 
                 default:
