@@ -3,10 +3,13 @@
 	"name": "Yoakke",
 	"patterns": [
 		{ "include": "#keywords" },
-		{ "include": "#builtin_types" },
-		{ "include": "#strings" },
 		{ "include": "#line_comment" },
-		{ "include": "#nested_comment" }
+		{ "include": "#nested_comment" },
+		{ "include": "#builtin_types" },
+		{ "include": "#intrinsic_procedures" },
+		{ "include": "#strings" },
+		{ "include": "#integer_literals" },
+		{ "include": "#identifiers" }
 	],
 	"repository": {
 		"keywords": {
@@ -14,23 +17,6 @@
 				"name": "keyword.control.yoakke",
 				"match": "\\b(const)\\b"
 			}]
-		},
-		"builtin_types": {
-			"patterns": [{
-				"name": "storage.type.yoakke",
-				"match": "\\b(proc|type|i32)\\b"
-			}]
-		},
-		"strings": {
-			"name": "string.quoted.double.yoakke",
-			"begin": "\"",
-			"end": "\"",
-			"patterns": [
-				{
-					"name": "constant.character.escape.yoakke",
-					"match": "\\\\."
-				}
-			]
 		},
 		"line_comment": {
 			"name": "comment.line.double-slash.yoakke",
@@ -44,7 +30,38 @@
 			"patterns": [
 				{ "include": "#nested_comment" }
 			]
-		  }
+		},
+		"builtin_types": {
+			"patterns": [{
+				"name": "storage.type.yoakke",
+				"match": "\\b(proc|type|i32)\\b"
+			}]
+		},
+		"intrinsic_procedures": {
+			"patterns": [{
+				"name": "support.function.builtin.yoakke",
+				"match": "@\\b(extern)\\b"
+			}]
+		},
+		"strings": {
+			"name": "string.quoted.double.yoakke",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.yoakke",
+					"match": "\\\\."
+				}
+			]
+		},
+		"integer_literals": {
+			"name": "constant.numeric.integer.decimal.yoakke",
+      		"match": "\\b[0-9]+\\b"
+		},
+		"identifiers": {
+			"name": "entity.name.function.yoakke",
+			"match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
+		}
 	},
 	"scopeName": "source.yoakke"
 }
