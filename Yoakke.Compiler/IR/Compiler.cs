@@ -172,6 +172,23 @@ namespace Yoakke.IR
                 }
             }
 
+            case Expression.StructValue structValue:
+            {
+                // Compile the struct type
+                var structTy = ConstEval.EvaluateAsType(structValue.StructType);
+                var ty = Compile(structTy);
+                // Allocate a register for the mutable value
+                var mutReg = builder.AllocateRegister(new Type.Ptr(ty), null);
+                builder.AddInstruction(new Instruction.Alloc(mutReg));
+                // Now store the fields
+                // TODO
+                throw new NotImplementedException();
+                // Load value
+                var valueReg = builder.AllocateRegister(ty, null);
+                builder.AddInstruction(new Instruction.Load(valueReg, mutReg));
+                return valueReg;
+            }
+
             case Expression.Proc proc:
             {
                 CompileProcedure( proc);

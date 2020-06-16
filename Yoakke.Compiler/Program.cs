@@ -26,7 +26,7 @@ namespace Yoakke
 
                 Checks.CheckAll(ast);
 
-                /*var asm = IR.Compiler.Compile(ast);
+                var asm = IR.Compiler.Compile(ast);
                 var namingCtx = new NamingContext(asm);
 
                 Console.WriteLine("IR code:\n");
@@ -34,7 +34,7 @@ namespace Yoakke
 
                 Console.WriteLine("\n\nC code:\n");
                 var cBackend = new CCodegen();
-                Console.WriteLine(cBackend.Compile(namingCtx));*/
+                Console.WriteLine(cBackend.Compile(namingCtx));
             }
             catch (CompileError error)
             {
