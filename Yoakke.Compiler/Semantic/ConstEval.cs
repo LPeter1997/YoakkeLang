@@ -156,7 +156,9 @@ namespace Yoakke.Semantic
                     if (constSym.Value != null) return constSym.Value;
                     // No value, must be evaluatable
                     Assert.NonNull(constSym.Definition);
+                    // TODO: Rethink these notes
                     // NOTE: We don't pass the call-stack on purpose. Constants shouldn't be related.
+                    // NOTE: But maybe we should, since we now can stop cache-ing?
                     Evaluate(constSym.Definition);
                     Assert.NonNull(constSym.Value);
                     return constSym.Value;
@@ -170,6 +172,14 @@ namespace Yoakke.Semantic
 
                 default: throw new NotImplementedException();
                 }
+
+            case Expression.StructType structType:
+            {
+                var fields = structType.Fields.ToDictionary(
+                    f => f.Item1.Value, 
+                    f => EvaluateAsType(callStack, f.Item2, canCache));
+                return new Type.Struct(structType.Token, fields);
+            }
 
             case Expression.ProcType procType:
             {

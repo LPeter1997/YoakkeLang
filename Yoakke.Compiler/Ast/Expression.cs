@@ -134,6 +134,11 @@ namespace Yoakke.Ast
         public class StructType : Expression
         {
             /// <summary>
+            /// The 'struct' <see cref="Token"/> that started this <see cref="StructType"/>.
+            /// </summary>
+            public Token Token { get; set; }
+
+            /// <summary>
             /// The field definition tuples, being the tuple of identifier and the type of the field.
             /// </summary>
             public List<(Token, Expression)> Fields { get; set; }
@@ -141,9 +146,11 @@ namespace Yoakke.Ast
             /// <summary>
             /// Initializes a new <see cref="StructType"/>.
             /// </summary>
+            /// <param name="token">The 'struct' <see cref="Token"/> that started this type.</param>
             /// <param name="fields">The field definitions.</param>
-            public StructType(List<(Token, Expression)> fields)
+            public StructType(Token token, List<(Token, Expression)> fields)
             {
+                Token = token;
                 Fields = fields;
             }
         }

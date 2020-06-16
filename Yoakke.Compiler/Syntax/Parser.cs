@@ -210,7 +210,7 @@ namespace Yoakke.Syntax
 
         private static Expression ParseStructTypeExpression(ref Input input)
         {
-            Expect(ref input, TokenType.KwStruct);
+            Expect(ref input, TokenType.KwStruct, out var token);
             Expect(ref input, TokenType.OpenBrace);
 
             var fields = new List<(Token, Expression)>();
@@ -226,7 +226,7 @@ namespace Yoakke.Syntax
                 fields.Add((ident, type));
             }
 
-            return new Expression.StructType(fields);
+            return new Expression.StructType(token, fields);
         }
 
         private static Expression ParseProcValueExpression(ref Input input)
