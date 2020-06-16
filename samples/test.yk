@@ -18,3 +18,4 @@ const main = proc() -> get_type(i32) {
 	c_method(56);
 	some_c_fun
 }
+

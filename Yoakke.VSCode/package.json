@@ -1,0 +1,25 @@
+{
+    "name": "yk-vscode",
+    "displayName": "yk-vscode",
+    "description": "Syntax highlighting for the Yoakke programming language",
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.46.0"
+    },
+    "categories": [
+        "Programming Languages"
+    ],
+    "contributes": {
+        "languages": [{
+            "id": "yoakke",
+            "aliases": ["Yoakke", "yoakke"],
+            "extensions": [".yk"],
+            "configuration": "./language-configuration.json"
+        }],
+        "grammars": [{
+            "language": "yoakke",
+            "scopeName": "source.yoakke",
+            "path": "./syntaxes/yoakke.tmLanguage.json"
+        }]
+    }
+}
