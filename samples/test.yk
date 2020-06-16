@@ -14,15 +14,15 @@ const List = proc(T: type) -> type {
 const foo = proc(x: Person) {}
 const bar = proc(x: List(Person)) {}
 
-/*const Author = Person {
+const Author = Person {
 	name = 123;
 	age = 5;
-};*/
+};
 
 const baz = proc() -> Person {
 	Person {
-		name = 1233;
-		age  = "asd";
+		name = 3;
+		age  = 4;
 	}
 }
 

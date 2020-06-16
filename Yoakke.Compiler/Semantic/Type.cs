@@ -307,7 +307,7 @@ namespace Yoakke.Semantic
         /// <summary>
         /// A user-defined structure with named fields.
         /// </summary>
-        public class Struct : Product
+        new public class Struct : Product
         {
             /// <summary>
             /// The 'struct' <see cref="Token"/> that defined this <see cref="Struct"/>.

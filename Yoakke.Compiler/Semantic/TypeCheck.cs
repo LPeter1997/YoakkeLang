@@ -52,6 +52,38 @@ namespace Yoakke.Semantic
             }
         }
 
+        /// <summary>
+        /// Type-checks a <see cref="Expression.StructValue"/>.
+        /// </summary>
+        /// <param name="structValue">The <see cref="Expression.StructValue"/> to type-check.</param>
+        public static void Check(Expression.StructValue structValue)
+        {
+            // We need to get the struct type
+            var structType = ConstEval.EvaluateAsType(structValue.StructType);
+            // TODO: Is this OK? Can we enforce that it's a struct right here?
+            if (!(structType is Type.Struct ty)) throw new NotImplementedException("Not a struct!");
+            // Check if all fields are initialized to their correct type
+            var uninitFields = ty.Fields.Keys.ToHashSet();
+            foreach (var field in structValue.Fields)
+            {
+                var fieldName = field.Item1.Value;
+                if (!uninitFields.Remove(fieldName))
+                {
+                    // Something is wrong with the name, either double-initialization or unknown field
+                    if (ty.Fields.ContainsKey(fieldName)) throw new NotImplementedException("Double field init!");
+                    else throw new NotImplementedException("Struct has no field!");
+                }
+                // Unify type with the initialization value's type
+                var fieldType = ty.Fields[fieldName];
+                TypeEval.Evaluate(field.Item2).Unify(fieldType);
+            }
+            // Check if we have uninitialized fields remaining
+            if (uninitFields.Count > 0)
+            {
+                throw new NotImplementedException("Uninitialized field!");
+            }
+        }
+
         private static void Check(Expression expression)
         {
             switch (expression)
@@ -72,25 +104,7 @@ namespace Yoakke.Semantic
             {
                 // Check field values
                 foreach (var (_, value) in structValue.Fields) Check(value);
-                // We need to get the struct type
-                var structType = ConstEval.EvaluateAsType(structValue.StructType);
-                // TODO: Is this OK? Can we enforce that it's a struct right here?
-                if (!(structType is Type.Struct ty)) throw new NotImplementedException("Not a struct!");
-                // Check if all fields are initialized to their correct type
-                var uninitFields = ty.Fields.Keys.ToHashSet();
-                foreach (var field in structValue.Fields)
-                {
-                    var fieldName = field.Item1.Value;
-                    if (!uninitFields.Remove(fieldName))
-                    {
-                        // Something is wrong with the name, either double-initialization or unknown field
-                        if (ty.Fields.ContainsKey(fieldName)) throw new NotImplementedException("Double field init!");
-                        else throw new NotImplementedException("Struct has no field!");
-                    }
-                    // Unify type with the initialization value's type
-                    var fieldType = ty.Fields[fieldName];
-                    TypeEval.Evaluate(field.Item2).Unify(fieldType);
-                }
+                Check(structValue);
             }
             break;
 

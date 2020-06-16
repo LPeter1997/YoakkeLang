@@ -183,10 +183,15 @@ namespace Yoakke.Semantic
 
             case Expression.StructValue structValue:
             {
-                // First we get the type
+                // Type-check
+                TypeCheck.Check(structValue);
+                // If the above didn't throw any errors, we are good to go
+                // Get the struct type
                 var structType = EvaluateAsType(callStack, structValue.StructType, canCache);
-                // TODO
-                throw new NotImplementedException();
+                var fields = structValue.Fields.ToDictionary(
+                    f => f.Item1.Value,
+                    f => Evaluate(callStack, f.Item2, canCache));
+                return new Value.Struct(structType, fields);
             }
 
             case Expression.ProcType procType:

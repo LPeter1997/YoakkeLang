@@ -250,5 +250,35 @@ namespace Yoakke.Semantic
             public override string ToString() =>
                 $"({Values.Select(x => x.ToString()).StringJoin(", ")})";
         }
+
+        /// <summary>
+        /// A struct <see cref="Value"/>.
+        /// </summary>
+        public class Struct : Value
+        {
+            /// <summary>
+            /// The field <see cref="Value"/>s of this <see cref="Struct"/>.
+            /// </summary>
+            public readonly IDictionary<string, Value> Fields;
+
+            private Type type;
+            public override Type Type => type;
+
+            /// <summary>
+            /// Initializes a new <see cref="Struct"/>.
+            /// </summary>
+            /// <param name="type">The <see cref="Type"/> of the created struct.</param>
+            /// <param name="fields">The field <see cref="Value"/>s of the created struct.</param>
+            public Struct(Type type, IDictionary<string, Value> fields)
+            {
+                this.type = type;
+                Fields = fields;
+            }
+
+            public override bool EqualsNonNull(Value other) =>
+                   other is Struct s
+                && Type.EqualsNonNull(s.Type)
+                && Fields.All(f => f.Value.EqualsNonNull(s.Fields[f.Key]));
+        }
     }
 }
