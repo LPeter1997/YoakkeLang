@@ -84,7 +84,11 @@ namespace Yoakke.IR
         {
             if (instruction is ValueInstruction value)
             {
-                Write(builder, value.Value, " = ");
+                // Check if call value should be ignored
+                if (!(value is Instruction.Call call && call.Value == Value.IgnoreRegister))
+                {
+                    Write(builder, value.Value, " = ");
+                }
             }
 
             switch (instruction)

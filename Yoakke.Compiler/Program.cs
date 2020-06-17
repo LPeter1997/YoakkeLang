@@ -5,6 +5,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using Yoakke.Ast;
 using Yoakke.Backend;
+using Yoakke.Compiler.IR.Passes;
 using Yoakke.IR;
 using Yoakke.Semantic;
 using Yoakke.Syntax;
@@ -27,6 +28,7 @@ namespace Yoakke
                 Checks.CheckAll(ast);
 
                 var asm = IR.Compiler.Compile(ast);
+                new RemoveVoid().Pass(asm);
                 var namingCtx = new NamingContext(asm);
 
                 Console.WriteLine("IR code:\n");
