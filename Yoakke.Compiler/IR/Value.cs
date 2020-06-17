@@ -10,6 +10,7 @@ namespace Yoakke.IR
 
     partial class Value
     {
+        public static readonly Register IgnoreRegister = new Register(Type.Void_, -1);
         public static readonly Value Void_ = new Void();
     }
 
