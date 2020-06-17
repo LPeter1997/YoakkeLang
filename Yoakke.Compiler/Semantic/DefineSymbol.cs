@@ -45,6 +45,7 @@ namespace Yoakke.Semantic
             switch (expression)
             {
             case Expression.IntLit _:
+            case Expression.BoolLit _:
             case Expression.StrLit _:
                 // Nothing to define, primitive literal
                 break;

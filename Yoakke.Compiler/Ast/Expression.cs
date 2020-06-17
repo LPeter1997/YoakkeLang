@@ -29,6 +29,26 @@ namespace Yoakke.Ast
         }
 
         /// <summary>
+        /// A bool literal token.
+        /// </summary>
+        public class BoolLit : Expression
+        {
+            /// <summary>
+            /// The literal token itself.
+            /// </summary>
+            public Token Token { get; set; }
+
+            /// <summary>
+            /// Initializes a new <see cref="IntLit"/>.
+            /// </summary>
+            /// <param name="token">The literal token.</param>
+            public BoolLit(Token token)
+            {
+                Token = token;
+            }
+        }
+
+        /// <summary>
         /// A string literal token.
         /// </summary>
         public class StrLit : Expression

@@ -23,6 +23,7 @@ namespace Yoakke.Semantic
             
             symbolTable.DefineBuiltinType("type", Type.Type_);
             symbolTable.DefineBuiltinType("i32", Type.I32);
+            symbolTable.DefineBuiltinType("bool", Type.Bool);
 
             symbolTable.DefineIntrinsicFunction("@extern",
                 new Type.Proc(new List<Type> { Type.Str, Type.Type_ }, Type.Any_),

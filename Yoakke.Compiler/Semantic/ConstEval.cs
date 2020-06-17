@@ -5,6 +5,7 @@ using System.Numerics;
 using System.Text;
 using System.Xml.Schema;
 using Yoakke.Ast;
+using Yoakke.Syntax;
 using Yoakke.Utils;
 
 namespace Yoakke.Semantic
@@ -137,6 +138,9 @@ namespace Yoakke.Semantic
             case Expression.IntLit intLit: 
                 // TODO: It should be a generic integer type!
                 return new Value.Int(Type.I32, BigInteger.Parse(intLit.Token.Value));
+
+            case Expression.BoolLit boolLit:
+                return new Value.Bool(boolLit.Token.Type == TokenType.KwTrue);
 
             case Expression.StrLit strLit:
                 return new Value.Str(strLit.Escape());

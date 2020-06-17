@@ -28,7 +28,7 @@ namespace Yoakke.Backend
         private string CompileAssembly()
         {
             // We want the include to be on top
-            Write(typeDeclarations, "#include <stdint.h>\n\n");
+            Write(typeDeclarations, "#include <stdint.h>\n#include <stdbool.h>\n\n");
             foreach (var external in namingContext.Assembly.Externals)
             {
                 DeclareExternal(external);
@@ -207,8 +207,16 @@ namespace Yoakke.Backend
                 break;
 
             case Type.Int intType:
-                if (!intType.Signed) Write(builder, 'u');
-                Write(builder, $"int{intType.Bits}_t");
+                if (intType.Bits == 1 && !intType.Signed)
+                {
+                    // Special case, boolean
+                    Write(builder, "bool");
+                }
+                else
+                {
+                    if (!intType.Signed) Write(builder, 'u');
+                    Write(builder, $"int{intType.Bits}_t");
+                }
                 break;
 
             case Type.Ptr ptrType:

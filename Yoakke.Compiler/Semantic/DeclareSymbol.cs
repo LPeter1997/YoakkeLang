@@ -54,7 +54,8 @@ namespace Yoakke.Semantic
 
             switch (expression)
             {
-            case Expression.IntLit _: 
+            case Expression.IntLit _:
+            case Expression.BoolLit _:
             case Expression.StrLit _:
             case Expression.Ident _:
             case Expression.Intrinsic _:

@@ -34,6 +34,7 @@ namespace Yoakke.Semantic
             {
             // TODO: Some generic integer type instead!
             case Expression.IntLit _: return Type.I32;
+            case Expression.BoolLit _: return Type.Bool;
             case Expression.StrLit _: return Type.Str;
 
             // We know these are just types

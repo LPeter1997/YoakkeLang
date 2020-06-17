@@ -17,6 +17,7 @@ namespace Yoakke.Semantic
         public static readonly Type Type_ = new Primitive("type");
         new public static readonly Type Str = new Primitive("str");
         public static readonly Type I32 = new Primitive("i32");
+        new public static readonly Type Bool = new Primitive("bool");
     }
 
     /// <summary>

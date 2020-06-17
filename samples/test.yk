@@ -28,6 +28,14 @@ const baz = proc() -> List(proc()) {
 	}
 }
 
+const the_truth: bool = true;
+const get_the_truth = proc() -> bool {
+	the_truth
+}
+const get_the_truth2 = proc() -> bool {
+	true
+}
+
 const main = proc() -> i32 {
 	0
 }

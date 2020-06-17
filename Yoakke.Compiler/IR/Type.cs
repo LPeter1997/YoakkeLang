@@ -20,6 +20,10 @@ namespace Yoakke.IR
         /// The <see cref="Type"/> constant for i32 type.
         /// </summary>
         public static readonly Type I32 = new Int(true, 32);
+        /// <summary>
+        /// The <see cref="Type"/> constant for a boolean type.
+        /// </summary>
+        public static readonly Type Bool = new Int(false, 1);
 
         public override bool Equals(object? obj) =>
             obj is Type t && Equals(t);

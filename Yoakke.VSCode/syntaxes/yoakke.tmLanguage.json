@@ -9,6 +9,7 @@
 		{ "include": "#intrinsic_procedures" },
 		{ "include": "#strings" },
 		{ "include": "#integer_literals" },
+		{ "include": "#boolean_constants" },
 		{ "include": "#identifiers" }
 	],
 	"repository": {
@@ -34,7 +35,7 @@
 		"builtin_types": {
 			"patterns": [{
 				"name": "storage.type.yoakke",
-				"match": "\\b(struct|proc|type|i32)\\b"
+				"match": "\\b(struct|proc|type|i32|bool)\\b"
 			}]
 		},
 		"intrinsic_procedures": {
@@ -61,6 +62,10 @@
 		"identifiers": {
 			"name": "entity.name.function.yoakke",
 			"match": "\\b[a-zA-Z_][a-zA-Z0-9_]*\\b"
+		},
+		"boolean_constants": {
+			"name": "constant.language.boolean.yoakke",
+			"match": "\\b(true|false)\\b"
 		}
 	},
 	"scopeName": "source.yoakke"

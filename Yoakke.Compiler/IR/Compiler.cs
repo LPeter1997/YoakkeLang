@@ -6,6 +6,7 @@ using System.Numerics;
 using System.Text;
 using Yoakke.Ast;
 using Yoakke.Semantic;
+using Yoakke.Syntax;
 using Yoakke.Utils;
 
 namespace Yoakke.IR
@@ -166,12 +167,11 @@ namespace Yoakke.IR
         {
             switch (expression) 
             {
+            // Nice lazy implementation
             case Expression.IntLit intLit:
-            {
-                Assert.NonNull(intLit.EvaluationType);
-                var ty = (Type.Int)Compile(intLit.EvaluationType);
-                return new Value.Int(ty, BigInteger.Parse(intLit.Token.Value));
-            }
+                return Compile(ConstEval.Evaluate(intLit));
+            case Expression.BoolLit boolLit:
+                return Compile(ConstEval.Evaluate(boolLit));
 
             case Expression.Ident ident:
             {
@@ -250,6 +250,9 @@ namespace Yoakke.IR
                 return new Value.Int(ty, i.Value);
             }
 
+            case Semantic.Value.Bool b:
+                return new Value.Int(Type.Bool, b.Value ? 1 : 0);
+
             case Semantic.Value.Struct structure:
                 return CompileStructValue(structure.Type, 
                     structure.Fields.Select(f => (f.Key, Compile(f.Value))));
@@ -261,6 +264,7 @@ namespace Yoakke.IR
         private Type Compile(Semantic.Type type)
         {
             if (Semantic.Type.I32.EqualsNonNull(type)) return Type.I32;
+            if (Semantic.Type.Bool.EqualsNonNull(type)) return Type.Bool;
             if (Semantic.Type.Unit.EqualsNonNull(type)) return Type.Void_;
 
             if (type is Semantic.Type.Proc proc)

@@ -189,6 +189,34 @@ namespace Yoakke.Semantic
                 Value.ToString();
         }
 
+        /// <summary>
+        /// A compile-time bool <see cref="Value"/>.
+        /// </summary>
+        public class Bool : Value
+        {
+            /// <summary>
+            /// The bool value.
+            /// </summary>
+            public readonly bool Value;
+
+            public override Type Type => Type.Bool;
+
+            /// <summary>
+            /// Initializes a new <see cref="Bool"/>.
+            /// </summary>
+            /// <param name="value">The value of the bool.</param>
+            public Bool(bool value)
+            {
+                Value = value;
+            }
+
+            public override bool EqualsNonNull(Value other) =>
+                other is Bool b && Value == b.Value;
+
+            public override string ToString() =>
+                Value.ToString();
+        }
+
         // TODO: Later string value could be represented by a simple struct.
         // It doesn't have to be a compiler builtin type. (except for the literal)
         /// <summary>

@@ -90,6 +90,7 @@ namespace Yoakke.Semantic
             {
             // Nothing to do, leaf elements
             case Expression.IntLit _:
+            case Expression.BoolLit _:
             case Expression.StrLit _:
             case Expression.Ident _:
             case Expression.Intrinsic _:
