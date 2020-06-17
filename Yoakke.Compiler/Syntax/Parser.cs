@@ -244,10 +244,26 @@ namespace Yoakke.Syntax
             Expect(ref input, TokenType.KwIf);
 
             var condition = ParseExpression(ref input, ExprState.NoBraced);
+
+            bool semicolAfterThen = false;
             var then = ParseExpression(ref input, ExprState.None);
+            if (!IsBracedExpressionForStatement(then) && Match(ref input, TokenType.Semicolon))
+            {
+                // Wrap it up in a block
+                then = new Expression.Block(new List<Statement> { new Statement.Expression_(then, true) }, null);
+                semicolAfterThen = true;
+            }
 
             Expression? els = null;
-            if (Match(ref input, TokenType.KwElse)) els = ParseExpression(ref input, ExprState.None);
+            if (Match(ref input, TokenType.KwElse))
+            {
+                els = ParseExpression(ref input, ExprState.None);
+                if (semicolAfterThen && !IsBracedExpressionForStatement(els) && Match(ref input, TokenType.Semicolon))
+                {
+                    // Wrap it up in a block
+                    els = new Expression.Block(new List<Statement> { new Statement.Expression_(els, true) }, null);
+                }
+            }
 
             return new Expression.If(condition, then, els);
         }

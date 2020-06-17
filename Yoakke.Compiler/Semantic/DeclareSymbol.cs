@@ -110,6 +110,26 @@ namespace Yoakke.Semantic
                 foreach (var arg in call.Arguments) Declare(symbolTable, arg);
                 break;
 
+            case Expression.If iff:
+                // We introduce a scopes here for things like
+                // if x var y = ...;
+                
+                // Declare in condition and then
+                Declare(symbolTable, iff.Condition);
+
+                symbolTable.PushScope();
+                Declare(symbolTable, iff.Then);
+                symbolTable.PopScope();
+
+                // Declare in else if needed
+                if (iff.Else != null)
+                {
+                    symbolTable.PushScope();
+                    Declare(symbolTable, iff.Else);
+                    symbolTable.PopScope();
+                }
+                break;
+
             default: throw new NotImplementedException();
             }
         }

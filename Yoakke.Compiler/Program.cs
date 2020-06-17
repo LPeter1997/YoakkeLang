@@ -22,9 +22,9 @@ namespace Yoakke
                 var tokens = Lexer.Lex(src);
                 var ast = Parser.ParseProgram(tokens);
 
-                //Console.WriteLine(ast.DumpTree());
+                Console.WriteLine(ast.DumpTree());
 
-                Checks.CheckAll(ast);
+                /*Checks.CheckAll(ast);
 
                 var asm = IR.Compiler.Compile(ast);
                 var namingCtx = new NamingContext(asm);
@@ -34,7 +34,7 @@ namespace Yoakke
 
                 Console.WriteLine("\n\nC code:\n");
                 var cBackend = new CCodegen();
-                Console.WriteLine(cBackend.Compile(namingCtx));
+                Console.WriteLine(cBackend.Compile(namingCtx));*/
             }
             catch (CompileError error)
             {
