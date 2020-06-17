@@ -51,10 +51,10 @@ namespace Yoakke.Syntax
             Expect(ref input, TokenType.Identifier, out var name);
 
             Expression? type = null;
-            if (Match(ref input, TokenType.Colon)) type = ParseExpression(ref input, false);
+            if (Match(ref input, TokenType.Colon)) type = ParseExpression(ref input, ExprState.None);
 
             Expect(ref input, TokenType.Assign);
-            var value = ParseExpression(ref input, false);
+            var value = ParseExpression(ref input, ExprState.None);
             if (!IsBracedExpressionForConstDeclaration(value))
             {
                 Expect(ref input, TokenType.Semicolon);
@@ -82,7 +82,7 @@ namespace Yoakke.Syntax
 
         private static Statement ParseExpressionStatement(ref Input input)
         {
-            var expression = ParseExpression(ref input, false);
+            var expression = ParseExpression(ref input, ExprState.None);
             bool hasSemicolon = false;
             if (!IsBracedExpressionForStatement(expression))
             {
@@ -99,16 +99,25 @@ namespace Yoakke.Syntax
         }
 
         private static bool IsBracedExpressionForStatement(Expression expression) =>
-            expression is Expression.Block;
+               expression is Expression.Block
+            || (expression is Expression.If i && i.Then is Expression.Block && (i.Else == null || i.Else is Expression.Block));
 
         // Expressions /////////////////////////////////////////////////////////
 
-        private static Expression ParseExpression(ref Input input, bool typeOnly) =>
-            ParsePostfixExpression(ref input, typeOnly);
-
-        private static Expression ParsePostfixExpression(ref Input input, bool typeOnly)
+        [Flags]
+        private enum ExprState
         {
-            var result = ParseAtomicExpression(ref input, typeOnly);
+            None = 0,
+            TypeOnly = 1,
+            NoBraced = 2,
+        }
+
+        private static Expression ParseExpression(ref Input input, ExprState state) =>
+            ParsePostfixExpression(ref input, state);
+
+        private static Expression ParsePostfixExpression(ref Input input, ExprState state)
+        {
+            var result = ParseAtomicExpression(ref input, state);
             while (true)
             {
                 if (Match(ref input, TokenType.OpenParen))
@@ -118,7 +127,7 @@ namespace Yoakke.Syntax
                     while (true)
                     {
                         if (Match(ref input, TokenType.CloseParen)) break;
-                        args.Add(ParseExpression(ref input, false));
+                        args.Add(ParseExpression(ref input, ExprState.None));
                         if (Match(ref input, TokenType.Comma)) continue;
 
                         Expect(ref input, TokenType.CloseParen);
@@ -126,14 +135,16 @@ namespace Yoakke.Syntax
                     }
                     result = new Expression.Call(result, args);
                 }
-                else if (!typeOnly && Match(ref input, TokenType.OpenBrace))
+                else if (!state.HasFlag(ExprState.TypeOnly) 
+                      && !state.HasFlag(ExprState.NoBraced) 
+                      && Match(ref input, TokenType.OpenBrace))
                 {
                     var fields = new List<(Token, Expression)>();
                     while (!Match(ref input, TokenType.CloseBrace))
                     {
                         Expect(ref input, TokenType.Identifier, out var name);
                         Expect(ref input, TokenType.Assign);
-                        var value = ParseExpression(ref input, false);
+                        var value = ParseExpression(ref input, ExprState.None);
                         Expect(ref input, TokenType.Semicolon);
 
                         fields.Add((name, value));
@@ -148,11 +159,12 @@ namespace Yoakke.Syntax
             return result;
         }
 
-        private static Expression ParseAtomicExpression(ref Input input, bool typeOnly)
+        private static Expression ParseAtomicExpression(ref Input input, ExprState state)
         {
-            if (Peek(input) == TokenType.KwProc) return ParseProcExpression(ref input, typeOnly);
+            if (Peek(input) == TokenType.KwProc) return ParseProcExpression(ref input, state);
+            if (Peek(input) == TokenType.KwIf) return ParseIfExpression(ref input);
             if (Peek(input) == TokenType.KwStruct) return ParseStructTypeExpression(ref input);
-            if (Peek(input) == TokenType.OpenBrace) return ParseBlockExpression(ref input);
+            if (!state.HasFlag(ExprState.NoBraced) && Peek(input) == TokenType.OpenBrace) return ParseBlockExpression(ref input);
 
             // Single-token
             if (Match(ref input, TokenType.Identifier, out var token)) return new Expression.Ident(token);
@@ -178,7 +190,7 @@ namespace Yoakke.Syntax
                     statements.Add(statement);
                     continue;
                 }
-                var expression = TryParse(ref input, (ref Input i) => ParseExpression(ref i, false));
+                var expression = TryParse(ref input, (ref Input i) => ParseExpression(ref i, ExprState.None));
                 if (expression != null)
                 {
                     returnValue = expression;
@@ -198,14 +210,14 @@ namespace Yoakke.Syntax
             return new Expression.Block(statements, returnValue);
         }
 
-        private static Expression ParseProcExpression(ref Input input, bool typeOnly)
+        private static Expression ParseProcExpression(ref Input input, ExprState state)
         {
             // We just try both the type and the value
             // First the value, as that's the more "elaborate" one
 
             var input2 = input;
 
-            if (!typeOnly)
+            if (!state.HasFlag(ExprState.TypeOnly))
             {
                 var procValue = TryParse(ref input, ParseProcValueExpression);
                 if (procValue != null) return procValue;
@@ -222,7 +234,22 @@ namespace Yoakke.Syntax
             }
 
             // NOTE: This is weird (calling it when already failed) but helps us raising better errors
-            return typeOnly ? ParseProcTypeExpression(ref input2) : ParseProcValueExpression(ref input2);
+            return state.HasFlag(ExprState.TypeOnly) 
+                 ? ParseProcTypeExpression(ref input2) 
+                 : ParseProcValueExpression(ref input2);
+        }
+
+        private static Expression ParseIfExpression(ref Input input)
+        {
+            Expect(ref input, TokenType.KwIf);
+
+            var condition = ParseExpression(ref input, ExprState.NoBraced);
+            var then = ParseExpression(ref input, ExprState.None);
+
+            Expression? els = null;
+            if (Match(ref input, TokenType.KwElse)) els = ParseExpression(ref input, ExprState.None);
+
+            return new Expression.If(condition, then, els);
         }
 
         private static Expression ParseStructTypeExpression(ref Input input)
@@ -238,7 +265,7 @@ namespace Yoakke.Syntax
                 // It's in the form of `identifier: Type expression`
                 Expect(ref input, TokenType.Identifier, out var ident);
                 Expect(ref input, TokenType.Colon);
-                var type = ParseExpression(ref input, true);
+                var type = ParseExpression(ref input, ExprState.TypeOnly);
                 Expect(ref input, TokenType.Semicolon);
                 fields.Add((ident, type));
             }
@@ -263,7 +290,7 @@ namespace Yoakke.Syntax
             }
 
             Expression? returnType = null;
-            if (Match(ref input, TokenType.Arrow)) returnType = ParseExpression(ref input, true);
+            if (Match(ref input, TokenType.Arrow)) returnType = ParseExpression(ref input, ExprState.TypeOnly);
 
             var body = ParseBlockExpression(ref input);
             return new Expression.Proc(parameters, returnType, body);
@@ -278,7 +305,7 @@ namespace Yoakke.Syntax
             while (true)
             {
                 if (Match(ref input, TokenType.CloseParen)) break;
-                arguments.Add(ParseExpression(ref input, true));
+                arguments.Add(ParseExpression(ref input, ExprState.TypeOnly));
                 if (Match(ref input, TokenType.Comma)) continue;
 
                 Expect(ref input, TokenType.CloseParen);
@@ -286,7 +313,7 @@ namespace Yoakke.Syntax
             }
 
             Expression? returnType = null;
-            if (Match(ref input, TokenType.Arrow)) returnType = ParseExpression(ref input, true);
+            if (Match(ref input, TokenType.Arrow)) returnType = ParseExpression(ref input, ExprState.TypeOnly);
 
             return new Expression.ProcType(arguments, returnType);
         }
@@ -295,7 +322,7 @@ namespace Yoakke.Syntax
         {
             Expect(ref input, TokenType.Identifier, out var name);
             Expect(ref input, TokenType.Colon);
-            var type = ParseExpression(ref input, true);
+            var type = ParseExpression(ref input, ExprState.TypeOnly);
             return new Expression.Proc.Parameter(name, type);
         }
 

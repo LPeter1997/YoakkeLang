@@ -385,5 +385,37 @@ namespace Yoakke.Ast
                 Arguments = arguments;
             }
         }
+
+        /// <summary>
+        /// Represents a conditional <see cref="Expression"/>.
+        /// </summary>
+        public class If : Expression
+        {
+            /// <summary>
+            /// The condition that decides which arm will be evaluated.
+            /// </summary>
+            public Expression Condition { get; set; }
+            /// <summary>
+            /// The <see cref="Expression"/> that gets evaluated when the <see cref="Condition"/> is true.
+            /// </summary>
+            public Expression Then { get; set; }
+            /// <summary>
+            /// The <see cref="Expression"/> that gets evaluated when the <see cref="Condition"/> is false.
+            /// </summary>
+            public Expression? Else { get; set; }
+
+            /// <summary>
+            /// Initializes a new <see cref="If"/>.
+            /// </summary>
+            /// <param name="condition">The condition that decides which arm will be evaluated.</param>
+            /// <param name="then">The <see cref="Expression"/> that gets evaluated when the condition is true.</param>
+            /// <param name="els">The <see cref="Expression"/> that gets evaluated when the condition is false.</param>
+            public If(Expression condition, Expression then, Expression? els)
+            {
+                Condition = condition;
+                Then = then;
+                Else = els;
+            }
+        }
     }
 }

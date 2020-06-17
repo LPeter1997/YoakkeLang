@@ -224,5 +224,13 @@ namespace Yoakke.Syntax
         /// The keyword 'false'.
         /// </summary>
         KwFalse,
+        /// <summary>
+        /// The keyword 'if'.
+        /// </summary>
+        KwIf,
+        /// <summary>
+        /// The keyword 'else'.
+        /// </summary>
+        KwElse,
     }
 }

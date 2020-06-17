@@ -156,6 +156,8 @@ namespace Yoakke.Syntax
                     "struct" => TokenType.KwStruct,
                     "true" => TokenType.KwTrue,
                     "false" => TokenType.KwFalse,
+                    "if" => TokenType.KwIf,
+                    "else" => TokenType.KwElse,
                     _ => TokenType.Identifier,
                 };
                 // Builtin

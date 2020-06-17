@@ -1,41 +1,16 @@
 
-const Person = struct {
-	name: i32;
-	age : i32;
+const get_const_value = if true 1 else 0;
+
+const get_runtime_value = proc(x: bool) -> i32 {
+	if x 1 else 0
 }
 
-const List = proc(T: type) -> type {
-	struct {
-		data  : T  ;
-		length: i32;
-	}
-}
-
-const foo = proc(x: Person) {}
-const bar = proc(x: List(Person)) {}
-
-const Author = Person {
-	name = 123;
-	age = 5;
-};
-
-const Magic = 5;
-
-const baz = proc() -> List(proc()) {
-	List(proc()) {
-		data = proc() {};
-		length = 6;
-	}
-}
-
-const the_truth: bool = true;
-const get_the_truth = proc() -> bool {
-	the_truth
-}
-const get_the_truth2 = proc() -> bool {
-	true
-}
+const ree = proc() {}
 
 const main = proc() -> i32 {
+	if false {
+		ree();
+	}
+	if true ree();
 	0
 }
