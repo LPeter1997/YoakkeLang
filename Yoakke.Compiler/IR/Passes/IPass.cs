@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Yoakke.IR;
 
-namespace Yoakke.Compiler.IR
+namespace Yoakke.Compiler.IR.Passes
 {
     /// <summary>
     /// An interface that every IR pass must implement.

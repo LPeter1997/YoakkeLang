@@ -4,6 +4,9 @@ using Yoakke.IR;
 
 namespace Yoakke.Compiler.IR.Passes
 {
+    /// <summary>
+    /// A pass to remove IR <see cref="Instruction"/>s that operate on void <see cref="Type"/>s.
+    /// </summary>
     class RemoveVoid : IPass
     {
         public bool Pass(Assembly assembly)
@@ -33,15 +36,20 @@ namespace Yoakke.Compiler.IR.Passes
                         // We can't erase a call because of possible side-effects
                         // TODO: Erase void args
                         // Since return-type is void, we mark that so
-                        call.Value = Value.IgnoreRegister;
+                        if (call.Value != Value.IgnoreRegister)
+                        {
+                            // We need to check instead of always assigning to properly detect change
+                            call.Value = Value.IgnoreRegister;
+                            changed = true;
+                        }
                         ++insIdx;
                     }
                     else
                     {
                         // Just remove it
                         bb.Instructions.RemoveAt(insIdx);
+                        changed = true;
                     }
-                    changed = true;
                 }
                 else if (ins is Instruction.Store store && Type.Void_.EqualsNonNull(store.Value.Type))
                 {
