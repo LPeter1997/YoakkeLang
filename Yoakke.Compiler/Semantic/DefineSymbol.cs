@@ -113,6 +113,14 @@ namespace Yoakke.Semantic
                 foreach (var arg in call.Arguments) Define(arg);
                 break;
 
+            case Expression.If iff:
+                // Declare in condition and then
+                Define(iff.Condition);
+                Define(iff.Then);
+                // Declare in else if needed
+                if (iff.Else != null) Define(iff.Else);
+                break;
+
             default: throw new NotImplementedException();
             }
         }

@@ -148,6 +148,14 @@ namespace Yoakke.Semantic
                 foreach (var arg in call.Arguments) Check(arg);
                 break;
 
+            case Expression.If iff:
+                // Check condition and then
+                Check(iff.Condition);
+                Check(iff.Then);
+                // Check else if needed
+                if (iff.Else != null) Check(iff.Else);
+                break;
+
             default: throw new NotImplementedException();
             }
         }

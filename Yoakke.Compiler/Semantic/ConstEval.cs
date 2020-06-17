@@ -277,6 +277,36 @@ namespace Yoakke.Semantic
                 }
             }
 
+            case Expression.If iff:
+            {
+                // Evaluate condition
+                var condition = Evaluate(callStack, iff.Condition, canCache);
+                // Enforce bool condition
+                Type.Bool.Unify(condition.Type);
+                var condValue = ((Value.Bool)condition).Value;
+                // We evaluate one, but only type-check the other
+                if (condValue)
+                {
+                    // Evaluate then, type check else
+                    var thenValue = Evaluate(callStack, iff.Then, canCache);
+                    if (iff.Else != null)
+                    {
+                        var elseType = TypeEval.Evaluate(iff.Else);
+                        thenValue.Type.Unify(elseType);
+                    }
+                    return thenValue;
+                }
+                else if (iff.Else != null)
+                {
+                    var thenType = TypeEval.Evaluate(iff.Then);
+                    // Evaluate else, type check then
+                    var elseValue = Evaluate(callStack, iff.Else, canCache);
+                    thenType.Unify(elseValue.Type);
+                    return elseValue;
+                }
+                return Value.Unit;
+            }
+
             default: throw new NotImplementedException();
             }
         }

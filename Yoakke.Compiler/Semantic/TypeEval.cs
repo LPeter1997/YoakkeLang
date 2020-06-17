@@ -86,6 +86,21 @@ namespace Yoakke.Semantic
                 return retType;
             }
 
+            case Expression.If iff:
+            {
+                // Condition must be a boolean
+                var condType = Evaluate(iff.Condition);
+                Type.Bool.Unify(condType);
+                // Then and else must yield the same type
+                var thenType = Evaluate(iff.Then);
+                if (iff.Else != null)
+                {
+                    var elseType = Evaluate(iff.Else);
+                    thenType.Unify(elseType);
+                }
+                return thenType;
+            }
+
             default: throw new NotImplementedException();
             }
         }
