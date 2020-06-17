@@ -36,6 +36,7 @@ namespace Yoakke
                     new JumpThreading(),
                     new DeadCodeElimination(),
                     new ConstantFolding(),
+                    new BlockMerging(),
                 };
                 Optimizer.Optimize(asm, passes);
 

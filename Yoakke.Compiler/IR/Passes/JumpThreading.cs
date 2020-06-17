@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Yoakke.IR;
 
@@ -24,7 +25,9 @@ namespace Yoakke.Compiler.IR.Passes
 
         private void Pass(BasicBlock basicBlock, ref bool changed)
         {
-            foreach (var ins in basicBlock.Instructions) Pass(ins, ref changed);
+            // A jump can only be at the end
+            var lastIns = basicBlock.Instructions.Last();
+            Pass(lastIns, ref changed);
         }
 
         private void Pass(Instruction ins, ref bool changed)
