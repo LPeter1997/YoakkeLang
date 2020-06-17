@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
-using Yoakke.Semantic;
-using Yoakke.Utils;
+using Yoakke.Compiler.Semantic;
+using Yoakke.Compiler.Utils;
 
-namespace Yoakke.IR
+namespace Yoakke.Compiler.IR
 {
     /// <summary>
     /// Helper to compile IR code into an <see cref="Assembly"/>.

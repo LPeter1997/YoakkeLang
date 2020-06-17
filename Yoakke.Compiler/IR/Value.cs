@@ -4,7 +4,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 
-namespace Yoakke.IR
+namespace Yoakke.Compiler.IR
 {
     // Constants
 

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Yoakke.Syntax
+namespace Yoakke.Compiler.Syntax
 {
     /// <summary>
     /// Represents source code that can be accessed line-by-line.

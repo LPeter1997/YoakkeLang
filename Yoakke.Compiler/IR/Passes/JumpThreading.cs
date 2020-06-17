@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Yoakke.IR;
+using Yoakke.Compiler.IR;
 
 namespace Yoakke.Compiler.IR.Passes
 {

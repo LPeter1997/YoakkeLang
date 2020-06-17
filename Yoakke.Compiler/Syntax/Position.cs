@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
-namespace Yoakke.Syntax
+namespace Yoakke.Compiler.Syntax
 {
     /// <summary>
     /// Position in the souce text.

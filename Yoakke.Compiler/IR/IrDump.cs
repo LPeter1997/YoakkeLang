@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.IO.Pipes;
 using System.Text;
-using Yoakke.Utils;
+using Yoakke.Compiler.Utils;
 
-namespace Yoakke.IR
+namespace Yoakke.Compiler.IR
 {
     /// <summary>
     /// Functionality to dump IR code as text.

@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
-using Yoakke.Ast;
+using Yoakke.Compiler.Ast;
 
-namespace Yoakke.Semantic
+namespace Yoakke.Compiler.Semantic
 {
     /// <summary>
     /// All semantic checks grouped.

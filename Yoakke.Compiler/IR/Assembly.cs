@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Yoakke.IR
+namespace Yoakke.Compiler.IR
 {
     /// <summary>
     /// Represents a translation unit for the IR code.

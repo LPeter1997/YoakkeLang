@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
-using Yoakke.Ast;
-using Yoakke.Syntax;
-using Yoakke.Utils;
+using Yoakke.Compiler.Ast;
+using Yoakke.Compiler.Syntax;
+using Yoakke.Compiler.Utils;
 
-namespace Yoakke.Semantic
+namespace Yoakke.Compiler.Semantic
 {
     /// <summary>
     /// The base for every kind of symbol in the program.

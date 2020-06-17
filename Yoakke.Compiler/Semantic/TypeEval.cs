@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
-using Yoakke.Ast;
-using Yoakke.Utils;
+using Yoakke.Compiler.Ast;
+using Yoakke.Compiler.Utils;
 
-namespace Yoakke.Semantic
+namespace Yoakke.Compiler.Semantic
 {
     /// <summary>
     /// Does type-evaluation at compile-time.

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Yoakke.Utils
+namespace Yoakke.Compiler.Utils
 {
     static class EnumerableExtensions
     {

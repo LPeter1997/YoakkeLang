@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Yoakke.IR;
+using Yoakke.Compiler.IR;
 
-namespace Yoakke.Backend
+namespace Yoakke.Compiler.Codegen
 {
     /// <summary>
     /// The interface for every code-generation backend that compiles the IR into some other representation.

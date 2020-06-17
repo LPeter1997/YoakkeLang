@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Yoakke.Syntax;
+using Yoakke.Compiler.Syntax;
 
-namespace Yoakke.Semantic
+namespace Yoakke.Compiler.Semantic
 {
     /// <summary>
     /// A semantic compile error for undefined symbol references.

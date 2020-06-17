@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Yoakke.IR
+namespace Yoakke.Compiler.IR
 {
     /// <summary>
     /// A context for unique names inside an <see cref="Assembly"/>.

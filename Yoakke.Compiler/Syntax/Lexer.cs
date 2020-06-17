@@ -4,7 +4,7 @@ using System.IO;
 using System.Reflection.Metadata;
 using System.Text;
 
-namespace Yoakke.Syntax
+namespace Yoakke.Compiler.Syntax
 {
     /// <summary>
     /// Splits up the source text into <see cref="Token"/>s to simplify parsing.

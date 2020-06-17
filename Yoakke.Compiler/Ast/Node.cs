@@ -5,12 +5,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Yoakke.Semantic;
-using Yoakke.Syntax;
+using Yoakke.Compiler.Semantic;
+using Yoakke.Compiler.Syntax;
 
-namespace Yoakke.Ast
+namespace Yoakke.Compiler.Ast
 {
-    using Type = Yoakke.Semantic.Type;
+    using Type = Yoakke.Compiler.Semantic.Type;
 
     /// <summary>
     /// Base class for all AST nodes.

@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Yoakke.Ast;
+using Yoakke.Compiler.Ast;
 
-namespace Yoakke.Syntax
+namespace Yoakke.Compiler.Syntax
 {
     using Input = ReadOnlySpan<Token>;
 

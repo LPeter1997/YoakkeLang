@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using Yoakke.Compiler.Utils;
 
-namespace Yoakke.IR
+namespace Yoakke.Compiler.IR
 {
     /// <summary>
     /// Base class for every IR type.

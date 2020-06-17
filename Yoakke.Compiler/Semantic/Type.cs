@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using Yoakke.Syntax;
-using Yoakke.Utils;
+using Yoakke.Compiler.Syntax;
+using Yoakke.Compiler.Utils;
 
-namespace Yoakke.Semantic
+namespace Yoakke.Compiler.Semantic
 {
     // Constants, constructors
 

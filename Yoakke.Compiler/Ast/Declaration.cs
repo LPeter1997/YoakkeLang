@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Yoakke.Semantic;
-using Yoakke.Syntax;
+using Yoakke.Compiler.Semantic;
+using Yoakke.Compiler.Syntax;
 
-namespace Yoakke.Ast
+namespace Yoakke.Compiler.Ast
 {
     partial class Declaration
     {

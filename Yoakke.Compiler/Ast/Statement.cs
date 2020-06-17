@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Yoakke.Ast
+namespace Yoakke.Compiler.Ast
 {
     partial class Statement
     {

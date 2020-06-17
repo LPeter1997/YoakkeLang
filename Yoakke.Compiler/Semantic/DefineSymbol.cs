@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Yoakke.Ast;
-using Yoakke.Utils;
+using Yoakke.Compiler.Ast;
+using Yoakke.Compiler.Utils;
 
-namespace Yoakke.Semantic
+namespace Yoakke.Compiler.Semantic
 {
     /// <summary>
     /// Defines every symbol, also resolves each symbol reference.

@@ -4,12 +4,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Text;
-using Yoakke.Ast;
-using Yoakke.Semantic;
-using Yoakke.Syntax;
-using Yoakke.Utils;
+using Yoakke.Compiler.Ast;
+using Yoakke.Compiler.Semantic;
+using Yoakke.Compiler.Syntax;
+using Yoakke.Compiler.Utils;
 
-namespace Yoakke.IR
+namespace Yoakke.Compiler.IR
 {
     /// <summary>
     /// Compiles the AST into IR code.

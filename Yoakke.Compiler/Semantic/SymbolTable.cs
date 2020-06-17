@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Yoakke.Syntax;
-using Yoakke.Utils;
+using Yoakke.Compiler.Syntax;
+using Yoakke.Compiler.Utils;
 
-namespace Yoakke.Semantic
+namespace Yoakke.Compiler.Semantic
 {
     /// <summary>
     /// The structures that manages all of the symbols of a program.

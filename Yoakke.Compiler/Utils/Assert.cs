@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
-namespace Yoakke.Utils
+namespace Yoakke.Compiler.Utils
 {
     /// <summary>
     /// Utilities for assertions.

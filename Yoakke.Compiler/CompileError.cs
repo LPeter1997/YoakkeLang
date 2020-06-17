@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Yoakke
+namespace Yoakke.Compiler
 {
     /// <summary>
     /// Represents the base for every compile error.

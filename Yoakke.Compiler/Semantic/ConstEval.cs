@@ -4,11 +4,11 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Xml.Schema;
-using Yoakke.Ast;
-using Yoakke.Syntax;
-using Yoakke.Utils;
+using Yoakke.Compiler.Ast;
+using Yoakke.Compiler.Syntax;
+using Yoakke.Compiler.Utils;
 
-namespace Yoakke.Semantic
+namespace Yoakke.Compiler.Semantic
 {
     /// <summary>
     /// Does constant-evaluation at compile-time.

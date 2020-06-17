@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Yoakke.Syntax
+namespace Yoakke.Compiler.Syntax
 {
     /// <summary>
     /// Settings for annotating the source code for warnings and errors.

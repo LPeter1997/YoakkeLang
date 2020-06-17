@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Yoakke.IR;
-using Yoakke.Utils;
-using Type = Yoakke.IR.Type;
+using Yoakke.Compiler.IR;
+using Yoakke.Compiler.Utils;
+using Type = Yoakke.Compiler.IR.Type;
 
-namespace Yoakke.Backend
+namespace Yoakke.Compiler.Codegen
 {
     /// <summary>
     /// Code-generation for C.

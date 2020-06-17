@@ -8,7 +8,7 @@ const print = @extern("print_person", proc(Vector2));
 
 const main = proc() -> i32 {
 	print(Vector2 {
-		x = if true { 1 } else { true };
+		x = if true { 1 } else { 0 };
 		y = 123;
 	});
 	0

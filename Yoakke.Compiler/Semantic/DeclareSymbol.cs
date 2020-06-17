@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using Yoakke.Ast;
+using Yoakke.Compiler.Ast;
 
-namespace Yoakke.Semantic
+namespace Yoakke.Compiler.Semantic
 {
     /// <summary>
     /// Declares every order-independent <see cref="Symbol"/>.
