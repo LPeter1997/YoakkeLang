@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 
 namespace Yoakke.IR
 {
@@ -205,6 +206,55 @@ namespace Yoakke.IR
                 }
                 Source = source;
                 Index = index;
+            }
+        }
+
+        /// <summary>
+        /// Unconditional jump.
+        /// </summary>
+        public class Jump : Instruction
+        {
+            /// <summary>
+            /// The <see cref="BasicBlock"/> to jump to.
+            /// </summary>
+            public BasicBlock Target { get; set; }
+
+            /// <summary>
+            /// Initializes a new <see cref="Jump"/>.
+            /// </summary>
+            /// <param name="target">The target <see cref="BasicBlock"/> to jump to.</param>
+            public Jump(BasicBlock target)
+            {
+                Target = target;
+            }
+        }
+
+        public class JumpIf : Instruction
+        {
+            /// <summary>
+            /// The condition that decides the jump target.
+            /// </summary>
+            public Value Condition { get; set; }
+            /// <summary>
+            /// The <see cref="BasicBlock"/> to jump to when the <see cref="Condition"/> is true.
+            /// </summary>
+            public BasicBlock Then { get; set; }
+            /// <summary>
+            /// The <see cref="BasicBlock"/> to jump to when the <see cref="Condition"/> is false.
+            /// </summary>
+            public BasicBlock Else { get; set; }
+
+            /// <summary>
+            /// Initializes a new <see cref="JumpIf"/>.
+            /// </summary>
+            /// <param name="condition">The condition that decides the jump target.</param>
+            /// <param name="then">The <see cref="BasicBlock"/> to jump to when the condition is true.</param>
+            /// <param name="els">The <see cref="BasicBlock"/> to jump to when the condition is false.</param>
+            public JumpIf(Value condition, BasicBlock then, BasicBlock els)
+            {
+                Condition = condition;
+                Then = then;
+                Else = els;
             }
         }
     }

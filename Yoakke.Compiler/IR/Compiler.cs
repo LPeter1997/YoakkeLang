@@ -227,6 +227,44 @@ namespace Yoakke.IR
                 return retRegister;
             }
 
+            case Expression.If iff:
+            {
+                // First we allocate space for the return value
+                var retType = Compile(TypeEval.Evaluate(iff.Then));
+                var retPtr = builder.AllocateRegister(new Type.Ptr(retType), null);
+                builder.AddInstruction(new Instruction.Alloc(retPtr));
+                // We compile the condition
+                var conditionValue = Compile(iff.Condition);
+                var starterBasicBlock = builder.CurrentBasicBlock;
+                // We create a then, an else and a finally basic block
+                var thenBB = builder.CreateBasicBlock();
+                var elseBB = builder.CreateBasicBlock();
+                var finallyBB = builder.CreateBasicBlock();
+                // From the start we need to conditionally jump to then or else
+                builder.CurrentBasicBlock = starterBasicBlock;
+                builder.AddInstruction(new Instruction.JumpIf(conditionValue, thenBB, elseBB));
+                // We compile then
+                builder.CurrentBasicBlock = thenBB;
+                var thenValue = Compile(iff.Then);
+                // Store it
+                builder.AddInstruction(new Instruction.Store(retPtr, thenValue));
+                // Jump to finally
+                builder.AddInstruction(new Instruction.Jump(finallyBB));
+                // We compile else
+                builder.CurrentBasicBlock = elseBB;
+                var elseValue = iff.Else == null ? Value.Void_ : Compile(iff.Else);
+                // Store it
+                builder.AddInstruction(new Instruction.Store(retPtr, elseValue));
+                // Jump to finally
+                builder.AddInstruction(new Instruction.Jump(finallyBB));
+                // We continue from the finally block
+                builder.CurrentBasicBlock = finallyBB;
+                // Finally we load the stored value
+                var retValue = builder.AllocateRegister(retType, null);
+                builder.AddInstruction(new Instruction.Load(retValue, retPtr));
+                return retValue;
+            }
+
             default: throw new NotImplementedException();
             }
         }

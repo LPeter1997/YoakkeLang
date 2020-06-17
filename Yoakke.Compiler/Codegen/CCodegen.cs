@@ -175,8 +175,8 @@ namespace Yoakke.Backend
         {
             switch (value)
             {
-            case Value.Void _:
-                break;
+            case Value.Void _: 
+                throw new InvalidOperationException();
 
             case Value.Register regVal:
                 Write(builder, 'r', regVal.Index);

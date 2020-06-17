@@ -98,6 +98,11 @@ namespace Yoakke.Semantic
                     var elseType = Evaluate(iff.Else);
                     thenType.Unify(elseType);
                 }
+                else
+                {
+                    // No else, must not return anything
+                    Type.Unit.Unify(thenType);
+                }
                 return thenType;
             }
 

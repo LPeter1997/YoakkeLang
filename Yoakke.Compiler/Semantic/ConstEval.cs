@@ -294,6 +294,10 @@ namespace Yoakke.Semantic
                         var elseType = TypeEval.Evaluate(iff.Else);
                         thenValue.Type.Unify(elseType);
                     }
+                    else
+                    {
+                        Type.Unit.Unify(thenValue.Type);
+                    }
                     return thenValue;
                 }
                 else if (iff.Else != null)
@@ -303,6 +307,11 @@ namespace Yoakke.Semantic
                     var elseValue = Evaluate(callStack, iff.Else, canCache);
                     thenType.Unify(elseValue.Type);
                     return elseValue;
+                }
+                else
+                {
+                    var thenType = TypeEval.Evaluate(iff.Then);
+                    Type.Unit.Unify(thenType);
                 }
                 return Value.Unit;
             }

@@ -82,7 +82,7 @@ namespace Yoakke.IR
 
         private void DumpInstruction(StringBuilder builder, Instruction instruction)
         {
-            if (instruction is ValueInstruction value && !Type.Void_.EqualsNonNull(value.Value.Type))
+            if (instruction is ValueInstruction value)
             {
                 Write(builder, value.Value, " = ");
             }
@@ -117,6 +117,14 @@ namespace Yoakke.IR
                 Write(builder, "elementptr ", elementPtr.Source, ", ", elementPtr.Index);
                 break;
 
+            case Instruction.Jump jump:
+                Write(builder, "jump ", jump.Target);
+                break;
+
+            case Instruction.JumpIf jumpIf:
+                Write(builder, "jumpif ", jumpIf.Condition, ", ", jumpIf.Then, ", ", jumpIf.Else);
+                break;
+
             default: throw new NotImplementedException();
             }
         }
@@ -126,6 +134,7 @@ namespace Yoakke.IR
             switch (value)
             {
             case Value.Void _:
+                Write(builder, "void");
                 break;
 
             case Value.Register reg:
@@ -211,6 +220,10 @@ namespace Yoakke.IR
 
                 case Instruction i:
                     DumpInstruction(builder, i);
+                    break;
+
+                case BasicBlock bb:
+                    builder.Append(namingContext.GetBasicBlockName(bb));
                     break;
 
                 default:
