@@ -1,17 +1,15 @@
 
-const get_const_value = if true 1 else 0;
-
-const get_runtime_value = proc(x: bool) -> i32 {
-	if x 1 else 0
+const Vector2 = struct {
+	x: i32;
+	y: i32;
 }
 
-const ree = proc() {}
+const print = @extern("print_person", proc(Vector2));
 
 const main = proc() -> i32 {
-	if false {
-		ree();
-	}
-	if true ree();
-	if true ree(); else ree();
+	print(Vector2 {
+		x = if true { 1 } else { true };
+		y = 123;
+	});
 	0
 }

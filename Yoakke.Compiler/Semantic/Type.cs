@@ -176,7 +176,7 @@ namespace Yoakke.Semantic
 
             protected override void UnifyInternal(Type other)
             {
-                if (!EqualsNonNull(other.Substitution)) throw new Exception($"Type mismatch {this} vs {other}");
+                if (!EqualsNonNull(other.Substitution)) throw new TypeError(this, other);
             }
 
             public override string ToString() => Name;
@@ -219,11 +219,11 @@ namespace Yoakke.Semantic
             protected override void UnifyInternal(Type other)
             {
                 // Check if other is a product
-                if (!(other.Substitution is Product p)) throw new Exception($"Type mismatch {this} vs {other.Substitution}");
+                if (!(other.Substitution is Product p)) throw new TypeError(this, other.Substitution);
                 // Check for same implementation types
-                if (GetType() != p.GetType()) throw new Exception($"Type mismatch {this} vs {p}");
+                if (GetType() != p.GetType()) throw new TypeError(this, p);
                 // Check for sub-component count
-                if (Components.Count() != p.Components.Count()) throw new Exception($"Type mismatch {this} vs {p}");
+                if (Components.Count() != p.Components.Count()) throw new TypeError(this, p);
                 // Unify sub-components
                 var i1 = Components.GetEnumerator();
                 var i2 = p.Components.GetEnumerator();
@@ -344,11 +344,11 @@ namespace Yoakke.Semantic
                 // Check if other is a struct
                 // NOTE: This is repeated in Product.UnifyInternal, but we need to check field names here
                 // so we need to cast other to a struct
-                if (!(other.Substitution is Struct s)) throw new Exception($"Type mismatch {this} vs {other.Substitution}");
-                if (Fields.Count != s.Fields.Count) throw new Exception($"Type mismatch {this} vs {other.Substitution}");
+                if (!(other.Substitution is Struct s)) throw new TypeError(this, other.Substitution);
+                if (Fields.Count != s.Fields.Count) throw new TypeError(this, s);
                 foreach (var f in Fields.Keys)
                 {
-                    if (!s.Fields.ContainsKey(f)) throw new Exception($"Type mismatch {this} vs {other.Substitution}");
+                    if (!s.Fields.ContainsKey(f)) throw new TypeError(this, s);
                 }
                 base.UnifyInternal(s);
             }
