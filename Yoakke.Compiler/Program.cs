@@ -34,9 +34,9 @@ namespace Yoakke
                 Console.WriteLine("IR code:\n");
                 Console.WriteLine(IrDump.Dump(namingCtx));
 
-                //Console.WriteLine("\n\nC code:\n");
-                //var cBackend = new CCodegen();
-                //Console.WriteLine(cBackend.Compile(namingCtx));
+                Console.WriteLine("\n\nC code:\n");
+                var cBackend = new CCodegen();
+                Console.WriteLine(cBackend.Compile(namingCtx));
             }
             catch (CompileError error)
             {

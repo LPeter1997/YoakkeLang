@@ -103,6 +103,8 @@ namespace Yoakke.Backend
             case Instruction.Load _:
             case Instruction.Call _:
             case Instruction.ElementPtr _:
+            case Instruction.Jump _:
+            case Instruction.JumpIf _:
                 break;
 
             case Instruction.Alloc alloc:
@@ -166,6 +168,14 @@ namespace Yoakke.Backend
                 }
             }
             break;
+
+            case Instruction.Jump jump:
+                Write(builder, "goto ", jump.Target);
+                break;
+
+            case Instruction.JumpIf jumpIf:
+                Write(builder, "if (", jumpIf.Condition, ") goto ", jumpIf.Then, "; else goto ", jumpIf.Else);
+                break;
 
             default: throw new NotImplementedException();
             }    
@@ -288,6 +298,10 @@ namespace Yoakke.Backend
 
                 case Instruction i:
                     CompileInstruction(builder, i);
+                    break;
+
+                case BasicBlock bb:
+                    builder.Append(namingContext.GetBasicBlockName(bb));
                     break;
 
                 default:
