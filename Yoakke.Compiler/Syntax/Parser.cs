@@ -308,7 +308,9 @@ namespace Yoakke.Compiler.Syntax
             Expression? returnType = null;
             if (Match(ref input, TokenType.Arrow)) returnType = ParseExpression(ref input, ExprState.TypeOnly);
 
-            var body = ParseBlockExpression(ref input);
+            var body = ParseExpression(ref input, ExprState.None);
+            if (!IsBracedExpressionForStatement(body)) Expect(ref input, TokenType.Semicolon);
+
             return new Expression.Proc(parameters, returnType, body);
         }
 
