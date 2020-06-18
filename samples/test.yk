@@ -1,15 +1,4 @@
 
-const Vector2 = struct {
-	x: i32;
-	y: i32;
-}
-
-const print = @extern("print_person", proc(Vector2));
-
 const main = proc() -> i32 {
-	print(Vector2 {
-		x = if true { 1 } else { 0 };
-		y = 123;
-	});
-	0
+	1
 }

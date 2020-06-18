@@ -9,6 +9,8 @@ using Yoakke.Compiler.IR;
 using Yoakke.Compiler.IR.Passes;
 using Yoakke.Compiler.Codegen;
 using Yoakke.Compiler.Semantic;
+using System.Runtime.Serialization;
+using System.IO;
 
 namespace Yoakke.Compiler
 {
@@ -17,19 +19,13 @@ namespace Yoakke.Compiler
         C,
     }
 
-    enum Output
-    {
-        Obj,
-        Exe,
-    }
-
     class Compiler
     {
         // File input
 
         [Required(ErrorMessage = "A file is required to compile!")]
         [Argument(0, Name = "file", Description = "The file to compile")]
-        public string? File { get; set; }
+        public string? SourceFile { get; set; }
 
         // Debug intercept
 
@@ -47,11 +43,14 @@ namespace Yoakke.Compiler
 
         // Compile options
 
+        [Option(ShortName = "o", LongName = "output", Description = "The output path")]
+        public string OutputPath { get; set; } = "a.out";
+
         [Option(ShortName = "O", LongName = "", Description = "The optimization level")]
         public int OptimizationLevel { get; set; } = 0;
 
-        [Option(ShortName = "o", LongName = "output", Description = "The output type")]
-        public Output Output { get; set; } = Output.Exe;
+        [Option(ShortName = "ot", LongName = "output-type", Description = "The output type")]
+        public OutputType OutputType { get; set; } = OutputType.Exe;
 
         // Compiler backend
 
@@ -66,13 +65,13 @@ namespace Yoakke.Compiler
             try
             {
                 // Read in the source
-                Assert.NonNull(File);
-                if (!System.IO.File.Exists(File))
+                Assert.NonNull(SourceFile);
+                if (!File.Exists(SourceFile))
                 {
-                    Console.WriteLine($"Input file '{File}' not found!");
+                    Console.WriteLine($"Input file '{SourceFile}' not found!");
                     Environment.Exit(1);
                 }
-                var source = new Source(File, System.IO.File.ReadAllText(File));
+                var source = new Source(SourceFile, File.ReadAllText(SourceFile));
 
                 // Tokenize
                 var tokens = Lexer.Lex(source);
@@ -101,7 +100,7 @@ namespace Yoakke.Compiler
                 var asm = IR.Compiler.Compile(ast);
 
                 // Optimize it
-                var passes = PassesForOptimizationLevel(OptimizationLevel);
+                var passes = PassesForOptimizationLevel();
                 Optimizer.Optimize(asm, passes);
 
                 var namingCtx = new NamingContext(asm);
@@ -113,18 +112,28 @@ namespace Yoakke.Compiler
                     Environment.Exit(0);
                 }
 
-                // Compile to backend code
-                var backend = GetBackend(Backend);
-                var backendCode = backend.Compile(namingCtx);
+                // If the output type is IR, just write that out now
+                if (OutputType == OutputType.IR)
+                {
+                    var ir = IrDump.Dump(namingCtx);
+                    File.WriteAllText(SourceFile, ir);
+                    Environment.Exit(0);
+                }
 
+                // Get the proper backend
+                var backend = GetBackend();
+                
                 // If we want to dump backend code, do it here
                 if (DumpBackend)
                 {
+                    var backendCode = backend.Compile(namingCtx);
                     Console.WriteLine(backendCode);
                     Environment.Exit(0);
                 }
 
-                // TODO: Produce output
+                // Otherwise let's just produce the output
+                var exitCode = backend.CompileAndOutput(namingCtx, OutputPath, OutputType, new object[] { });
+                Environment.Exit(exitCode);
             }
             catch (CompileError err)
             {
@@ -133,10 +142,10 @@ namespace Yoakke.Compiler
             }
         }
 
-        private static List<IPass> PassesForOptimizationLevel(int level)
+        private List<IPass> PassesForOptimizationLevel()
         {
             var passes = new List<IPass> { new RemoveVoid() };
-            if (level > 0)
+            if (OptimizationLevel > 0)
             {
                 // Add level 1 optimizations
                 passes.Add(new JumpThreading());
@@ -147,11 +156,11 @@ namespace Yoakke.Compiler
             return passes;
         }
 
-        private static ICodegen GetBackend(Backend backend)
+        private ICodegen GetBackend()
         {
-            switch (backend)
+            switch (Backend)
             {
-            case Backend.C: return new CCodegen();
+            case Backend.C: return new CCodegen(CCompiler);
 
             default: throw new NotImplementedException();
             }

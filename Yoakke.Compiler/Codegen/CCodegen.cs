@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Text;
 using Yoakke.Compiler.IR;
 using Yoakke.Compiler.Utils;
@@ -12,17 +14,67 @@ namespace Yoakke.Compiler.Codegen
     /// </summary>
     class CCodegen : ICodegen
     {
+        private string compilerPath;
         private NamingContext namingContext = new NamingContext(new Assembly());
         private StringBuilder builder = new StringBuilder();
         private StringBuilder typeDeclarations = new StringBuilder();
         private Dictionary<Type, string> compiledTypes = new Dictionary<Type, string>();
 
+        /// <summary>
+        /// Initializes a new <see cref="CCodegen"/>.
+        /// </summary>
+        /// <param name="compilerPath">The path to the C compiler to use.</param>
+        public CCodegen(string compilerPath)
+        {
+            this.compilerPath = compilerPath;
+        }
+
         public string Compile(NamingContext namingContext)
         {
             builder.Clear();
             typeDeclarations.Clear();
+            compiledTypes.Clear();
             this.namingContext = namingContext;
             return CompileAssembly();
+        }
+
+        public int CompileAndOutput(NamingContext namingContext, string path, OutputType outputType, object[] extra)
+        {
+            // Build flags
+            var flags = new List<string>();
+            // Output file
+            flags.Add("-o");
+            flags.Add(path);
+            // Object code
+            if (outputType == OutputType.Obj) flags.Add("-c");
+
+            // Compile code, write it out to a file
+            var code = Compile(namingContext);
+            var tmpPath = Path.GetTempFileName() + ".c";
+            File.WriteAllText(tmpPath, code);
+
+            // Add the file to the flags
+            flags.Add(tmpPath);
+
+            // Invoke the compiler
+            var startInfo = new ProcessStartInfo(compilerPath, CommandLine.EscapeArgs(flags));
+            startInfo.RedirectStandardOutput = true;
+            startInfo.RedirectStandardError = true;
+            startInfo.CreateNoWindow = true;
+
+            var process = Process.Start(startInfo);
+            while (!process.StandardError.EndOfStream)
+            {
+                string? line = process.StandardError.ReadLine();
+                if (line != null) Console.WriteLine(line);
+            }
+            process.WaitForExit();
+
+            // Clean up the original file
+            File.Delete(tmpPath);
+
+            Console.Out.Flush();
+            return process.ExitCode;
         }
 
         private string CompileAssembly()
