@@ -142,6 +142,36 @@ namespace Yoakke.Compiler.Ast
         }
 
         /// <summary>
+        /// A path separated by dot.
+        /// Syntax:
+        /// ```
+        /// Expression . Identifier
+        /// ```
+        /// </summary>
+        public class DotPath : Expression
+        {
+            /// <summary>
+            /// The left-hand-side of the '.'.
+            /// </summary>
+            public Expression Left { get; set; }
+            /// <summary>
+            /// The right-hand-side of the '.', which is a single <see cref="Token"/>.
+            /// </summary>
+            public Token Right { get; set; }
+
+            /// <summary>
+            /// Initializes a new <see cref="DotPath"/>.
+            /// </summary>
+            /// <param name="left">The left-hand-side of the '.'.</param>
+            /// <param name="right">The right-hand-side of the '.'.</param>
+            public DotPath(Expression left, Token right)
+            {
+                Left = left;
+                Right = right;
+            }
+        }
+
+        /// <summary>
         /// A structure type definition.
         /// Syntax:
         /// ```

@@ -15,7 +15,21 @@ namespace Yoakke.Compiler
 {
     class Program
     {
-        static void Main(string[] args) =>
-            CommandLineApplication.Execute<Compiler>(args);
+        static void Main(string[] args)
+        {
+            if (Debugger.IsAttached)
+            {
+                // For simplicity we inject parameters so we can run from the IDE
+                var cmp = new Compiler
+                {
+                    SourceFile = "../../../../../samples/test.yk",
+                };
+                cmp.OnExecute();
+            }
+            else
+            {
+                CommandLineApplication.Execute<Compiler>(args);
+            }
+        }
     }
 }

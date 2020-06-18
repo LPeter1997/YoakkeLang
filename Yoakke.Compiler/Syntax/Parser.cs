@@ -164,6 +164,11 @@ namespace Yoakke.Compiler.Syntax
                     }
                     result = new Expression.StructValue(result, fields);
                 }
+                else if (Match(ref input, TokenType.Dot))
+                {
+                    Expect(ref input, TokenType.Identifier, out var ident);
+                    result = new Expression.DotPath(result, ident);
+                }
                 else
                 {
                     break;
