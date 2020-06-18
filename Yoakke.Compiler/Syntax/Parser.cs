@@ -4,6 +4,19 @@ using System.Linq;
 using System.Text;
 using Yoakke.Compiler.Ast;
 
+/*
+ TODO: Right now we have ambiguities in the grammar because of the optional bracing!
+ Examples where this matters:
+
+ if true -1 else 0;
+ proc() -> true ();
+
+ The first one will have the condition (true - 1), the second one will have a return type true().
+ We can resolve these for the no-brace cases by
+ -1 if true else 0; AKA the Python ternary expression
+ Some separator for the proc body?
+ */
+
 namespace Yoakke.Compiler.Syntax
 {
     using Input = ReadOnlySpan<Token>;
