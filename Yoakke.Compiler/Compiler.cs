@@ -60,7 +60,7 @@ namespace Yoakke.Compiler
         [Option(LongName = "ccompiler", ShortName = "cc", Description = "The C compiler to use", ValueName = "compiler")]
         public string CCompiler { get; set; } = "gcc";
 
-        private void OnExecute()
+        public void OnExecute()
         {
             try
             {
