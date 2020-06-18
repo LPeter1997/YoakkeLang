@@ -9,6 +9,11 @@ using Yoakke.Compiler.Semantic;
 using Yoakke.Compiler.Syntax;
 using Yoakke.Compiler.Utils;
 
+/*
+TODO: Right now the way we compile for lvalues is way too error-prone.
+We need a finer system!
+*/
+
 namespace Yoakke.Compiler.IR
 {
     /// <summary>
@@ -78,7 +83,7 @@ namespace Yoakke.Compiler.IR
                 builder.AddInstruction(new Instruction.Store(storeReg, receiveReg));
             }
             // Now we just compile the body
-            var bodyValue = Compile(proc.Body);
+            var bodyValue = Compile(proc.Body, false);
             // We append the return statement
             builder.AddInstruction(new Instruction.Ret(bodyValue));
             // Compilation is done
@@ -98,7 +103,7 @@ namespace Yoakke.Compiler.IR
             return createdValue;
         }
 
-        private Value CompileStructValue(Semantic.Type semType, IEnumerable<(string, Value)> values)
+        private Value CompileStructValue(Semantic.Type semType, bool lvalue, IEnumerable<(string, Value)> values)
         {
             // Compile the struct type
             var type = Compile(semType);
@@ -116,7 +121,9 @@ namespace Yoakke.Compiler.IR
                 // Store the value
                 builder.AddInstruction(new Instruction.Store(ptrReg, value));
             }
-            // Load value
+            // If lvalue, we are done
+            if (lvalue) return mutReg;
+            // Otherwise load value
             var valueReg = builder.AllocateRegister(type, null);
             builder.AddInstruction(new Instruction.Load(valueReg, mutReg));
             return valueReg;
@@ -157,22 +164,24 @@ namespace Yoakke.Compiler.IR
             break;
 
             case Statement.Expression_ expr:
-                Compile(expr.Expression);
+                Compile(expr.Expression, false);
                 break;
 
             default: throw new NotImplementedException();
             }
         }
 
-        private Value Compile(Expression expression)
+        private Value Compile(Expression expression, bool lvalue)
         {
             switch (expression) 
             {
             // Nice lazy implementation
             case Expression.IntLit intLit:
-                return Compile(ConstEval.Evaluate(intLit));
+                return Compile(ConstEval.Evaluate(intLit), lvalue);
             case Expression.BoolLit boolLit:
-                return Compile(ConstEval.Evaluate(boolLit));
+                return Compile(ConstEval.Evaluate(boolLit), lvalue);
+            case Expression.Proc proc:
+                return Compile(ConstEval.Evaluate(proc), lvalue);
 
             case Expression.Ident ident:
             {
@@ -182,12 +191,15 @@ namespace Yoakke.Compiler.IR
                 {
                 case Symbol.Const constSym:
                     Assert.NonNull(constSym.Value);
-                    return Compile(constSym.Value);
+                    return Compile(constSym.Value, lvalue);
 
                 case Symbol.Variable varSym:
                 {
-                    // rX = load ADDRESS
                     var varAddress = builder.Locals[varSym];
+                    // For an lvalue we just refer to the address
+                    if (lvalue) return varAddress;
+                    // Otherwise we load
+                    // rX = load ADDRESS
                     var varType = ((Type.Ptr)varAddress.Type).ElementType;
                     var varValue = builder.AllocateRegister(varType, null);
                     builder.AddInstruction(new Instruction.Load(varValue, varAddress));
@@ -207,17 +219,20 @@ namespace Yoakke.Compiler.IR
                 // (In theory it doesn't matter for rvalues, but always copies, but we can just copy the field)
 
                 // Compile left-hand-side
-                var left = Compile(dotPath.Left);
+                var left = Compile(dotPath.Left, true);
                 // Get field index
                 var leftSemanticType = TypeEval.Evaluate(dotPath.Left);
                 var fieldIndex = structFields[(leftSemanticType, dotPath.Right.Value)];
                 // Get field type
-                var leftType = (Type.Struct)left.Type;
+                var leftType = (Type.Struct)((Type.Ptr)left.Type).ElementType;
                 var fieldType = leftType.Fields[fieldIndex];
-                // Get the element and load it
+                // Get the element pointer
                 var fieldPtr = builder.AllocateRegister(new Type.Ptr(fieldType), null);
-                var fieldVal = builder.AllocateRegister(fieldType, null);
                 builder.AddInstruction(new Instruction.ElementPtr(fieldPtr, left, new Value.Int(Type.I32, fieldIndex)));
+                // If it's an lvalue, this is enough
+                if (lvalue) return fieldPtr;
+                // Otherwise we have to load
+                var fieldVal = builder.AllocateRegister(fieldType, null);
                 builder.AddInstruction(new Instruction.Load(fieldVal, fieldPtr));
                 return fieldVal;
             }
@@ -225,31 +240,34 @@ namespace Yoakke.Compiler.IR
             case Expression.StructValue structValue:
             {
                 var structTy = (Semantic.Type.Struct)ConstEval.EvaluateAsType(structValue.StructType);
-                return CompileStructValue(structTy, 
-                    structValue.Fields.Select(f => (f.Item1.Value, Compile(f.Item2))));
+                return CompileStructValue(structTy, lvalue,
+                    structValue.Fields.Select(f => (f.Item1.Value, Compile(f.Item2, false))));
             }
-
-            case Expression.Proc proc:
-                return Assert.NonNullValue(CompileProcedure( proc));
 
             case Expression.Block block:
             {
+                // NOTE: What if it's lvalue and no return value?
                 foreach (var stmt in block.Statements) Compile(stmt);
                 Value retValue = block.Value == null
                                  ? Value.Void_
-                                 : Compile(block.Value);
+                                 : Compile(block.Value, lvalue);
                 return retValue;
             }
 
             case Expression.Call call:
             {
-                var proc = Compile(call.Proc);
-                var args = call.Arguments.Select(x => Compile(x)).ToList();
+                var proc = Compile(call.Proc, false);
+                var args = call.Arguments.Select(x => Compile(x, false)).ToList();
                 var procTy = (Type.Proc)proc.Type;
                 var retTy = procTy.ReturnType;
                 var retRegister = builder.AllocateRegister(retTy, null);
                 builder.AddInstruction(new Instruction.Call(retRegister, proc, args));
-                return retRegister;
+                // If this is not an lvalue, we are done
+                if (!lvalue) return retRegister;
+                // Otherwise we store it in a register
+                var lvalueRegister = builder.AllocateRegister(new Type.Ptr(retTy), null);
+                builder.AddInstruction(new Instruction.Store(lvalueRegister, retRegister));
+                return lvalueRegister;
             }
 
             case Expression.If iff:
@@ -259,7 +277,7 @@ namespace Yoakke.Compiler.IR
                 var retPtr = builder.AllocateRegister(new Type.Ptr(retType), null);
                 builder.AddInstruction(new Instruction.Alloc(retPtr));
                 // We compile the condition
-                var conditionValue = Compile(iff.Condition);
+                var conditionValue = Compile(iff.Condition, false);
                 var starterBasicBlock = builder.CurrentBasicBlock;
                 // We create a then, an else and a finally basic block
                 var thenBB = builder.CreateBasicBlock();
@@ -270,21 +288,23 @@ namespace Yoakke.Compiler.IR
                 builder.AddInstruction(new Instruction.JumpIf(conditionValue, thenBB, elseBB));
                 // We compile then
                 builder.CurrentBasicBlock = thenBB;
-                var thenValue = Compile(iff.Then);
+                var thenValue = Compile(iff.Then, lvalue);
                 // Store it
                 builder.AddInstruction(new Instruction.Store(retPtr, thenValue));
                 // Jump to finally
                 builder.AddInstruction(new Instruction.Jump(finallyBB));
                 // We compile else
                 builder.CurrentBasicBlock = elseBB;
-                var elseValue = iff.Else == null ? Value.Void_ : Compile(iff.Else);
+                var elseValue = iff.Else == null ? Value.Void_ : Compile(iff.Else, lvalue);
                 // Store it
                 builder.AddInstruction(new Instruction.Store(retPtr, elseValue));
                 // Jump to finally
                 builder.AddInstruction(new Instruction.Jump(finallyBB));
                 // We continue from the finally block
                 builder.CurrentBasicBlock = finallyBB;
-                // Finally we load the stored value
+                // If it's an lvalue, we are done
+                if (lvalue) return retPtr;
+                // Otherwise we load the stored value
                 var retValue = builder.AllocateRegister(retType, null);
                 builder.AddInstruction(new Instruction.Load(retValue, retPtr));
                 return retValue;
@@ -294,31 +314,35 @@ namespace Yoakke.Compiler.IR
             }
         }
 
-        private Value Compile(Semantic.Value value)
+        private Value Compile(Semantic.Value value, bool lvalue)
         {
             switch (value)
             {
             case Semantic.Value.Proc proc:
+                if (lvalue) throw new Exception("Procedures can't be lvalues!");
                 return Assert.NonNullValue(CompileProcedure(proc.Node));
-
-            case Semantic.Value.Extern external:
-            {
-                var ty = Compile(external.Type);
-                return new Value.Extern(ty, external.Name);
-            }
 
             case Semantic.Value.Int i:
             {
+                if (lvalue) throw new Exception("Ints can't be lvalues!");
                 var ty = Compile(i.Type);
                 return new Value.Int(ty, i.Value);
             }
 
             case Semantic.Value.Bool b:
+                if (lvalue) throw new Exception("Bools can't be lvalues!");
                 return new Value.Int(Type.Bool, b.Value ? 1 : 0);
 
+            case Semantic.Value.Extern external:
+            {
+                if (lvalue) throw new Exception("Bools can't be lvalues!");
+                var ty = Compile(external.Type);
+                return new Value.Extern(ty, external.Name);
+            }
+
             case Semantic.Value.Struct structure:
-                return CompileStructValue(structure.Type, 
-                    structure.Fields.Select(f => (f.Key, Compile(f.Value))));
+                return CompileStructValue(structure.Type, lvalue,
+                    structure.Fields.Select(f => (f.Key, Compile(f.Value, false))));
 
             default: throw new NotImplementedException();
             }
