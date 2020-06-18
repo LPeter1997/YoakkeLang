@@ -177,6 +177,25 @@ namespace Yoakke.Compiler.Semantic
                 default: throw new NotImplementedException();
                 }
 
+            case Expression.DotPath dotPath:
+            {
+                var left = Evaluate(callStack, dotPath.Left, canCache);
+                if (left is Value.Struct structure)
+                {
+                    if (!structure.Fields.TryGetValue(dotPath.Right.Value, out var field))
+                    {
+                        // TODO
+                        throw new NotImplementedException("No such field of struct!");
+                    }
+                    return field;
+                }
+                else
+                {
+                    // TODO
+                    throw new NotImplementedException("Not a struct type on the left-hand-side of dot!");
+                }
+            }
+
             case Expression.StructType structType:
             {
                 var fields = structType.Fields.ToDictionary(

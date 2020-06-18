@@ -63,6 +63,11 @@ namespace Yoakke.Compiler.Semantic
                 intrinsic.Symbol = (Symbol.Intrinsic)intrinsic.Scope.Reference(intrinsic.Token);
                 break;
 
+            case Expression.DotPath dotPath:
+                // Just define in left, right-hand-side is just a token
+                Define(dotPath.Left);
+                break;
+
             case Expression.StructType structType:
                 // Define in field types
                 foreach (var (_, type) in structType.Fields) Define(type);

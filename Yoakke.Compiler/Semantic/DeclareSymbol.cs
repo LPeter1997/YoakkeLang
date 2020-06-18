@@ -62,6 +62,11 @@ namespace Yoakke.Compiler.Semantic
                 // Nothing to declare, leaf nodes
                 break;
 
+            case Expression.DotPath dotPath:
+                // Just declare in left, right-hand-side is just a token
+                Declare(symbolTable, dotPath.Left);
+                break;
+
             case Expression.StructType structType:
                 // Declare in field types
                 foreach (var (_, type) in structType.Fields) Declare(symbolTable, type);

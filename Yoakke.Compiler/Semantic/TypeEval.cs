@@ -23,7 +23,7 @@ namespace Yoakke.Compiler.Semantic
             if (expression.EvaluationType == null)
             {
                 // Simple cache-ing
-                expression.EvaluationType = EvaluateImpl(expression);
+                expression.EvaluationType = EvaluateImpl(expression).Substitution;
             }
             return expression.EvaluationType;
         }
@@ -67,6 +67,25 @@ namespace Yoakke.Compiler.Semantic
 
                 default: throw new NotImplementedException();
                 }
+
+            case Expression.DotPath dotPath:
+            {
+                var leftType = Evaluate(dotPath.Left).Substitution;
+                if (leftType is Type.Struct structType)
+                {
+                    if (!structType.Fields.TryGetValue(dotPath.Right.Value, out var fieldType))
+                    {
+                        // TODO
+                        throw new NotImplementedException("No such field of struct!");
+                    }
+                    return fieldType;
+                }
+                else
+                {
+                    // TODO
+                    throw new NotImplementedException("Not a struct type on the left-hand-side of dot!");
+                }
+            }
 
             case Expression.Block block:
                 return block.Value == null ? Type.Unit : Evaluate(block.Value);

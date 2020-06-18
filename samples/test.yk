@@ -5,6 +5,7 @@ const Vector2 = struct {
 }
 
 const SomeVec = Vector2 { x = 1; y = 2; };
+const SomeField = SomeVec.x;
 
 const get_vec = proc() -> Vector2 {
 	Vector2 { x = 4; y = 7; }
@@ -12,5 +13,6 @@ const get_vec = proc() -> Vector2 {
 
 const main = proc() -> i32 {
 	//SomeVec.x
-	get_vec().y
+	//get_vec().y
+	SomeField
 }

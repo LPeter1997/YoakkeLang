@@ -28,7 +28,7 @@ namespace Yoakke.Compiler.Semantic
         /// <summary>
         /// Returns the substitution for this <see cref="Type"/>. Could be itself, if there's no substitution.
         /// </summary>
-        protected virtual Type Substitution => this;
+        public virtual Type Substitution => this;
 
         public override bool EqualsNonNull(Value other) =>
             other is Type t && Substitution.EqualsNonNull(t.Substitution);
@@ -93,7 +93,7 @@ namespace Yoakke.Compiler.Semantic
             public override Type Type => Type_;
 
             private Type? substitution;
-            protected override Type Substitution
+            public override Type Substitution
             {
                 get
                 {

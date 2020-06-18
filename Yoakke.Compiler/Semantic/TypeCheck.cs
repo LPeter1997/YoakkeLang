@@ -96,6 +96,11 @@ namespace Yoakke.Compiler.Semantic
             case Expression.Intrinsic _:
                 break;
 
+            case Expression.DotPath dotPath:
+                // Check in left, right is just a token
+                Check(dotPath.Left);
+                break;
+
             case Expression.StructType structType:
                 // Just check field types
                 foreach (var (_, type) in structType.Fields) Check(type);
