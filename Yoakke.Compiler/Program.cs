@@ -23,7 +23,7 @@ namespace Yoakke.Compiler
                 var cmp = new Compiler
                 {
                     SourceFile = "../../../../../samples/test.yk",
-                    DumpIr = true,
+                    DumpBackend = true,
                 };
                 cmp.OnExecute();
             }

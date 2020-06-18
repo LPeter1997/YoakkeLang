@@ -12,6 +12,5 @@ const get_vec = proc() -> Vector2 {
 }
 
 const main = proc() -> i32 {
-	SomeVec.x
-	//get_vec().y
+	get_vec().y
 }

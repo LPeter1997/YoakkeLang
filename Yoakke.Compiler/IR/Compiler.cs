@@ -266,6 +266,7 @@ namespace Yoakke.Compiler.IR
                 if (!lvalue) return retRegister;
                 // Otherwise we store it in a register
                 var lvalueRegister = builder.AllocateRegister(new Type.Ptr(retTy), null);
+                builder.AddInstruction(new Instruction.Alloc(lvalueRegister));
                 builder.AddInstruction(new Instruction.Store(lvalueRegister, retRegister));
                 return lvalueRegister;
             }
