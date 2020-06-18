@@ -33,6 +33,7 @@ namespace Yoakke.Compiler.IR
 
         private IrBuilder builder;
         private HashSet<Type> compiledTypes = new HashSet<Type>();
+        // TODO: This dict should really have IR types instead of semantic ones
         private Dictionary<(Semantic.Type, string), int> structFields = new Dictionary<(Semantic.Type, string), int>();
 
         private Compiler(IrBuilder builder) 
@@ -195,6 +196,30 @@ namespace Yoakke.Compiler.IR
 
                 default: throw new NotImplementedException();
                 }
+            }
+
+            case Expression.DotPath dotPath:
+            {
+                // TODO: This is only for fields, this could be a constant or a type access!
+
+                // TODO: We need to load this as an lvalue maybe?
+                // It's more efficient and is a requirement for assignment!
+                // (In theory it doesn't matter for rvalues, but always copies, but we can just copy the field)
+
+                // Compile left-hand-side
+                var left = Compile(dotPath.Left);
+                // Get field index
+                var leftSemanticType = TypeEval.Evaluate(dotPath.Left);
+                var fieldIndex = structFields[(leftSemanticType, dotPath.Right.Value)];
+                // Get field type
+                var leftType = (Type.Struct)left.Type;
+                var fieldType = leftType.Fields[fieldIndex];
+                // Get the element and load it
+                var fieldPtr = builder.AllocateRegister(new Type.Ptr(fieldType), null);
+                var fieldVal = builder.AllocateRegister(fieldType, null);
+                builder.AddInstruction(new Instruction.ElementPtr(fieldPtr, left, new Value.Int(Type.I32, fieldIndex)));
+                builder.AddInstruction(new Instruction.Load(fieldVal, fieldPtr));
+                return fieldVal;
             }
 
             case Expression.StructValue structValue:
