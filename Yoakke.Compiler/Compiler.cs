@@ -11,6 +11,7 @@ using Yoakke.Compiler.Codegen;
 using Yoakke.Compiler.Semantic;
 using System.Runtime.Serialization;
 using System.IO;
+using System.Diagnostics;
 
 namespace Yoakke.Compiler
 {
@@ -40,6 +41,11 @@ namespace Yoakke.Compiler
 
         [Option(LongName = "dump-backend", ShortName = "", Description = "Dump the backend code instead of compiling")]
         public bool DumpBackend { get; set; }
+
+        // Debug helper
+
+        [Option(LongName = "execute", ShortName = "e", Description = "Execute the produced program right after compiling")]
+        public bool ExecuteImmediately { get; set; }
 
         // Compile options
 
@@ -133,7 +139,29 @@ namespace Yoakke.Compiler
 
                 // Otherwise let's just produce the output
                 var exitCode = backend.CompileAndOutput(namingCtx, OutputPath, OutputType, new object[] { });
-                Environment.Exit(exitCode);
+                if (exitCode != 0) Environment.Exit(exitCode);
+                
+                // If we need to execute it, do it now
+                if (ExecuteImmediately)
+                {
+                    Console.WriteLine($"Running '{OutputPath}'...");
+
+                    var startInfo = new ProcessStartInfo(OutputPath);
+                    startInfo.RedirectStandardOutput = true;
+                    startInfo.RedirectStandardError = true;
+                    startInfo.CreateNoWindow = true;
+
+                    var process = Process.Start(startInfo);
+                    while (!process.StandardError.EndOfStream)
+                    {
+                        string? line = process.StandardError.ReadLine();
+                        if (line != null) Console.WriteLine(line);
+                    }
+                    process.WaitForExit();
+
+                    Console.WriteLine($"Exit code: {process.ExitCode}");
+                    Console.Out.Flush();
+                }
             }
             catch (CompileError err)
             {
