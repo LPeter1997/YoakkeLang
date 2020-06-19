@@ -71,7 +71,7 @@ namespace Yoakke.Compiler.Semantic
                 {
                     expression.ConstantValue = EvaluateImpl(callStack, expression, canCache, lvalue);
                 }
-                return expression.ConstantValue;
+                return lvalue ? expression.ConstantValue : expression.ConstantValue.CloneValue();
             }
             else
             {
@@ -225,8 +225,8 @@ namespace Yoakke.Compiler.Semantic
 
             case Expression.DotPath dotPath:
             {
-                var left = Evaluate(callStack, dotPath.Left, canCache, false);
-                if (left is Value.Struct structure)
+                var left = (Value.Lvalue)Evaluate(callStack, dotPath.Left, canCache, true);
+                if (left.Getter() is Value.Struct structure)
                 {
                     if (!structure.Fields.TryGetValue(dotPath.Right.Value, out var field))
                     {

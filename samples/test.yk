@@ -1,10 +1,29 @@
 
-const Foo = {
-	var x = 0;
-	x = 16;
-	x
+const Vector2 = proc(T: type) -> type {
+	struct {
+		x: T;
+		y: T;
+	}
+}
+
+const Value = {
+	var v1 = Vector2(i32) {
+		x = 4;
+		y = 7;
+	};
+	var v2 = v1;
+	v2.x = 9;
+	v1.x
 };
 
 const main = proc() -> i32 {
-	Foo
+	/*var v1 = Vector2(i32) {
+		x = 4;
+		y = 7;
+	};
+	var v2 = v1;
+	v2.x = 9;
+	v1.x*/
+	Value
 }
+

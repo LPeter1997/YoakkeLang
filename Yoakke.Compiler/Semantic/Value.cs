@@ -22,7 +22,7 @@ namespace Yoakke.Compiler.Semantic
     /// Represents a compile-time constant.
     /// </summary>
 #pragma warning disable CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
-    abstract partial class Value : IEquatable<Value>
+    abstract partial class Value : IEquatable<Value>, ICloneable
 #pragma warning restore CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
     {
         /// <summary>
@@ -42,6 +42,11 @@ namespace Yoakke.Compiler.Semantic
         /// <param name="other">The other <see cref="Value"/> to compare.</param>
         /// <returns>True, if the two <see cref="Value"/>s are equal.</returns>
         public abstract bool EqualsNonNull(Value other);
+
+        public object Clone() =>
+            CloneValue();
+
+        public abstract Value CloneValue();
     }
 
     // Variants
@@ -58,6 +63,11 @@ namespace Yoakke.Compiler.Semantic
             public override Type Type => type;
 
             public override bool EqualsNonNull(Value other)
+            {
+                throw new NotImplementedException();
+            }
+
+            public override Value CloneValue()
             {
                 throw new NotImplementedException();
             }
@@ -97,6 +107,12 @@ namespace Yoakke.Compiler.Semantic
                 // TODO
                 throw new NotImplementedException();
             }
+
+            public override Value CloneValue()
+            {
+                // NOTE: Does it make sense to clone this?
+                return this;
+            }
         }
 
         /// <summary>
@@ -125,6 +141,12 @@ namespace Yoakke.Compiler.Semantic
 
             public override bool EqualsNonNull(Value other) =>
                 other is Proc o && ReferenceEquals(Node, o.Node);
+
+            public override Value CloneValue()
+            {
+                // NOTE: Does it make sense to clone this?
+                return this;
+            }
         }
 
         /// <summary>
@@ -150,6 +172,12 @@ namespace Yoakke.Compiler.Semantic
 
             public override bool EqualsNonNull(Value other) =>
                 other is IntrinsicProc i && ReferenceEquals(Symbol, i.Symbol);
+
+            public override Value CloneValue()
+            {
+                // NOTE: Does it make sense to clone this?
+                return this;
+            }
 
             public override string ToString() =>
                 Symbol.Name;
@@ -184,6 +212,12 @@ namespace Yoakke.Compiler.Semantic
                 && Name == e.Name
                 && Type.EqualsNonNull(e.Type)
                 ;
+
+            public override Value CloneValue()
+            {
+                // NOTE: Does it make sense to clone this?
+                return this;
+            }
 
             public override string ToString() =>
                 $"external({Name})";
@@ -221,6 +255,9 @@ namespace Yoakke.Compiler.Semantic
                 && Value == i.Value
                 ;
 
+            public override Value CloneValue() =>
+                new Int(type, Value);
+
             public override string ToString() =>
                 Value.ToString();
         }
@@ -248,6 +285,9 @@ namespace Yoakke.Compiler.Semantic
 
             public override bool EqualsNonNull(Value other) =>
                 other is Bool b && Value == b.Value;
+
+            public override Value CloneValue() =>
+                new Bool(Value);
 
             public override string ToString() =>
                 Value.ToString();
@@ -278,6 +318,10 @@ namespace Yoakke.Compiler.Semantic
 
             public override bool EqualsNonNull(Value other) =>
                 other is Str s && Value == s.Value;
+
+            public override Value CloneValue() =>
+                // TODO: Is this correct?
+                new Str(Value);
 
             public override string ToString() =>
                 $"\"{Value}\"";
@@ -311,6 +355,9 @@ namespace Yoakke.Compiler.Semantic
                 && Values.Count == t.Values.Count
                 && Values.Zip(t.Values).All(vs => vs.First.EqualsNonNull(vs.Second));
 
+            public override Value CloneValue() =>
+                new Tuple(Values.Select(x => x.CloneValue()).ToList());
+
             public override string ToString() =>
                 $"({Values.Select(x => x.ToString()).StringJoin(", ")})";
         }
@@ -338,6 +385,9 @@ namespace Yoakke.Compiler.Semantic
                 this.type = type;
                 Fields = fields;
             }
+
+            public override Value CloneValue() =>
+                new Struct(type, Fields.ToDictionary(kv => kv.Key, kv => kv.Value.CloneValue()));
 
             public override bool EqualsNonNull(Value other) =>
                    other is Struct s

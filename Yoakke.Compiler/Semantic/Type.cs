@@ -67,6 +67,12 @@ namespace Yoakke.Compiler.Semantic
         /// </summary>
         /// <param name="other">The other <see cref="Type"/> to unify this one with.</param>
         protected abstract void UnifyInternal(Type other);
+
+        public override Value CloneValue()
+        {
+            // TODO: Do we need a proper implementation of this?
+            return this;
+        }
     }
 
     // Variants
