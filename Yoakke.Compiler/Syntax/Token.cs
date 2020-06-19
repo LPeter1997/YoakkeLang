@@ -232,5 +232,9 @@ namespace Yoakke.Compiler.Syntax
         /// The keyword 'else'.
         /// </summary>
         KwElse,
+        /// <summary>
+        /// The keyword 'var'.
+        /// </summary>
+        KwVar,
     }
 }

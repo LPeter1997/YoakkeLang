@@ -84,6 +84,8 @@ namespace Yoakke.Compiler.Syntax
 
         private static Statement ParseStatement(ref Input input)
         {
+            if (Peek(input) == TokenType.KwVar) return ParseVarStatement(ref input);
+
             var declaration = TryParse(ref input, ParseDeclaration);
             if (declaration != null) return declaration;
             
@@ -91,6 +93,22 @@ namespace Yoakke.Compiler.Syntax
             if (expressionStatement != null) return expressionStatement;
 
             throw new ExpectedError("statement", input[0]);
+        }
+
+        private static Statement ParseVarStatement(ref Input input)
+        {
+            Expect(ref input, TokenType.KwVar);
+            Expect(ref input, TokenType.Identifier, out var name);
+
+            Expression? type = null;
+            if (Match(ref input, TokenType.Colon)) type = ParseExpression(ref input, ExprState.TypeOnly);
+
+            Expect(ref input, TokenType.Assign);
+            var value = ParseExpression(ref input, ExprState.None);
+
+            Expect(ref input, TokenType.Semicolon);
+
+            return new Statement.VarDef(name, type, value);
         }
 
         private static Statement ParseExpressionStatement(ref Input input)
