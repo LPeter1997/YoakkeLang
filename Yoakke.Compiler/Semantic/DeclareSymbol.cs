@@ -124,7 +124,7 @@ namespace Yoakke.Compiler.Semantic
 
             case Expression.If iff:
                 // We introduce a scopes here for things like
-                // if x var y = ...;
+                // if x { var y = ...; }
                 
                 // Declare in condition and then
                 Declare(symbolTable, iff.Condition);
