@@ -184,7 +184,7 @@ namespace Yoakke.Compiler.Semantic
                 {
                 case Symbol.Const constSym:
                 {
-                    if (lvalue) throw new NotImplementedException("Constants can't be lvalues!");
+                    //if (lvalue) throw new NotImplementedException("Constants can't be lvalues!");
                     // Symbol already has a value, return that
                     if (constSym.Value != null) return constSym.Value;
                     // No value, must be evaluatable
@@ -225,8 +225,13 @@ namespace Yoakke.Compiler.Semantic
 
             case Expression.DotPath dotPath:
             {
-                var left = (Value.Lvalue)Evaluate(callStack, dotPath.Left, canCache, true);
-                if (left.Getter() is Value.Struct structure)
+                // NOTE: This looks really-really bad
+                // Switching to IR or some properly defined value-semantics could really help here
+                var left = Evaluate(callStack, dotPath.Left, canCache, true);
+                Value.Struct? structure = left is Value.Lvalue lval
+                    ? lval.Getter() as Value.Struct
+                    : left as Value.Struct;
+                if (structure != null)
                 {
                     if (!structure.Fields.TryGetValue(dotPath.Right.Value, out var field))
                     {

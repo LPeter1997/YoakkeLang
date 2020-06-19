@@ -6,15 +6,12 @@ const Vector2 = proc(T: type) -> type {
 	}
 }
 
-const Value = {
-	var v1 = Vector2(i32) {
-		x = 4;
-		y = 7;
-	};
-	var v2 = v1;
-	v2.x = 9;
-	v1.x
+const Value = Vector2(i32) {
+	x = 4;
+	y = 7;
 };
+
+const Value2 = Value.x;
 
 const main = proc() -> i32 {
 	/*var v1 = Vector2(i32) {
@@ -24,6 +21,6 @@ const main = proc() -> i32 {
 	var v2 = v1;
 	v2.x = 9;
 	v1.x*/
-	Value
+	Value2
 }
 
