@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Numerics;
 using System.Text;
@@ -158,7 +159,7 @@ namespace Yoakke.Compiler.Semantic
         {
             switch (expression)
             {
-            case Expression.IntLit intLit: 
+            case Expression.IntLit intLit:
                 // TODO: It should be a generic integer type!
                 return new Value.Int(Type.I32, BigInteger.Parse(intLit.Token.Value));
 
@@ -222,7 +223,7 @@ namespace Yoakke.Compiler.Semantic
             case Expression.StructType structType:
             {
                 var fields = structType.Fields.ToDictionary(
-                    f => f.Item1.Value, 
+                    f => f.Item1.Value,
                     f => EvaluateAsType(callStack, f.Item2, canCache));
                 return new Type.Struct(structType.Token, fields);
             }
@@ -357,6 +358,18 @@ namespace Yoakke.Compiler.Semantic
                 }
                 return Value.Unit;
             }
+
+            case Expression.BinOp binOp:
+                if (binOp.Operator.Type == TokenType.Assign)
+                {
+                    // TODO
+                    throw new NotImplementedException();
+                }
+                else
+                {
+                    // TODO
+                    throw new NotImplementedException();
+                }
 
             default: throw new NotImplementedException();
             }

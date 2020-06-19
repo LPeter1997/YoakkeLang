@@ -127,7 +127,6 @@ namespace Yoakke.Compiler.Semantic
             }
 
             case Expression.BinOp binOp:
-            {
                 if (binOp.Operator.Type == TokenType.Assign)
                 {
                     // The two types need to match to assign
@@ -141,7 +140,6 @@ namespace Yoakke.Compiler.Semantic
                     // TODO
                     throw new NotImplementedException();
                 }
-            }
 
             default: throw new NotImplementedException();
             }
