@@ -17,6 +17,11 @@ using Yoakke.Compiler.Ast;
  Some separator for the proc body?
  */
 
+/*
+ TODO: Since we are planning proper syntax sugar for declarations, it could be a good idea to make const
+ declarations unified and always require the ';'.
+*/
+
 namespace Yoakke.Compiler.Syntax
 {
     using Input = ReadOnlySpan<Token>;
