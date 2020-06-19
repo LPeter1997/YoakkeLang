@@ -54,7 +54,7 @@ namespace Yoakke.Compiler.Ast
             public Expression Value { get; set; }
 
             /// <summary>
-            /// The <see cref="ConstSymbol"/> this constant defines.
+            /// The <see cref="Symbol"/> this constant defines.
             /// </summary>
             public Symbol.Const? Symbol { get; set; }
 

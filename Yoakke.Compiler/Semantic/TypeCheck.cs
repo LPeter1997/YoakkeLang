@@ -34,6 +34,31 @@ namespace Yoakke.Compiler.Semantic
                 ConstEval.Evaluate(constDef);
                 break;
 
+            case Statement.VarDef varDef:
+                if (varDef.Type != null)
+                {
+                    Check(varDef.Type);
+                    Check(varDef.Value);
+                    // There is a type, we need to unify that to the value's type
+                    var type = ConstEval.EvaluateAsType(varDef.Type);
+                    // Type-check value, make sure it's type matches the defined one
+                    var valueType = TypeEval.Evaluate(varDef.Value);
+                    type.Unify(valueType);
+                    // Assign the type to the symbol
+                    Assert.NonNull(varDef.Symbol);
+                    varDef.Symbol.Type = type;
+                }
+                else
+                {
+                    Check(varDef.Value);
+                    // Type-check value
+                    var valueType = TypeEval.Evaluate(varDef.Value);
+                    // Assign the type to the symbol
+                    Assert.NonNull(varDef.Symbol);
+                    varDef.Symbol.Type = valueType;
+                }
+                break;
+
             case Statement.Expression_ expression:
             {
                 // Check subelement

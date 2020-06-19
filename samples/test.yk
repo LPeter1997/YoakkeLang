@@ -1,17 +1,10 @@
 
-const Vector2 = struct {
-	x: i32;
-	y: i32;
-}
-
-const SomeVec = Vector2 { x = 1; y = 2; };
-const SomeField = SomeVec.x;
-
-const get_vec = proc() -> Vector2 {
-	Vector2 { x = 4; y = 7; }
-}
+const Foo = {
+	var x = 123;
+	x
+};
 
 const main = proc() -> i32 {
-	var x = 123;
-	Vector2 { x = 13; y = 2; }.y
+	var x = 0;
+	x
 }

@@ -16,7 +16,7 @@
 		"keywords": {
 			"patterns": [{
 				"name": "keyword.control.yoakke",
-				"match": "\\b(const|if|else)\\b"
+				"match": "\\b(const|var|if|else)\\b"
 			}]
 		},
 		"line_comment": {

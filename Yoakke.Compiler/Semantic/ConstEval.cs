@@ -120,6 +120,29 @@ namespace Yoakke.Compiler.Semantic
                 }
                 break;
 
+            case Statement.VarDef varDef:
+                if (varDef.Type != null)
+                {
+                    // Evaluate type
+                    var type = EvaluateAsType(callStack, varDef.Type, canCache);
+                    // Evaluate value
+                    var value = Evaluate(callStack, varDef.Value, canCache);
+                    // Unify with type
+                    type.Unify(value.Type);
+                    // Assign the variable
+                    Assert.NonNull(varDef.Symbol);
+                    callStack.Peek().Variables.Add(varDef.Symbol, value);
+                }
+                else
+                {
+                    // Evaluate value
+                    var value = Evaluate(callStack, varDef.Value, canCache);
+                    // Assign the variable
+                    Assert.NonNull(varDef.Symbol);
+                    callStack.Peek().Variables.Add(varDef.Symbol, value);
+                }
+                break;
+
             case Statement.Expression_ expression:
             {
                 var value = Evaluate(callStack, expression.Expression, canCache);

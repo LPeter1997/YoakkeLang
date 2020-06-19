@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Yoakke.Compiler.Semantic;
 using Yoakke.Compiler.Syntax;
 
 namespace Yoakke.Compiler.Ast
@@ -24,6 +25,11 @@ namespace Yoakke.Compiler.Ast
             /// The initial value of the variable.
             /// </summary>
             public Expression Value { get; set; }
+
+            /// <summary>
+            /// The <see cref="Symbol"/> this variable defines.
+            /// </summary>
+            public Symbol.Variable? Symbol { get; set; }
 
             /// <summary>
             /// Initializes a new <see cref="VarDef"/>.

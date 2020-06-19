@@ -31,6 +31,17 @@ namespace Yoakke.Compiler.Semantic
                 Define(constDef.Value);
                 break;
 
+            case Statement.VarDef varDef:
+                // Define in type of needed
+                if (varDef.Type != null) Define(varDef.Type);
+                // Define in value
+                Define(varDef.Value);
+                // Declare this symbol, store, add it to symbol table
+                Assert.NonNull(varDef.Scope);
+                varDef.Symbol = new Symbol.Variable(varDef.Name);
+                varDef.Scope.Define(varDef.Symbol);
+                break;
+
             case Statement.Expression_ expression:
                 // Define in the expression
                 Define(expression.Expression);
