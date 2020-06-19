@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using System.Threading;
 using Yoakke.Compiler.Ast;
 using Yoakke.Compiler.Semantic;
 using Yoakke.Compiler.Syntax;
@@ -160,6 +161,21 @@ namespace Yoakke.Compiler.IR
                 {
                     // PASS
                 }
+            }
+            break;
+
+            case Statement.VarDef varDef:
+            {
+                Assert.NonNull(varDef.Symbol);
+                Assert.NonNull(varDef.Symbol.Type);
+                // Get the type of the variavle
+                var varType = Compile(varDef.Symbol.Type.Substitution);
+                // Allocate space for the variable
+                var regPtr = builder.AllocateRegister(new Type.Ptr(varType), varDef.Symbol);
+                builder.AddInstruction(new Instruction.Alloc(regPtr));
+                // Compile value, store it
+                var value = Compile(varDef.Value, false);
+                builder.AddInstruction(new Instruction.Store(regPtr, value));
             }
             break;
 

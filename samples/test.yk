@@ -5,6 +5,6 @@ const Foo = {
 };
 
 const main = proc() -> i32 {
-	var x = 0;
+	var x = 123;
 	x
 }
