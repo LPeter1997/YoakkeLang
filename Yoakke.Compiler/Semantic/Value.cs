@@ -64,6 +64,42 @@ namespace Yoakke.Compiler.Semantic
         }
 
         /// <summary>
+        /// A pseudo-<see cref="Value"/> for compile-time only to emulate lvalues.
+        /// NOTE: This is only needed for the tree-based evaluator, if we decide to design an IR,
+        /// this can be dropped.
+        /// </summary>
+        public class Lvalue : Value
+        {
+            /// <summary>
+            /// The getter function to read out the underlying <see cref="Value"/>.
+            /// </summary>
+            public readonly Func<Value> Getter;
+            /// <summary>
+            /// The setter function to write the underlying <see cref="Value"/>.
+            /// </summary>
+            public readonly Action<Value> Setter;
+
+            public override Type Type => Getter().Type;
+
+            /// <summary>
+            /// Initializes a new <see cref="Lvalue"/>.
+            /// </summary>
+            /// <param name="getter">The getter function to read out the underlying value.</param>
+            /// <param name="setter">The setter function to write the underlying value.</param>
+            public Lvalue(Func<Value> getter, Action<Value> setter)
+            {
+                Getter = getter;
+                Setter = setter;
+            }
+
+            public override bool EqualsNonNull(Value other)
+            {
+                // TODO
+                throw new NotImplementedException();
+            }
+        }
+
+        /// <summary>
         /// A procedure as a compile-time <see cref="Value"/>.
         /// </summary>
         public class Proc : Value

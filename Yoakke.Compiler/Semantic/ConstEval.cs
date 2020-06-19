@@ -36,7 +36,7 @@ namespace Yoakke.Compiler.Semantic
         {
             var callStk = new Stack<StackFrame>();
             callStk.Push(new StackFrame());
-            return Evaluate(callStk, expression, true);
+            return Evaluate(callStk, expression, true, false);
         }
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace Yoakke.Compiler.Semantic
             public Dictionary<Symbol.Variable, Value> Variables = new Dictionary<Symbol.Variable, Value>();
         }
 
-        private static Value Evaluate(Stack<StackFrame> callStack, Expression expression, bool canCache)
+        private static Value Evaluate(Stack<StackFrame> callStack, Expression expression, bool canCache, bool lvalue)
         {
             // NOTE: We need canCache because we can't cache *everything*. For example, we can't cache the values of
             // procedure bodies, as that would result in the same value for each evaluation of the procedure body, since once it's
@@ -69,19 +69,19 @@ namespace Yoakke.Compiler.Semantic
             {
                 if (expression.ConstantValue == null)
                 {
-                    expression.ConstantValue = EvaluateImpl(callStack, expression, canCache);
+                    expression.ConstantValue = EvaluateImpl(callStack, expression, canCache, lvalue);
                 }
                 return expression.ConstantValue;
             }
             else
             {
-                return EvaluateImpl(callStack, expression, canCache);
+                return EvaluateImpl(callStack, expression, canCache, lvalue);
             }
         }
 
         private static Type EvaluateAsType(Stack<StackFrame> callStack, Expression expression, bool canCache)
         {
-            var value = Evaluate(callStack, expression, canCache);
+            var value = Evaluate(callStack, expression, canCache, false);
             value.Type.Unify(Type.Type_);
             return (Type)value;
         }
@@ -106,7 +106,7 @@ namespace Yoakke.Compiler.Semantic
                     var pseudoValue = new Value.UnderEvaluation();
                     constDef.Symbol.Value = pseudoValue;
                     // Then we do the actual evaluation
-                    constDef.Symbol.Value = Evaluate(callStack, constDef.Value, true);
+                    constDef.Symbol.Value = Evaluate(callStack, constDef.Value, true, false);
                     // Finally we unify the types of the two values to not to lose inference information
                     constDef.Symbol.Value.Type.Unify(pseudoValue.Type);
                 }
@@ -127,7 +127,7 @@ namespace Yoakke.Compiler.Semantic
                     // Evaluate type
                     var type = EvaluateAsType(callStack, varDef.Type, canCache);
                     // Evaluate value
-                    var value = Evaluate(callStack, varDef.Value, canCache);
+                    var value = Evaluate(callStack, varDef.Value, canCache, false);
                     // Unify with type
                     type.Unify(value.Type);
                     // Assign the variable
@@ -137,7 +137,7 @@ namespace Yoakke.Compiler.Semantic
                 else
                 {
                     // Evaluate value
-                    var value = Evaluate(callStack, varDef.Value, canCache);
+                    var value = Evaluate(callStack, varDef.Value, canCache, false);
                     // Assign the variable
                     Assert.NonNull(varDef.Symbol);
                     callStack.Peek().Variables.Add(varDef.Symbol, value);
@@ -146,8 +146,8 @@ namespace Yoakke.Compiler.Semantic
 
             case Statement.Expression_ expression:
             {
-                var value = Evaluate(callStack, expression.Expression, canCache);
-                value.Type.Unify(Type.Unit);
+                var value = Evaluate(callStack, expression.Expression, canCache, false);
+                if (!expression.HasSemicolon) Type.Unit.Unify(value.Type);
             }
             break;
 
@@ -155,21 +155,25 @@ namespace Yoakke.Compiler.Semantic
             }
         }
 
-        private static Value EvaluateImpl(Stack<StackFrame> callStack, Expression expression, bool canCache)
+        private static Value EvaluateImpl(Stack<StackFrame> callStack, Expression expression, bool canCache, bool lvalue)
         {
             switch (expression)
             {
             case Expression.IntLit intLit:
+                if (lvalue) throw new NotImplementedException("Int literal can't be an lvalue!");
                 // TODO: It should be a generic integer type!
                 return new Value.Int(Type.I32, BigInteger.Parse(intLit.Token.Value));
 
             case Expression.BoolLit boolLit:
+                if (lvalue) throw new NotImplementedException("Bool literal can't be an lvalue!");
                 return new Value.Bool(boolLit.Token.Type == TokenType.KwTrue);
 
             case Expression.StrLit strLit:
+                if (lvalue) throw new NotImplementedException("String literal can't be an lvalue!");
                 return new Value.Str(strLit.Escape());
 
             case Expression.Intrinsic intrinsic:
+                if (lvalue) throw new NotImplementedException("Intrinsic can't be an lvalue!");
                 Assert.NonNull(intrinsic.Symbol);
                 return new Value.IntrinsicProc(intrinsic.Symbol);
 
@@ -180,6 +184,7 @@ namespace Yoakke.Compiler.Semantic
                 {
                 case Symbol.Const constSym:
                 {
+                    if (lvalue) throw new NotImplementedException("Constants can't be lvalues!");
                     // Symbol already has a value, return that
                     if (constSym.Value != null) return constSym.Value;
                     // No value, must be evaluatable
@@ -193,17 +198,34 @@ namespace Yoakke.Compiler.Semantic
                 }
 
                 // Simply wrap
-                case Symbol.Intrinsic intrinsicSym: return new Value.IntrinsicProc(intrinsicSym);
+                case Symbol.Intrinsic intrinsicSym:
+                    if (lvalue) throw new NotImplementedException("Intrinsics can't be lvalues!");
+                    return new Value.IntrinsicProc(intrinsicSym);
 
                 // Simply look up the local
-                case Symbol.Variable varSym: return callStack.Peek().Variables[varSym];
+                case Symbol.Variable varSym:
+                {
+                    var frame = callStack.Peek();
+                    if (lvalue)
+                    {
+                        // Wrap up the value in an lvalue
+                        return new Value.Lvalue(
+                            () => frame.Variables[varSym],
+                            v => frame.Variables[varSym] = v);
+                    }
+                    else
+                    {
+                        // Simply return the value
+                        return frame.Variables[varSym];
+                    }
+                }
 
                 default: throw new NotImplementedException();
                 }
 
             case Expression.DotPath dotPath:
             {
-                var left = Evaluate(callStack, dotPath.Left, canCache);
+                var left = Evaluate(callStack, dotPath.Left, canCache, false);
                 if (left is Value.Struct structure)
                 {
                     if (!structure.Fields.TryGetValue(dotPath.Right.Value, out var field))
@@ -211,7 +233,17 @@ namespace Yoakke.Compiler.Semantic
                         // TODO
                         throw new NotImplementedException("No such field of struct!");
                     }
-                    return field;
+                    if (lvalue)
+                    {
+                        // We need to wrap
+                        return new Value.Lvalue(
+                            () => structure.Fields[dotPath.Right.Value],
+                            v => structure.Fields[dotPath.Right.Value] = v);
+                    }
+                    else
+                    {
+                        return field;
+                    }
                 }
                 else
                 {
@@ -222,6 +254,7 @@ namespace Yoakke.Compiler.Semantic
 
             case Expression.StructType structType:
             {
+                if (lvalue) throw new NotImplementedException("Struct types can't be lvalues!");
                 var fields = structType.Fields.ToDictionary(
                     f => f.Item1.Value,
                     f => EvaluateAsType(callStack, f.Item2, canCache));
@@ -230,6 +263,7 @@ namespace Yoakke.Compiler.Semantic
 
             case Expression.StructValue structValue:
             {
+                if (lvalue) throw new NotImplementedException("Struct values can't be lvalues!");
                 // Type-check
                 TypeCheck.Check(structValue);
                 // If the above didn't throw any errors, we are good to go
@@ -237,12 +271,13 @@ namespace Yoakke.Compiler.Semantic
                 var structType = EvaluateAsType(callStack, structValue.StructType, canCache);
                 var fields = structValue.Fields.ToDictionary(
                     f => f.Item1.Value,
-                    f => Evaluate(callStack, f.Item2, canCache));
+                    f => Evaluate(callStack, f.Item2, canCache, false));
                 return new Value.Struct(structType, fields);
             }
 
             case Expression.ProcType procType:
             {
+                if (lvalue) throw new NotImplementedException("Procedure types can't be lvalues!");
                 // Evaluate parameters
                 var parameters = procType.ParameterTypes.Select(x => EvaluateAsType(callStack, x, canCache)).ToList();
                 // Evaluate return type, if any
@@ -253,6 +288,7 @@ namespace Yoakke.Compiler.Semantic
 
             case Expression.Proc proc:
             {
+                if (lvalue) throw new NotImplementedException("Procedure values can't be lvalues!");
                 // Evaluate parameters
                 var parameters = proc.Parameters.Select(x => EvaluateAsType(callStack, x.Type, canCache)).ToList();
                 // Evaluate return type, if any
@@ -270,14 +306,14 @@ namespace Yoakke.Compiler.Semantic
             case Expression.Block block:
             {
                 foreach (var stmt in block.Statements) Evaluate(callStack, stmt, canCache);
-                return block.Value == null ? Value.Unit : Evaluate(callStack, block.Value, canCache);
+                return block.Value == null ? Value.Unit : Evaluate(callStack, block.Value, canCache, lvalue);
             }
 
             case Expression.Call call:
             {
                 // Evaluate the procedure and the arguments
-                var proc = Evaluate(callStack, call.Proc, canCache);
-                var args = call.Arguments.Select(x => Evaluate(callStack, x, canCache)).ToList();
+                var proc = Evaluate(callStack, call.Proc, canCache, false);
+                var args = call.Arguments.Select(x => Evaluate(callStack, x, canCache, false)).ToList();
 
                 if (proc is Value.Proc procValue)
                 {
@@ -298,7 +334,7 @@ namespace Yoakke.Compiler.Semantic
                         callStack.Peek().Variables.Add(arg.Second, arg.First);
                     }
                     // Evaluate the body
-                    var value = Evaluate(callStack, procValue.Node.Body, false);
+                    var value = Evaluate(callStack, procValue.Node.Body, false, lvalue);
                     callStack.Pop();
                     return value;
                 }
@@ -323,7 +359,7 @@ namespace Yoakke.Compiler.Semantic
             case Expression.If iff:
             {
                 // Evaluate condition
-                var condition = Evaluate(callStack, iff.Condition, canCache);
+                var condition = Evaluate(callStack, iff.Condition, canCache, false);
                 // Enforce bool condition
                 Type.Bool.Unify(condition.Type);
                 var condValue = ((Value.Bool)condition).Value;
@@ -331,7 +367,7 @@ namespace Yoakke.Compiler.Semantic
                 if (condValue)
                 {
                     // Evaluate then, type check else
-                    var thenValue = Evaluate(callStack, iff.Then, canCache);
+                    var thenValue = Evaluate(callStack, iff.Then, canCache, lvalue);
                     if (iff.Else != null)
                     {
                         var elseType = TypeEval.Evaluate(iff.Else);
@@ -347,7 +383,7 @@ namespace Yoakke.Compiler.Semantic
                 {
                     var thenType = TypeEval.Evaluate(iff.Then);
                     // Evaluate else, type check then
-                    var elseValue = Evaluate(callStack, iff.Else, canCache);
+                    var elseValue = Evaluate(callStack, iff.Else, canCache, lvalue);
                     thenType.Unify(elseValue.Type);
                     return elseValue;
                 }
@@ -362,8 +398,15 @@ namespace Yoakke.Compiler.Semantic
             case Expression.BinOp binOp:
                 if (binOp.Operator.Type == TokenType.Assign)
                 {
-                    // TODO
-                    throw new NotImplementedException();
+                    if (lvalue) throw new NotImplementedException("Assignment can't be lvalues!");
+
+                    // We must receive our tricky type on the left-hand-side
+                    var left = (Value.Lvalue)Evaluate(callStack, binOp.Left, canCache, true);
+                    var right = Evaluate(callStack, binOp.Right, canCache, false);
+                    left.Type.Unify(right.Type);
+                    // Set the value
+                    left.Setter(right);
+                    return right;
                 }
                 else
                 {

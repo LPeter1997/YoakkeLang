@@ -332,7 +332,7 @@ namespace Yoakke.Compiler.IR
                 if (binOp.Operator.Type == TokenType.Assign)
                 {
                     // TODO: Is this correct? Or should we allow it?
-                    if (lvalue) throw new NotImplementedException("Assignment can't be on the left!");
+                    if (lvalue) throw new NotImplementedException("Assignment can't be lvalues!");
 
                     // Compile left and right
                     var left = Compile(binOp.Left, true);
