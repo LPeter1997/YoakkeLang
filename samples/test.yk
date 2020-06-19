@@ -1,10 +1,6 @@
 
-const Foo = {
-	var x = 123;
-	x
-};
-
 const main = proc() -> i32 {
-	var x = 123;
+	var x = 0;
+	x = 1;
 	x
 }

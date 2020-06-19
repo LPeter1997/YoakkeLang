@@ -447,5 +447,37 @@ namespace Yoakke.Compiler.Ast
                 Else = els;
             }
         }
+
+        /// <summary>
+        /// A binary operation between two <see cref="Expression"/>s.
+        /// </summary>
+        public class BinOp : Expression
+        {
+            /// <summary>
+            /// The left-hand-side operand.
+            /// </summary>
+            public Expression Left { get; set; }
+            /// <summary>
+            /// The operator <see cref="Token"/>.
+            /// </summary>
+            public Token Operator { get; set; }
+            /// <summary>
+            /// The right-hand-side operand.
+            /// </summary>
+            public Expression Right { get; set; }
+
+            /// <summary>
+            /// Initializes a new <see cref="BinOp"/>.
+            /// </summary>
+            /// <param name="left">The left-hand-side operand.</param>
+            /// <param name="op">The operator <see cref="Token"/>.</param>
+            /// <param name="right">The right-hand-side operand.</param>
+            public BinOp(Expression left, Token op, Expression right)
+            {
+                Left = left;
+                Operator = op;
+                Right = right;
+            }
+        }
     }
 }

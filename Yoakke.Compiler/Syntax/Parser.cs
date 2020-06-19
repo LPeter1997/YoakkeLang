@@ -46,7 +46,7 @@ namespace Yoakke.Compiler.Syntax
             var declarations = new List<Declaration>();
             while (Peek(input) != TokenType.End)
             {
-               declarations.Add(ParseDeclaration(ref input));
+                declarations.Add(ParseDeclaration(ref input));
             }
             return new Declaration.Program(declarations);
         }
@@ -88,7 +88,7 @@ namespace Yoakke.Compiler.Syntax
 
             var declaration = TryParse(ref input, ParseDeclaration);
             if (declaration != null) return declaration;
-            
+
             var expressionStatement = TryParse(ref input, ParseExpressionStatement);
             if (expressionStatement != null) return expressionStatement;
 
@@ -144,7 +144,29 @@ namespace Yoakke.Compiler.Syntax
         }
 
         private static Expression ParseExpression(ref Input input, ExprState state) =>
-            ParsePostfixExpression(ref input, state);
+            ParseBinaryExpression(ref input, state);
+
+        private static Expression ParseBinaryExpression(ref Input input, ExprState state)
+        {
+            // TODO: For now this is fine, but later we'd need a precedence and associativity table
+
+            var left = ParsePrefixExpression(ref input, state);
+            if (!state.HasFlag(ExprState.TypeOnly) && Match(ref input, TokenType.Assign, out var op))
+            {
+                // '=' is right-associative, recurse
+                var right = ParseBinaryExpression(ref input, state);
+                // Fold right
+                left = new Expression.BinOp(left, op, right);
+            }
+
+            return left;
+        }
+
+        private static Expression ParsePrefixExpression(ref Input input, ExprState state)
+        {
+            // NOTE: For now we just use this for extendability
+            return ParsePostfixExpression(ref input, state);
+        }
 
         private static Expression ParsePostfixExpression(ref Input input, ExprState state)
         {
