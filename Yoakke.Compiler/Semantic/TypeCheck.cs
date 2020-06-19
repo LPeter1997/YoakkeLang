@@ -186,6 +186,12 @@ namespace Yoakke.Compiler.Semantic
                 if (iff.Else != null) Check(iff.Else);
                 break;
 
+            case Expression.BinOp binOp:
+                // Check left and right
+                Check(binOp.Left);
+                Check(binOp.Right);
+                break;
+
             default: throw new NotImplementedException();
             }
         }

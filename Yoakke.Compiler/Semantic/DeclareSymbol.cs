@@ -142,6 +142,12 @@ namespace Yoakke.Compiler.Semantic
                 }
                 break;
 
+            case Expression.BinOp binOp:
+                // Declare in both left and right
+                Declare(symbolTable, binOp.Left);
+                Declare(symbolTable, binOp.Right);
+                break;
+
             default: throw new NotImplementedException();
             }
         }

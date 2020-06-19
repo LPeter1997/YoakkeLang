@@ -1,6 +1,10 @@
 
-const main = proc() -> i32 {
+const Foo = {
 	var x = 0;
-	x = 1;
+	x = 16;
 	x
+};
+
+const main = proc() -> i32 {
+	Foo
 }

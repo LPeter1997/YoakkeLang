@@ -130,11 +130,17 @@ namespace Yoakke.Compiler.Semantic
                 break;
 
             case Expression.If iff:
-                // Declare in condition and then
+                // Define in condition and then
                 Define(iff.Condition);
                 Define(iff.Then);
-                // Declare in else if needed
+                // Define in else if needed
                 if (iff.Else != null) Define(iff.Else);
+                break;
+
+            case Expression.BinOp binOp:
+                // Define in left and right
+                Define(binOp.Left);
+                Define(binOp.Right);
                 break;
 
             default: throw new NotImplementedException();

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Yoakke.Compiler.Ast;
+using Yoakke.Compiler.Syntax;
 using Yoakke.Compiler.Utils;
 
 namespace Yoakke.Compiler.Semantic
@@ -123,6 +124,23 @@ namespace Yoakke.Compiler.Semantic
                     Type.Unit.Unify(thenType);
                 }
                 return thenType;
+            }
+
+            case Expression.BinOp binOp:
+            {
+                if (binOp.Operator.Type == TokenType.Assign)
+                {
+                    // The two types need to match to assign
+                    var leftType = Evaluate(binOp.Left);
+                    var rightType = Evaluate(binOp.Right);
+                    leftType.Unify(rightType);
+                    return leftType;
+                }
+                else
+                {
+                    // TODO
+                    throw new NotImplementedException();
+                }
             }
 
             default: throw new NotImplementedException();

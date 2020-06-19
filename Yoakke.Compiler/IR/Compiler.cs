@@ -327,6 +327,28 @@ namespace Yoakke.Compiler.IR
                 return retValue;
             }
 
+            case Expression.BinOp binOp:
+            {
+                if (binOp.Operator.Type == TokenType.Assign)
+                {
+                    // TODO: Is this correct? Or should we allow it?
+                    if (lvalue) throw new NotImplementedException("Assignment can't be on the left!");
+
+                    // Compile left and right
+                    var left = Compile(binOp.Left, true);
+                    var right = Compile(binOp.Right, false);
+                    // Store right in left
+                    builder.AddInstruction(new Instruction.Store(left, right));
+                    // Value is the right-hand-side
+                    return right;
+                }
+                else
+                {
+                    // TODO
+                    throw new NotImplementedException();
+                }
+            }
+
             default: throw new NotImplementedException();
             }
         }
