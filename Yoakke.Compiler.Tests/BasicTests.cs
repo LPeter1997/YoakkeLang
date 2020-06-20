@@ -812,6 +812,8 @@ namespace Yoakke.Compiler.Tests
             Assert.IsNotNull(err.UnknownField);
             Assert.AreEqual(err.UnknownField.Value.Value, "z");
         }
+
+        // TODO: Add more
     }
 
     // TODO: Test structs
