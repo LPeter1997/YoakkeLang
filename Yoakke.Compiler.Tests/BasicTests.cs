@@ -528,4 +528,8 @@ namespace Yoakke.Compiler.Tests
             Assert.AreEqual(f(), 22);
         }
     }
+
+    // TODO: Test if-else
+    // TODO: Test structs
+    // TODO: Test generics
 }
