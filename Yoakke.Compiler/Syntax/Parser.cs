@@ -285,7 +285,11 @@ namespace Yoakke.Compiler.Syntax
             var then = ParseBlockExpression(ref input);
 
             Expression? els = null;
-            if (Match(ref input, TokenType.KwElse)) els = ParseBlockExpression(ref input);
+            if (Match(ref input, TokenType.KwElse))
+            {
+                if (Peek(input) == TokenType.KwIf) els = ParseIfExpression(ref input);
+                else els = ParseBlockExpression(ref input);
+            }
 
             return new Expression.If(condition, then, els);
         }

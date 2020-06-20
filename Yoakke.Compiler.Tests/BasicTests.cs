@@ -341,6 +341,66 @@ namespace Yoakke.Compiler.Tests
         }
 
         [TestMethod]
+        public void IfElseWithElseIfsMismatch()
+        {
+            string source = @"
+            const foo = proc() {
+                if true { 0 } else if false { false } else { 0 }
+            };
+";
+            var err = Assert.ThrowsException<TypeError>(() => Compile(source));
+            Assert.IsTrue(PairwiseEquals((err.First, err.Second), (Type.I32, Type.Bool)));
+        }
+
+        [TestMethod]
+        public void IfElseWithElseIfsMismatchElseUnit()
+        {
+            string source = @"
+            const foo = proc() {
+                if true { 0 } else if false { 1 } else { }
+            };
+";
+            var err = Assert.ThrowsException<TypeError>(() => Compile(source));
+            Assert.IsTrue(PairwiseEquals((err.First, err.Second), (Type.I32, Type.Unit)));
+        }
+
+        [TestMethod]
+        public void IfElseWithElseIfsMismatchElseIfUnit()
+        {
+            string source = @"
+            const foo = proc() {
+                if true { 0 } else if false { } else { 3 }
+            };
+";
+            var err = Assert.ThrowsException<TypeError>(() => Compile(source));
+            Assert.IsTrue(PairwiseEquals((err.First, err.Second), (Type.I32, Type.Unit)));
+        }
+
+        [TestMethod]
+        public void IfWithoutElseInExpression()
+        {
+            string source = @"
+            const foo = proc() {
+                var x = if true { 0 };
+            };
+";
+            var err = Assert.ThrowsException<TypeError>(() => Compile(source));
+            Assert.IsTrue(PairwiseEquals((err.First, err.Second), (Type.I32, Type.Unit)));
+        }
+
+        [TestMethod]
+        public void IfWithElseIfWithoutElseInExpression()
+        {
+            string source = @"
+            const foo = proc() {
+                var x = if true { 0 } else if false { 1 };
+            };
+";
+            var err = Assert.ThrowsException<TypeError>(() => Compile(source));
+            Assert.IsTrue(PairwiseEquals((err.First, err.Second), (Type.I32, Type.Unit)));
+        }
+
+        [TestMethod]
         public void IfElseConditionMismatch()
         {
             string source = @"
@@ -526,6 +586,152 @@ namespace Yoakke.Compiler.Tests
 ";
             var f = CompileAndLoadFunc<Func<Int32>>(source);
             Assert.AreEqual(f(), 22);
+        }
+    }
+
+    [TestClass]
+    public class IfElseTests
+    {
+        public TestContext TestContext { get; set; }
+
+        [ClassInitialize]
+        public static void CreateBinariesFolder(TestContext testContext)
+        {
+            Directory.CreateDirectory("binaries");
+        }
+
+        private T CompileAndLoadFunc<T>(string source, string fname = "foo") where T : Delegate
+        {
+            var output = Path.GetFullPath($"binaries/{TestContext.TestName}.dll");
+            var compiler = new Compiler
+            {
+                Source = new Syntax.Source("test.yk", source),
+                OutputType = OutputType.Shared,
+                OutputPath = output,
+            };
+            var exitCode = compiler.Execute();
+            Assert.AreEqual(exitCode, 0);
+            return NativeUtils.LoadNativeMethod<T>(output, fname);
+        }
+
+        [TestMethod]
+        public void IfWithoutElseRuns()
+        {
+            string source = @"
+            const foo = proc() -> i32 { 
+                var x = 3;
+                if true {
+                    x = 7;
+                }
+                x
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 7);
+        }
+
+        [TestMethod]
+        public void IfWithoutElseDoesNotRun()
+        {
+            string source = @"
+            const foo = proc() -> i32 { 
+                var x = 34;
+                if false {
+                    x = 74;
+                }
+                x
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 34);
+        }
+
+        [TestMethod]
+        public void IfWithElseRunsThen()
+        {
+            string source = @"
+            const foo = proc() -> i32 { 
+                var x = 8;
+                if true {
+                    x = 3;
+                }
+                else {
+                    x = 2;
+                }
+                x
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 3);
+        }
+
+        [TestMethod]
+        public void IfWithElseRunsElse()
+        {
+            string source = @"
+            const foo = proc() -> i32 { 
+                var x = 23;
+                if false {
+                    x = 37;
+                }
+                else {
+                    x = 93;
+                }
+                x
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 93);
+        }
+
+        [TestMethod]
+        public void IfWithElseIfsRunsFirstElseIf()
+        {
+            string source = @"
+            const foo = proc() -> i32 { 
+                var x = 23;
+                if false {
+                    x = 12;
+                }
+                else if true {
+                    x = 44;
+                }
+                else if true {
+                    x = 35;
+                }
+                else {
+                    x = 62;
+                }
+                x
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 44);
+        }
+
+        [TestMethod]
+        public void IfWithElseIfsRunsSecondElseIf()
+        {
+            string source = @"
+            const foo = proc() -> i32 { 
+                var x = 23;
+                if false {
+                    x = 12;
+                }
+                else if false {
+                    x = 44;
+                }
+                else if true {
+                    x = 35;
+                }
+                else {
+                    x = 62;
+                }
+                x
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 35);
         }
     }
 
