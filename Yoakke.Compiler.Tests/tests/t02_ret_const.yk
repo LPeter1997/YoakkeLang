@@ -6,4 +6,4 @@
 
 const Value = 15;
 
-const foo = proc() -> i32 { Value }
+const foo = proc() -> i32 { Value };

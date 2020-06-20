@@ -4,24 +4,6 @@ using System.Linq;
 using System.Text;
 using Yoakke.Compiler.Ast;
 
-/*
- TODO: Right now we have ambiguities in the grammar because of the optional bracing!
- Examples where this matters:
-
- if true -1 else 0;
- proc() -> true ();
-
- The first one will have the condition (true - 1), the second one will have a return type true().
- We can resolve these for the no-brace cases by
- -1 if true else 0; AKA the Python ternary expression
- Some separator for the proc body?
- */
-
-/*
- TODO: Since we are planning proper syntax sugar for declarations, it could be a good idea to make const
- declarations unified and always require the ';'.
-*/
-
 namespace Yoakke.Compiler.Syntax
 {
     using Input = ReadOnlySpan<Token>;
@@ -73,17 +55,10 @@ namespace Yoakke.Compiler.Syntax
 
             Expect(ref input, TokenType.Assign);
             var value = ParseExpression(ref input, ExprState.None);
-            if (!IsBracedExpressionForConstDeclaration(value))
-            {
-                Expect(ref input, TokenType.Semicolon);
-            }
+            Expect(ref input, TokenType.Semicolon);
 
             return new Declaration.ConstDef(name, type, value);
         }
-
-        private static bool IsBracedExpressionForConstDeclaration(Expression expression) =>
-               expression is Expression.Proc
-            || expression is Expression.StructType;
 
         // Statements //////////////////////////////////////////////////////////
 
@@ -136,7 +111,7 @@ namespace Yoakke.Compiler.Syntax
 
         private static bool IsBracedExpressionForStatement(Expression expression) =>
                expression is Expression.Block
-            || (expression is Expression.If i && i.Then is Expression.Block && (i.Else == null || i.Else is Expression.Block));
+            || expression is Expression.If;
 
         // Expressions /////////////////////////////////////////////////////////
 
@@ -307,26 +282,10 @@ namespace Yoakke.Compiler.Syntax
             Expect(ref input, TokenType.KwIf);
 
             var condition = ParseExpression(ref input, ExprState.NoBraced);
-
-            bool semicolAfterThen = false;
-            var then = ParseExpression(ref input, ExprState.None);
-            if (!IsBracedExpressionForStatement(then) && Match(ref input, TokenType.Semicolon))
-            {
-                // Wrap it up in a block
-                then = new Expression.Block(new List<Statement> { new Statement.Expression_(then, true) }, null);
-                semicolAfterThen = true;
-            }
+            var then = ParseBlockExpression(ref input);
 
             Expression? els = null;
-            if (Match(ref input, TokenType.KwElse))
-            {
-                els = ParseExpression(ref input, ExprState.None);
-                if (semicolAfterThen && !IsBracedExpressionForStatement(els) && Match(ref input, TokenType.Semicolon))
-                {
-                    // Wrap it up in a block
-                    els = new Expression.Block(new List<Statement> { new Statement.Expression_(els, true) }, null);
-                }
-            }
+            if (Match(ref input, TokenType.KwElse)) els = ParseBlockExpression(ref input);
 
             return new Expression.If(condition, then, els);
         }
@@ -371,8 +330,7 @@ namespace Yoakke.Compiler.Syntax
             Expression? returnType = null;
             if (Match(ref input, TokenType.Arrow)) returnType = ParseExpression(ref input, ExprState.TypeOnly);
 
-            var body = ParseExpression(ref input, ExprState.None);
-            if (!IsBracedExpressionForStatement(body)) Expect(ref input, TokenType.Semicolon);
+            var body = ParseBlockExpression(ref input);
 
             return new Expression.Proc(parameters, returnType, body);
         }

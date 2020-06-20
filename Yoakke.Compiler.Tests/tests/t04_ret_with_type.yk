@@ -4,6 +4,6 @@
 // Input:    []
 // Output:   5
 
-const foo = proc() -> get_i32_type() { 5 }
+const foo = proc() -> get_i32_type() { 5 };
 
-const get_i32_type = proc() -> type { i32 }
+const get_i32_type = proc() -> type { i32 };

@@ -4,6 +4,6 @@
 // Input:    []
 // Output:   3
 
-const foo = proc() -> i32 { bar() }
+const foo = proc() -> i32 { bar() };
 
-const bar = proc() -> i32 { 3 }
+const bar = proc() -> i32 { 3 };

@@ -4,4 +4,4 @@
 // Input:    []
 // Output:   7
 
-const foo = proc() -> i32 { 7 }
+const foo = proc() -> i32 { 7 };
