@@ -361,5 +361,171 @@ namespace Yoakke.Compiler.Tests
             var err = Assert.ThrowsException<TypeError>(() => Compile(source));
             Assert.IsTrue(PairwiseEquals((err.First, err.Second), (Type.I32, Type.Bool)));
         }
+
+        [TestMethod]
+        public void VariableTypeMismatch()
+        {
+            string source = @"
+            const foo = proc() {
+                var x: i32 = true;
+            };
+";
+            var err = Assert.ThrowsException<TypeError>(() => Compile(source));
+            Assert.IsTrue(PairwiseEquals((err.First, err.Second), (Type.I32, Type.Bool)));
+        }
+
+        [TestMethod]
+        public void VariableTypeMismatchComptime()
+        {
+            string source = @"
+            const A = {
+                var x: i32 = true;
+                x
+            };
+";
+            var err = Assert.ThrowsException<TypeError>(() => Compile(source));
+            Assert.IsTrue(PairwiseEquals((err.First, err.Second), (Type.I32, Type.Bool)));
+        }
+    }
+
+    [TestClass]
+    public class VariableTests
+    {
+        public TestContext TestContext { get; set; }
+
+        [ClassInitialize]
+        public static void CreateBinariesFolder(TestContext testContext)
+        {
+            Directory.CreateDirectory("binaries");
+        }
+
+        private T CompileAndLoadFunc<T>(string source, string fname = "foo") where T : Delegate
+        {
+            var output = Path.GetFullPath($"binaries/{TestContext.TestName}.dll");
+            var compiler = new Compiler
+            {
+                Source = new Syntax.Source("test.yk", source),
+                OutputType = OutputType.Shared,
+                OutputPath = output,
+            };
+            var exitCode = compiler.Execute();
+            Assert.AreEqual(exitCode, 0);
+            return NativeUtils.LoadNativeMethod<T>(output, fname);
+        }
+
+        [TestMethod]
+        public void InitializedValue()
+        {
+            string source = @"
+            const foo = proc() -> i32 { 
+                var x = 234;
+                x
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 234);
+        }
+
+        [TestMethod]
+        public void InitializedValueExecuteComptime()
+        {
+            string source = @"
+            const bar = proc() -> i32 { 
+                var x = 66;
+                x
+            };
+            const Value = bar();
+            const foo = proc() -> i32 { Value };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 66);
+        }
+
+        [TestMethod]
+        public void InitializedValueComptime()
+        {
+            string source = @"
+            const V = { 
+                var x = 99;
+                x
+            };
+            const foo = proc() -> i32 { V };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 99);
+        }
+
+        [TestMethod]
+        public void ReassignValue()
+        {
+            string source = @"
+            const foo = proc() -> i32 { 
+                var x = 234;
+                x = 56;
+                x
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 56);
+        }
+
+        [TestMethod]
+        public void ReassignValueExecuteComptime()
+        {
+            string source = @"
+            const bar = proc() -> i32 { 
+                var x = 66;
+                x = 53;
+                x
+            };
+            const Value = bar();
+            const foo = proc() -> i32 { Value };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 53);
+        }
+
+        [TestMethod]
+        public void ReassignValueComptime()
+        {
+            string source = @"
+            const V = { 
+                var x = 99;
+                x = 23;
+                x
+            };
+            const foo = proc() -> i32 { V };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 23);
+        }
+
+        [TestMethod]
+        public void ReassignParameter()
+        {
+            string source = @"
+            const foo = proc(x: i32) -> i32 { 
+                x = 576;
+                x
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 576);
+        }
+
+        [TestMethod]
+        public void ReassignParameterComptime()
+        {
+            string source = @"
+            const bar = proc(x: i32) -> i32 { 
+                x = 22;
+                x
+            };
+            const Value = bar(2);
+            const foo = proc() -> i32 { Value };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 22);
+        }
     }
 }
