@@ -14,15 +14,53 @@ namespace Yoakke.Compiler.Tests
             var projectFolder = Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.Parent;
             var testFolder = projectFolder.GetDirectories("tests").First();
 
-            foreach (var item in testFolder.GetFiles())
+            bool success = true;
+            int index = 0;
+            foreach (var file in testFolder.GetFiles())
             {
-                var src = File.ReadAllText(item.FullName);
-                var meta = MetadataParser.Parse(src);
-                foreach (var kv in meta)
+                var test = TestParser.ParseTest(file.FullName);
+
+                Console.Write($"{index}. [");
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                var iconPos = Console.CursorLeft;
+                Console.Write("  ?  ");
+                Console.ResetColor();
+                Console.Write($"] ({file.Name}) {test.Description}");
+
+                var oldPos = Console.CursorLeft;
+                Console.CursorLeft = iconPos;
+                if (test.Run(out var message))
                 {
-                    Console.WriteLine($"{kv.Key} - {kv.Value}");
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.Write("  OK ");
+                    Console.CursorLeft = oldPos;
+                    Console.WriteLine();
+                    Console.ResetColor();
                 }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.Write("ERROR");
+                    Console.CursorLeft = oldPos;
+                    Console.WriteLine();
+                    Console.ResetColor();
+                    Console.WriteLine(message);
+                    success = false;
+                }
+                ++index;
             }
+
+            if (success)
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("ALL TESTS PASSED");
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("ERROR IN TEST CASES");
+            }
+            Console.ResetColor();
         }
     }
 }
