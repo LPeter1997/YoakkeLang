@@ -287,5 +287,79 @@ namespace Yoakke.Compiler.Tests
             var err = Assert.ThrowsException<TypeError>(() => Compile(source));
             Assert.IsTrue(PairwiseEquals((err.First, err.Second), (Type.I32, Type.Bool)));
         }
+
+        [TestMethod]
+        public void EarlyImplicitReturnError()
+        {
+            string source = @"
+            const foo = proc() -> i32 {
+                {
+                    123
+                }
+                0
+            };
+";
+            var err = Assert.ThrowsException<TypeError>(() => Compile(source));
+            Assert.IsTrue(PairwiseEquals((err.First, err.Second), (Type.I32, Type.Unit)));
+        }
+
+        [TestMethod]
+        public void EarlyImplicitReturnErrorComptime()
+        {
+            string source = @"
+            const A = {
+                {
+                    123
+                }
+                0
+            };
+";
+            var err = Assert.ThrowsException<TypeError>(() => Compile(source));
+            Assert.IsTrue(PairwiseEquals((err.First, err.Second), (Type.I32, Type.Unit)));
+        }
+
+        [TestMethod]
+        public void IfElseMismatch()
+        {
+            string source = @"
+            const foo = proc() {
+                if true { 0 } else { false }
+            };
+";
+            var err = Assert.ThrowsException<TypeError>(() => Compile(source));
+            Assert.IsTrue(PairwiseEquals((err.First, err.Second), (Type.I32, Type.Bool)));
+        }
+
+        [TestMethod]
+        public void IfElseMismatchComptime()
+        {
+            string source = @"
+            const A = if true { 0 } else { false };
+";
+            var err = Assert.ThrowsException<TypeError>(() => Compile(source));
+            Assert.IsTrue(PairwiseEquals((err.First, err.Second), (Type.I32, Type.Bool)));
+        }
+
+        [TestMethod]
+        public void IfElseConditionMismatch()
+        {
+            string source = @"
+            const foo = proc() {
+                if 4 { 0 } else { 1 }
+            };
+";
+            var err = Assert.ThrowsException<TypeError>(() => Compile(source));
+            Assert.IsTrue(PairwiseEquals((err.First, err.Second), (Type.I32, Type.Bool)));
+        }
+
+        [TestMethod]
+        public void IfElseConditionMismatchComptime()
+        {
+            string source = @"
+            const A = if 4 { 0 } else { 1 };
+";
+            var err = Assert.ThrowsException<TypeError>(() => Compile(source));
+            Assert.IsTrue(PairwiseEquals((err.First, err.Second), (Type.I32, Type.Bool)));
+        }
     }
 }
