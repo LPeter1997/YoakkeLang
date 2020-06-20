@@ -15,7 +15,7 @@ namespace Yoakke.Compiler.Tests
             var testFolder = projectFolder.GetDirectories("tests").First();
 
             bool success = true;
-            int index = 0;
+            int index = 1;
             foreach (var file in testFolder.GetFiles())
             {
                 var test = TestParser.ParseTest(file.FullName);

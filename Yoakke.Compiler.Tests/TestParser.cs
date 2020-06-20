@@ -10,6 +10,7 @@ namespace Yoakke.Compiler.Tests
     {
         public static TestCase ParseTest(string sourcePath)
         {
+            var sourceFileName = Path.GetFileName(sourcePath);
             var source = File.ReadAllText(sourcePath);
             var meta = ParseMetadata(source);
 
@@ -30,7 +31,7 @@ namespace Yoakke.Compiler.Tests
                 {
                     Description = description,
                     SourceFile = sourcePath,
-                    OutputFile = "test.dll",
+                    OutputFile = $"{sourceFileName}.out.dll",
                     OutputType = OutputType.Shared,
                     FunctionName = functionName,
                     FunctionType = functionType,
