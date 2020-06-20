@@ -107,5 +107,97 @@ namespace Yoakke.Compiler.Tests
             var f = CompileAndLoadFunc<Func<Int32>>(source);
             Assert.AreEqual(f(), 9);
         }
+
+        [TestMethod]
+        public void ReturnValueIsParameter()
+        {
+            string source = @"
+            const foo = proc(x: i32) -> i32 { x };
+";
+            var f = CompileAndLoadFunc<Func<Int32, Int32>>(source);
+            Assert.AreEqual(f(2), 2);
+            Assert.AreEqual(f(5), 5);
+            Assert.AreEqual(f(123), 123);
+        }
+
+        [TestMethod]
+        public void ReturnValueIsParameterReassigned()
+        {
+            string source = @"
+            const foo = proc(x: i32) -> i32 { 
+                x = 8;
+                x 
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32, Int32>>(source);
+            Assert.AreEqual(f(2), 8);
+            Assert.AreEqual(f(5), 8);
+            Assert.AreEqual(f(123), 8);
+        }
+
+        [TestMethod]
+        public void SimpleTernaryImplementation()
+        {
+            string source = @"
+            const foo = proc(condition: bool, first: i32, second: i32) -> i32 { 
+                if condition { first } else { second }
+            };
+";
+            var f = CompileAndLoadFunc<Func<bool, Int32, Int32, Int32>>(source);
+            Assert.AreEqual(f(true, 2, 9), 2);
+            Assert.AreEqual(f(false, 2, 9), 9);
+            Assert.AreEqual(f(false, 123, 657), 657);
+            Assert.AreEqual(f(true, 123, 657), 123);
+        }
+
+        [TestMethod]
+        public void SimpleTernaryImplementationCompileTime()
+        {
+            string source = @"
+            const ternary = proc(condition: bool, first: i32, second: i32) -> i32 { 
+                if condition { first } else { second }
+            };
+            const foo = proc() -> i32 {
+                const Value = ternary(true, 3, 8);
+                Value
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 3);
+        }
+
+        [TestMethod]
+        public void SimpleTernaryImplementationCompileTime2()
+        {
+            string source = @"
+            const ternary = proc(condition: bool, first: i32, second: i32) -> i32 { 
+                if condition { first } else { second }
+            };
+            const foo = proc() -> i32 {
+                const Value = ternary(false, 3, 8);
+                Value
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 8);
+        }
+
+        [TestMethod]
+        public void SimpleTernaryImplementationCompileTime3()
+        {
+            string source = @"
+            const ternary = proc(condition: bool, first: i32, second: i32) -> i32 { 
+                if condition { first } else { second }
+            };
+            const foo = proc() -> i32 {
+                const Value1 = ternary(true, 3, 8);
+                const Value2 = ternary(true, 9, 17);
+                const Value3 = ternary(false, 45, 84);
+                Value2
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 9);
+        }
     }
 }
