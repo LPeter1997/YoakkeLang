@@ -2,8 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection.PortableExecutable;
 using System.Text;
+using Yoakke.Compiler.Semantic;
+using Type = Yoakke.Compiler.Semantic.Type;
 
 namespace Yoakke.Compiler.Tests
 {
@@ -198,6 +199,34 @@ namespace Yoakke.Compiler.Tests
 ";
             var f = CompileAndLoadFunc<Func<Int32>>(source);
             Assert.AreEqual(f(), 9);
+        }
+    }
+
+    [TestClass]
+    public class TypeErrorTests
+    {
+        private void Compile(string source)
+        {
+            var output = Path.GetFullPath($"binaries/should_not_exist.dll");
+            var compiler = new Compiler
+            {
+                Source = new Syntax.Source("test.yk", source),
+                OutputType = OutputType.Shared,
+                OutputPath = output,
+            };
+            compiler.Execute();
+        }
+
+        private bool PairwiseEquals((Type, Type) set1, (Type, Type) set2) =>
+               (set1.Item1.EqualsNonNull(set2.Item1) && set1.Item2.EqualsNonNull(set2.Item2))
+            || (set1.Item1.EqualsNonNull(set2.Item2) && set1.Item2.EqualsNonNull(set2.Item1));
+
+        [TestMethod]
+        public void ConstantTypeMismatch()
+        {
+            string source = @"const Foo: i32 = true;";
+            var err = Assert.ThrowsException<TypeError>(() => Compile(source));
+            Assert.IsTrue(PairwiseEquals((err.First, err.Second), (Type.I32, Type.Bool)));
         }
     }
 }

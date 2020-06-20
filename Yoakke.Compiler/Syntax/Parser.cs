@@ -51,7 +51,7 @@ namespace Yoakke.Compiler.Syntax
             Expect(ref input, TokenType.Identifier, out var name);
 
             Expression? type = null;
-            if (Match(ref input, TokenType.Colon)) type = ParseExpression(ref input, ExprState.None);
+            if (Match(ref input, TokenType.Colon)) type = ParseExpression(ref input, ExprState.TypeOnly);
 
             Expect(ref input, TokenType.Assign);
             var value = ParseExpression(ref input, ExprState.None);

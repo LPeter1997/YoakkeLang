@@ -7,7 +7,7 @@ namespace Yoakke.Compiler
     /// <summary>
     /// Represents the base for every compile error.
     /// </summary>
-    abstract class CompileError : Exception
+    public abstract class CompileError : Exception
     {
         /// <summary>
         /// Dumps this error to the standard output.

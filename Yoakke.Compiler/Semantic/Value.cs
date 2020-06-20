@@ -22,7 +22,7 @@ namespace Yoakke.Compiler.Semantic
     /// Represents a compile-time constant.
     /// </summary>
 #pragma warning disable CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
-    abstract partial class Value : IEquatable<Value>, ICloneable
+    public abstract partial class Value : IEquatable<Value>, ICloneable
 #pragma warning restore CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
     {
         /// <summary>

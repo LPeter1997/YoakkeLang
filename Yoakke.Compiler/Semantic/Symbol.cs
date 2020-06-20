@@ -11,7 +11,7 @@ namespace Yoakke.Compiler.Semantic
     /// <summary>
     /// The base for every kind of symbol in the program.
     /// </summary>
-    abstract partial class Symbol
+    public abstract partial class Symbol
     {
         /// <summary>
         /// The name of the <see cref="Symbol"/>.

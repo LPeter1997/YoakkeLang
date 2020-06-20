@@ -8,7 +8,7 @@ namespace Yoakke.Compiler.Semantic
     /// <summary>
     /// A semantic compile error for undefined symbol references.
     /// </summary>
-    class UndefinedSymbolError : CompileError
+    public class UndefinedSymbolError : CompileError
     {
         /// <summary>
         /// The referenced <see cref="Symbol"/>s name.
@@ -56,7 +56,7 @@ namespace Yoakke.Compiler.Semantic
     /// <summary>
     /// A semantic error representing a type mismatch.
     /// </summary>
-    class TypeError : CompileError
+    public class TypeError : CompileError
     {
         /// <summary>
         /// The first <see cref="Type"/> that participated in the unification.

@@ -23,7 +23,7 @@ namespace Yoakke.Compiler.Semantic
     /// <summary>
     /// The base class for types in the compiler.
     /// </summary>
-    abstract partial class Type : Value
+    public abstract partial class Type : Value
     {
         /// <summary>
         /// Returns the substitution for this <see cref="Type"/>. Could be itself, if there's no substitution.

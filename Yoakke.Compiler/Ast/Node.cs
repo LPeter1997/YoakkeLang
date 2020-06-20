@@ -15,7 +15,7 @@ namespace Yoakke.Compiler.Ast
     /// <summary>
     /// Base class for all AST nodes.
     /// </summary>
-    abstract class Node
+    public abstract class Node
     {
         /// <summary>
         /// The scope this AST node belongs to.
@@ -86,7 +86,7 @@ namespace Yoakke.Compiler.Ast
     /// <summary>
     /// Base class for all statements.
     /// </summary>
-    abstract partial class Statement : Node
+    public abstract partial class Statement : Node
     {
     }
 
@@ -94,14 +94,14 @@ namespace Yoakke.Compiler.Ast
     /// Base class for all statements, that can have order-independence.
     /// They are called declarations.
     /// </summary>
-    abstract partial class Declaration : Statement
+    public abstract partial class Declaration : Statement
     {
     }
 
     /// <summary>
     /// Base class for all expressions, that result in a value and can participate in other expressions.
     /// </summary>
-    abstract partial class Expression : Node
+    public abstract partial class Expression : Node
     {
         // TODO: The same way we could remove names from IR, we could remove these and other crud from the tree
         // That would make the tree purely syntactic

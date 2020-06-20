@@ -9,7 +9,7 @@ namespace Yoakke.Compiler.Syntax
     /// Represents an atom in the language's grammar and the lowest level element of parsing.
     /// </summary>
 #pragma warning disable CS0659, CS0661
-    readonly struct Token : IEquatable<Token>
+    public readonly struct Token : IEquatable<Token>
 #pragma warning restore CS0661, CS0659
     {
         /// <summary>
@@ -60,7 +60,7 @@ namespace Yoakke.Compiler.Syntax
     /// <summary>
     /// The categories a <see cref="Token"/> can be.
     /// </summary>
-    enum TokenType
+    public enum TokenType
     {
         // Special cases
 

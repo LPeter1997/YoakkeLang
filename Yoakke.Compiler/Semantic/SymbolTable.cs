@@ -69,7 +69,7 @@ namespace Yoakke.Compiler.Semantic
     /// <summary>
     /// A single, lexical scope of symbols.
     /// </summary>
-    class Scope
+    public class Scope
     {
         /// <summary>
         /// The parent of this <see cref="Scope"/>. Null, if this is the root.

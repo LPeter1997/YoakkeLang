@@ -9,7 +9,7 @@ namespace Yoakke.Compiler.Syntax
     /// Position in the souce text.
     /// </summary>
 #pragma warning disable CS0659, CS0661
-    readonly struct Position : IEquatable<Position>
+    public readonly struct Position : IEquatable<Position>
 #pragma warning restore CS0661, CS0659
     {
         /// <summary>
