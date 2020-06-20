@@ -67,14 +67,14 @@ namespace Yoakke.Compiler.Codegen
             while (!process.StandardError.EndOfStream)
             {
                 string? line = process.StandardError.ReadLine();
-                if (line != null) Compiler.Output.WriteLine(line);
+                if (line != null) Console.WriteLine(line);
             }
             process.WaitForExit();
 
             // Clean up the original file
             File.Delete(tmpPath);
 
-            Compiler.Output.Flush();
+            Console.Out.Flush();
             return process.ExitCode;
         }
 

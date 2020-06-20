@@ -7,7 +7,7 @@ namespace Yoakke.Compiler.Syntax
     /// <summary>
     /// Represents source code that can be accessed line-by-line.
     /// </summary>
-    readonly struct Source
+    public readonly struct Source
     {
         /// <summary>
         /// The path of the source.

@@ -42,14 +42,14 @@ namespace Yoakke.Compiler.Semantic
         {
             if (Position == null)
             {
-                Compiler.Output.Write($"Semantic error: ");
+                Console.Write($"Semantic error: ");
             }
             else
             {
-                Compiler.Output.WriteLine($"Semantic error {Position.Value}!");
-                Compiler.Output.WriteLine(Annotation.Annotate(Position.Value));
+                Console.WriteLine($"Semantic error {Position.Value}!");
+                Console.WriteLine(Annotation.Annotate(Position.Value));
             }
-            Compiler.Output.WriteLine($"Undefined symbol '{Name}'!");
+            Console.WriteLine($"Undefined symbol '{Name}'!");
         }
     }
 
@@ -81,7 +81,7 @@ namespace Yoakke.Compiler.Semantic
         public override void Show()
         {
             // TODO: It would be nice to mark where the types came from?
-            Compiler.Output.WriteLine($"Type mismatch between {First} and {Second}!");
+            Console.WriteLine($"Type mismatch between {First} and {Second}!");
         }
     }
 }

@@ -1,7 +1,0 @@
-// Name:     Implicit return numeric constant
-// Type:     Compiles.FunctionReturnsValue
-// Function: foo :: System.Func`1[System.Int32]
-// Input:    []
-// Output:   7
-
-const foo = proc() -> i32 { 7 };

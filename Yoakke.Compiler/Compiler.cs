@@ -22,11 +22,9 @@ namespace Yoakke.Compiler
 
     public class Compiler
     {
-        // Output stream
+        // Input
 
-        public static TextWriter Output { get; set; } = Console.Out;
-
-        // File input
+        public Source? Source { get; set; }
 
         [Required(ErrorMessage = "A file is required to compile!")]
         [Argument(0, Name = "file", Description = "The file to compile")]
@@ -87,21 +85,24 @@ namespace Yoakke.Compiler
         public int Execute()
         {
             // Read in the source
-            Assert.NonNull(SourceFile);
-            if (!File.Exists(SourceFile))
+            if (Source == null)
             {
-                Output.WriteLine($"Input file '{SourceFile}' not found!");
-                return 1;
+                Assert.NonNull(SourceFile);
+                if (!File.Exists(SourceFile))
+                {
+                    Console.WriteLine($"Input file '{SourceFile}' not found!");
+                    return 1;
+                }
+                Source = new Source(SourceFile, File.ReadAllText(SourceFile));
             }
-            var source = new Source(SourceFile, File.ReadAllText(SourceFile));
 
             // Tokenize
-            var tokens = Lexer.Lex(source);
+            var tokens = Lexer.Lex(Source.Value);
 
             // If we want to dump tokens, do it now
             if (DumpTokens)
             {
-                foreach (var t in tokens) Output.WriteLine($"'{t.Value}' - {t.Type} ({t.Position})");
+                foreach (var t in tokens) Console.WriteLine($"'{t.Value}' - {t.Type} ({t.Position})");
                 return 0;
             }
 
@@ -111,7 +112,7 @@ namespace Yoakke.Compiler
             // If we want to dump the AST, do it now
             if (DumpAst)
             {
-                Output.WriteLine(ast.DumpTree());
+                Console.WriteLine(ast.DumpTree());
                 return 0;
             }
 
@@ -130,7 +131,7 @@ namespace Yoakke.Compiler
             // If we want to dump IR, do it here
             if (DumpIr)
             {
-                Output.WriteLine(IrDump.Dump(namingCtx));
+                Console.WriteLine(IrDump.Dump(namingCtx));
                 return 0;
             }
 
@@ -149,7 +150,7 @@ namespace Yoakke.Compiler
             if (DumpBackend)
             {
                 var backendCode = backend.Compile(namingCtx);
-                Output.WriteLine(backendCode);
+                Console.WriteLine(backendCode);
                 return 0;
             }
 
@@ -160,7 +161,7 @@ namespace Yoakke.Compiler
             // If we need to execute it, do it now
             if (ExecuteImmediately)
             {
-                Output.WriteLine($"Running '{OutputPath}'...");
+                Console.WriteLine($"Running '{OutputPath}'...");
 
                 var startInfo = new ProcessStartInfo(OutputPath);
                 startInfo.RedirectStandardOutput = true;
@@ -171,12 +172,12 @@ namespace Yoakke.Compiler
                 while (!process.StandardError.EndOfStream)
                 {
                     string? line = process.StandardError.ReadLine();
-                    if (line != null) Output.WriteLine(line);
+                    if (line != null) Console.WriteLine(line);
                 }
                 process.WaitForExit();
 
-                Output.WriteLine($"Exit code: {process.ExitCode}");
-                Output.Flush();
+                Console.WriteLine($"Exit code: {process.ExitCode}");
+                Console.Out.Flush();
                 return process.ExitCode;
             }
 
