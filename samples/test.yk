@@ -1,9 +1,5 @@
 
-const Recursive = struct {
-	x: Recursive;
-}
-
-const main = proc() -> i32 {
-	0
+const foo = proc() -> i32 {
+	4
 }
 

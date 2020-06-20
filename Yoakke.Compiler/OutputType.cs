@@ -7,7 +7,7 @@ namespace Yoakke.Compiler
     /// <summary>
     /// The types of output the compiler can produce.
     /// </summary>
-    enum OutputType
+    public enum OutputType
     {
         /// <summary>
         /// Produce IR code.
@@ -21,5 +21,9 @@ namespace Yoakke.Compiler
         /// Produce an executable.
         /// </summary>
         Exe,
+        /// <summary>
+        /// Produce a shared library.
+        /// </summary>
+        Shared,
     }
 }

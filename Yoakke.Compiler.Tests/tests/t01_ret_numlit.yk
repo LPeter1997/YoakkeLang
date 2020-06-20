@@ -1,0 +1,6 @@
+// Name:     Implicit return numeric constant
+// Type:     Compiles.FunctionReturnsValue
+// Function: foo
+// Value:    0
+
+const foo = proc() -> i32 { 7 }

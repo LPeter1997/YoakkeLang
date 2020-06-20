@@ -15,13 +15,17 @@ using System.Diagnostics;
 
 namespace Yoakke.Compiler
 {
-    enum Backend
+    public enum Backend
     {
         C,
     }
 
-    class Compiler
+    public class Compiler
     {
+        // Output stream
+
+        public static TextWriter Output { get; set; } = Console.Out;
+
         // File input
 
         [Required(ErrorMessage = "A file is required to compile!")]
@@ -70,104 +74,113 @@ namespace Yoakke.Compiler
         {
             try
             {
-                // Read in the source
-                Assert.NonNull(SourceFile);
-                if (!File.Exists(SourceFile))
-                {
-                    Console.WriteLine($"Input file '{SourceFile}' not found!");
-                    Environment.Exit(1);
-                }
-                var source = new Source(SourceFile, File.ReadAllText(SourceFile));
-
-                // Tokenize
-                var tokens = Lexer.Lex(source);
-
-                // If we want to dump tokens, do it now
-                if (DumpTokens)
-                {
-                    foreach (var t in tokens) Console.WriteLine($"'{t.Value}' - {t.Type} ({t.Position})");
-                    Environment.Exit(0);
-                }
-
-                // Parse
-                var ast = Parser.ParseProgram(tokens);
-
-                // If we want to dump the AST, do it now
-                if (DumpAst)
-                {
-                    Console.WriteLine(ast.DumpTree());
-                    Environment.Exit(0);
-                }
-
-                // Do semantic checks
-                Checks.CheckAll(ast);
-
-                // Compile to IR
-                var asm = IR.Compiler.Compile(ast);
-
-                // Optimize it
-                var passes = PassesForOptimizationLevel();
-                Optimizer.Optimize(asm, passes);
-
-                var namingCtx = new NamingContext(asm);
-
-                // If we want to dump IR, do it here
-                if (DumpIr)
-                {
-                    Console.WriteLine(IrDump.Dump(namingCtx));
-                    Environment.Exit(0);
-                }
-
-                // If the output type is IR, just write that out now
-                if (OutputType == OutputType.IR)
-                {
-                    var ir = IrDump.Dump(namingCtx);
-                    File.WriteAllText(SourceFile, ir);
-                    Environment.Exit(0);
-                }
-
-                // Get the proper backend
-                var backend = GetBackend();
-                
-                // If we want to dump backend code, do it here
-                if (DumpBackend)
-                {
-                    var backendCode = backend.Compile(namingCtx);
-                    Console.WriteLine(backendCode);
-                    Environment.Exit(0);
-                }
-
-                // Otherwise let's just produce the output
-                var exitCode = backend.CompileAndOutput(namingCtx, OutputPath, OutputType, new object[] { });
-                if (exitCode != 0) Environment.Exit(exitCode);
-                
-                // If we need to execute it, do it now
-                if (ExecuteImmediately)
-                {
-                    Console.WriteLine($"Running '{OutputPath}'...");
-
-                    var startInfo = new ProcessStartInfo(OutputPath);
-                    startInfo.RedirectStandardOutput = true;
-                    startInfo.RedirectStandardError = true;
-                    startInfo.CreateNoWindow = true;
-
-                    var process = Process.Start(startInfo);
-                    while (!process.StandardError.EndOfStream)
-                    {
-                        string? line = process.StandardError.ReadLine();
-                        if (line != null) Console.WriteLine(line);
-                    }
-                    process.WaitForExit();
-
-                    Console.WriteLine($"Exit code: {process.ExitCode}");
-                    Console.Out.Flush();
-                }
+                int exitCode = Execute();
+                Environment.Exit(exitCode);
             }
             catch (CompileError err)
             {
                 err.Show();
                 Environment.Exit(1);
             }
+        }
+
+        public int Execute()
+        {
+            // Read in the source
+            Assert.NonNull(SourceFile);
+            if (!File.Exists(SourceFile))
+            {
+                Output.WriteLine($"Input file '{SourceFile}' not found!");
+                return 1;
+            }
+            var source = new Source(SourceFile, File.ReadAllText(SourceFile));
+
+            // Tokenize
+            var tokens = Lexer.Lex(source);
+
+            // If we want to dump tokens, do it now
+            if (DumpTokens)
+            {
+                foreach (var t in tokens) Output.WriteLine($"'{t.Value}' - {t.Type} ({t.Position})");
+                return 0;
+            }
+
+            // Parse
+            var ast = Parser.ParseProgram(tokens);
+
+            // If we want to dump the AST, do it now
+            if (DumpAst)
+            {
+                Output.WriteLine(ast.DumpTree());
+                return 0;
+            }
+
+            // Do semantic checks
+            Checks.CheckAll(ast);
+
+            // Compile to IR
+            var asm = IR.Compiler.Compile(ast);
+
+            // Optimize it
+            var passes = PassesForOptimizationLevel();
+            Optimizer.Optimize(asm, passes);
+
+            var namingCtx = new NamingContext(asm);
+
+            // If we want to dump IR, do it here
+            if (DumpIr)
+            {
+                Output.WriteLine(IrDump.Dump(namingCtx));
+                return 0;
+            }
+
+            // If the output type is IR, just write that out now
+            if (OutputType == OutputType.IR)
+            {
+                var ir = IrDump.Dump(namingCtx);
+                File.WriteAllText(SourceFile, ir);
+                return 0;
+            }
+
+            // Get the proper backend
+            var backend = GetBackend();
+
+            // If we want to dump backend code, do it here
+            if (DumpBackend)
+            {
+                var backendCode = backend.Compile(namingCtx);
+                Output.WriteLine(backendCode);
+                return 0;
+            }
+
+            // Otherwise let's just produce the output
+            var exitCode = backend.CompileAndOutput(namingCtx, OutputPath, OutputType, new object[] { });
+            if (exitCode != 0) return exitCode;
+
+            // If we need to execute it, do it now
+            if (ExecuteImmediately)
+            {
+                Output.WriteLine($"Running '{OutputPath}'...");
+
+                var startInfo = new ProcessStartInfo(OutputPath);
+                startInfo.RedirectStandardOutput = true;
+                startInfo.RedirectStandardError = true;
+                startInfo.CreateNoWindow = true;
+
+                var process = Process.Start(startInfo);
+                while (!process.StandardError.EndOfStream)
+                {
+                    string? line = process.StandardError.ReadLine();
+                    if (line != null) Output.WriteLine(line);
+                }
+                process.WaitForExit();
+
+                Output.WriteLine($"Exit code: {process.ExitCode}");
+                Output.Flush();
+                return process.ExitCode;
+            }
+
+            return 0;
         }
 
         private List<IPass> PassesForOptimizationLevel()

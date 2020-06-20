@@ -47,6 +47,7 @@ namespace Yoakke.Compiler.Codegen
             flags.Add(path);
             // Object code
             if (outputType == OutputType.Obj) flags.Add("-c");
+            else if (outputType == OutputType.Shared) flags.Add("-shared");
 
             // Compile code, write it out to a file
             var code = Compile(namingContext);
@@ -66,14 +67,14 @@ namespace Yoakke.Compiler.Codegen
             while (!process.StandardError.EndOfStream)
             {
                 string? line = process.StandardError.ReadLine();
-                if (line != null) Console.WriteLine(line);
+                if (line != null) Compiler.Output.WriteLine(line);
             }
             process.WaitForExit();
 
             // Clean up the original file
             File.Delete(tmpPath);
 
-            Console.Out.Flush();
+            Compiler.Output.Flush();
             return process.ExitCode;
         }
 

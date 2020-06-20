@@ -37,11 +37,11 @@ namespace Yoakke.Compiler.Syntax
 
         public override void Show()
         {
-            Console.WriteLine($"Syntax error {EndPosition}!");
-            Console.WriteLine(Annotation.Annotate(StartPosition, new AnnotationSettings { ArrowText = "starting here..." }));
-            Console.WriteLine("...");
-            Console.WriteLine(Annotation.Annotate(EndPosition, new AnnotationSettings { ArrowText = "missing here" }));
-            Console.WriteLine($"Unclosed {Delimeter}!");
+            Compiler.Output.WriteLine($"Syntax error {EndPosition}!");
+            Compiler.Output.WriteLine(Annotation.Annotate(StartPosition, new AnnotationSettings { ArrowText = "starting here..." }));
+            Compiler.Output.WriteLine("...");
+            Compiler.Output.WriteLine(Annotation.Annotate(EndPosition, new AnnotationSettings { ArrowText = "missing here" }));
+            Compiler.Output.WriteLine($"Unclosed {Delimeter}!");
         }
     }
 
@@ -78,11 +78,11 @@ namespace Yoakke.Compiler.Syntax
 
         public override void Show()
         {
-            Console.WriteLine($"Syntax error {Got.Position}!");
-            Console.WriteLine(Annotation.Annotate(Got.Position));
+            Compiler.Output.WriteLine($"Syntax error {Got.Position}!");
+            Compiler.Output.WriteLine(Annotation.Annotate(Got.Position));
             var got = Got.Type == TokenType.End ? "end of file" : Got.Value;
             var context = Context == null ? string.Empty : $" while parsing {Context}";
-            Console.WriteLine($"Expected {Expected}, but got '{got}'{context}!");
+            Compiler.Output.WriteLine($"Expected {Expected}, but got '{got}'{context}!");
         }
     }
 }
