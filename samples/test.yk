@@ -1,5 +1,15 @@
 
-const foo = proc() -> i32 {
-	4
-}
+const Vec2 = struct {
+	x: i32;
+	y: i32;
+};
+
+const Haha = {
+	const P = Vec2{ x = 3; y = 7; };
+	P.x = 5;
+};
+
+const main = proc() -> i32 {
+	Haha
+};
 

@@ -22,7 +22,7 @@ namespace Yoakke.Compiler
                 // For simplicity we inject parameters so we can run from the IDE
                 var cmp = new Compiler
                 {
-                    SourceFile = "../../../../../samples/test.yk",
+                    SourceFile = "../../../../../../samples/test.yk",
                     //DumpIr = true,
                     ExecuteImmediately = true,
                 };
