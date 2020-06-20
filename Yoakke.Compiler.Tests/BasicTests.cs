@@ -735,7 +735,85 @@ namespace Yoakke.Compiler.Tests
         }
     }
 
-    // TODO: Test if-else
+    [TestClass]
+    public class StructTests
+    {
+        public TestContext TestContext { get; set; }
+
+        [ClassInitialize]
+        public static void CreateBinariesFolder(TestContext testContext)
+        {
+            Directory.CreateDirectory("binaries");
+        }
+
+        private void Compile(string source)
+        {
+            var output = Path.GetFullPath($"binaries/should_not_exist.dll");
+            var compiler = new Compiler
+            {
+                Source = new Syntax.Source("test.yk", source),
+                DumpIr = true, // So we don't compile
+            };
+            compiler.Execute();
+        }
+
+        private T CompileAndLoadFunc<T>(string source, string fname = "foo") where T : Delegate
+        {
+            var output = Path.GetFullPath($"binaries/{TestContext.TestName}.dll");
+            var compiler = new Compiler
+            {
+                Source = new Syntax.Source("test.yk", source),
+                OutputType = OutputType.Shared,
+                OutputPath = output,
+            };
+            var exitCode = compiler.Execute();
+            Assert.AreEqual(exitCode, 0);
+            return NativeUtils.LoadNativeMethod<T>(output, fname);
+        }
+
+        [TestMethod]
+        public void NotAllMembersAreInitialized()
+        {
+            string source = @"
+            const Vector2 = struct {
+                x: i32;
+                y: i32;
+            };
+
+            const foo = proc() -> i32 { 
+                var v = Vector2 {
+                    x = 12;
+                };
+            };
+";
+            var err = Assert.ThrowsException<InitializationError>(() => Compile(source));
+            Assert.IsNotNull(err.UninitializedFields);
+            Assert.AreEqual(err.UninitializedFields.Count, 1);
+            Assert.AreEqual(err.UninitializedFields[0], "y");
+        }
+
+        [TestMethod]
+        public void UnknownMemberInitialized()
+        {
+            string source = @"
+            const Vector2 = struct {
+                x: i32;
+                y: i32;
+            };
+
+            const foo = proc() -> i32 { 
+                var v = Vector2 {
+                    x = 12;
+                    z = 34;
+                };
+            };
+";
+            var err = Assert.ThrowsException<InitializationError>(() => Compile(source));
+            Assert.IsNotNull(err.UnknownField);
+            Assert.AreEqual(err.UnknownField.Value.Value, "z");
+        }
+    }
+
     // TODO: Test structs
     // TODO: Test generics
 }

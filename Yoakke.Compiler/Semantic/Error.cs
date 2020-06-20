@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Yoakke.Compiler.Syntax;
+using Yoakke.Compiler.Utils;
 
 namespace Yoakke.Compiler.Semantic
 {
@@ -82,6 +84,56 @@ namespace Yoakke.Compiler.Semantic
         {
             // TODO: It would be nice to mark where the types came from?
             Console.WriteLine($"Type mismatch between {First} and {Second}!");
+        }
+    }
+
+    /// <summary>
+    /// A semantic error when initializing struct fields.
+    /// </summary>
+    public class InitializationError : CompileError
+    {
+        /// <summary>
+        /// The list of uninitialized struct fields, if any.
+        /// </summary>
+        public List<string>? UninitializedFields { get; set; }
+        /// <summary>
+        /// The unknown field that was initialized.
+        /// </summary>
+        public Token? UnknownField { get; set; }
+
+        /// <summary>
+        /// Initializes a new <see cref="InitializationError"/> with uninitialized fields.
+        /// </summary>
+        /// <param name="uninitializedFields">The list of uninitialized fields.</param>
+        public InitializationError(List<string> uninitializedFields)
+        {
+            UninitializedFields = uninitializedFields;
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="InitializationError"/> with an unknown field.
+        /// </summary>
+        /// <param name="unknownField">The unknown field.</param>
+        public InitializationError(Token unknownField)
+        {
+            UnknownField = unknownField;
+        }
+
+        public override void Show()
+        {
+            if (UninitializedFields != null)
+            {
+                Console.WriteLine("Initialization error!");
+                Console.WriteLine($"Uninitialized fields: {UninitializedFields.Select(x => $"'{x}'").StringJoin(", ")}.");
+            }
+            else
+            {
+                Assert.NonNull(UnknownField);
+                var field = UnknownField.Value;
+                Console.WriteLine($"Initialization error {field.Position}!");
+                Console.WriteLine(Annotation.Annotate(field.Position));
+                Console.WriteLine($"Unknown field '{field.Value}'!");
+            }
         }
     }
 }

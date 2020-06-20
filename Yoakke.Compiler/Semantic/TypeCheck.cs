@@ -96,7 +96,7 @@ namespace Yoakke.Compiler.Semantic
                 {
                     // Something is wrong with the name, either double-initialization or unknown field
                     if (ty.Fields.ContainsKey(fieldName)) throw new NotImplementedException("Double field init!");
-                    else throw new NotImplementedException("Struct has no field!");
+                    else throw new InitializationError(field.Item1);
                 }
                 // Unify type with the initialization value's type
                 var fieldType = ty.Fields[fieldName];
@@ -105,7 +105,7 @@ namespace Yoakke.Compiler.Semantic
             // Check if we have uninitialized fields remaining
             if (uninitFields.Count > 0)
             {
-                throw new NotImplementedException("Uninitialized field!");
+                throw new InitializationError(uninitFields.ToList());
             }
         }
 

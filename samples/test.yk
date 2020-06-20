@@ -4,12 +4,11 @@ const Vec2 = struct {
 	y: i32;
 };
 
-const Haha = {
-	const P = Vec2{ x = 3; y = 7; };
-	P.x = 5;
-};
-
 const main = proc() -> i32 {
-	Haha
+	var x = Vec2 {
+		x = 3;
+		z = 23;
+	};
+	0
 };
 
