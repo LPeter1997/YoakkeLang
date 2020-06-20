@@ -1,0 +1,9 @@
+// Name:     Implicit return with return type from a function
+// Type:     Compiles.FunctionReturnsValue
+// Function: foo :: System.Func`1[System.Int32]
+// Input:    []
+// Output:   5
+
+const foo = proc() -> get_i32_type() { 5 }
+
+const get_i32_type = proc() -> type { i32 }
