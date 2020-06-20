@@ -211,8 +211,7 @@ namespace Yoakke.Compiler.Tests
             var compiler = new Compiler
             {
                 Source = new Syntax.Source("test.yk", source),
-                OutputType = OutputType.Shared,
-                OutputPath = output,
+                DumpIr = true, // So we don't compile
             };
             compiler.Execute();
         }
@@ -225,6 +224,66 @@ namespace Yoakke.Compiler.Tests
         public void ConstantTypeMismatch()
         {
             string source = @"const Foo: i32 = true;";
+            var err = Assert.ThrowsException<TypeError>(() => Compile(source));
+            Assert.IsTrue(PairwiseEquals((err.First, err.Second), (Type.I32, Type.Bool)));
+        }
+
+        [TestMethod]
+        public void ConstantTypeMatch()
+        {
+            string source = @"const Foo: bool = true;";
+            Compile(source);
+        }
+
+        [TestMethod]
+        public void ParameterTypeMismatch()
+        {
+            string source = @"
+            const Value = foo(true);
+            const foo = proc(x: i32) {
+            };
+";
+            var err = Assert.ThrowsException<TypeError>(() => Compile(source));
+            Assert.IsTrue(PairwiseEquals((err.First, err.Second), (Type.I32, Type.Bool)));
+        }
+
+        [TestMethod]
+        public void ParameterCountMismatch()
+        {
+            string source = @"
+            const Value = foo(1);
+            const foo = proc(x: i32, y: bool) {
+            };
+";
+            var err = Assert.ThrowsException<TypeError>(() => Compile(source));
+            Assert.IsTrue(err.First is Type.Proc);
+            Assert.IsTrue(err.Second is Type.Proc);
+            var p1 = (Type.Proc)err.First;
+            var p2 = (Type.Proc)err.Second;
+            Assert.IsTrue(p1.Parameters.Count == 1 || p2.Parameters.Count == 1);
+            Assert.IsTrue(p1.Parameters.Count == 2 || p2.Parameters.Count == 2);
+        }
+
+        [TestMethod]
+        public void ImplicitReturnTypeMismatch()
+        {
+            string source = @"
+            const foo = proc() {
+                0
+            };
+";
+            var err = Assert.ThrowsException<TypeError>(() => Compile(source));
+            Assert.IsTrue(PairwiseEquals((err.First, err.Second), (Type.I32, Type.Unit)));
+        }
+
+        [TestMethod]
+        public void ReturnTypeMismatch()
+        {
+            string source = @"
+            const foo = proc() -> bool {
+                0
+            };
+";
             var err = Assert.ThrowsException<TypeError>(() => Compile(source));
             Assert.IsTrue(PairwiseEquals((err.First, err.Second), (Type.I32, Type.Bool)));
         }
