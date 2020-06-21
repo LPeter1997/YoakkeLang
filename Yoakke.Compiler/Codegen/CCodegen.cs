@@ -107,7 +107,9 @@ namespace Yoakke.Compiler.Codegen
 
         private void DeclareExternal(Value.Extern external)
         {
-            Write(builder, "extern ", external.Type, ' ', external.LinkName, ';');
+            Write(builder, "extern ");
+            CompileExternalType(builder, external.Type);
+            Write(builder, ' ', external.LinkName, ';');
         }
 
         private void DeclareProc(Proc proc)
@@ -263,7 +265,12 @@ namespace Yoakke.Compiler.Codegen
             }
         }
 
-        private void CompileType(StringBuilder builder, Type type)
+        private void CompileExternalType(StringBuilder builder, Type type)
+        {
+            CompileType(builder, type, true);
+        }
+
+        private void CompileType(StringBuilder builder, Type type, bool omitFunctionPointer = false)
         {
             switch (type)
             {
@@ -305,7 +312,8 @@ namespace Yoakke.Compiler.Codegen
                         param => Write(paramTypesBuilder, param),
                         () => Write(paramTypesBuilder, ", "));
                     // Write out the typedef
-                    Write(typeDeclarations, "typedef ", returnTypeBuilder, $"(*{typeName})(", paramTypesBuilder, ");\n");
+                    var star = omitFunctionPointer ? string.Empty : "*";
+                    Write(typeDeclarations, "typedef ", returnTypeBuilder, $"({star}{typeName})(", paramTypesBuilder, ");\n");
                 }
                 Write(builder, typeName);
             }
