@@ -228,12 +228,13 @@ namespace Yoakke.Compiler.Semantic
                 // NOTE: This looks really-really bad
                 // Switching to IR or some properly defined value-semantics could really help here
                 var left = Evaluate(callStack, dotPath.Left, canCache, lvalue);
-                Value.Struct? structure = left is Value.Lvalue lval
+                Value.Struct? structureType = left is Value.Lvalue lval
                     ? lval.Getter() as Value.Struct
                     : left as Value.Struct;
-                if (structure != null)
+                Type.Struct? structureValue = left as Type.Struct;
+                if (structureType != null)
                 {
-                    if (!structure.Fields.TryGetValue(dotPath.Right.Value, out var field))
+                    if (!structureType.Fields.TryGetValue(dotPath.Right.Value, out var field))
                     {
                         // TODO
                         throw new NotImplementedException("No such field of struct!");
@@ -242,13 +243,20 @@ namespace Yoakke.Compiler.Semantic
                     {
                         // We need to wrap
                         return new Value.Lvalue(
-                            () => structure.Fields[dotPath.Right.Value],
-                            v => structure.Fields[dotPath.Right.Value] = v);
+                            () => structureType.Fields[dotPath.Right.Value],
+                            v => structureType.Fields[dotPath.Right.Value] = v);
                     }
                     else
                     {
                         return field;
                     }
+                }
+                else if (structureValue != null)
+                {
+                    // TODO: Same todo as in TypeEval's
+
+                    var symbol = (Symbol.Const)structureValue.Scope.Reference(dotPath.Right.Value);
+                    return symbol.GetValue();
                 }
                 else
                 {
