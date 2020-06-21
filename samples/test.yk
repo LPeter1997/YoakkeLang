@@ -1,6 +1,5 @@
 
 const print_i32 = @extern("print_int32", proc(i32));
-const print_bool = @extern("print_bool", proc(bool));
 
 const main = proc() -> i32 {
 	print_i32(34);
