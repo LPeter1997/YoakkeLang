@@ -75,8 +75,12 @@ namespace Yoakke.Compiler.Semantic
                 break;
 
             case Expression.StructType structType:
+                symbolTable.PushScope();
                 // Declare in field types
                 foreach (var (_, type) in structType.Fields) Declare(symbolTable, type);
+                // Declare in declarations
+                foreach (var decl in structType.Declarations) Declare(symbolTable, decl);
+                symbolTable.PopScope();
                 break;
 
             case Expression.StructValue structValue:

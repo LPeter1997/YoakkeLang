@@ -74,12 +74,37 @@ namespace Yoakke.Compiler.Semantic
                 var leftType = Evaluate(dotPath.Left).Substitution;
                 if (leftType is Type.Struct structType)
                 {
+                    // Field access
                     if (!structType.Fields.TryGetValue(dotPath.Right.Value, out var fieldType))
                     {
                         // TODO
                         throw new NotImplementedException("No such field of struct!");
                     }
                     return fieldType;
+                }
+                else if (leftType.EqualsNonNull(Type.Type_))
+                {
+                    // Constant access
+                    var leftValue = ConstEval.EvaluateAsType(dotPath.Left);
+                    if (leftValue is Type.Struct structTy)
+                    {
+                        // We have a chance of accessing a constant here
+
+                        // TODO: We need to somehow restrict the scope in this case
+                        // For example:
+                        // const A = struct {};
+                        // const B = struct {};
+                        // ...
+                        // B.A should NOT work, but probably does now, since the scope-tree walks up into global space.
+
+                        var symbol = (Symbol.Const)structTy.Scope.Reference(dotPath.Right.Value);
+                        return symbol.GetValue().Type;
+                    }
+                    else
+                    {
+                        // TODO
+                        throw new NotImplementedException("Not a struct type on the left-hand-side of dot!");
+                    }
                 }
                 else
                 {

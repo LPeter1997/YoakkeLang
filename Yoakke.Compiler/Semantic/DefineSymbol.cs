@@ -82,6 +82,8 @@ namespace Yoakke.Compiler.Semantic
             case Expression.StructType structType:
                 // Define in field types
                 foreach (var (_, type) in structType.Fields) Define(type);
+                // Define in declarations
+                foreach (var decl in structType.Declarations) Define(decl);
                 break;
 
             case Expression.StructValue structValue:

@@ -8,6 +8,8 @@ const Vector2 = struct {
 	};
 };
 
+const XVector = Vector2.new(1, 0);
+
 const main = proc() -> i32 {
 	var v = Vector2.new(2, 3);
 	v.x

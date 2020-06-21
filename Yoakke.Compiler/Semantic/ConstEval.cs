@@ -263,7 +263,18 @@ namespace Yoakke.Compiler.Semantic
                 var fields = structType.Fields.ToDictionary(
                     f => f.Item1.Value,
                     f => EvaluateAsType(callStack, f.Item2, canCache));
-                return new Type.Struct(structType.Token, fields);
+
+                // We need to find it's scope
+                Scope? scope = null;
+                // Try to grab it from a field
+                if (structType.Fields.Count > 0) scope = structType.Fields[0].Item2.Scope;
+                // Try to grab it from a declaration
+                else if (structType.Declarations.Count > 0) scope = structType.Declarations[0].Scope;
+                // Doesn't matter, just create an empty one
+                else scope = new Scope(structType.Scope);
+
+                Assert.NonNull(scope);
+                return new Type.Struct(structType.Token, fields, scope);
             }
 
             case Expression.StructValue structValue:

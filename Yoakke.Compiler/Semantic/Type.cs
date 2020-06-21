@@ -324,6 +324,10 @@ namespace Yoakke.Compiler.Semantic
             /// The data fields, each with a name and <see cref="Type"/>.
             /// </summary>
             public readonly IDictionary<string, Type> Fields;
+            /// <summary>
+            /// The <see cref="Scope"/> this <see cref="Struct"/> declares it's associated constants in.
+            /// </summary>
+            public readonly Scope Scope;
 
             public override IEnumerable<Value> Components => Fields.Values;
 
@@ -332,10 +336,12 @@ namespace Yoakke.Compiler.Semantic
             /// </summary>
             /// <param name="token">The 'struct' <see cref="Token"/> that defined this struct.</param>
             /// <param name="fields">The data fields, each with a name and <see cref="Type"/>.</param>
-            public Struct(Token token, IDictionary<string, Type> fields)
+            /// <param name="scope">The <see cref="Scope"/> this struct declares it's associated constants in.</param>
+            public Struct(Token token, IDictionary<string, Type> fields, Scope scope)
             {
                 Token = token;
                 Fields = fields;
+                Scope = scope;
             }
 
             public override bool EqualsNonNull(Type other) =>
