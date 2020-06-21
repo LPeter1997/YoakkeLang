@@ -228,16 +228,35 @@ namespace Yoakke.Compiler.IR
 
             case Expression.DotPath dotPath:
             {
-                // TODO: This is only for fields, this could be a constant or a type access!
-
                 // TODO: We need to load this as an lvalue maybe?
                 // It's more efficient and is a requirement for assignment!
                 // (In theory it doesn't matter for rvalues, but always copies, but we can just copy the field)
 
+                var leftSemanticType = TypeEval.Evaluate(dotPath.Left);
+                if (Semantic.Type.Type_.EqualsNonNull(leftSemanticType))
+                {
+                    // Associated constant access
+
+                    // TODO: Same todo as in TypeEval's
+
+                    var leftValue = ConstEval.EvaluateAsType(dotPath.Left);
+                    if (leftValue is Semantic.Type.Struct structTy)
+                    {
+                        // We have a chance of accessing a constant here
+                        var symbol = (Symbol.Const)structTy.Scope.Reference(dotPath.Right.Value);
+                        return Compile(symbol.GetValue(), lvalue);
+                    }
+                    else
+                    {
+                        // TODO
+                        throw new NotImplementedException("Not a struct type on the left-hand-side of dot!");
+                    }
+                }
+
+                // Field access
                 // Compile left-hand-side
                 var left = Compile(dotPath.Left, true);
                 // Get field index
-                var leftSemanticType = TypeEval.Evaluate(dotPath.Left);
                 var fieldIndex = structFields[(leftSemanticType, dotPath.Right.Value)];
                 // Get field type
                 var leftType = (Type.Struct)((Type.Ptr)left.Type).ElementType;

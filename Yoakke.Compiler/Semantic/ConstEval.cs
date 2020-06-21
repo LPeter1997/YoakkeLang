@@ -253,6 +253,8 @@ namespace Yoakke.Compiler.Semantic
                 }
                 else if (structureValue != null)
                 {
+                    if (lvalue) throw new NotImplementedException("Can't be lvalue!");
+
                     // TODO: Same todo as in TypeEval's
 
                     var symbol = (Symbol.Const)structureValue.Scope.Reference(dotPath.Right.Value);
