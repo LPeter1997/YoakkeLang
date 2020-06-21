@@ -274,6 +274,9 @@ namespace Yoakke.Compiler.Semantic
                     f => f.Item1.Value,
                     f => EvaluateAsType(callStack, f.Item2, canCache));
 
+                // Evaluate every declaration
+                foreach (var decl in structType.Declarations) Evaluate(callStack, decl, canCache);
+
                 // We need to find it's scope
                 Scope? scope = null;
                 // Try to grab it from a field
