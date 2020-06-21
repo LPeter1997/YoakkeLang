@@ -1073,6 +1073,133 @@ namespace Yoakke.Compiler.Tests
             var f = CompileAndLoadFunc<Func<Int32>>(source);
             Assert.AreEqual(f(), 35);
         }
+
+        [TestMethod]
+        public void NestedStruct()
+        {
+            string source = @"
+            const Outer = struct {
+                m: Inner;
+            };
+            const Inner = struct {
+                n: i32;
+            };
+            const foo = proc() -> i32 { 
+                var v = Outer {
+                    m = Inner {
+                        n = 10;
+                    };
+                };
+                v.m.n
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 10);
+        }
+
+        [TestMethod]
+        public void NestedStructReassignInner()
+        {
+            string source = @"
+            const Outer = struct {
+                m: Inner;
+            };
+            const Inner = struct {
+                n: i32;
+            };
+            const foo = proc() -> i32 { 
+                var v = Outer {
+                    m = Inner {
+                        n = 10;
+                    };
+                };
+                v.m.n = 15;
+                v.m.n
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 15);
+        }
+
+        [TestMethod]
+        public void NestedStructReassignInnerComptime()
+        {
+            string source = @"
+            const Outer = struct {
+                m: Inner;
+            };
+            const Inner = struct {
+                n: i32;
+            };
+            const Value = {
+                var v = Outer {
+                    m = Inner {
+                        n = 10;
+                    };
+                };
+                v.m.n = 15;
+                v.m.n
+            };
+            const foo = proc() -> i32 { 
+                Value
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 15);
+        }
+
+        [TestMethod]
+        public void NestedStructCopyInnerDoesNotAffectOriginal()
+        {
+            string source = @"
+            const Outer = struct {
+                m: Inner;
+            };
+            const Inner = struct {
+                n: i32;
+            };
+            const foo = proc() -> i32 { 
+                var v = Outer {
+                    m = Inner {
+                        n = 42;
+                    };
+                };
+                var inner = v.m;
+                inner.n = 63;
+                v.m.n
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 42);
+        }
+
+        [TestMethod]
+        public void NestedStructCopyInnerDoesNotAffectOriginalComptime()
+        {
+            string source = @"
+            const Outer = struct {
+                m: Inner;
+            };
+            const Inner = struct {
+                n: i32;
+            };
+            const Value = {
+                var v = Outer {
+                    m = Inner {
+                        n = 42;
+                    };
+                };
+                var inner = v.m;
+                inner.n = 63;
+                v.m.n
+            };
+            const foo = proc() -> i32 { 
+                Value
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 42);
+        }
     }
 
     // TODO: Test generics
