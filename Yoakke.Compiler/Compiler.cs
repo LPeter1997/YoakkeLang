@@ -20,6 +20,14 @@ namespace Yoakke.Compiler
         C,
     }
 
+    /*
+     TODO: Consider moving every builtin into compiler intrinsics, exposing the IR.
+     Example:
+
+     const i32 = @ir.integer(true, 32); // Signed, 32 bits
+     const `+` = proc(x: i32, y: i32) -> i32 { @ir.iadd(x, y) };
+     */
+
     public class Compiler
     {
         // Input
