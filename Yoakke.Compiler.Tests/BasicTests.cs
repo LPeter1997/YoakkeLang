@@ -289,6 +289,17 @@ namespace Yoakke.Compiler.Tests
         }
 
         [TestMethod]
+        public void ReturnTypeNoReturnMismatch()
+        {
+            string source = @"
+            const foo = proc() -> bool {
+            };
+";
+            var err = Assert.ThrowsException<TypeError>(() => Compile(source));
+            Assert.IsTrue(PairwiseEquals((err.First, err.Second), (Type.Unit, Type.Bool)));
+        }
+
+        [TestMethod]
         public void EarlyImplicitReturnError()
         {
             string source = @"
@@ -441,6 +452,42 @@ namespace Yoakke.Compiler.Tests
             const A = {
                 var x: i32 = true;
                 x
+            };
+";
+            var err = Assert.ThrowsException<TypeError>(() => Compile(source));
+            Assert.IsTrue(PairwiseEquals((err.First, err.Second), (Type.I32, Type.Bool)));
+        }
+
+        [TestMethod]
+        public void StructFieldTypeMismatch()
+        {
+            string source = @"
+            const Vector2 = struct {
+                x: i32;
+                y: i32;
+            };
+            const foo = proc() -> Vector2 {
+                Vector2 {
+                    x = 0;
+                    y = true;
+                }
+            };
+";
+            var err = Assert.ThrowsException<TypeError>(() => Compile(source));
+            Assert.IsTrue(PairwiseEquals((err.First, err.Second), (Type.I32, Type.Bool)));
+        }
+
+        [TestMethod]
+        public void StructFieldTypeMismatchComptime()
+        {
+            string source = @"
+            const Vector2 = struct {
+                x: i32;
+                y: i32;
+            };
+            const A = Vector2 {
+                x = 0;
+                y = true;
             };
 ";
             var err = Assert.ThrowsException<TypeError>(() => Compile(source));
@@ -813,9 +860,220 @@ namespace Yoakke.Compiler.Tests
             Assert.AreEqual(err.UnknownField.Value.Value, "z");
         }
 
-        // TODO: Add more
+        [TestMethod]
+        public void InitializedInOrder()
+        {
+            string source = @"
+            const Vector2 = struct {
+                x: i32;
+                y: i32;
+            };
+
+            const foo = proc() -> i32 { 
+                var v = Vector2 {
+                    x = 12;
+                    y = 34;
+                };
+                v.y
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 34);
+        }
+
+        [TestMethod]
+        public void InitializedOutOfOrder()
+        {
+            string source = @"
+            const Vector2 = struct {
+                x: i32;
+                y: i32;
+            };
+
+            const foo = proc() -> i32 { 
+                var v = Vector2 {
+                    y = 53;
+                    x = 72;
+                };
+                v.x
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 72);
+        }
+
+        [TestMethod]
+        public void ReassignMembers()
+        {
+            string source = @"
+            const Vector2 = struct {
+                x: i32;
+                y: i32;
+            };
+
+            const foo = proc() -> i32 { 
+                var v = Vector2 {
+                    y = 65;
+                    x = 16;
+                };
+                v.x = 87;
+                v.y = 13;
+                v.x
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 87);
+        }
+
+        [TestMethod]
+        public void InitializedInOrderComptime()
+        {
+            string source = @"
+            const Vector2 = struct {
+                x: i32;
+                y: i32;
+            };
+            const Value = {
+                var v = Vector2 {
+                    x = 12;
+                    y = 34;
+                };
+                v.y
+            };
+            const foo = proc() -> i32 { 
+                Value
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 34);
+        }
+
+        [TestMethod]
+        public void InitializedOutOfOrderComptime()
+        {
+            string source = @"
+            const Vector2 = struct {
+                x: i32;
+                y: i32;
+            };
+            const Value = {
+                var v = Vector2 {
+                    y = 53;
+                    x = 72;
+                };
+                v.x
+            };
+            const foo = proc() -> i32 { 
+                Value
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 72);
+        }
+
+        [TestMethod]
+        public void ReassignMembersComptime()
+        {
+            string source = @"
+            const Vector2 = struct {
+                x: i32;
+                y: i32;
+            };
+            const Value = {
+                var v = Vector2 {
+                    y = 65;
+                    x = 16;
+                };
+                v.x = 87;
+                v.y = 13;
+                v.x
+            };
+            const foo = proc() -> i32 { 
+                Value
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 87);
+        }
+
+        [TestMethod]
+        public void MaterializeConstantAtRuntime()
+        {
+            string source = @"
+            const Vector2 = struct {
+                x: i32;
+                y: i32;
+            };
+            const Value = Vector2 { x = 45; y = 71; };
+            const foo = proc() -> i32 {
+                var x = Value;
+                x.x
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 45);
+        }
+
+        [TestMethod]
+        public void MaterializeConstantAtRuntimeInline()
+        {
+            string source = @"
+            const Vector2 = struct {
+                x: i32;
+                y: i32;
+            };
+            const Value = Vector2 { x = 45; y = 71; };
+            const foo = proc() -> i32 {
+                Value.x
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 45);
+        }
+
+        [TestMethod]
+        public void ReassignCopyDoesNotChangeOriginal()
+        {
+            string source = @"
+            const Vector2 = struct {
+                x: i32;
+                y: i32;
+            };
+            const foo = proc() -> i32 {
+                var v = Vector2{ x = 35; y = 16; };
+                var v2 = v;
+                v2.x = 75;
+                v2.y = 47;
+                v.x
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 35);
+        }
+
+        [TestMethod]
+        public void ReassignCopyDoesNotChangeOriginalComptime()
+        {
+            string source = @"
+            const Vector2 = struct {
+                x: i32;
+                y: i32;
+            };
+            const Value = {
+                var v = Vector2{ x = 35; y = 16; };
+                var v2 = v;
+                v2.x = 75;
+                v2.y = 47;
+                v.x
+            };
+            const foo = proc() -> i32 {
+                Value
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 35);
+        }
     }
 
-    // TODO: Test structs
     // TODO: Test generics
 }
