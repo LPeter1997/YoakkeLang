@@ -94,7 +94,7 @@ namespace Yoakke.Compiler.Syntax
         private static Statement ParseExpressionStatement(ref Input input)
         {
             var expression = ParseExpression(ref input, ExprState.None);
-            bool hasSemicolon = false;
+            bool hasSemicolon;
             if (!IsBracedExpressionForStatement(expression))
             {
                 // ';' required
@@ -300,9 +300,20 @@ namespace Yoakke.Compiler.Syntax
             Expect(ref input, TokenType.OpenBrace);
 
             var fields = new List<(Token, Expression)>();
+            var declarations = new List<Declaration>();
 
             while (!Match(ref input, TokenType.CloseBrace))
             {
+                // TODO: Our parsing is flawed, somtimes not the furthest error gets exposed!
+                // Instead of hiding failed alternatives, we should collect the furthest ones and return those!
+
+                // First we try a declaration
+                var decl = TryParse(ref input, ParseDeclaration);
+                if (decl != null)
+                {
+                    declarations.Add(decl);
+                    continue;
+                }
                 // We parse a field
                 // It's in the form of `identifier: Type expression`
                 Expect(ref input, TokenType.Identifier, out var ident);
@@ -312,7 +323,7 @@ namespace Yoakke.Compiler.Syntax
                 fields.Add((ident, type));
             }
 
-            return new Expression.StructType(token, fields);
+            return new Expression.StructType(token, fields, declarations);
         }
 
         private static Expression ParseProcValueExpression(ref Input input)

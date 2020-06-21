@@ -1,7 +1,14 @@
 
-const print_i32 = @extern("print_int32", proc(i32));
+const Vector2 = struct {
+	x: i32;
+	y: i32;
+
+	const new = proc(x: i32, y: i32) -> Vector2 {
+		Vector2 { x = x; y = y; }
+	};
+};
 
 const main = proc() -> i32 {
-	print_i32(34);
-	0
+	var v = Vector2.new(2, 3);
+	v.x
 };

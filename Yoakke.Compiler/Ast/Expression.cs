@@ -192,16 +192,22 @@ namespace Yoakke.Compiler.Ast
             /// The field definition tuples, being the tuple of identifier and the type of the field.
             /// </summary>
             public List<(Token, Expression)> Fields { get; set; }
+            /// <summary>
+            /// The <see cref="Declaration"/>s inside the struct definition.
+            /// </summary>
+            public List<Declaration> Declarations { get; set; }
 
             /// <summary>
             /// Initializes a new <see cref="StructType"/>.
             /// </summary>
             /// <param name="token">The 'struct' <see cref="Token"/> that started this type.</param>
             /// <param name="fields">The field definitions.</param>
-            public StructType(Token token, List<(Token, Expression)> fields)
+            /// <param name="declarations">The <see cref="Declaration"/>s inside the struct definition.</param>
+            public StructType(Token token, List<(Token, Expression)> fields, List<Declaration> declarations)
             {
                 Token = token;
                 Fields = fields;
+                Declarations = declarations;
             }
         }
 
