@@ -76,6 +76,8 @@ namespace Yoakke.Compiler
         [Option(LongName = "ccompiler", ShortName = "cc", Description = "The C compiler to use", ValueName = "compiler")]
         public string CCompiler { get; set; } = "gcc";
 
+        public string[] BackendFlags { get; set; } = new string[] { };
+
         public void OnExecute()
         {
             try
@@ -163,7 +165,7 @@ namespace Yoakke.Compiler
             }
 
             // Otherwise let's just produce the output
-            var exitCode = backend.CompileAndOutput(namingCtx, OutputPath, OutputType, new object[] { });
+            var exitCode = backend.CompileAndOutput(namingCtx, OutputPath, OutputType, BackendFlags);
             if (exitCode != 0) return exitCode;
 
             // If we need to execute it, do it now

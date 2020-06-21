@@ -48,6 +48,8 @@ namespace Yoakke.Compiler.Codegen
             // Object code
             if (outputType == OutputType.Obj) flags.Add("-c");
             else if (outputType == OutputType.Shared) flags.Add("-shared");
+            // Extra flags
+            foreach (var e in extra) flags.Add(Assert.NonNullValue(e.ToString()));
 
             // Compile code, write it out to a file
             var code = Compile(namingContext);
