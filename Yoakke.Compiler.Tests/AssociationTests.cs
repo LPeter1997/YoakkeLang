@@ -102,7 +102,7 @@ namespace Yoakke.Compiler.Tests
                 const Instance = Bar{};
             };
             const foo = proc() -> i32 {
-                var v = Bar.Value;
+                var v = Bar.Instance;
                 17
             };
 ";
