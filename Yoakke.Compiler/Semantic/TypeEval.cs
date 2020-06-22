@@ -59,12 +59,8 @@ namespace Yoakke.Compiler.Semantic
                 switch (ident.Symbol)
                 {
                 case Symbol.Const constSym: return constSym.GetValue().Type;
-
                 case Symbol.Intrinsic intrinsicSym: return intrinsicSym.Type;
-
-                case Symbol.Variable varSym:
-                    Assert.NonNull(varSym.Type);
-                    return varSym.Type;
+                case Symbol.Variable varSym: return varSym.Type;
 
                 default: throw new NotImplementedException();
                 }

@@ -123,7 +123,7 @@ namespace Yoakke.Compiler.Semantic
             /// <summary>
             /// The inferred <see cref="Type"/> for this variable.
             /// </summary>
-            public Type? Type { get; set; }
+            public readonly Type Type = new Type.Variable();
 
             /// <summary>
             /// Initializes a new <see cref="Variable"/>.

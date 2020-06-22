@@ -46,7 +46,7 @@ namespace Yoakke.Compiler.Semantic
                     type.Unify(valueType);
                     // Assign the type to the symbol
                     Assert.NonNull(varDef.Symbol);
-                    varDef.Symbol.Type = type;
+                    varDef.Symbol.Type.Unify(type);
                 }
                 else
                 {
@@ -55,7 +55,7 @@ namespace Yoakke.Compiler.Semantic
                     var valueType = TypeEval.Evaluate(varDef.Value);
                     // Assign the type to the symbol
                     Assert.NonNull(varDef.Symbol);
-                    varDef.Symbol.Type = valueType;
+                    varDef.Symbol.Type.Unify(valueType);
                 }
                 break;
 
@@ -156,8 +156,8 @@ namespace Yoakke.Compiler.Semantic
                 foreach (var param in proc.Parameters)
                 {
                     Assert.NonNull(param.Symbol);
-                    Debug.Assert(param.Symbol.Type == null);
-                    param.Symbol.Type = ConstEval.EvaluateAsType(param.Type);
+                    var paramType = ConstEval.EvaluateAsType(param.Type);
+                    param.Symbol.Type.Unify(paramType);
                 }
                 // Now we can check the body
                 Check(proc.Body);

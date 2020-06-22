@@ -69,7 +69,6 @@ namespace Yoakke.Compiler.IR
             foreach (var param in proc.Parameters)
             {
                 Assert.NonNull(param.Symbol);
-                Assert.NonNull(param.Symbol.Type);
                 // Compile it's type
                 var paramType = Compile(param.Symbol.Type);
                 // Allocate a register for the received value
@@ -167,7 +166,6 @@ namespace Yoakke.Compiler.IR
             case Statement.VarDef varDef:
             {
                 Assert.NonNull(varDef.Symbol);
-                Assert.NonNull(varDef.Symbol.Type);
                 // Get the type of the variavle
                 var varType = Compile(varDef.Symbol.Type.Substitution);
                 // Allocate space for the variable

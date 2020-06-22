@@ -57,7 +57,7 @@ namespace Yoakke.Compiler.Semantic
             var s1 = Substitution;
             var s2 = other.Substitution;
             if (s2 is Variable v) v.UnifyInternal(s1);
-            if (s2 is Any a) a.UnifyInternal(s1);
+            else if (s2 is Any a) a.UnifyInternal(s1);
             else s1.UnifyInternal(s2);
         }
 
