@@ -1,13 +1,15 @@
 
-const Bar = struct {
-    value: i32;
+const Bar = proc(T: type) -> type {
+	struct {
+    	value: T;
 
-    const new = proc() -> Bar {
-        Bar { value = 37; }
-    };
+    	const new = proc(v: T) -> Bar(T) {
+        	Bar(T) { value = v; }
+    	};
+	}
 };
 
 const main = proc() -> i32 {
-	Bar.new().value
+	Bar(i32).new(123).value
 };
 

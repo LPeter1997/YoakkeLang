@@ -128,5 +128,27 @@ namespace Yoakke.Compiler.Tests
             var f = CompileAndLoadFunc<Func<Int32>>(source);
             Assert.AreEqual(f(), 37);
         }
+
+        [TestMethod]
+        public void AssociatedProcedureWithGenericSelfTypeReference()
+        {
+            string source = @"
+            const Bar = proc(T: type) -> type {
+            	struct {
+                	value: T;
+            
+                	const new = proc(v: T) -> Bar(T) {
+                    	Bar(T) { value = v; }
+                	};
+            	}
+            };
+            
+            const foo = proc() -> i32 {
+            	Bar(i32).new(123).value
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 123);
+        }
     }
 }
