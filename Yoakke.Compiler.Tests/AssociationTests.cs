@@ -117,9 +117,9 @@ namespace Yoakke.Compiler.Tests
             const Bar = struct {
                 value: i32;
 
-                const new() -> Bar {
+                const new = proc() -> Bar {
                     Bar { value = 37; }
-                }
+                };
             };
             const foo = proc() -> i32 {
                 Bar.new().value
