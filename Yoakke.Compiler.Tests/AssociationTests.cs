@@ -111,6 +111,23 @@ namespace Yoakke.Compiler.Tests
         }
 
         [TestMethod]
+        public void AssociatedConstantOfSelfWithField()
+        {
+            string source = @"
+            const Bar = struct {
+                value: i32;
+
+                const Instance = Bar{ value = 43; };
+            };
+            const foo = proc() -> i32 {
+                Bar.Instance.value
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 43);
+        }
+
+        [TestMethod]
         public void AssociatedProcedureWithSelfTypeReference()
         {
             string source = @"
