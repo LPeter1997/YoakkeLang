@@ -34,6 +34,16 @@ namespace Yoakke.Compiler.Semantic
                 ConstEval.Evaluate(constDef);
                 break;
 
+            case Statement.Return ret:
+            {
+                // We need to find the scope we are returning to and assign the type there
+                Assert.NonNull(ret.Scope);
+                var scope = ret.Scope.AncestorWithTag(ScopeTag.Proc);
+                var returnType = ret.Value == null ? Type.Unit : TypeEval.Evaluate(ret.Value);
+                scope.ReturnType.Unify(returnType);
+            }
+            break;
+
             case Statement.VarDef varDef:
                 if (varDef.Type != null)
                 {
@@ -159,12 +169,27 @@ namespace Yoakke.Compiler.Semantic
                     var paramType = ConstEval.EvaluateAsType(param.Type);
                     param.Symbol.Type.Unify(paramType);
                 }
+                // Get the body's scope, that's where we receive return types of explicit returns
+                Assert.NonNull(proc.Body.Scope);
+                var bodyScope = proc.Body.Scope;
+                Debug.Assert(bodyScope.Tag.HasFlag(ScopeTag.Proc));
                 // Now we can check the body
                 Check(proc.Body);
                 // Unify the return type with the body's return type
                 var procRetTy = proc.ReturnType == null ? Type.Unit : ConstEval.EvaluateAsType(proc.ReturnType);
+                procRetTy.Unify(bodyScope.ReturnType);
                 var bodyRetTy = TypeEval.Evaluate(proc.Body);
-                procRetTy.Unify(bodyRetTy);
+                // We only unify with the body's return type, if there's an implicit return
+                if (proc.Body is Expression.Block block && block.Value != null)
+                {
+                    // TODO: This is not a reliable check!
+                    // If the last thing is an if-else for example, it could still just only have explicit returns
+                    // and ruin this!
+                    // We shouldn't consider ifs and other braced stuff as values until we type-check them.
+                    // If they return some type and they are at the last position in the block, then we can promote
+                    // them to values!
+                    procRetTy.Unify(bodyRetTy);
+                }
             }
             break;
 

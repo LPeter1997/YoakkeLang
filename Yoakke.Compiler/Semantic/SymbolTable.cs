@@ -96,6 +96,11 @@ namespace Yoakke.Compiler.Semantic
         /// The parent of this <see cref="Scope"/>. Null, if this is the root.
         /// </summary>
         public readonly Scope? Parent;
+        // TODO: Should we split a ProcScope instead and have this there?
+        /// <summary>
+        /// The <see cref="Type"/> inferred for this <see cref="Scope"/>.
+        /// </summary>
+        public readonly Type ReturnType = new Type.Variable();
 
         /// <summary>
         /// The <see cref="Symbol"/>s defined in this <see cref="Scope"/>.
@@ -113,6 +118,18 @@ namespace Yoakke.Compiler.Semantic
         {
             Tag = tag;
             Parent = parent;
+        }
+
+        /// <summary>
+        /// Searches for the first ancestor <see cref="Scope"/> with the given <see cref="ScopeTag"/>.
+        /// </summary>
+        /// <param name="tag">The <see cref="ScopeTag"/> to search for.</param>
+        /// <returns>The first ancestor to match contain the tag.</returns>
+        public Scope AncestorWithTag(ScopeTag tag)
+        {
+            if (Tag.HasFlag(tag)) return this;
+            if (Parent == null) throw new NotImplementedException("No scope ancestor with tag!");
+            return Parent.AncestorWithTag(tag);
         }
 
         /// <summary>

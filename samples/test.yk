@@ -1,4 +1,5 @@
 
+/*
 const Vector2 = proc(T: type) -> type {
     var hello = T;
     struct {
@@ -12,6 +13,7 @@ const Vector2 = proc(T: type) -> type {
         };
     }
 };
+*/
 
 const main = proc() -> i32 {
 	return 0;

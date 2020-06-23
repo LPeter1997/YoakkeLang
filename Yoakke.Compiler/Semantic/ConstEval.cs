@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Dynamic;
 using System.Linq;
 using System.Numerics;
@@ -11,6 +12,9 @@ using Yoakke.Compiler.Utils;
 
 namespace Yoakke.Compiler.Semantic
 {
+    // TODO: Many semantic rules are redundant between here and TypeCheck.
+    // Can we make it DRY?
+
     /// <summary>
     /// Does constant-evaluation at compile-time.
     /// </summary>
@@ -324,10 +328,20 @@ namespace Yoakke.Compiler.Semantic
                 var parameters = proc.Parameters.Select(x => EvaluateAsType(callStack, x.Type, canCache)).ToList();
                 // Evaluate return type, if any
                 var ret = proc.ReturnType == null ? Type.Unit : EvaluateAsType(callStack, proc.ReturnType, canCache);
+                // Get the body's scope, that's where we receive return types of explicit returns
+                Assert.NonNull(proc.Body.Scope);
+                var bodyScope = proc.Body.Scope;
+                Debug.Assert(bodyScope.Tag.HasFlag(ScopeTag.Proc));
+                ret.Unify(bodyScope.ReturnType);
                 // Type-check the body
                 var bodyType = TypeEval.Evaluate(proc.Body);
-                // Unify with return type
-                ret.Unify(bodyType);
+                if (proc.Body is Expression.Block block && block.Value != null)
+                {
+                    // TODO: Same as in TypeCheck
+
+                    // Unify with return type
+                    ret.Unify(bodyType);
+                }
                 // Create the procedure type
                 var procType = new Type.Proc(parameters, ret);
                 // Wrap it up in a value
