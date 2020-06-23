@@ -44,11 +44,20 @@ namespace Yoakke.Compiler.Semantic
             //   None.
             // Description:
             //   Assigns each node it's corresponding scope.
-            //   Also creates and registers a symbol for each constant definition.
+            // Postconditions:
+            //   Every node has Scope != null.
+            DeclareScope.Declare(symbolTable, program);
+
+            // Step one
+            // ========
+            // Preconditions: 
+            //   Every node has Scope != null.
+            // Description:
+            //   Creates and registers a symbol for each constant definition.
             // Postconditions:
             //   Every node has Scope != null.
             //   Every ConstDefinition has a Symbol != null.
-            DeclareSymbol.Declare(symbolTable, program);
+            DeclareSymbol.Declare(program);
 
             // Step two
             // ========

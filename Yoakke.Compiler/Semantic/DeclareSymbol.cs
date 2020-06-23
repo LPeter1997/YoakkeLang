@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Yoakke.Compiler.Ast;
+using Yoakke.Compiler.Utils;
 
 namespace Yoakke.Compiler.Semantic
 {
@@ -11,54 +12,49 @@ namespace Yoakke.Compiler.Semantic
     static class DeclareSymbol
     {
         /// <summary>
-        /// Declares every order-independent <see cref="Symbol"/> in the given <see cref="SymbolTable"/>.
-        /// Also assigns the scope for every syntax tree node.
+        /// Declares every order-independent <see cref="Symbol"/> in it's respective <see cref="Scope"/>.
         /// </summary>
-        /// <param name="symbolTable">The symbol table to use.</param>
         /// <param name="statement">The statement to start the declarations from.</param>
-        public static void Declare(SymbolTable symbolTable, Statement statement)
+        public static void Declare(Statement statement)
         {
-            statement.Scope = symbolTable.CurrentScope;
-
             switch (statement)
             {
             case Declaration.Program program:
                 // Just loop through every declaration
-                foreach (var decl in program.Declarations) Declare(symbolTable, decl);
+                foreach (var decl in program.Declarations) Declare(decl);
                 break;
 
             case Declaration.ConstDef constDef:
             {
                 // For safety, declare in type
-                if (constDef.Type != null) Declare(symbolTable, constDef.Type);
+                if (constDef.Type != null) Declare(constDef.Type);
                 // First declare everything in value
-                Declare(symbolTable, constDef.Value);
-                // Declare this symbol, store it and add to the symbol table
+                Declare(constDef.Value);
+                // Declare this symbol, store it and add to the scope
+                Assert.NonNull(constDef.Scope);
                 constDef.Symbol = new Symbol.Const(constDef);
-                symbolTable.CurrentScope.Define(constDef.Symbol);
+                constDef.Scope.Define(constDef.Symbol);
             }  
             break;
 
             case Statement.VarDef varDef:
                 // Declare in type of needed
-                if (varDef.Type != null) Declare(symbolTable, varDef.Type);
+                if (varDef.Type != null) Declare(varDef.Type);
                 // Declare in value
-                Declare(symbolTable, varDef.Value);
+                Declare(varDef.Value);
                 break;
 
             case Statement.Expression_ expression:
                 // Declare in the expression
-                Declare(symbolTable, expression.Expression);
+                Declare(expression.Expression);
                 break;
 
             default: throw new NotImplementedException();
             }
         }
 
-        private static void Declare(SymbolTable symbolTable, Expression expression)
+        private static void Declare(Expression expression)
         {
-            expression.Scope = symbolTable.CurrentScope;
-
             switch (expression)
             {
             case Expression.IntLit _:
@@ -71,85 +67,65 @@ namespace Yoakke.Compiler.Semantic
 
             case Expression.DotPath dotPath:
                 // Just declare in left, right-hand-side is just a token
-                Declare(symbolTable, dotPath.Left);
+                Declare(dotPath.Left);
                 break;
 
             case Expression.StructType structType:
-                symbolTable.PushScope();
                 // Declare in field types
-                foreach (var (_, type) in structType.Fields) Declare(symbolTable, type);
+                foreach (var (_, type) in structType.Fields) Declare(type);
                 // Declare in declarations
-                foreach (var decl in structType.Declarations) Declare(symbolTable, decl);
-                symbolTable.PopScope();
+                foreach (var decl in structType.Declarations) Declare(decl);
                 break;
 
             case Expression.StructValue structValue:
                 // Declare in the struct type expression
-                Declare(symbolTable, structValue.StructType);
+                Declare(structValue.StructType);
                 // Declare in field values
-                foreach (var (_, value) in structValue.Fields) Declare(symbolTable, value);
+                foreach (var (_, value) in structValue.Fields) Declare(value);
                 break;
 
             case Expression.ProcType procType:
                 // Declare in parameter types
-                foreach (var param in procType.ParameterTypes) Declare(symbolTable, param);
+                foreach (var param in procType.ParameterTypes) Declare(param);
                 // Declare in return type, if needed
-                if (procType.ReturnType != null) Declare(symbolTable, procType.ReturnType);
+                if (procType.ReturnType != null) Declare(procType.ReturnType);
                 break;
 
             case Expression.Proc proc:
-                // Processes introduce a scope for their signature
-                symbolTable.PushScope();
                 // Declare in parameters
-                foreach (var param in proc.Parameters) Declare(symbolTable, param.Type);
+                foreach (var param in proc.Parameters) Declare(param.Type);
                 // Declare in return-type
-                if (proc.ReturnType != null) Declare(symbolTable, proc.ReturnType);
+                if (proc.ReturnType != null) Declare(proc.ReturnType);
                 // Declare in body
-                Declare(symbolTable, proc.Body);
-                symbolTable.PopScope();
+                Declare(proc.Body);
                 break;
 
             case Expression.Block block:
-                // Blocks introduce a scope
-                symbolTable.PushScope();
                 // Declare in each statement
-                foreach (var stmt in block.Statements) Declare(symbolTable, stmt);
+                foreach (var stmt in block.Statements) Declare(stmt);
                 // In return value too
-                if (block.Value != null) Declare(symbolTable, block.Value);
-                symbolTable.PopScope();
+                if (block.Value != null) Declare(block.Value);
                 break;
 
             case Expression.Call call:
                 // Declare in called procedure
-                Declare(symbolTable, call.Proc);
+                Declare(call.Proc);
                 // Declare in arguments
-                foreach (var arg in call.Arguments) Declare(symbolTable, arg);
+                foreach (var arg in call.Arguments) Declare(arg);
                 break;
 
             case Expression.If iff:
-                // We introduce a scopes here for things like
-                // if x { var y = ...; }
-                
                 // Declare in condition and then
-                Declare(symbolTable, iff.Condition);
-
-                symbolTable.PushScope();
-                Declare(symbolTable, iff.Then);
-                symbolTable.PopScope();
-
+                Declare(iff.Condition);
+                Declare(iff.Then);
                 // Declare in else if needed
-                if (iff.Else != null)
-                {
-                    symbolTable.PushScope();
-                    Declare(symbolTable, iff.Else);
-                    symbolTable.PopScope();
-                }
+                if (iff.Else != null) Declare(iff.Else);
                 break;
 
             case Expression.BinOp binOp:
                 // Declare in both left and right
-                Declare(symbolTable, binOp.Left);
-                Declare(symbolTable, binOp.Right);
+                Declare(binOp.Left);
+                Declare(binOp.Right);
                 break;
 
             default: throw new NotImplementedException();

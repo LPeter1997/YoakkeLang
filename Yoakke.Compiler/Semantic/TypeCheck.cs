@@ -130,7 +130,7 @@ namespace Yoakke.Compiler.Semantic
                 // Just check field types
                 foreach (var (_, type) in structType.Fields) Check(type);
                 // Check declarations
-                foreach (var decl in structType.Declarations) Check(decl);
+                // foreach (var decl in structType.Declarations) Check(decl);
                 break;
 
             case Expression.StructValue structValue:

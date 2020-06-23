@@ -18,7 +18,7 @@ namespace Yoakke.Compiler.Semantic
         /// <summary>
         /// The current <see cref="Scope"/> (that's being worked on).
         /// </summary>
-        public Scope CurrentScope { get; private set; }
+        public Scope CurrentScope { get; set; }
 
         public SymbolTable()
         {
