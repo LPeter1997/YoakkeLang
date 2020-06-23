@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Yoakke.Compiler.Semantic;
 using Yoakke.Compiler.Syntax;
@@ -15,7 +16,7 @@ namespace Yoakke.Compiler.Ast
     /// <summary>
     /// Base class for all AST nodes.
     /// </summary>
-    public abstract class Node
+    public abstract class Node : ICloneable
     {
         /// <summary>
         /// The scope this AST node belongs to.
@@ -81,6 +82,8 @@ namespace Yoakke.Compiler.Ast
 
         private static void Indent(StringBuilder builder, int amount) =>
             builder.Append(' ', amount * 2);
+
+        public abstract object Clone();
     }
 
     /// <summary>
@@ -88,6 +91,10 @@ namespace Yoakke.Compiler.Ast
     /// </summary>
     public abstract partial class Statement : Node
     {
+        public override object Clone() =>
+            CloneStatement();
+
+        public abstract Statement CloneStatement();
     }
 
     /// <summary>
@@ -96,6 +103,10 @@ namespace Yoakke.Compiler.Ast
     /// </summary>
     public abstract partial class Declaration : Statement
     {
+        public override Statement CloneStatement() =>
+            CloneDeclaration();
+
+        public abstract Declaration CloneDeclaration();
     }
 
     /// <summary>
@@ -115,5 +126,10 @@ namespace Yoakke.Compiler.Ast
         /// The <see cref="Type"/> this <see cref="Expression"/> evaluates to.
         /// </summary>
         public Type? EvaluationType { get; set; }
+
+        public override object Clone() =>
+            CloneExpression();
+
+        public abstract Expression CloneExpression();
     }
 }

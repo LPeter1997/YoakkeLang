@@ -271,8 +271,8 @@ namespace Yoakke.Compiler.Semantic
             {
                 if (lvalue) throw new NotImplementedException("Struct types can't be lvalues!");
                 var fields = structType.Fields.ToDictionary(
-                    f => f.Item1.Value,
-                    f => EvaluateAsType(callStack, f.Item2, canCache));
+                    f => f.Name.Value,
+                    f => EvaluateAsType(callStack, f.Type, canCache));
 
                 // Evaluate every declaration
                 //foreach (var decl in structType.Declarations) Evaluate(callStack, decl, canCache);
@@ -280,7 +280,7 @@ namespace Yoakke.Compiler.Semantic
                 // We need to find it's scope
                 Scope? scope = null;
                 // Try to grab it from a field
-                if (structType.Fields.Count > 0) scope = structType.Fields[0].Item2.Scope;
+                if (structType.Fields.Count > 0) scope = structType.Fields[0].Type.Scope;
                 // Try to grab it from a declaration
                 else if (structType.Declarations.Count > 0) scope = structType.Declarations[0].Scope;
                 // Doesn't matter, just create an empty one
@@ -299,8 +299,8 @@ namespace Yoakke.Compiler.Semantic
                 // Get the struct type
                 var structType = EvaluateAsType(callStack, structValue.StructType, canCache);
                 var fields = structValue.Fields.ToDictionary(
-                    f => f.Item1.Value,
-                    f => Evaluate(callStack, f.Item2, canCache, false));
+                    f => f.Name.Value,
+                    f => Evaluate(callStack, f.Value, canCache, false));
                 return new Value.Struct(structType, fields);
             }
 
@@ -315,7 +315,7 @@ namespace Yoakke.Compiler.Semantic
                 return new Type.Proc(parameters, ret);
             }
 
-            case Expression.Proc proc:
+            case Expression.ProcValue proc:
             {
                 if (lvalue) throw new NotImplementedException("Procedure values can't be lvalues!");
                 // Evaluate parameters

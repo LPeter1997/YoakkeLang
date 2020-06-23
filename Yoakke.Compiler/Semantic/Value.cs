@@ -123,7 +123,7 @@ namespace Yoakke.Compiler.Semantic
             /// <summary>
             /// The AST node of the procedure.
             /// </summary>
-            public readonly Expression.Proc Node;
+            public readonly Expression.ProcValue Node;
 
             private Type type;
             public override Type Type => Assert.NonNullValue(type);
@@ -133,7 +133,7 @@ namespace Yoakke.Compiler.Semantic
             /// </summary>
             /// <param name="node">The AST node this procedure originates from.</param>
             /// <param name="type">The <see cref="Type"/> of the procedure.</param>
-            public Proc(Expression.Proc node, Type type)
+            public Proc(Expression.ProcValue node, Type type)
             {
                 Node = node;
                 this.type = type;

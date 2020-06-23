@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Yoakke.Compiler.Semantic;
 using Yoakke.Compiler.Syntax;
@@ -26,6 +27,9 @@ namespace Yoakke.Compiler.Ast
             {
                 Token = token;
             }
+
+            public override Expression CloneExpression() =>
+                new IntLit(Token);
         }
 
         /// <summary>
@@ -46,6 +50,9 @@ namespace Yoakke.Compiler.Ast
             {
                 Token = token;
             }
+
+            public override Expression CloneExpression() =>
+                new BoolLit(Token);
         }
 
         /// <summary>
@@ -89,6 +96,9 @@ namespace Yoakke.Compiler.Ast
                 }
                 return result.ToString();
             }
+
+            public override Expression CloneExpression() =>
+                new StrLit(Token);
         }
 
         /// <summary>
@@ -114,6 +124,9 @@ namespace Yoakke.Compiler.Ast
             {
                 Token = token;
             }
+
+            public override Expression CloneExpression() =>
+                new Ident(Token);
         }
 
         /// <summary>
@@ -139,6 +152,9 @@ namespace Yoakke.Compiler.Ast
             {
                 Token = token;
             }
+
+            public override Expression CloneExpression() =>
+                new Intrinsic(Token);
         }
 
         /// <summary>
@@ -169,6 +185,9 @@ namespace Yoakke.Compiler.Ast
                 Left = left;
                 Right = right;
             }
+
+            public override Expression CloneExpression() =>
+                new DotPath(Left.CloneExpression(), Right);
         }
 
         /// <summary>
@@ -184,14 +203,50 @@ namespace Yoakke.Compiler.Ast
         public class StructType : Expression
         {
             /// <summary>
+            /// A field declaration inside the struct definition.
+            /// Syntax:
+            /// ```
+            /// name: Type;
+            /// ```
+            /// </summary>
+            public class Field : ICloneable
+            {
+                /// <summary>
+                /// The name of the <see cref="Field"/>.
+                /// </summary>
+                public Token Name { get; set; }
+                /// <summary>
+                /// The type of the <see cref="Field"/>.
+                /// </summary>
+                public Expression Type { get; set; }
+
+                /// <summary>
+                /// Initializes a new <see cref="Field"/>.
+                /// </summary>
+                /// <param name="name">The name of the field.</param>
+                /// <param name="type">The type of the field.</param>
+                public Field(Token name, Expression type)
+                {
+                    Name = name;
+                    Type = type;
+                }
+
+                public object Clone() =>
+                    CloneField();
+
+                public Field CloneField() =>
+                    new Field(Name, Type.CloneExpression());
+            }
+
+            /// <summary>
             /// The 'struct' <see cref="Token"/> that started this <see cref="StructType"/>.
             /// </summary>
             public Token Token { get; set; }
 
             /// <summary>
-            /// The field definition tuples, being the tuple of identifier and the type of the field.
+            /// The list of <see cref="Field"/> declarations.
             /// </summary>
-            public List<(Token, Expression)> Fields { get; set; }
+            public List<Field> Fields { get; set; }
             /// <summary>
             /// The <see cref="Declaration"/>s inside the struct definition.
             /// </summary>
@@ -201,14 +256,20 @@ namespace Yoakke.Compiler.Ast
             /// Initializes a new <see cref="StructType"/>.
             /// </summary>
             /// <param name="token">The 'struct' <see cref="Token"/> that started this type.</param>
-            /// <param name="fields">The field definitions.</param>
+            /// <param name="fields">The list of <see cref="Field"/> declarations.</param>
             /// <param name="declarations">The <see cref="Declaration"/>s inside the struct definition.</param>
-            public StructType(Token token, List<(Token, Expression)> fields, List<Declaration> declarations)
+            public StructType(Token token, List<Field> fields, List<Declaration> declarations)
             {
                 Token = token;
                 Fields = fields;
                 Declarations = declarations;
             }
+
+            public override Expression CloneExpression() =>
+                new StructType(
+                    Token, 
+                    Fields.Select(x => x.CloneField()).ToList(), 
+                    Declarations.Select(x => x.CloneDeclaration()).ToList());
         }
 
         /// <summary>
@@ -224,24 +285,65 @@ namespace Yoakke.Compiler.Ast
         public class StructValue : Expression
         {
             /// <summary>
+            /// A field initialization inside a struct initialization.
+            /// Syntax:
+            /// ```
+            /// name = Value;
+            /// ```
+            /// </summary>
+            public class Field : ICloneable
+            {
+                /// <summary>
+                /// The name of the <see cref="Field"/> being initialized.
+                /// </summary>
+                public Token Name { get; set; }
+                /// <summary>
+                /// The value of the <see cref="Field"/> being initialized.
+                /// </summary>
+                public Expression Value { get; set; }
+
+                /// <summary>
+                /// Initializes a new <see cref="Field"/>.
+                /// </summary>
+                /// <param name="name">The name of the field being initialized.</param>
+                /// <param name="value">The value of the field being initialized.</param>
+                public Field(Token name, Expression value)
+                {
+                    Name = name;
+                    Value = value;
+                }
+
+                public object Clone() =>
+                    CloneField();
+
+                public Field CloneField() =>
+                    new Field(Name, Value.CloneExpression());
+            }
+
+            /// <summary>
             /// The structure type to instantiate,
             /// </summary>
             new public Expression StructType { get; set; }
             /// <summary>
-            /// The fields of the structure. An identifier and an assigned value.
+            /// The initializer <see cref="Field"/>s.
             /// </summary>
-            public List<(Token, Expression)> Fields { get; set; }
+            public List<Field> Fields { get; set; }
 
             /// <summary>
             /// Initializes a new <see cref="StructValue"/>.
             /// </summary>
             /// <param name="structType">The type of the struct to instantiate.</param>
-            /// <param name="fields">The list of field initializations. Each a pair of name and value.</param>
-            public StructValue(Expression structType, List<(Token, Expression)> fields)
+            /// <param name="fields">The initializer <see cref="Field"/>s.</param>
+            public StructValue(Expression structType, List<Field> fields)
             {
                 StructType = structType;
                 Fields = fields;
             }
+
+            public override Expression CloneExpression() =>
+                new StructValue(
+                    StructType.CloneExpression(), 
+                    Fields.Select(x => x.CloneField()).ToList());
         }
 
         /// <summary>
@@ -276,6 +378,11 @@ namespace Yoakke.Compiler.Ast
                 ParameterTypes = parameters;
                 ReturnType = returnType;
             }
+
+            public override Expression CloneExpression() =>
+                new ProcType(
+                    ParameterTypes.Select(x => x.CloneExpression()).ToList(),
+                    ReturnType?.CloneExpression());
         }
 
         /// <summary>
@@ -289,7 +396,7 @@ namespace Yoakke.Compiler.Ast
         /// proc(Args...) -> RetType { Body }
         /// ```
         /// </summary>
-        public class Proc : Expression
+        public class ProcValue : Expression
         {
             /// <summary>
             /// A single parameter inside a procedure's parameter list.
@@ -298,7 +405,7 @@ namespace Yoakke.Compiler.Ast
             /// Name: Type
             /// ```
             /// </summary>
-            public class Parameter
+            public class Parameter : ICloneable
             {
                 /// <summary>
                 /// The name <see cref="Token"/> of the <see cref="Parameter"/>.
@@ -324,6 +431,12 @@ namespace Yoakke.Compiler.Ast
                     Name = name;
                     Type = type;
                 }
+
+                public object Clone() =>
+                    CloneParameter();
+
+                public Parameter CloneParameter() =>
+                    new Parameter(Name, Type.CloneExpression());
             }
 
             /// <summary>
@@ -340,17 +453,23 @@ namespace Yoakke.Compiler.Ast
             public Expression Body { get; set; }
 
             /// <summary>
-            /// Initializes a new <see cref="Proc"/>.
+            /// Initializes a new <see cref="ProcValue"/>.
             /// </summary>
             /// <param name="parameters">The list of parameters the procedure takes.</param>
             /// <param name="returnType">The return type of the procedure.</param>
             /// <param name="body">The body of the procedure.</param>
-            public Proc(List<Parameter> parameters, Expression? returnType, Expression body)
+            public ProcValue(List<Parameter> parameters, Expression? returnType, Expression body)
             {
                 Parameters = parameters;
                 ReturnType = returnType;
                 Body = body;
             }
+
+            public override Expression CloneExpression() =>
+                new ProcValue(
+                    Parameters.Select(x => x.CloneParameter()).ToList(),
+                    ReturnType?.CloneExpression(),
+                    Body.CloneExpression());
         }
 
         /// <summary>
@@ -390,6 +509,9 @@ namespace Yoakke.Compiler.Ast
                 Statements = statements;
                 Value = value;
             }
+
+            public override Expression CloneExpression() =>
+                new Block(Statements.Select(x => x.CloneStatement()).ToList(), Value?.CloneExpression());
         }
 
         /// <summary>
@@ -404,7 +526,7 @@ namespace Yoakke.Compiler.Ast
             /// <summary>
             /// The procedure <see cref="Expression"/> that's being called.
             /// </summary>
-            new public Expression Proc { get; set; }
+            public Expression Proc { get; set; }
             /// <summary>
             /// The arguments passed to the procedure.
             /// </summary>
@@ -420,6 +542,9 @@ namespace Yoakke.Compiler.Ast
                 Proc = proc;
                 Arguments = arguments;
             }
+
+            public override Expression CloneExpression() =>
+                new Call(Proc.CloneExpression(), Arguments.Select(x => x.CloneExpression()).ToList());
         }
 
         /// <summary>
@@ -452,6 +577,9 @@ namespace Yoakke.Compiler.Ast
                 Then = then;
                 Else = els;
             }
+
+            public override Expression CloneExpression() =>
+                new If(Condition.CloneExpression(), Then.CloneExpression(), Else?.CloneExpression());
         }
 
         /// <summary>
@@ -484,6 +612,9 @@ namespace Yoakke.Compiler.Ast
                 Operator = op;
                 Right = right;
             }
+
+            public override Expression CloneExpression() =>
+                new BinOp(Left.CloneExpression(), Operator, Right.CloneExpression());
         }
     }
 }

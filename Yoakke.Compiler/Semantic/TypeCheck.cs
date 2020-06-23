@@ -91,16 +91,16 @@ namespace Yoakke.Compiler.Semantic
             var uninitFields = ty.Fields.Keys.ToHashSet();
             foreach (var field in structValue.Fields)
             {
-                var fieldName = field.Item1.Value;
+                var fieldName = field.Name.Value;
                 if (!uninitFields.Remove(fieldName))
                 {
                     // Something is wrong with the name, either double-initialization or unknown field
                     if (ty.Fields.ContainsKey(fieldName)) throw new NotImplementedException("Double field init!");
-                    else throw new InitializationError(field.Item1);
+                    else throw new InitializationError(field.Name);
                 }
                 // Unify type with the initialization value's type
                 var fieldType = ty.Fields[fieldName];
-                TypeEval.Evaluate(field.Item2).Unify(fieldType);
+                TypeEval.Evaluate(field.Value).Unify(fieldType);
             }
             // Check if we have uninitialized fields remaining
             if (uninitFields.Count > 0)
@@ -128,7 +128,7 @@ namespace Yoakke.Compiler.Semantic
 
             case Expression.StructType structType:
                 // Just check field types
-                foreach (var (_, type) in structType.Fields) Check(type);
+                foreach (var field in structType.Fields) Check(field.Type);
                 // Check declarations
                 // foreach (var decl in structType.Declarations) Check(decl);
                 break;
@@ -136,7 +136,7 @@ namespace Yoakke.Compiler.Semantic
             case Expression.StructValue structValue:
             {
                 // Check field values
-                foreach (var (_, value) in structValue.Fields) Check(value);
+                foreach (var field in structValue.Fields) Check(field.Value);
                 Check(structValue);
             }
             break;
@@ -147,7 +147,7 @@ namespace Yoakke.Compiler.Semantic
                 if (procType.ReturnType != null) Check(procType.ReturnType);
                 break;
 
-            case Expression.Proc proc:
+            case Expression.ProcValue proc:
             {
                 // Check argument and return type
                 foreach (var param in proc.Parameters) Check(param.Type);

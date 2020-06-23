@@ -47,7 +47,7 @@ namespace Yoakke.Compiler.IR
             this.builder = builder;
         }
 
-        private Proc? CompileProcedure(Expression.Proc proc)
+        private Proc? CompileProcedure(Expression.ProcValue proc)
         {
             // If it's already compiled, just return that
             if (builder.Globals.TryGetValue(proc, out var alreadyDefined)) return (Proc)alreadyDefined;
@@ -194,7 +194,7 @@ namespace Yoakke.Compiler.IR
                 return Compile(ConstEval.Evaluate(intLit), lvalue);
             case Expression.BoolLit boolLit:
                 return Compile(ConstEval.Evaluate(boolLit), lvalue);
-            case Expression.Proc proc:
+            case Expression.ProcValue proc:
                 return Compile(ConstEval.Evaluate(proc), lvalue);
 
             case Expression.Ident ident:
@@ -274,7 +274,7 @@ namespace Yoakke.Compiler.IR
             {
                 var structTy = (Semantic.Type.Struct)ConstEval.EvaluateAsType(structValue.StructType);
                 return CompileStructValue(structTy, lvalue,
-                    structValue.Fields.Select(f => (f.Item1.Value, Compile(f.Item2, false))));
+                    structValue.Fields.Select(f => (f.Name.Value, Compile(f.Value, false))));
             }
 
             case Expression.Block block:

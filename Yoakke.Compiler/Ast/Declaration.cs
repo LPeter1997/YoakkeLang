@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Yoakke.Compiler.Semantic;
 using Yoakke.Compiler.Syntax;
@@ -26,6 +27,9 @@ namespace Yoakke.Compiler.Ast
             {
                 Declarations = declarations;
             }
+
+            public override Declaration CloneDeclaration() =>
+                new Program(Declarations.Select(x => x.CloneDeclaration()).ToList());
         }
 
         /// <summary>
@@ -70,6 +74,9 @@ namespace Yoakke.Compiler.Ast
                 Type = type;
                 Value = value;
             }
+
+            public override Declaration CloneDeclaration() =>
+                new ConstDef(Name, Type?.CloneExpression(), Value.CloneExpression());
         }
     }
 }

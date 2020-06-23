@@ -81,7 +81,7 @@ namespace Yoakke.Compiler.Semantic
 
             case Expression.StructType structType:
                 // Define in field types
-                foreach (var (_, type) in structType.Fields) Define(type);
+                foreach (var field in structType.Fields) Define(field.Type);
                 // Define in declarations
                 foreach (var decl in structType.Declarations) Define(decl);
                 break;
@@ -90,7 +90,7 @@ namespace Yoakke.Compiler.Semantic
                 // Define in the struct type expression
                 Define(structValue.StructType);
                 // Define in field values
-                foreach (var (_, value) in structValue.Fields) Define(value);
+                foreach (var field in structValue.Fields) Define(field.Value);
                 break;
 
             case Expression.ProcType procType:
@@ -100,7 +100,7 @@ namespace Yoakke.Compiler.Semantic
                 if (procType.ReturnType != null) Define(procType.ReturnType);
                 break;
 
-            case Expression.Proc proc:
+            case Expression.ProcValue proc:
                 // We define each parameter
                 foreach (var param in proc.Parameters)
                 {

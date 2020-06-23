@@ -46,7 +46,7 @@ namespace Yoakke.Compiler.Semantic
             case Expression.StructValue structValue:
                 return ConstEval.EvaluateAsType(structValue.StructType);
 
-            case Expression.Proc proc: 
+            case Expression.ProcValue proc: 
                 return ConstEval.Evaluate(proc).Type;
 
             case Expression.Intrinsic intrinsic:

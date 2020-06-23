@@ -43,6 +43,9 @@ namespace Yoakke.Compiler.Ast
                 Type = type;
                 Value = value;
             }
+
+            public override Statement CloneStatement() =>
+                new VarDef(Name, Type?.CloneExpression(), Value.CloneExpression());
         }
 
         /// <summary>
@@ -70,6 +73,9 @@ namespace Yoakke.Compiler.Ast
                 Expression = expression;
                 HasSemicolon = hasSemicolon;
             }
+
+            public override Statement CloneStatement() =>
+                new Expression_(Expression.CloneExpression(), HasSemicolon);
         }
     }
 }

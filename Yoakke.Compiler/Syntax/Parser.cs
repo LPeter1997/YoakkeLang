@@ -172,7 +172,7 @@ namespace Yoakke.Compiler.Syntax
                       && !state.HasFlag(ExprState.NoBraced) 
                       && Match(ref input, TokenType.OpenBrace))
                 {
-                    var fields = new List<(Token, Expression)>();
+                    var fields = new List<Expression.StructValue.Field>();
                     while (!Match(ref input, TokenType.CloseBrace))
                     {
                         Expect(ref input, TokenType.Identifier, out var name);
@@ -180,7 +180,7 @@ namespace Yoakke.Compiler.Syntax
                         var value = ParseExpression(ref input, ExprState.None);
                         Expect(ref input, TokenType.Semicolon);
 
-                        fields.Add((name, value));
+                        fields.Add(new Expression.StructValue.Field(name, value));
                     }
                     result = new Expression.StructValue(result, fields);
                 }
@@ -299,7 +299,7 @@ namespace Yoakke.Compiler.Syntax
             Expect(ref input, TokenType.KwStruct, out var token);
             Expect(ref input, TokenType.OpenBrace);
 
-            var fields = new List<(Token, Expression)>();
+            var fields = new List<Expression.StructType.Field>();
             var declarations = new List<Declaration>();
 
             while (!Match(ref input, TokenType.CloseBrace))
@@ -320,7 +320,7 @@ namespace Yoakke.Compiler.Syntax
                 Expect(ref input, TokenType.Colon);
                 var type = ParseExpression(ref input, ExprState.TypeOnly);
                 Expect(ref input, TokenType.Semicolon);
-                fields.Add((ident, type));
+                fields.Add(new Expression.StructType.Field(ident, type));
             }
 
             return new Expression.StructType(token, fields, declarations);
@@ -331,7 +331,7 @@ namespace Yoakke.Compiler.Syntax
             Expect(ref input, TokenType.KwProc);
             Expect(ref input, TokenType.OpenParen);
             // Parameters
-            var parameters = new List<Expression.Proc.Parameter>();
+            var parameters = new List<Expression.ProcValue.Parameter>();
             while (true)
             {
                 if (Match(ref input, TokenType.CloseParen)) break;
@@ -347,7 +347,7 @@ namespace Yoakke.Compiler.Syntax
 
             var body = ParseBlockExpression(ref input);
 
-            return new Expression.Proc(parameters, returnType, body);
+            return new Expression.ProcValue(parameters, returnType, body);
         }
 
         private static Expression ParseProcTypeExpression(ref Input input)
@@ -372,12 +372,12 @@ namespace Yoakke.Compiler.Syntax
             return new Expression.ProcType(arguments, returnType);
         }
 
-        private static Expression.Proc.Parameter ParseProcParameter(ref Input input)
+        private static Expression.ProcValue.Parameter ParseProcParameter(ref Input input)
         {
             Expect(ref input, TokenType.Identifier, out var name);
             Expect(ref input, TokenType.Colon);
             var type = ParseExpression(ref input, ExprState.TypeOnly);
-            return new Expression.Proc.Parameter(name, type);
+            return new Expression.ProcValue.Parameter(name, type);
         }
 
         // Helpers /////////////////////////////////////////////////////////////

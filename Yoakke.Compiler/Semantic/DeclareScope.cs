@@ -84,7 +84,7 @@ namespace Yoakke.Compiler.Semantic
             case Expression.StructType structType:
                 symbolTable.PushScope();
                 // Declare in field types
-                foreach (var (_, type) in structType.Fields) Declare(symbolTable, type);
+                foreach (var field in structType.Fields) Declare(symbolTable, field.Type);
                 // Declare in declarations
                 foreach (var decl in structType.Declarations) Declare(symbolTable, decl);
                 symbolTable.PopScope();
@@ -94,7 +94,7 @@ namespace Yoakke.Compiler.Semantic
                 // Declare in the struct type expression
                 Declare(symbolTable, structValue.StructType);
                 // Declare in field values
-                foreach (var (_, value) in structValue.Fields) Declare(symbolTable, value);
+                foreach (var field in structValue.Fields) Declare(symbolTable, field.Value);
                 break;
 
             case Expression.ProcType procType:
@@ -104,7 +104,7 @@ namespace Yoakke.Compiler.Semantic
                 if (procType.ReturnType != null) Declare(symbolTable, procType.ReturnType);
                 break;
 
-            case Expression.Proc proc:
+            case Expression.ProcValue proc:
                 // Processes introduce a scope for their signature
                 symbolTable.PushScope();
                 // Declare in parameters
