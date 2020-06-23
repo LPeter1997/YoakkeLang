@@ -1,19 +1,19 @@
 
 const Vector2 = proc(T: type) -> type {
+    var hello = T;
     struct {
-        const Self = Vector2(T);
+        const Self = Vector2(hello);
 
-        x: T;
+        x: hello;
         y: T;
 
-        const new = proc(x: T, y: T) -> Self {
+        const new = proc(x: hello, y: T) -> Self {
             Self { x = x; y = y; }
         };
     }
 };
 
 const main = proc() -> i32 {
-    var v = Vector2(i32).new(12, 56);
-    v.y
+	Vector2(i32).new(12, 74).y
 };
 

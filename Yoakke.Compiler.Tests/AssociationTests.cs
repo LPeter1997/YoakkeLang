@@ -167,5 +167,31 @@ namespace Yoakke.Compiler.Tests
             var f = CompileAndLoadFunc<Func<Int32>>(source);
             Assert.AreEqual(f(), 123);
         }
+
+        [TestMethod]
+        public void ComplexGenerics()
+        {
+            string source = @"
+            const Vector2 = proc(T: type) -> type {
+                var hello = T;
+                struct {
+                    const Self = Vector2(hello);
+            
+                    x: hello;
+                    y: T;
+            
+                    const new = proc(x: hello, y: T) -> Self {
+                        Self { x = x; y = y; }
+                    };
+                }
+            };
+            
+            const foo = proc() -> i32 {
+            	Vector2(i32).new(12, 74).y
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 74);
+        }
     }
 }
