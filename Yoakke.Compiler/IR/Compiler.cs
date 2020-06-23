@@ -240,6 +240,13 @@ namespace Yoakke.Compiler.IR
                     var leftValue = ConstEval.EvaluateAsType(dotPath.Left);
                     if (leftValue is Semantic.Type.Struct structTy)
                     {
+                        // TODO: Ugly hack
+                        foreach (var sym in structTy.Scope.Symbols)
+                        {
+                            var constSym = (Symbol.Const)sym;
+                            if (constSym.Definition != null) TypeCheck.Check(constSym.Definition);
+                        }
+
                         // We have a chance of accessing a constant here
                         var symbol = (Symbol.Const)structTy.Scope.Reference(dotPath.Right.Value);
                         return Compile(symbol.GetValue(), lvalue);

@@ -76,6 +76,11 @@ namespace Yoakke.Compiler.Semantic
         /// </summary>
         public Scope? Parent { get; }
 
+        /// <summary>
+        /// The <see cref="Symbol"/>s defined in this <see cref="Scope"/>.
+        /// </summary>
+        public IEnumerable<Symbol> Symbols => symbols.Values;
+
         private Dictionary<string, Symbol> symbols = new Dictionary<string, Symbol>();
 
         /// <summary>

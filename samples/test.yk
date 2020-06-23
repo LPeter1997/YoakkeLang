@@ -1,15 +1,19 @@
 
-const Bar = proc(T: type) -> type {
+const Vector2 = proc(T: type) -> type {
     struct {
-        value: T;
+        const Self = Vector2(T);
 
-        const new = proc(v: T) -> Bar(T) {
-            Bar(T) { value = v; }
+        x: T;
+        y: T;
+
+        const new = proc(x: T, y: T) -> Self {
+            Self { x = x; y = y; }
         };
     }
 };
 
 const main = proc() -> i32 {
-    Bar(i32).new(123).value
+    var v = Vector2(i32).new(12, 56);
+    v.y
 };
 

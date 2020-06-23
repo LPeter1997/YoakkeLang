@@ -65,18 +65,20 @@ namespace Yoakke.Compiler.Semantic
             // For now we just re-evaluate when we can't cache for sure.
 
             // Some simple cache-ing mechanism
+            Value value;
             if (canCache)
             {
                 if (expression.ConstantValue == null)
                 {
                     expression.ConstantValue = EvaluateImpl(callStack, expression, canCache, lvalue);
                 }
-                return lvalue ? expression.ConstantValue : expression.ConstantValue.CloneValue();
+                value = lvalue ? expression.ConstantValue : expression.ConstantValue.CloneValue();
             }
             else
             {
-                return EvaluateImpl(callStack, expression, canCache, lvalue);
+                value = EvaluateImpl(callStack, expression, canCache, lvalue);
             }
+            return value;
         }
 
         private static Type EvaluateAsType(Stack<StackFrame> callStack, Expression expression, bool canCache)
@@ -364,6 +366,8 @@ namespace Yoakke.Compiler.Semantic
                     }
                     // Evaluate the body
                     var value = Evaluate(callStack, procValue.Node.Body, false, lvalue);
+                    // Now we need to do a special substitution to avoid dangling variables
+                    value = SubstituteVariables(value, callStack.Peek().Variables);
                     callStack.Pop();
                     return value;
                 }
@@ -444,6 +448,47 @@ namespace Yoakke.Compiler.Semantic
                 }
 
             default: throw new NotImplementedException();
+            }
+        }
+
+        private static Value SubstituteVariables(Value value, Dictionary<Symbol.Variable, Value> variables)
+        {
+            if (value is Type.Struct structType)
+            {
+                // This scope contains all of the constants
+                var scope = structType.Scope;
+                // We need to create a new scope that maked the current call stack's values constants
+                var newScope = new Scope(scope.Parent);
+                // Here we define the current variables as constants
+                foreach (var sym in variables) newScope.Define(new Symbol.Const(sym.Key.Name, sym.Value));
+                // We copy out constants from the old scope
+                var newConstants = new List<Declaration>();
+                foreach (var sym in scope.Symbols)
+                {
+                    var constSym = (Symbol.Const)sym;
+                    Assert.NonNull(constSym.Definition);
+                    newConstants.Add(constSym.Definition.CloneDeclaration());
+                }
+                // We pack it up as a program so we can do batched semantic steps on them
+                var constantBatch = new Declaration.Program(newConstants);
+                // TODO: We could make this a separate function in Checks so we don't miss anything
+                // We do the semantic steps on them
+                var symbolTable = new SymbolTable();
+                symbolTable.CurrentScope = newScope;
+                DeclareScope.Declare(symbolTable, constantBatch);
+                DeclareSymbol.Declare(constantBatch);
+                DefineSymbol.Define(constantBatch);
+                //TypeCheck.Check(constantBatch);
+                // Wrap the new value up
+                return new Type.Struct(
+                    structType.Token,
+                    structType.Fields.ToDictionary(kv => kv.Key, kv => kv.Value),
+                    newScope);
+            }
+            else
+            {
+                // Just return it as-is
+                return value;
             }
         }
     }
