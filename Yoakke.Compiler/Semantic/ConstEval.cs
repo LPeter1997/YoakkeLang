@@ -286,7 +286,7 @@ namespace Yoakke.Compiler.Semantic
                 // Try to grab it from a declaration
                 else if (structType.Declarations.Count > 0) scope = structType.Declarations[0].Scope;
                 // Doesn't matter, just create an empty one
-                else scope = new Scope(structType.Scope);
+                else scope = new Scope(ScopeTag.None, structType.Scope);
 
                 Assert.NonNull(scope);
                 return new Type.Struct(structType.Token, fields, scope);
@@ -458,7 +458,7 @@ namespace Yoakke.Compiler.Semantic
                 // This scope contains all of the constants
                 var scope = structType.Scope;
                 // We need to create a new scope that maked the current call stack's values constants
-                var newScope = new Scope(scope.Parent);
+                var newScope = new Scope(scope.Tag, scope.Parent);
                 // Here we define the current variables as constants
                 foreach (var sym in variables) newScope.Define(new Symbol.Const(sym.Key.Name, sym.Value));
                 // We copy out constants from the old scope

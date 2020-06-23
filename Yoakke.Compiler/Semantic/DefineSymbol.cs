@@ -31,6 +31,11 @@ namespace Yoakke.Compiler.Semantic
                 Define(constDef.Value);
                 break;
 
+            case Statement.Return ret:
+                // Define in value, if needed
+                if (ret.Value != null) Define(ret.Value);
+                break;
+
             case Statement.VarDef varDef:
                 // Define in type of needed
                 if (varDef.Type != null) Define(varDef.Type);

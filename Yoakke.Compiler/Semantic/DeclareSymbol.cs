@@ -37,6 +37,11 @@ namespace Yoakke.Compiler.Semantic
             }  
             break;
 
+            case Statement.Return ret:
+                // Declare in value, if needed
+                if (ret.Value != null) Declare(ret.Value);
+                break;
+
             case Statement.VarDef varDef:
                 // Declare in type of needed
                 if (varDef.Type != null) Declare(varDef.Type);

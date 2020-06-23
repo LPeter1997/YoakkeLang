@@ -46,6 +46,11 @@ namespace Yoakke.Compiler.Semantic
             }
             break;
 
+            case Statement.Return ret:
+                // Declare in value, if needed
+                if (ret.Value != null) Declare(symbolTable, ret.Value);
+                break;
+
             case Statement.VarDef varDef:
                 // Declare in type of needed
                 if (varDef.Type != null) Declare(symbolTable, varDef.Type);
@@ -82,7 +87,7 @@ namespace Yoakke.Compiler.Semantic
                 break;
 
             case Expression.StructType structType:
-                symbolTable.PushScope();
+                symbolTable.PushScope(ScopeTag.None);
                 // Declare in field types
                 foreach (var field in structType.Fields) Declare(symbolTable, field.Type);
                 // Declare in declarations
@@ -106,7 +111,7 @@ namespace Yoakke.Compiler.Semantic
 
             case Expression.ProcValue proc:
                 // Processes introduce a scope for their signature
-                symbolTable.PushScope();
+                symbolTable.PushScope(ScopeTag.Proc);
                 // Declare in parameters
                 foreach (var param in proc.Parameters) Declare(symbolTable, param.Type);
                 // Declare in return-type
@@ -118,7 +123,7 @@ namespace Yoakke.Compiler.Semantic
 
             case Expression.Block block:
                 // Blocks introduce a scope
-                symbolTable.PushScope();
+                symbolTable.PushScope(ScopeTag.None);
                 // Declare in each statement
                 foreach (var stmt in block.Statements) Declare(symbolTable, stmt);
                 // In return value too
@@ -140,14 +145,14 @@ namespace Yoakke.Compiler.Semantic
                 // Declare in condition and then
                 Declare(symbolTable, iff.Condition);
 
-                symbolTable.PushScope();
+                symbolTable.PushScope(ScopeTag.None);
                 Declare(symbolTable, iff.Then);
                 symbolTable.PopScope();
 
                 // Declare in else if needed
                 if (iff.Else != null)
                 {
-                    symbolTable.PushScope();
+                    symbolTable.PushScope(ScopeTag.None);
                     Declare(symbolTable, iff.Else);
                     symbolTable.PopScope();
                 }

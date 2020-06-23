@@ -22,7 +22,7 @@ namespace Yoakke.Compiler.Semantic
 
         public SymbolTable()
         {
-            GlobalScope = new Scope(null);
+            GlobalScope = new Scope(ScopeTag.None, null);
             CurrentScope = GlobalScope;
         }
 
@@ -52,9 +52,10 @@ namespace Yoakke.Compiler.Semantic
         /// <summary>
         /// Pushes a new <see cref="Scope"/>, so the current scope will be the pushed one.
         /// </summary>
-        public void PushScope()
+        /// <param name="tag">The <see cref="ScopeTag"/> for the created <see cref="Scope"/>.</param>
+        public void PushScope(ScopeTag tag)
         {
-            CurrentScope = new Scope(CurrentScope);
+            CurrentScope = new Scope(tag, CurrentScope);
         }
 
         /// <summary>
@@ -67,14 +68,34 @@ namespace Yoakke.Compiler.Semantic
     }
 
     /// <summary>
+    /// Extra information about <see cref="Scope"/>s.
+    /// </summary>
+    [Flags]
+    public enum ScopeTag
+    {
+        /// <summary>
+        /// No extra information.
+        /// </summary>
+        None = 0,
+        /// <summary>
+        /// A <see cref="Scope"/> for a procedure.
+        /// </summary>
+        Proc = 1,
+    }
+
+    /// <summary>
     /// A single, lexical scope of symbols.
     /// </summary>
     public class Scope
     {
         /// <summary>
+        /// The <see cref="ScopeTag"/> for this <see cref="Scope"/>.
+        /// </summary>
+        public readonly ScopeTag Tag;
+        /// <summary>
         /// The parent of this <see cref="Scope"/>. Null, if this is the root.
         /// </summary>
-        public Scope? Parent { get; }
+        public readonly Scope? Parent;
 
         /// <summary>
         /// The <see cref="Symbol"/>s defined in this <see cref="Scope"/>.
@@ -86,9 +107,11 @@ namespace Yoakke.Compiler.Semantic
         /// <summary>
         /// Initializes a new <see cref="Scope"/>.
         /// </summary>
+        /// <param name="tag">The <see cref="ScopeTag"/> for this scope.</param>
         /// <param name="parent">The parent scope of this scope.</param>
-        public Scope(Scope? parent)
+        public Scope(ScopeTag tag, Scope? parent)
         {
+            Tag = tag;
             Parent = parent;
         }
 
