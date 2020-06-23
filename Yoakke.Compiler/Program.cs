@@ -23,9 +23,9 @@ namespace Yoakke.Compiler
                 var cmp = new Compiler
                 {
                     SourceFile = "../../../../../../samples/test.yk",
-                    //DumpIr = true,
+                    DumpIr = true,
                     ExecuteImmediately = true,
-                    OptimizationLevel = 1,
+                    OptimizationLevel = 0,
                     BackendFlags = new string[] { "../../../../../../samples/ffi.c" },
                 };
                 cmp.OnExecute();

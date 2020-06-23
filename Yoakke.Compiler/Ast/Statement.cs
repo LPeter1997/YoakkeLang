@@ -49,6 +49,33 @@ namespace Yoakke.Compiler.Ast
         }
 
         /// <summary>
+        /// An explicit return from a procedure.
+        /// Syntax:
+        /// ```
+        /// return <Value>;
+        /// ```
+        /// </summary>
+        public class Return : Statement
+        {
+            /// <summary>
+            /// The value the statement returns.
+            /// </summary>
+            public Expression? Value { get; set; }
+
+            /// <summary>
+            /// Initializes a new <see cref="Return"/>.
+            /// </summary>
+            /// <param name="value">The value the statement returns.</param>
+            public Return(Expression? value)
+            {
+                Value = value;
+            }
+
+            public override Statement CloneStatement() =>
+                new Return(Value?.CloneExpression());
+        }
+
+        /// <summary>
         /// An <see cref="Expression"/> that has been wrapped up in a <see cref="Statement"/>, so it can
         /// appear in statement position.
         /// </summary>

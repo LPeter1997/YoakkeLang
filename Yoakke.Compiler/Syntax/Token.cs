@@ -236,5 +236,9 @@ namespace Yoakke.Compiler.Syntax
         /// The keyword 'var'.
         /// </summary>
         KwVar,
+        /// <summary>
+        /// The keyword 'return'.
+        /// </summary>
+        KwReturn,
     }
 }

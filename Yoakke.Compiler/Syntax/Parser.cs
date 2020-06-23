@@ -65,6 +65,7 @@ namespace Yoakke.Compiler.Syntax
         private static Statement ParseStatement(ref Input input)
         {
             if (Peek(input) == TokenType.KwVar) return ParseVarStatement(ref input);
+            if (Peek(input) == TokenType.KwReturn) return ParseReturnStatement(ref input);
 
             var declaration = TryParse(ref input, ParseDeclaration);
             if (declaration != null) return declaration;
@@ -89,6 +90,18 @@ namespace Yoakke.Compiler.Syntax
             Expect(ref input, TokenType.Semicolon);
 
             return new Statement.VarDef(name, type, value);
+        }
+
+        private static Statement ParseReturnStatement(ref Input input)
+        {
+            Expect(ref input, TokenType.KwReturn);
+            
+            Expression? value = null;
+            if (Peek(input) != TokenType.Semicolon) value = ParseExpression(ref input, ExprState.None);
+            
+            Expect(ref input, TokenType.Semicolon);
+
+            return new Statement.Return(value);
         }
 
         private static Statement ParseExpressionStatement(ref Input input)

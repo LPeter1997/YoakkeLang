@@ -159,6 +159,7 @@ namespace Yoakke.Compiler.Syntax
                     "if" => TokenType.KwIf,
                     "else" => TokenType.KwElse,
                     "var" => TokenType.KwVar,
+                    "return" => TokenType.KwReturn,
                     _ => TokenType.Identifier,
                 };
                 // Builtin
