@@ -64,8 +64,13 @@ namespace Yoakke.Compiler.Syntax
 
         private static Statement ParseStatement(ref Input input)
         {
-            if (Peek(input) == TokenType.KwVar) return ParseVarStatement(ref input);
-            if (Peek(input) == TokenType.KwReturn) return ParseReturnStatement(ref input);
+            switch (Peek(input))
+            {
+            case TokenType.KwVar: return ParseVarStatement(ref input);
+            case TokenType.KwReturn: return ParseReturnStatement(ref input);
+            // Greedy consumption to avoid ambiguity
+            case TokenType.KwIf: return new Statement.Expression_(ParseIfExpression(ref input), false);
+            }
 
             var declaration = TryParse(ref input, ParseDeclaration);
             if (declaration != null) return declaration;
@@ -249,14 +254,6 @@ namespace Yoakke.Compiler.Syntax
                     break;
                 }
                 throw new ExpectedError("'}' or statement", input[0], "code block");
-            }
-            if (   returnValue == null 
-                && statements.Count > 0 
-                && statements[statements.Count - 1] is Statement.Expression_ expr
-                && IsBracedExpressionForStatement(expr.Expression))
-            {
-                statements.RemoveAt(statements.Count - 1);
-                returnValue = expr.Expression;
             }
             return new Expression.Block(statements, returnValue);
         }
