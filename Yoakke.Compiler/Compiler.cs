@@ -118,6 +118,7 @@ namespace Yoakke.Compiler
 
             // Parse
             var ast = Parser.ParseProgram(tokens);
+            ast = Sugar.Desugar(ast);
 
             // If we want to dump the AST, do it now
             if (DumpAst)
