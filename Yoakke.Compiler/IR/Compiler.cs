@@ -47,6 +47,14 @@ namespace Yoakke.Compiler.IR
             this.builder = builder;
         }
 
+        private bool IsLastJumpOrReturn()
+        {
+            var currentBB = builder.CurrentBasicBlock;
+            if (currentBB.Instructions.Count == 0) return false;
+            var lastInstruction = currentBB.Instructions.Last();
+            return lastInstruction.IsJump;
+        }
+
         private Proc? CompileProcedure(Expression.ProcValue proc)
         {
             // If it's already compiled, just return that
@@ -84,8 +92,12 @@ namespace Yoakke.Compiler.IR
             }
             // Now we just compile the body
             var bodyValue = Compile(proc.Body, false);
-            // We append the return statement
-            builder.AddInstruction(new Instruction.Ret(bodyValue));
+            // We append the return statement, if there's no return already
+            // TODO: Temporary check
+            if (!IsLastJumpOrReturn())
+            {
+                builder.AddInstruction(new Instruction.Ret(bodyValue));
+            }
             // Compilation is done
             builder.CreateProcEnd();
 
@@ -160,6 +172,13 @@ namespace Yoakke.Compiler.IR
                 {
                     // PASS
                 }
+            }
+            break;
+
+            case Statement.Return ret:
+            {
+                var retValue = ret.Value == null ? Value.Void_ : Compile(ret.Value, false);
+                builder.AddInstruction(new Instruction.Ret(retValue));
             }
             break;
 

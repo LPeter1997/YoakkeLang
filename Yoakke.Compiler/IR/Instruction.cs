@@ -10,6 +10,10 @@ namespace Yoakke.Compiler.IR
     /// </summary>
     abstract partial class Instruction
     {
+        /// <summary>
+        /// True, if this <see cref="Instruction"/> is any kind of jump.
+        /// </summary>
+        public virtual bool IsJump => false;
     }
 
     /// <summary>
@@ -73,6 +77,8 @@ namespace Yoakke.Compiler.IR
             /// The return <see cref="Value"/>, if there's any.
             /// </summary>
             public Value Value { get; set; }
+
+            public override bool IsJump => true;
 
             /// <summary>
             /// Initializes a new <see cref="Ret"/>.
@@ -219,6 +225,8 @@ namespace Yoakke.Compiler.IR
             /// </summary>
             public BasicBlock Target { get; set; }
 
+            public override bool IsJump => true;
+
             /// <summary>
             /// Initializes a new <see cref="Jump"/>.
             /// </summary>
@@ -243,6 +251,8 @@ namespace Yoakke.Compiler.IR
             /// The <see cref="BasicBlock"/> to jump to when the <see cref="Condition"/> is false.
             /// </summary>
             public BasicBlock Else { get; set; }
+
+            public override bool IsJump => true;
 
             /// <summary>
             /// Initializes a new <see cref="JumpIf"/>.

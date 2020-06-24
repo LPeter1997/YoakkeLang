@@ -1,21 +1,7 @@
 
-/*
-const Vector2 = proc(T: type) -> type {
-    var hello = T;
-    struct {
-        const Self = Vector2(hello);
-
-        x: hello;
-        y: T;
-
-        const new = proc(x: hello, y: T) -> Self {
-            Self { x = x; y = y; }
-        };
-    }
-};
-*/
+const foo = proc() {};
 
 const main = proc() -> i32 {
-	return 0;
+    if true { foo(); return 5; }
+    2
 };
-

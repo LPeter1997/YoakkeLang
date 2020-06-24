@@ -196,7 +196,11 @@ namespace Yoakke.Compiler
 
         private List<IPass> PassesForOptimizationLevel()
         {
-            var passes = new List<IPass> { new RemoveVoid() };
+            var passes = new List<IPass> 
+            { 
+                new BasicBlockFix(),
+                new RemoveVoid(),
+            };
             if (OptimizationLevel > 0)
             {
                 // Add level 1 optimizations

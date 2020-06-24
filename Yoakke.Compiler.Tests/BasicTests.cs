@@ -288,6 +288,7 @@ namespace Yoakke.Compiler.Tests
             Assert.IsTrue(PairwiseEquals((err.First, err.Second), (Type.I32, Type.Bool)));
         }
 
+        // TODO: To check this correctly, we need proper control-flow analysis
         [TestMethod]
         public void ReturnTypeNoReturnMismatch()
         {
