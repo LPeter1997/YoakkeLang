@@ -32,22 +32,19 @@ namespace Yoakke.Compiler.Syntax
             switch (statement)
             {
             case Declaration.Program program:
-                return new Declaration.Program(program.Declarations.Select(x => (Declaration)Desugar(x)).ToList());
+                return new Declaration.Program(DesugarList(program.Declarations));
 
             case Declaration.ConstDef constDef:
                 return new Declaration.ConstDef(
                     constDef.Name,
-                    constDef.Type == null ? null : Desugar(constDef.Type),
+                    DesugarNullable(constDef.Type),
                     Desugar(constDef.Value));
 
             case Statement.Return ret:
-                return new Statement.Return(ret.Value == null ? null : Desugar(ret.Value));
+                return new Statement.Return(DesugarNullable(ret.Value));
 
             case Statement.VarDef varDef:
-                return new Statement.VarDef(
-                    varDef.Name,
-                    varDef.Type == null ? null : Desugar(varDef.Type),
-                    Desugar(varDef.Value));
+                return new Statement.VarDef(varDef.Name, DesugarNullable(varDef.Type), Desugar(varDef.Value));
 
             case Statement.Expression_ expr:
                 return new Statement.Expression_(Desugar(expr.Expression), expr.HasSemicolon);
@@ -80,7 +77,7 @@ namespace Yoakke.Compiler.Syntax
                 return new Expression.StructType(
                     structType.Token,
                     structType.Fields.Select(x => new Expression.StructType.Field(x.Name, Desugar(x.Type))).ToList(),
-                    structType.Declarations.Select(x => (Declaration)Desugar(x)).ToList());
+                    DesugarList(structType.Declarations));
 
             case Expression.StructValue structValue:
                 return new Expression.StructValue(
@@ -89,30 +86,23 @@ namespace Yoakke.Compiler.Syntax
 
             case Expression.ProcType procType:
                 return new Expression.ProcType(
-                    procType.ParameterTypes.Select(x => Desugar(x)).ToList(),
-                    procType.ReturnType == null ? null : Desugar(procType.ReturnType));
+                    DesugarList(procType.ParameterTypes),
+                    DesugarNullable(procType.ReturnType));
 
             case Expression.ProcValue proc:
                 return new Expression.ProcValue(
                     proc.Parameters.Select(x => new Expression.ProcValue.Parameter(x.Name, Desugar(x.Type))).ToList(),
-                    proc.ReturnType == null ? null : Desugar(proc.ReturnType),
+                    DesugarNullable(proc.ReturnType),
                     Desugar(proc.Body));
 
             case Expression.Block block:
-                return new Expression.Block(
-                    block.Statements.Select(x => Desugar(x)).ToList(),
-                    block.Value == null ? null : Desugar(block.Value));
+                return new Expression.Block(DesugarList(block.Statements), DesugarNullable(block.Value));
 
             case Expression.Call call:
-                return new Expression.Call(
-                    Desugar(call.Proc),
-                    call.Arguments.Select(x => Desugar(x)).ToList());
+                return new Expression.Call(Desugar(call.Proc), DesugarList(call.Arguments));
 
             case Expression.If iff:
-                return new Expression.If(
-                    Desugar(iff.Condition),
-                    Desugar(iff.Then),
-                    iff.Else == null ? null : Desugar(iff.Else));
+                return new Expression.If(Desugar(iff.Condition), Desugar(iff.Then), DesugarNullable(iff.Else));
 
             case Expression.BinOp binOp:
                 return new Expression.BinOp(Desugar(binOp.Left), binOp.Operator, Desugar(binOp.Right));
@@ -120,5 +110,20 @@ namespace Yoakke.Compiler.Syntax
             default: throw new NotImplementedException();
             }
         }
+
+        private static Statement? DesugarNullable(Statement? statement) =>
+            statement == null ? null : Desugar(statement);
+
+        private static Expression? DesugarNullable(Expression? expression) =>
+            expression == null ? null : Desugar(expression);
+
+        private static List<Declaration> DesugarList(List<Declaration> declarations) =>
+            declarations.Select(x => (Declaration)Desugar(x)).ToList();
+
+        private static List<Statement> DesugarList(List<Statement> statements) =>
+            statements.Select(Desugar).ToList();
+
+        private static List<Expression> DesugarList(List<Expression> expressions) =>
+            expressions.Select(Desugar).ToList();
     }
 }
