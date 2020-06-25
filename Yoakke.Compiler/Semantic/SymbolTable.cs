@@ -96,6 +96,7 @@ namespace Yoakke.Compiler.Semantic
         /// The parent of this <see cref="Scope"/>. Null, if this is the root.
         /// </summary>
         public readonly Scope? Parent;
+
         // TODO: Should we split a ProcScope instead and have this there?
         /// <summary>
         /// The <see cref="Type"/> inferred for this <see cref="Scope"/>.
@@ -136,35 +137,25 @@ namespace Yoakke.Compiler.Semantic
         /// Defines a <see cref="Symbol"/> in this <see cref="Scope"/>.
         /// </summary>
         /// <param name="symbol">The <see cref="Symbol"/> to define.</param>
-        public void Define(Symbol symbol)
-        {
-            symbols.Add(symbol.Name, symbol);
-        }
+        public void Define(Symbol symbol) => symbols.Add(symbol.Name, symbol);
 
         /// <summary>
         /// Searches for a <see cref="Symbol"/> in this or any parent <see cref="Scope"/>.
         /// </summary>
         /// <param name="name">The symbol-referrnig <see cref="Token"/>.</param>
         /// <returns>The referred <see cref="Symbol"/>.</returns>
-        public Symbol Reference(Token name) =>
-            ReferenceInternal(name.Value, name);
+        public Symbol Reference(Token name) => ReferenceInternal(name.Value, name);
 
         /// <summary>
         /// Same as <see cref="Reference(Token)"/>, but only requires a string name.
         /// </summary>
-        public Symbol Reference(string name) =>
-            ReferenceInternal(name, null);
+        public Symbol Reference(string name) => ReferenceInternal(name, null);
 
         private Symbol ReferenceInternal(string name, Token? ident)
         {
-            if (symbols.TryGetValue(name, out var symbol))
-            {
-                return symbol;
-            }
-            if (Parent != null)
-            {
-                return Parent.ReferenceInternal(name, ident);
-            }
+            if (symbols.TryGetValue(name, out var symbol)) return symbol;
+            if (Parent != null) return Parent.ReferenceInternal(name, ident);
+
             // Error out
             if (ident == null) throw new UndefinedSymbolError(name);
             throw new UndefinedSymbolError(ident.Value);
