@@ -96,7 +96,21 @@ namespace Yoakke.Compiler.Syntax
                     Desugar(proc.Body));
 
             case Expression.Block block:
-                return new Expression.Block(DesugarList(block.Statements), DesugarNullable(block.Value));
+            {
+                var result = new Expression.Block(DesugarList(block.Statements), DesugarNullable(block.Value));
+                if (   result.Value == null 
+                    && result.Statements.Count > 0 
+                    && result.Statements.Last() is Statement.Expression_ expr
+                    && !expr.HasSemicolon
+                    && HasExplicitValue(expr.Expression))
+                {
+                    // No return value, last statement is an expression without semicolon, has explicit return value
+                    // We move that expression to the value
+                    result.Value = expr.Expression;
+                    result.Statements.RemoveAt(result.Statements.Count - 1);
+                }
+                return result;
+            }
 
             case Expression.Call call:
                 return new Expression.Call(Desugar(call.Proc), DesugarList(call.Arguments));
@@ -121,7 +135,8 @@ namespace Yoakke.Compiler.Syntax
             switch (expression)
             {
             case Expression.Block block:
-                return block.Value == null ? false : HasExplicitValue(block.Value);
+                // NOTE: Do we need to check the value here? Probably not because it was desugared?
+                return block.Value != null;
 
             case Expression.If iff:
                 return HasExplicitValue(iff.Then) || (iff.Else != null && HasExplicitValue(iff.Else));
