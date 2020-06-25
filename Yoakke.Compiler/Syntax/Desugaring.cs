@@ -10,7 +10,7 @@ namespace Yoakke.Compiler.Syntax
     /// Syntax desugaring.
     /// Removes syntax only useful for the user's convenience.
     /// </summary>
-    static class Sugar
+    static class Desugaring
     {
         /// <summary>
         /// Desugars the given <see cref="Declaration.Program"/>.
@@ -111,8 +111,26 @@ namespace Yoakke.Compiler.Syntax
             }
         }
 
-        private static Statement? DesugarNullable(Statement? statement) =>
-            statement == null ? null : Desugar(statement);
+        /// <summary>
+        /// Checks if an <see cref="Expression"/> explicitly specifies a return value.
+        /// </summary>
+        /// <param name="expression">The <see cref="Expression"/> to check.</param>
+        /// <returns>True, if it explicitly returns a value.</returns>
+        private static bool HasExplicitValue(Expression expression)
+        {
+            switch (expression)
+            {
+            case Expression.Block block:
+                return block.Value == null ? false : HasExplicitValue(block.Value);
+
+            case Expression.If iff:
+                return HasExplicitValue(iff.Then) || (iff.Else != null && HasExplicitValue(iff.Else));
+
+            default: return true;
+            }
+        }
+
+        // Helper dispatching
 
         private static Expression? DesugarNullable(Expression? expression) =>
             expression == null ? null : Desugar(expression);

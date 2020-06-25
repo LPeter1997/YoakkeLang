@@ -113,24 +113,9 @@ namespace Yoakke.Compiler.Syntax
         private static Statement ParseExpressionStatement(ref Input input)
         {
             var expression = ParseExpression(ref input, ExprState.None);
-            bool hasSemicolon;
-            if (!IsBracedExpressionForStatement(expression))
-            {
-                // ';' required
-                Expect(ref input, TokenType.Semicolon);
-                hasSemicolon = true;
-            }
-            else
-            {
-                // ';' is optional
-                hasSemicolon = Match(ref input, TokenType.Semicolon);
-            }
-            return new Statement.Expression_(expression, hasSemicolon);
+            Expect(ref input, TokenType.Semicolon);
+            return new Statement.Expression_(expression, true);
         }
-
-        private static bool IsBracedExpressionForStatement(Expression expression) =>
-               expression is Expression.Block
-            || expression is Expression.If;
 
         // Expressions /////////////////////////////////////////////////////////
 
