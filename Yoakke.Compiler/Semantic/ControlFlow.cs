@@ -97,6 +97,7 @@ namespace Yoakke.Compiler.Semantic
                 return ReturnKind.DoesNotReturn;
 
             case Expression.DotPath dotPath:
+                // TODO: Here for example it matters what the type of LHS is!
                 return Analyze(dotPath.Left);
 
             case Expression.StructType structType:
@@ -135,9 +136,9 @@ namespace Yoakke.Compiler.Semantic
 
             case Expression.If iff:
             {
-                var then = Analyze(iff.Then);
+                var if_then = Sequence(Analyze(iff.Condition), Analyze(iff.Then));
                 var els = iff.Else == null ? ReturnKind.DoesNotReturn : Analyze(iff.Else);
-                return Alternative(then, els);
+                return Alternative(if_then, els);
             }
 
             case Expression.BinOp binOp:
