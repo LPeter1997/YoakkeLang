@@ -68,7 +68,8 @@ namespace Yoakke.Compiler.Syntax
             {
             case TokenType.KwVar: return ParseVarStatement(ref input);
             case TokenType.KwReturn: return ParseReturnStatement(ref input);
-            // Greedy consumption to avoid ambiguity
+            // Greedy consumption of these expressions to avoid ambiguity
+            case TokenType.OpenBrace: return new Statement.Expression_(ParseBlockExpression(ref input), false);
             case TokenType.KwIf: return new Statement.Expression_(ParseIfExpression(ref input), false);
             }
 
