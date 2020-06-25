@@ -121,6 +121,7 @@ namespace Yoakke.Compiler.Semantic
             {
                 var result = Sequence(proc.Parameters.Select(x => Analyze(x.Type)));
                 if (proc.ReturnType != null) result = Sequence(result, Analyze(proc.ReturnType));
+                // NOTE: We don't analyze the body here on purpose! Not part of the control flow.
                 return result;
             }
 
