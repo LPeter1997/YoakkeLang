@@ -478,7 +478,6 @@ namespace Yoakke.Compiler.Tests
             Assert.IsTrue(PairwiseEquals((err.First, err.Second), (Type.I32, Type.Bool)));
         }
 
-        // TODO: To check this correctly, we need proper control-flow analysis
         [TestMethod]
         public void ReturnTypeNoReturnMismatch()
         {
@@ -486,8 +485,7 @@ namespace Yoakke.Compiler.Tests
             const foo = proc() -> bool {
             };
 ";
-            var err = Assert.ThrowsException<TypeError>(() => Compile(source));
-            Assert.IsTrue(PairwiseEquals((err.First, err.Second), (Type.Unit, Type.Bool)));
+            Assert.ThrowsException<NotAllPathsReturnError>(() => Compile(source));
         }
 
         [TestMethod]

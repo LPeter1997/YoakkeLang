@@ -136,4 +136,18 @@ namespace Yoakke.Compiler.Semantic
             }
         }
     }
+
+    /// <summary>
+    /// A semantic error when not all code paths return a value.
+    /// </summary>
+    public class NotAllPathsReturnError : CompileError
+    {
+        // TODO: Position?
+
+        public override void Show()
+        {
+            Console.WriteLine("Semantic error!");
+            Console.WriteLine("Not all code paths return a value!");
+        }
+    }
 }
