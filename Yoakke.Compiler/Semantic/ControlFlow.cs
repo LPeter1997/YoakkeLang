@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Yoakke.Compiler.Ast;
 
@@ -36,12 +37,22 @@ namespace Yoakke.Compiler.Semantic
             return ReturnKind.MightReturn;
         }
 
+        private static ReturnKind Sequence(IEnumerable<ReturnKind> kinds)
+        {
+            var result = ReturnKind.DoesNotReturn;
+            foreach (var k in kinds) result = Sequence(result, k);
+            return result;
+        }
+
         private static ReturnKind Alternative(ReturnKind k1, ReturnKind k2)
         {
             if (k1 == ReturnKind.AlwaysReturns && k2 == ReturnKind.AlwaysReturns) return ReturnKind.AlwaysReturns;
             if (k1 == ReturnKind.DoesNotReturn && k2 == ReturnKind.DoesNotReturn) return ReturnKind.DoesNotReturn;
             return ReturnKind.MightReturn;
         }
+
+        // TODO: Value and type level should be differentiated!
+        // Now type-level returns can give us false-positives for the run-time code!
 
         /// <summary>
         /// Checks the <see cref="ReturnKind"/> of a given <see cref="Statement"/>.
@@ -56,10 +67,15 @@ namespace Yoakke.Compiler.Semantic
 
             case Statement.Return _: return ReturnKind.AlwaysReturns;
 
-            case Statement.VarDef varDef: return Analyze(varDef.Value);
-
             case Statement.Expression_ expr: return Analyze(expr.Expression);
 
+            case Statement.VarDef varDef:
+            {
+                var result = ReturnKind.DoesNotReturn;
+                if (varDef.Type != null) result = Sequence(result, Analyze(varDef.Type));
+                return Sequence(result, Analyze(varDef.Value));
+            }
+            
             default: throw new NotImplementedException();
             }
         }
@@ -84,49 +100,37 @@ namespace Yoakke.Compiler.Semantic
                 return Analyze(dotPath.Left);
 
             case Expression.StructType structType:
-            {
-                var result = ReturnKind.DoesNotReturn;
-                foreach (var field in structType.Fields) result = Sequence(result, Analyze(field.Type));
-                return result;
-            }
+                return Sequence(structType.Fields.Select(x => Analyze(x.Type)));
 
             case Expression.StructValue structValue:
             {
-                var result = ReturnKind.DoesNotReturn;
-                result = Sequence(result, Analyze(structValue.StructType));
-                foreach (var field in structValue.Fields) result = Sequence(result, Analyze(field.Value));
-                return result;
+                var r1 = Analyze(structValue.StructType);
+                var r2 = Sequence(structValue.Fields.Select(x => Analyze(x.Value)));
+                return Sequence(r1, r2);
             }
 
             case Expression.ProcType procType:
             {
-                var result = ReturnKind.DoesNotReturn;
-                foreach (var param in procType.ParameterTypes) result = Sequence(result, Analyze(param));
+                var result = Sequence(procType.ParameterTypes.Select(Analyze));
                 if (procType.ReturnType != null) result = Sequence(result, Analyze(procType.ReturnType));
                 return result;
             }
 
             case Expression.ProcValue proc:
             {
-                var result = ReturnKind.DoesNotReturn;
-                foreach (var param in proc.Parameters) result = Sequence(result, Analyze(param.Type));
+                var result = Sequence(proc.Parameters.Select(x => Analyze(x.Type)));
                 if (proc.ReturnType != null) result = Sequence(result, Analyze(proc.ReturnType));
                 return result;
             }
 
             case Expression.Block block:
-            {
-                var result = ReturnKind.DoesNotReturn;
-                foreach (var stmt in block.Statements) result = Sequence(result, Analyze(stmt));
-                return result;
-            }
+                return Sequence(block.Statements.Select(Analyze));
 
             case Expression.Call call:
             {
-                var result = ReturnKind.DoesNotReturn;
-                result = Sequence(result, Analyze(call.Proc));
-                foreach (var arg in call.Arguments) result = Sequence(result, Analyze(arg));
-                return result;
+                var r1 = Analyze(call.Proc);
+                var r2 = Sequence(call.Arguments.Select(Analyze));
+                return Sequence(r1, r2);
             }
 
             case Expression.If iff:
