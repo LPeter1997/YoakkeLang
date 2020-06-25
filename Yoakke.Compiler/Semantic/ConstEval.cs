@@ -60,6 +60,16 @@ namespace Yoakke.Compiler.Semantic
             public Dictionary<Symbol.Variable, Value> Variables = new Dictionary<Symbol.Variable, Value>();
         }
 
+        private class ReturnValue : Exception
+        {
+            public readonly Value Value;
+
+            public ReturnValue(Value value)
+            {
+                Value = value;
+            }
+        }
+
         private static Value Evaluate(Stack<StackFrame> callStack, Expression expression, bool canCache, bool lvalue)
         {
             // NOTE: We need canCache because we can't cache *everything*. For example, we can't cache the values of
@@ -126,6 +136,9 @@ namespace Yoakke.Compiler.Semantic
                     type.Unify(constDef.Value.ConstantValue.Type);
                 }
                 break;
+
+            case Statement.Return ret:
+                throw new ReturnValue(ret.Value == null ? Value.Unit : Evaluate(callStack, ret.Value, canCache, false));
 
             case Statement.VarDef varDef:
                 if (varDef.Type != null)
@@ -379,11 +392,20 @@ namespace Yoakke.Compiler.Semantic
                         callStack.Peek().Variables.Add(arg.Second, arg.First);
                     }
                     // Evaluate the body
-                    var value = Evaluate(callStack, procValue.Node.Body, false, lvalue);
+                    Value? returnValue;
+                    try
+                    {
+                        var value = Evaluate(callStack, procValue.Node.Body, false, lvalue);
+                        returnValue = Value.Unit;
+                    }
+                    catch (ReturnValue ret)
+                    {
+                        returnValue = ret.Value;
+                    }
                     // Now we need to do a special substitution to avoid dangling variables
-                    value = SubstituteVariables(value, callStack.Peek().Variables);
+                    returnValue = SubstituteVariables(returnValue, callStack.Peek().Variables);
                     callStack.Pop();
-                    return value;
+                    return returnValue;
                 }
                 else if (proc is Value.IntrinsicProc intrinsic)
                 {

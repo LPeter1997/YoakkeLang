@@ -36,6 +36,7 @@ namespace Yoakke.Compiler.Semantic
 
             case Statement.Return ret:
             {
+                if (ret.Value != null) Check(ret.Value);
                 // We need to find the scope we are returning to and assign the type there
                 Assert.NonNull(ret.Scope);
                 var scope = ret.Scope.AncestorWithTag(ScopeTag.Proc);
@@ -78,7 +79,7 @@ namespace Yoakke.Compiler.Semantic
                 // The only other major place comes from unifying return type and block return type for procedures.
                 // We force evaluation here to ensure checks
                 var ty = TypeEval.Evaluate(expression.Expression);
-                // An expression in a statement's position must produce a unit type, if it's not terminated by a semicolon
+                // An expression in a statement's position must produce a unit type, if it's not semicolon terminated
                 if (!expression.HasSemicolon) Type.Unit.Unify(ty);
             }
             break;
@@ -173,23 +174,15 @@ namespace Yoakke.Compiler.Semantic
                 Assert.NonNull(proc.Body.Scope);
                 var bodyScope = proc.Body.Scope;
                 Debug.Assert(bodyScope.Tag.HasFlag(ScopeTag.Proc));
+                // Unify return type with what the scope wants
+                var procRetTy = proc.ReturnType == null ? Type.Unit : ConstEval.EvaluateAsType(proc.ReturnType);
+                bodyScope.ReturnType.Unify(procRetTy);
                 // Now we can check the body
                 Check(proc.Body);
-                // Unify the return type with the body's return type
-                var procRetTy = proc.ReturnType == null ? Type.Unit : ConstEval.EvaluateAsType(proc.ReturnType);
-                procRetTy.Unify(bodyScope.ReturnType);
+                // Check the body's return type
                 var bodyRetTy = TypeEval.Evaluate(proc.Body);
-                // We only unify with the body's return type, if there's an implicit return
-                if (proc.Body is Expression.Block block && block.Value != null)
-                {
-                    // TODO: This is not a reliable check!
-                    // If the last thing is an if-else for example, it could still just only have explicit returns
-                    // and ruin this!
-                    // We shouldn't consider ifs and other braced stuff as values until we type-check them.
-                    // If they return some type and they are at the last position in the block, then we can promote
-                    // them to values!
-                    procRetTy.Unify(bodyRetTy);
-                }
+                // We want it to be unit, we convert implicit returns to explicit ones in the desugaring process
+                Type.Unit.Unify(bodyRetTy);
             }
             break;
 

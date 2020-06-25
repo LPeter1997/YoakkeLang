@@ -90,10 +90,30 @@ namespace Yoakke.Compiler.Syntax
                     DesugarNullable(procType.ReturnType));
 
             case Expression.ProcValue proc:
-                return new Expression.ProcValue(
+            {
+                var result = new Expression.ProcValue(
                     proc.Parameters.Select(x => new Expression.ProcValue.Parameter(x.Name, Desugar(x.Type))).ToList(),
                     DesugarNullable(proc.ReturnType),
                     Desugar(proc.Body));
+                if (HasExplicitValue(result.Body))
+                {
+                    // The body returns something explicitly, wrap it in a return statement.
+                    result.Body = new Expression.Block(new List<Statement>
+                    {
+                        new Statement.Return(result.Body),
+                    }, null);
+                }
+                else
+                {
+                    // Just insert a return at the end
+                    result.Body = new Expression.Block(new List<Statement>
+                    {
+                        new Statement.Expression_(result.Body, true),
+                        new Statement.Return(null),
+                    }, null);
+                }
+                return result;
+            }
 
             case Expression.Block block:
             {

@@ -92,12 +92,7 @@ namespace Yoakke.Compiler.IR
             }
             // Now we just compile the body
             var bodyValue = Compile(proc.Body, false);
-            // We append the return statement, if there's no return already
-            // TODO: Temporary check
-            if (!IsLastJumpOrReturn())
-            {
-                builder.AddInstruction(new Instruction.Ret(bodyValue));
-            }
+            Debug.Assert(bodyValue.Type.EqualsNonNull(Type.Void_));
             // Compilation is done
             builder.CreateProcEnd();
 
@@ -152,8 +147,7 @@ namespace Yoakke.Compiler.IR
             case Declaration.ConstDef constDef:
             {
                 Assert.NonNull(constDef.Symbol);
-                Assert.NonNull(constDef.Symbol.Value);
-                var value = constDef.Symbol.Value;
+                var value = constDef.Symbol.GetValue();
                 
                 if (value is Semantic.Value.Proc proc)
                 {

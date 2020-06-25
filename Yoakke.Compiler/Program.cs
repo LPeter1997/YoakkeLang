@@ -23,6 +23,7 @@ namespace Yoakke.Compiler
                 var cmp = new Compiler
                 {
                     SourceFile = "../../../../../../samples/test.yk",
+                    //DumpAst = true,
                     DumpIr = true,
                     ExecuteImmediately = true,
                     OptimizationLevel = 0,
