@@ -91,9 +91,12 @@ namespace Yoakke.Compiler.Ast
     /// </summary>
     public abstract partial class Statement : Node
     {
-        public override object Clone() =>
-            CloneStatement();
+        public override object Clone() => CloneStatement();
 
+        /// <summary>
+        /// Deep-clones this <see cref="Statement"/>.
+        /// </summary>
+        /// <returns>The deep-cloned <see cref="Statement"/>.</returns>
         public abstract Statement CloneStatement();
     }
 
@@ -103,9 +106,12 @@ namespace Yoakke.Compiler.Ast
     /// </summary>
     public abstract partial class Declaration : Statement
     {
-        public override Statement CloneStatement() =>
-            CloneDeclaration();
+        public override Statement CloneStatement() => CloneDeclaration();
 
+        /// <summary>
+        /// Deep-clones this <see cref="Declaration"/>.
+        /// </summary>
+        /// <returns>The deep-cloned <see cref="Declaration"/>.</returns>
         public abstract Declaration CloneDeclaration();
     }
 
@@ -127,9 +133,12 @@ namespace Yoakke.Compiler.Ast
         /// </summary>
         public Type? EvaluationType { get; set; }
 
-        public override object Clone() =>
-            CloneExpression();
+        public override object Clone() => CloneExpression();
 
+        /// <summary>
+        /// Deep-clones this <see cref="Expression"/>.
+        /// </summary>
+        /// <returns>The deep-cloned <see cref="Expression"/>.</returns>
         public abstract Expression CloneExpression();
     }
 }

@@ -28,8 +28,7 @@ namespace Yoakke.Compiler.Ast
                 Token = token;
             }
 
-            public override Expression CloneExpression() =>
-                new IntLit(Token);
+            public override Expression CloneExpression() => new IntLit(Token);
         }
 
         /// <summary>
@@ -51,8 +50,7 @@ namespace Yoakke.Compiler.Ast
                 Token = token;
             }
 
-            public override Expression CloneExpression() =>
-                new BoolLit(Token);
+            public override Expression CloneExpression() => new BoolLit(Token);
         }
 
         /// <summary>
@@ -97,8 +95,7 @@ namespace Yoakke.Compiler.Ast
                 return result.ToString();
             }
 
-            public override Expression CloneExpression() =>
-                new StrLit(Token);
+            public override Expression CloneExpression() => new StrLit(Token);
         }
 
         /// <summary>
@@ -125,8 +122,7 @@ namespace Yoakke.Compiler.Ast
                 Token = token;
             }
 
-            public override Expression CloneExpression() =>
-                new Ident(Token);
+            public override Expression CloneExpression() => new Ident(Token);
         }
 
         /// <summary>
@@ -153,8 +149,7 @@ namespace Yoakke.Compiler.Ast
                 Token = token;
             }
 
-            public override Expression CloneExpression() =>
-                new Intrinsic(Token);
+            public override Expression CloneExpression() => new Intrinsic(Token);
         }
 
         /// <summary>
@@ -186,7 +181,7 @@ namespace Yoakke.Compiler.Ast
                 Right = right;
             }
 
-            public override Expression CloneExpression() =>
+            public override Expression CloneExpression() => 
                 new DotPath(Left.CloneExpression(), Right);
         }
 
@@ -231,11 +226,8 @@ namespace Yoakke.Compiler.Ast
                     Type = type;
                 }
 
-                public object Clone() =>
-                    CloneField();
-
-                public Field CloneField() =>
-                    new Field(Name, Type.CloneExpression());
+                public object Clone() => CloneField();
+                public Field CloneField() => new Field(Name, Type.CloneExpression());
             }
 
             /// <summary>
@@ -313,11 +305,8 @@ namespace Yoakke.Compiler.Ast
                     Value = value;
                 }
 
-                public object Clone() =>
-                    CloneField();
-
-                public Field CloneField() =>
-                    new Field(Name, Value.CloneExpression());
+                public object Clone() => CloneField();
+                public Field CloneField() => new Field(Name, Value.CloneExpression());
             }
 
             /// <summary>
@@ -432,11 +421,8 @@ namespace Yoakke.Compiler.Ast
                     Type = type;
                 }
 
-                public object Clone() =>
-                    CloneParameter();
-
-                public Parameter CloneParameter() =>
-                    new Parameter(Name, Type.CloneExpression());
+                public object Clone() => CloneParameter();
+                public Parameter CloneParameter() => new Parameter(Name, Type.CloneExpression());
             }
 
             /// <summary>
