@@ -25,7 +25,6 @@ namespace Yoakke.Compiler.Semantic
                 break;
 
             case Declaration.ConstDef constDef:
-            {
                 // For safety, declare in type
                 if (constDef.Type != null) Declare(constDef.Type);
                 // First declare everything in value
@@ -34,8 +33,7 @@ namespace Yoakke.Compiler.Semantic
                 Assert.NonNull(constDef.Scope);
                 constDef.Symbol = new Symbol.Const(constDef);
                 constDef.Scope.Define(constDef.Symbol);
-            }  
-            break;
+                break;
 
             case Statement.Return ret:
                 // Declare in value, if needed

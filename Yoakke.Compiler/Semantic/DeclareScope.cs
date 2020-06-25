@@ -12,19 +12,8 @@ namespace Yoakke.Compiler.Semantic
     {
         /// <summary>
         /// Defines and stores the <see cref="Scope"/> for every syntax <see cref="Node"/>.
-        /// </summary>
         /// <param name="symbolTable">The <see cref="SymbolTable"/> to use.</param>
-        /// <param name="scope">The <see cref="Scope"/> to start from.</param>
         /// <param name="statement">The <see cref="Statement"/> to define the <see cref="Scope"/>s for.</param>
-        public static void Declare(SymbolTable symbolTable, Scope scope, Statement statement)
-        {
-            symbolTable.CurrentScope = scope;
-            Declare(symbolTable, statement);
-        }
-
-        /// <summary>
-        /// The same as <see cref="Declare(SymbolTable, Scope, Statement)"/>, but the starting <see cref="Scope"/>
-        /// is <see cref="SymbolTable.CurrentScope"/>.
         /// </summary>
         public static void Declare(SymbolTable symbolTable, Statement statement)
         {
@@ -139,23 +128,11 @@ namespace Yoakke.Compiler.Semantic
                 break;
 
             case Expression.If iff:
-                // We introduce a scopes here for things like
-                // if x { var y = ...; }
-
                 // Declare in condition and then
                 Declare(symbolTable, iff.Condition);
-
-                symbolTable.PushScope(ScopeTag.None);
                 Declare(symbolTable, iff.Then);
-                symbolTable.PopScope();
-
                 // Declare in else if needed
-                if (iff.Else != null)
-                {
-                    symbolTable.PushScope(ScopeTag.None);
-                    Declare(symbolTable, iff.Else);
-                    symbolTable.PopScope();
-                }
+                if (iff.Else != null) Declare(symbolTable, iff.Else);
                 break;
 
             case Expression.BinOp binOp:
