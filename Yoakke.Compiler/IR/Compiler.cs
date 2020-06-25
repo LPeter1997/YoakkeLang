@@ -47,7 +47,7 @@ namespace Yoakke.Compiler.IR
             this.builder = builder;
         }
 
-        private bool IsLastJumpOrReturn()
+        private bool IsLastJump()
         {
             var currentBB = builder.CurrentBasicBlock;
             if (currentBB.Instructions.Count == 0) return false;
@@ -93,6 +93,10 @@ namespace Yoakke.Compiler.IR
             // Now we just compile the body
             var bodyValue = Compile(proc.Body, false);
             Debug.Assert(bodyValue.Type.EqualsNonNull(Type.Void_));
+            if (!IsLastJump())
+            {
+                builder.AddInstruction(new Instruction.Ret(Value.Void_));
+            }
             // Compilation is done
             builder.CreateProcEnd();
 

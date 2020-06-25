@@ -103,15 +103,6 @@ namespace Yoakke.Compiler.Syntax
                         new Statement.Return(result.Body),
                     }, null);
                 }
-                else
-                {
-                    // Just insert a return at the end
-                    result.Body = new Expression.Block(new List<Statement>
-                    {
-                        new Statement.Expression_(result.Body, true),
-                        new Statement.Return(null),
-                    }, null);
-                }
                 return result;
             }
 

@@ -203,6 +203,196 @@ namespace Yoakke.Compiler.Tests
     }
 
     [TestClass]
+    public class ExplicitReturnTests
+    {
+        public TestContext TestContext { get; set; }
+
+        [ClassInitialize]
+        public static void CreateBinariesFolder(TestContext testContext)
+        {
+            Directory.CreateDirectory("binaries");
+        }
+
+        private T CompileAndLoadFunc<T>(string source, string fname = "foo") where T : Delegate
+        {
+            var output = Path.GetFullPath($"binaries/{TestContext.TestName}.dll");
+            var compiler = new Compiler
+            {
+                Source = new Syntax.Source("test.yk", source),
+                OutputType = OutputType.Shared,
+                OutputPath = output,
+            };
+            var exitCode = compiler.Execute();
+            Assert.AreEqual(exitCode, 0);
+            return NativeUtils.LoadNativeMethod<T>(output, fname);
+        }
+
+        [TestMethod]
+        public void ExplicitReturnNumberLiteral()
+        {
+            string source = @"const foo = proc() -> i32 { return 7; };";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 7);
+        }
+
+        [TestMethod]
+        public void ExplicitReturnNumberLiteralInBlock()
+        {
+            string source = @"const foo = proc() -> i32 { return { 84 }; };";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 84);
+        }
+
+        [TestMethod]
+        public void NestedExplicitReturnNumberLiteralInBlock()
+        {
+            string source = @"const foo = proc() -> i32 { { return { 62 }; } };";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 62);
+        }
+
+        [TestMethod]
+        public void ExplicitReturnDefinedConstant()
+        {
+            string source = @"
+            const Value = 15;    
+            const foo = proc() -> i32 { return Value; };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 15);
+        }
+
+        [TestMethod]
+        public void ExplicitReturnDefinedConstantAfterFunction()
+        {
+            string source = @"
+            const foo = proc() -> i32 { return Value; };
+            const Value = 15;
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 15);
+        }
+
+        [TestMethod]
+        public void ExplicitReturnValueReturnedByFunction()
+        {
+            string source = @"
+            const bar = proc() -> i32 { return 3; };
+            const foo = proc() -> i32 { return bar(); };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 3);
+        }
+
+        [TestMethod]
+        public void ExplicitReturnValueReturnedByFunctionAfterFunction()
+        {
+            string source = @"
+            const foo = proc() -> i32 { return bar(); };
+            const bar = proc() -> i32 { return 123; };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 123);
+        }
+
+        [TestMethod]
+        public void ExplicitReturnValueReturnedByFunctionCompileTime()
+        {
+            string source = @"
+            const bar = proc() -> i32 { return 9; };
+            const Value = bar();
+            const foo = proc() -> i32 { return Value; };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 9);
+        }
+
+        [TestMethod]
+        public void ExplicitReturnValueReturnedByFunctionCompileTimeReverseOrder()
+        {
+            string source = @"
+            const Value = bar();
+            const foo = proc() -> i32 { return Value; };
+            const bar = proc() -> i32 { return 9; };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 9);
+        }
+
+        [TestMethod]
+        public void ExplicitReturnValueIsParameter()
+        {
+            string source = @"
+            const foo = proc(x: i32) -> i32 { return x; };
+";
+            var f = CompileAndLoadFunc<Func<Int32, Int32>>(source);
+            Assert.AreEqual(f(2), 2);
+            Assert.AreEqual(f(5), 5);
+            Assert.AreEqual(f(123), 123);
+        }
+
+        [TestMethod]
+        public void ExplicitReturnValueIsParameterReassigned()
+        {
+            string source = @"
+            const foo = proc(x: i32) -> i32 { 
+                x = 8;
+                return x;
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32, Int32>>(source);
+            Assert.AreEqual(f(2), 8);
+            Assert.AreEqual(f(5), 8);
+            Assert.AreEqual(f(123), 8);
+        }
+
+        [TestMethod]
+        public void ExplicitSimpleTernaryImplementation()
+        {
+            string source = @"
+            const foo = proc(condition: bool, first: i32, second: i32) -> i32 { 
+                return if condition { first } else { second };
+            };
+";
+            var f = CompileAndLoadFunc<Func<bool, Int32, Int32, Int32>>(source);
+            Assert.AreEqual(f(true, 2, 9), 2);
+            Assert.AreEqual(f(false, 2, 9), 9);
+            Assert.AreEqual(f(false, 123, 657), 657);
+            Assert.AreEqual(f(true, 123, 657), 123);
+        }
+
+        [TestMethod]
+        public void ExplicitEarlyReturn()
+        {
+            string source = @"
+            const foo = proc() -> i32 {
+                var x = 12;
+                if true { return x; }
+                x = 34;
+                return x;
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 12);
+        }
+
+        [TestMethod]
+        public void ExplicitEarlyReturnNotRunning()
+        {
+            string source = @"
+            const foo = proc() -> i32 {
+                var x = 12;
+                if false { return x; }
+                x = 34;
+                return x;
+            };
+";
+            var f = CompileAndLoadFunc<Func<Int32>>(source);
+            Assert.AreEqual(f(), 34);
+        }
+    }
+
+    [TestClass]
     public class TypeErrorTests
     {
         private void Compile(string source)
