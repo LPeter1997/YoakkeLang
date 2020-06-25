@@ -46,11 +46,8 @@ namespace Yoakke.Compiler.Syntax
                 && Column == o.Column 
                 && Source.Path == o.Source.Path;
 
-        public static bool operator ==(Position p1, Position p2) =>
-            p1.Equals(p2);
-
-        public static bool operator !=(Position p1, Position p2) =>
-            !(p1 == p2);
+        public static bool operator ==(Position p1, Position p2) => p1.Equals(p2);
+        public static bool operator !=(Position p1, Position p2) => !(p1 == p2);
 
         /// <summary>
         /// Creates a <see cref="Position"/> that's advanced in the current line by the given amount.

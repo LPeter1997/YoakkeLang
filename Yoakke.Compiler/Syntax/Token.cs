@@ -46,15 +46,11 @@ namespace Yoakke.Compiler.Syntax
         public override bool Equals(object? obj) =>
             obj != null && obj is Token t && Equals(t);
 
-        public bool Equals(Token other) =>
-            // NOTE: This must uniquely identify the token
-            Position == other.Position;
+        // NOTE: This must uniquely identify the token
+        public bool Equals(Token other) => Position == other.Position;
 
-        public static bool operator ==(Token t1, Token t2) =>
-            t1.Equals(t2);
-
-        public static bool operator !=(Token t1, Token t2) =>
-            !(t1 == t2);
+        public static bool operator ==(Token t1, Token t2) => t1.Equals(t2);
+        public static bool operator !=(Token t1, Token t2) => !(t1 == t2);
     }
 
     /// <summary>
