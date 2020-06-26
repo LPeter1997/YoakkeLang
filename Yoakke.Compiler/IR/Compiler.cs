@@ -430,8 +430,11 @@ namespace Yoakke.Compiler.IR
 
         private Type Compile(Semantic.Type type)
         {
-            if (Semantic.Type.I32.Equals(type)) return Type.I32;
-            if (Semantic.Type.Bool.Equals(type)) return Type.Bool;
+            // TODO: We should really make it possible to only get the substitution to avoid stupid mistakes
+            type = type.Substitution;
+
+            if (type is Semantic.Type.Primitive prim) return prim.IrType;
+
             if (Semantic.Type.Unit.Equals(type)) return Type.Void_;
 
             if (type is Semantic.Type.Proc proc)

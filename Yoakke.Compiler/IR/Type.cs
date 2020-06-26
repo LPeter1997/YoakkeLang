@@ -10,7 +10,7 @@ namespace Yoakke.Compiler.IR
     /// <summary>
     /// Base class for every IR type.
     /// </summary>
-    abstract partial class Type : IEquatable<Type>
+    public abstract partial class Type : IEquatable<Type>
     {
         /// <summary>
         /// The <see cref="Type"/> constant for void (no return value).

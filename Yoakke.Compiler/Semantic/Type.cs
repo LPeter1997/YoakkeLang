@@ -14,10 +14,10 @@ namespace Yoakke.Compiler.Semantic
     {
         public static readonly Type Any_ = new Any();
         new public static readonly Type Unit = new Tuple(new List<Type>());
-        public static readonly Type Type_ = new Primitive("type");
-        public static readonly Type Str = new Primitive("str");
-        public static readonly Type I32 = new Primitive("i32");
-        public static readonly Type Bool = new Primitive("bool");
+        public static readonly Type Type_ = new Primitive("type", IR.Type.Void_); // TODO
+        public static readonly Type Str = new Primitive("str", IR.Type.Void_); // TODO
+        public static readonly Type I32 = new Primitive("i32", IR.Type.I32);
+        public static readonly Type Bool = new Primitive("bool", IR.Type.Bool);
     }
 
     /// <summary>
@@ -146,6 +146,10 @@ namespace Yoakke.Compiler.Semantic
             /// The name of this primitive <see cref="Type"/>.
             /// </summary>
             public readonly string Name;
+            /// <summary>
+            /// The IR translation of this <see cref="Type"/>.
+            /// </summary>
+            public readonly IR.Type IrType;
 
             public override Type Type => Type_;
 
@@ -153,9 +157,10 @@ namespace Yoakke.Compiler.Semantic
             /// Initializes a new <see cref="Primitive"/>.
             /// </summary>
             /// <param name="name">The name of this primitive.</param>
-            public Primitive(string name)
+            public Primitive(string name, IR.Type irType)
             {
                 Name = name;
+                IrType = irType;
             }
 
             protected override void UnifyInternal(Type other)
@@ -164,9 +169,10 @@ namespace Yoakke.Compiler.Semantic
             }
 
             public override bool Contains(Type type) => Equals(type);
-            public override bool Equals(Type other) => other.Substitution is Primitive o && Name == o.Name;
+            public override bool Equals(Type other) => 
+                other.Substitution is Primitive o && Name == o.Name && IrType.EqualsNonNull(o.IrType);
             public override int GetHashCode() => this.HashCombinePoly(Name);
-            public override Value Clone() => new Primitive(Name);
+            public override Value Clone() => new Primitive(Name, IrType);
             public override string ToString() => Name;
         }
 
