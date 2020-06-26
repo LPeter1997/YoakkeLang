@@ -191,16 +191,6 @@ namespace Yoakke.Compiler.Semantic
                 if (lvalue) throw new NotImplementedException("String literal can't be an lvalue!");
                 return new Value.Primitive<string>(Type.Str, strLit.Escape());
 
-            case Expression.Intrinsic intrinsic:
-                if (lvalue) throw new NotImplementedException("Intrinsic can't be an lvalue!");
-                Assert.NonNull(intrinsic.Symbol);
-                switch (intrinsic.Symbol)
-                {
-                case Symbol.Const constSym: return constSym.GetValue();
-                case Symbol.Variable varSym: return callStack.Peek().Variables[varSym];
-                default: throw new NotImplementedException();
-                }
-
             case Expression.Ident ident:
                 Assert.NonNull(ident.Symbol);
                 // Depends on the symbol

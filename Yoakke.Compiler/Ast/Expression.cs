@@ -126,33 +126,6 @@ namespace Yoakke.Compiler.Ast
         }
 
         /// <summary>
-        /// An special identifier token that represents a compiler intrinsic.
-        /// </summary>
-        public class Intrinsic : Expression
-        {
-            /// <summary>
-            /// The identifier token.
-            /// </summary>
-            public Token Token { get; set; }
-
-            /// <summary>
-            /// The <see cref="Symbol"/> this intrinsic identifier refers to.
-            /// </summary>
-            public Symbol? Symbol { get; set; }
-
-            /// <summary>
-            /// Initializes a new <see cref="Intrinsic"/>.
-            /// </summary>
-            /// <param name="token">The special identifier token.</param>
-            public Intrinsic(Token token)
-            {
-                Token = token;
-            }
-
-            public override Expression CloneExpression() => new Intrinsic(Token);
-        }
-
-        /// <summary>
         /// A path separated by dot.
         /// Syntax:
         /// ```

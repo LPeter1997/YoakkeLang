@@ -49,17 +49,6 @@ namespace Yoakke.Compiler.Semantic
             case Expression.ProcValue proc: 
                 return ConstEval.Evaluate(proc).Type;
 
-            case Expression.Intrinsic intrinsic:
-                Assert.NonNull(intrinsic.Symbol);
-                // Depends on the symbol
-                switch (intrinsic.Symbol)
-                {
-                case Symbol.Const constSym: return constSym.GetValue().Type;
-                case Symbol.Variable varSym: return varSym.Type;
-
-                default: throw new NotImplementedException();
-                }
-
             case Expression.Ident ident:
                 Assert.NonNull(ident.Symbol);
                 // Depends on the symbol

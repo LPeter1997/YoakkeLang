@@ -66,7 +66,6 @@ namespace Yoakke.Compiler.Syntax
             case Expression.BoolLit _:
             case Expression.StrLit _:
             case Expression.Ident _:
-            case Expression.Intrinsic _:
                 // Nothing to do, leaf nodes
                 return expression;
 

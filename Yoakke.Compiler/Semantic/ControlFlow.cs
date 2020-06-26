@@ -93,7 +93,6 @@ namespace Yoakke.Compiler.Semantic
             case Expression.BoolLit _:
             case Expression.StrLit _:
             case Expression.Ident _:
-            case Expression.Intrinsic _:
                 return ReturnKind.DoesNotReturn;
 
             case Expression.DotPath dotPath:

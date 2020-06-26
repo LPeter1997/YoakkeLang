@@ -72,13 +72,6 @@ namespace Yoakke.Compiler.Semantic
                 identifier.Symbol = identifier.Scope.Reference(identifier.Token);
                 break;
 
-            case Expression.Intrinsic intrinsic:
-                // Resolve the referred symbol
-                // It must be an intrinsic symbol type
-                Assert.NonNull(intrinsic.Scope);
-                intrinsic.Symbol = intrinsic.Scope.Reference(intrinsic.Token);
-                break;
-
             case Expression.DotPath dotPath:
                 // Just define in left, right-hand-side is just a token
                 Define(dotPath.Left);
