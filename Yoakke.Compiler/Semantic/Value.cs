@@ -110,38 +110,6 @@ namespace Yoakke.Compiler.Semantic
         }
 
         /// <summary>
-        /// A procedure as a compile-time <see cref="Value"/>.
-        /// </summary>
-        public class Proc : Value
-        {
-            /// <summary>
-            /// The AST node of the procedure.
-            /// </summary>
-            public readonly Expression.ProcValue Node;
-
-            public override Type Type { get; }
-
-            /// <summary>
-            /// Initializes a new <see cref="Proc"/>.
-            /// </summary>
-            /// <param name="node">The AST node this procedure originates from.</param>
-            /// <param name="type">The <see cref="Type"/> of the procedure.</param>
-            public Proc(Expression.ProcValue node, Type type)
-            {
-                Node = node;
-                Type = type;
-            }
-
-            public override bool Equals(Value other) =>
-                other is Proc o && ReferenceEquals(Node, o.Node);
-            public override int GetHashCode() => this.HashCombinePoly(Node);
-            // NOTE: Does it make sense to clone this?
-            public override Value Clone() => this;
-            // TODO
-            public override string ToString() => "<procedure>";
-        }
-
-        /// <summary>
         /// A compiler intrinsic function <see cref="Value"/>.
         /// </summary>
         public class IntrinsicProc : Value
@@ -202,24 +170,23 @@ namespace Yoakke.Compiler.Semantic
         }
 
         /// <summary>
-        /// A compile-time integral <see cref="Value"/>.
+        /// A compile-time primitive <see cref="Value"/>.
         /// </summary>
-        public class Int : Value
+        public class Primitive<T> : Value
         {
             /// <summary>
-            /// The integer value.
+            /// The primitive value.
             /// </summary>
-            public readonly BigInteger Value;
+            public readonly T Value;
 
             public override Type Type { get; }
 
-            // TODO: Make sure the passed in type is int?
             /// <summary>
-            /// Initializes a new <see cref="Int"/>.
+            /// Initializes a new <see cref="Primitive{T}"/>.
             /// </summary>
-            /// <param name="type">The type of the integer.</param>
-            /// <param name="value">The value of the integer.</param>
-            public Int(Type type, BigInteger value)
+            /// <param name="type">The <see cref="Type"/> of the primitive.</param>
+            /// <param name="value">The value of the primitive.</param>
+            public Primitive(Type type, T value)
             {
                 Type = type;
                 Value = value;
@@ -227,71 +194,13 @@ namespace Yoakke.Compiler.Semantic
 
             // TODO: Do we count in the type?
             public override bool Equals(Value other) =>
-                other is Int i && Type.Equals(i.Type) && Value == i.Value;
+                other is Primitive<T> p && Type.Equals(p.Type) && 
+                ((Value == null && p.Value == null) || (Value != null && Value.Equals(p.Value)));
             public override int GetHashCode() => this.HashCombinePoly(Type, Value);
-            public override Value Clone() => new Int(Type, Value);
-            public override string ToString() => Value.ToString();
+            public override Value Clone() => new Primitive<T>(Type, Value);
+            public override string ToString() => Value?.ToString() ?? throw new NotImplementedException();
         }
-
-        /// <summary>
-        /// A compile-time bool <see cref="Value"/>.
-        /// </summary>
-        public class Bool : Value
-        {
-            /// <summary>
-            /// The bool value.
-            /// </summary>
-            public readonly bool Value;
-
-            public override Type Type => Type.Bool;
-
-            /// <summary>
-            /// Initializes a new <see cref="Bool"/>.
-            /// </summary>
-            /// <param name="value">The value of the bool.</param>
-            public Bool(bool value)
-            {
-                Value = value;
-            }
-
-            public override bool Equals(Value other) =>
-                other is Bool b && Value == b.Value;
-            public override int GetHashCode() => this.HashCombinePoly(Type, Value);
-            public override Value Clone() => new Bool(Value);
-            public override string ToString() => Value.ToString();
-        }
-
-        // TODO: Later string value could be represented by a simple struct.
-        // It doesn't have to be a compiler builtin type. (except for the literal)
-        /// <summary>
-        /// A compile-time string <see cref="Value"/>.
-        /// </summary>
-        public class Str : Value
-        {
-            /// <summary>
-            /// The string value.
-            /// </summary>
-            public readonly string Value;
-
-            public override Type Type => Type.Str;
-
-            /// <summary>
-            /// Initializes a new <see cref="Str"/>.
-            /// </summary>
-            /// <param name="value">The value of the string.</param>
-            public Str(string value)
-            {
-                Value = value;
-            }
-
-            public override bool Equals(Value other) =>
-                other is Str s && Value == s.Value;
-            public override int GetHashCode() => this.HashCombinePoly(Type, Value);
-            // TODO: Is this correct?
-            public override Value Clone() => new Str(Value);
-            public override string ToString() => $"\"{Value}\"";
-        }
-
+        
         /// <summary>
         /// A tuple of <see cref="Value"/>s.
         /// </summary>

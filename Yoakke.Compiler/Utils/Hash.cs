@@ -16,7 +16,7 @@ namespace Yoakke.Compiler.Utils
         /// </summary>
         /// <param name="values">The values to combine.</param>
         /// <returns>The combined hash value.</returns>
-        public static int Combine(params object[] values)
+        public static int Combine(params object?[] values)
         {
             var result = new HashCode();
             CombineInternal(ref result, values);
@@ -29,7 +29,7 @@ namespace Yoakke.Compiler.Utils
         /// <param name="obj">The polymorphic <see cref="object"/>.</param>
         /// <param name="values">The values to combine alongside the <see cref="object"/>.</param>
         /// <returns>The combined hash value.</returns>
-        public static int HashCombinePoly(this object obj, params object[] values) =>
+        public static int HashCombinePoly(this object obj, params object?[] values) =>
             Combine(obj.GetType(), values);
 
         private static void CombineInternal(ref HashCode result, params object?[] values)

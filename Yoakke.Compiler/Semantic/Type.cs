@@ -15,9 +15,9 @@ namespace Yoakke.Compiler.Semantic
         public static readonly Type Any_ = new Any();
         new public static readonly Type Unit = new Tuple(new List<Type>());
         public static readonly Type Type_ = new Primitive("type");
-        new public static readonly Type Str = new Primitive("str");
+        public static readonly Type Str = new Primitive("str");
         public static readonly Type I32 = new Primitive("i32");
-        new public static readonly Type Bool = new Primitive("bool");
+        public static readonly Type Bool = new Primitive("bool");
     }
 
     /// <summary>
@@ -269,7 +269,7 @@ namespace Yoakke.Compiler.Semantic
         /// <summary>
         /// A procedure's <see cref="Type"/>.
         /// </summary>
-        new public class Proc : Product
+        public class Proc : Product
         {
             /// <summary>
             /// The parameter <see cref="Type"/>s of this procedure <see cref="Type"/>.

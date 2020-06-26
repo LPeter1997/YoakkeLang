@@ -181,15 +181,15 @@ namespace Yoakke.Compiler.Semantic
             case Expression.IntLit intLit:
                 if (lvalue) throw new NotImplementedException("Int literal can't be an lvalue!");
                 // TODO: It should be a generic integer type!
-                return new Value.Int(Type.I32, BigInteger.Parse(intLit.Token.Value));
+                return new Value.Primitive<BigInteger>(Type.I32, BigInteger.Parse(intLit.Token.Value));
 
             case Expression.BoolLit boolLit:
                 if (lvalue) throw new NotImplementedException("Bool literal can't be an lvalue!");
-                return new Value.Bool(boolLit.Token.Type == TokenType.KwTrue);
+                return new Value.Primitive<bool>(Type.Bool, boolLit.Token.Type == TokenType.KwTrue);
 
             case Expression.StrLit strLit:
                 if (lvalue) throw new NotImplementedException("String literal can't be an lvalue!");
-                return new Value.Str(strLit.Escape());
+                return new Value.Primitive<string>(Type.Str, strLit.Escape());
 
             case Expression.Intrinsic intrinsic:
                 if (lvalue) throw new NotImplementedException("Intrinsic can't be an lvalue!");
@@ -358,7 +358,7 @@ namespace Yoakke.Compiler.Semantic
                 // Create the procedure type
                 var procType = new Type.Proc(parameters, ret);
                 // Wrap it up in a value
-                return new Value.Proc(proc, procType);
+                return new Value.Primitive<Expression.ProcValue>(procType, proc);
             }
 
             case Expression.Block block:
@@ -373,7 +373,7 @@ namespace Yoakke.Compiler.Semantic
                 var proc = Evaluate(callStack, call.Proc, canCache, false);
                 var args = call.Arguments.Select(x => Evaluate(callStack, x, canCache, false)).ToList();
 
-                if (proc is Value.Proc procValue)
+                if (proc is Value.Primitive<Expression.ProcValue> procValue)
                 {
                     // Create a type from the invocation
                     var argTypes = args.Select(x => x.Type).ToList();
@@ -386,7 +386,7 @@ namespace Yoakke.Compiler.Semantic
                     // Now actually call the procedure
                     callStack.Push(new StackFrame());
                     // Define arguments
-                    foreach (var arg in args.Zip(procValue.Node.Parameters.Select(x => x.Symbol)))
+                    foreach (var arg in args.Zip(procValue.Value.Parameters.Select(x => x.Symbol)))
                     {
                         Assert.NonNull(arg.Second);
                         callStack.Peek().Variables.Add(arg.Second, arg.First);
@@ -395,7 +395,7 @@ namespace Yoakke.Compiler.Semantic
                     Value? returnValue;
                     try
                     {
-                        var value = Evaluate(callStack, procValue.Node.Body, false, lvalue);
+                        var value = Evaluate(callStack, procValue.Value.Body, false, lvalue);
                         returnValue = Value.Unit;
                     }
                     catch (ReturnValue ret)
@@ -431,7 +431,7 @@ namespace Yoakke.Compiler.Semantic
                 var condition = Evaluate(callStack, iff.Condition, canCache, false);
                 // Enforce bool condition
                 Type.Bool.Unify(condition.Type);
-                var condValue = ((Value.Bool)condition).Value;
+                var condValue = ((Value.Primitive<bool>)condition).Value;
                 // We evaluate one, but only type-check the other
                 if (condValue)
                 {

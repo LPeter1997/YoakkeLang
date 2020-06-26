@@ -153,9 +153,9 @@ namespace Yoakke.Compiler.IR
                 Assert.NonNull(constDef.Symbol);
                 var value = constDef.Symbol.GetValue();
                 
-                if (value is Semantic.Value.Proc proc)
+                if (value is Semantic.Value.Primitive<Expression.ProcValue> proc)
                 {
-                    var compiledProc = CompileProcedure(proc.Node);
+                    var compiledProc = CompileProcedure(proc.Value);
                     if (compiledProc != null)
                     {
                         // TODO: This is not required, only if we export the function
@@ -398,18 +398,18 @@ namespace Yoakke.Compiler.IR
         {
             switch (value)
             {
-            case Semantic.Value.Proc proc:
+            case Semantic.Value.Primitive<Expression.ProcValue> proc:
                 if (lvalue) throw new Exception("Procedures can't be lvalues!");
-                return Assert.NonNullValue(CompileProcedure(proc.Node));
+                return Assert.NonNullValue(CompileProcedure(proc.Value));
 
-            case Semantic.Value.Int i:
+            case Semantic.Value.Primitive<BigInteger> i:
             {
                 if (lvalue) throw new Exception("Ints can't be lvalues!");
                 var ty = Compile(i.Type);
                 return new Value.Int(ty, i.Value);
             }
 
-            case Semantic.Value.Bool b:
+            case Semantic.Value.Primitive<bool> b:
                 if (lvalue) throw new Exception("Bools can't be lvalues!");
                 return new Value.Int(Type.Bool, b.Value ? 1 : 0);
 

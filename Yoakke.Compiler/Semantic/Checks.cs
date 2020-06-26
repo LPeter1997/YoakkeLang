@@ -31,7 +31,7 @@ namespace Yoakke.Compiler.Semantic
                 {
                     // TODO: Help type assertions
                     Debug.Assert(args.Count == 2);
-                    var symbolName = (Value.Str)args[0];
+                    var symbolName = (Value.Primitive<string>)args[0];
                     var symbolType = (Type)args[1];
                     return new Value.Extern(symbolName.Value, symbolType);
                 });
