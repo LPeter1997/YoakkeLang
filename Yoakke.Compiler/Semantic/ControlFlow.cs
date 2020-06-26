@@ -137,9 +137,10 @@ namespace Yoakke.Compiler.Semantic
 
             case Expression.If iff:
             {
-                var if_then = Sequence(Analyze(iff.Condition), Analyze(iff.Then));
+                var cond = Analyze(iff.Condition);
+                var then = Analyze(iff.Then);
                 var els = iff.Else == null ? ReturnKind.DoesNotReturn : Analyze(iff.Else);
-                return Alternative(if_then, els);
+                return Sequence(cond, Alternative(then, els));
             }
 
             case Expression.BinOp binOp:
