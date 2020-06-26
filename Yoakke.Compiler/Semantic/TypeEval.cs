@@ -23,6 +23,7 @@ namespace Yoakke.Compiler.Semantic
         {
             if (expression.EvaluationType == null)
             {
+                // TODO: Can we cache here? Isn't it like in consteval?
                 // Simple cache-ing
                 expression.EvaluationType = EvaluateImpl(expression).Substitution;
             }
