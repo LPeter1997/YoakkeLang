@@ -89,33 +89,6 @@ namespace Yoakke.Compiler.Semantic
         }
 
         /// <summary>
-        /// A <see cref="Symbol"/> for compiler intrinsic behavior.
-        /// </summary>
-        public class Intrinsic : Symbol
-        {
-            // TODO: This is severely limiting, intrinsics should be allowed to interact with IR and such too!
-            // Intrinsics should come in multiple forms for multiple compiler phases.
-            // For now, this is OK enough.
-            /// <summary>
-            /// The <see cref="Func{T, TResult}"/> that gets evaluated compile-time.
-            /// </summary>
-            public readonly Func<List<Value>, Value> Function;
-
-            /// <summary>
-            /// The <see cref="Type"/> of this intrinsic function.
-            /// </summary>
-            public readonly Type Type;
-
-            public Intrinsic(string name, Type type, Func<List<Value>, Value> function) 
-                : base(name)
-            {
-                Debug.Assert(name[0] == '@', "Intrinsic identifiers must start with an '@'!");
-                Type = type;
-                Function = function;
-            }
-        }
-
-        /// <summary>
         /// A user-defined variable <see cref="Symbol"/>. 
         /// </summary>
         public class Variable : Symbol

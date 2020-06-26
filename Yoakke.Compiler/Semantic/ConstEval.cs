@@ -194,7 +194,12 @@ namespace Yoakke.Compiler.Semantic
             case Expression.Intrinsic intrinsic:
                 if (lvalue) throw new NotImplementedException("Intrinsic can't be an lvalue!");
                 Assert.NonNull(intrinsic.Symbol);
-                return new Value.IntrinsicProc(intrinsic.Symbol);
+                switch (intrinsic.Symbol)
+                {
+                case Symbol.Const constSym: return constSym.GetValue();
+                case Symbol.Variable varSym: return callStack.Peek().Variables[varSym];
+                default: throw new NotImplementedException();
+                }
 
             case Expression.Ident ident:
                 Assert.NonNull(ident.Symbol);
@@ -215,11 +220,6 @@ namespace Yoakke.Compiler.Semantic
                     Assert.NonNull(constSym.Value);
                     return constSym.Value;
                 }
-
-                // Simply wrap
-                case Symbol.Intrinsic intrinsicSym:
-                    if (lvalue) throw new NotImplementedException("Intrinsics can't be lvalues!");
-                    return new Value.IntrinsicProc(intrinsicSym);
 
                 // Simply look up the local
                 case Symbol.Variable varSym:
@@ -417,7 +417,7 @@ namespace Yoakke.Compiler.Semantic
                     // Unify with the procedure type itself
                     intrinsic.Type.Unify(callSiteProcType);
                     // Call it
-                    return intrinsic.Symbol.Function(args.ToList());
+                    return intrinsic.Function(args.ToList());
                 }
                 else
                 {

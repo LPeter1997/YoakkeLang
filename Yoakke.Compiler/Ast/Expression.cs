@@ -138,7 +138,7 @@ namespace Yoakke.Compiler.Ast
             /// <summary>
             /// The <see cref="Symbol"/> this intrinsic identifier refers to.
             /// </summary>
-            public Symbol.Intrinsic? Symbol { get; set; }
+            public Symbol? Symbol { get; set; }
 
             /// <summary>
             /// Initializes a new <see cref="Intrinsic"/>.

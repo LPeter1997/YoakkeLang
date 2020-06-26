@@ -51,7 +51,14 @@ namespace Yoakke.Compiler.Semantic
 
             case Expression.Intrinsic intrinsic:
                 Assert.NonNull(intrinsic.Symbol);
-                return intrinsic.Symbol.Type;
+                // Depends on the symbol
+                switch (intrinsic.Symbol)
+                {
+                case Symbol.Const constSym: return constSym.GetValue().Type;
+                case Symbol.Variable varSym: return varSym.Type;
+
+                default: throw new NotImplementedException();
+                }
 
             case Expression.Ident ident:
                 Assert.NonNull(ident.Symbol);
@@ -59,7 +66,6 @@ namespace Yoakke.Compiler.Semantic
                 switch (ident.Symbol)
                 {
                 case Symbol.Const constSym: return constSym.GetValue().Type;
-                case Symbol.Intrinsic intrinsicSym: return intrinsicSym.Type;
                 case Symbol.Variable varSym: return varSym.Type;
 
                 default: throw new NotImplementedException();

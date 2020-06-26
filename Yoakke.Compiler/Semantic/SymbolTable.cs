@@ -38,14 +38,13 @@ namespace Yoakke.Compiler.Semantic
         }
 
         /// <summary>
-        /// Defines an intrinsic function.
+        /// Defines a builtin constant <see cref="Value"/>.
         /// </summary>
-        /// <param name="name">The name of the intrinsic function.</param>
-        /// <param name="type">The <see cref="Type"/> of the intrinsic function.</param>
-        /// <param name="function">The called <see cref="Func{T, TResult}"/> to perform the action when called.</param>
-        public void DefineIntrinsicFunction(string name, Type type, Func<List<Value>, Value> function)
+        /// <param name="name">The name of the constant.</param>
+        /// <param name="type">The <see cref="Value"/> of the constant.</param>
+        public void DefineBuiltinConstant(string name, Value value)
         {
-            var sym = new Symbol.Intrinsic(name, type, function);
+            var sym = new Symbol.Const(name, value);
             GlobalScope.Define(sym);
         }
 

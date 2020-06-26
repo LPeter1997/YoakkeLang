@@ -110,32 +110,34 @@ namespace Yoakke.Compiler.Semantic
         }
 
         /// <summary>
-        /// A compiler intrinsic function <see cref="Value"/>.
+        /// A compiler intrinsic procedure <see cref="Value"/>.
         /// </summary>
         public class IntrinsicProc : Value
         {
             /// <summary>
-            /// The intrinsic <see cref="Symbol"/>.
+            /// The <see cref="Func{T, TResult}"/> that gets evaluated compile-time.
             /// </summary>
-            public readonly Symbol.Intrinsic Symbol;
+            public readonly Func<List<Value>, Value> Function;
 
-            public override Type Type => Symbol.Type;
+            public override Type Type { get; }
 
             /// <summary>
             /// Initializes a new <see cref="IntrinsicProc"/>.
             /// </summary>
-            /// <param name="symbol">The intrinsic <see cref="Symbol"/>.</param>
-            public IntrinsicProc(Symbol.Intrinsic symbol)
+            /// <param name="type">The <see cref="Type"/> of the intrinsic procedure.</param>
+            /// <param name="func">The intrinsic C# function.</param>
+            public IntrinsicProc(Type type, Func<List<Value>, Value> func)
             {
-                Symbol = symbol;
+                Type = type;
+                Function = func;
             }
 
             public override bool Equals(Value other) =>
-                other is IntrinsicProc i && ReferenceEquals(Symbol, i.Symbol);
-            public override int GetHashCode() => this.HashCombinePoly(Symbol);
+                other is IntrinsicProc i && Type.Equals(i.Type) && ReferenceEquals(Function, i.Function);
+            public override int GetHashCode() => this.HashCombinePoly(Type, Function);
             // NOTE: Does it make sense to clone this?
             public override Value Clone() => this;
-            public override string ToString() => Symbol.Name;
+            public override string ToString() => "<intrinsic>";
         }
 
         /// <summary>

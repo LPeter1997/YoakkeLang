@@ -25,7 +25,7 @@ namespace Yoakke.Compiler.Semantic
             symbolTable.DefineBuiltinType("i32", Type.I32);
             symbolTable.DefineBuiltinType("bool", Type.Bool);
 
-            symbolTable.DefineIntrinsicFunction("@extern",
+            symbolTable.DefineBuiltinConstant("@extern", new Value.IntrinsicProc(
                 new Type.Proc(new List<Type> { Type.Str, Type.Type_ }, Type.Any_),
                 args =>
                 {
@@ -34,7 +34,7 @@ namespace Yoakke.Compiler.Semantic
                     var symbolName = (Value.Primitive<string>)args[0];
                     var symbolType = (Type)args[1];
                     return new Value.Extern(symbolName.Value, symbolType);
-                });
+                }));
 
             // Actual checks ///////////////////////////////////////////////////
 
