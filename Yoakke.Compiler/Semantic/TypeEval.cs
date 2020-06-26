@@ -78,7 +78,7 @@ namespace Yoakke.Compiler.Semantic
                     }
                     return fieldType;
                 }
-                else if (leftType.EqualsNonNull(Type.Type_))
+                else if (leftType.Equals(Type.Type_))
                 {
                     // Constant access
                     var leftValue = ConstEval.EvaluateAsType(dotPath.Left);

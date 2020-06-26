@@ -31,22 +31,7 @@ namespace Yoakke.Compiler.Semantic
         public virtual Type Substitution => this;
 
         public override bool Equals(Value other) =>
-            other is Type t && Substitution.EqualsNonNull(t.Substitution);
-
-        /// <summary>
-        /// Checks, if another <see cref="Type"/> equals with this one.
-        /// </summary>
-        /// <param name="other">The other <see cref="Type"/> to compare.</param>
-        /// <returns>True, if the two <see cref="Type"/>s are equal.</returns>
-        public abstract bool EqualsNonNull(Type other);
-
-        /// <summary>
-        /// Checks, if this <see cref="Type"/> contains the given <see cref="Type"/>.
-        /// This is useful for unification.
-        /// </summary>
-        /// <param name="type">The type to search for.</param>
-        /// <returns>True, if the <see cref="Type"/> is contained.</returns>
-        public abstract bool Contains(Type type);
+            other is Type t && Substitution.Equals(t.Substitution);
 
         /// <summary>
         /// Unifies this <see cref="Type"/> with another one.
@@ -68,23 +53,20 @@ namespace Yoakke.Compiler.Semantic
         /// <param name="other">The other <see cref="Type"/> to unify this one with.</param>
         protected abstract void UnifyInternal(Type other);
 
-        public override Value Clone()
-        {
-            // TODO: Do we need a proper implementation of this?
-            return this;
-        }
+        /// <summary>
+        /// Checks, if this <see cref="Type"/> contains the given <see cref="Type"/>.
+        /// This is useful for unification.
+        /// </summary>
+        /// <param name="type">The type to search for.</param>
+        /// <returns>True, if the <see cref="Type"/> is contained.</returns>
+        public abstract bool Contains(Type type);
 
-        public override int GetHashCode()
-        {
-            // TODO
-            return GetType().GetHashCode();
-        }
-
-        public override string ToString()
-        {
-            // TODO
-            throw new NotImplementedException();
-        }
+        /// <summary>
+        /// Checks, if another <see cref="Type"/> equals with this one.
+        /// </summary>
+        /// <param name="other">The other <see cref="Type"/> to compare.</param>
+        /// <returns>True, if the two <see cref="Type"/>s are equal.</returns>
+        public abstract bool Equals(Type other);
     }
 
     // Variants
@@ -96,18 +78,6 @@ namespace Yoakke.Compiler.Semantic
         /// </summary>
         public class Variable : Type
         {
-            /// <summary>
-            /// Utility to construct a list of <see cref="Variable"/>s.
-            /// </summary>
-            /// <param name="amount">The amount of <see cref="Variable"/>s to add to the list.</param>
-            /// <returns>A list of <see cref="Variable"/>s.</returns>
-            public static IList<Type> ListOf(int amount)
-            {
-                var result = new List<Type>(amount);
-                for (int i = 0; i < amount; ++i) result.Add(new Variable());
-                return result;
-            }
-
             public override Type Type => Type_;
 
             private Type? substitution;
@@ -121,12 +91,6 @@ namespace Yoakke.Compiler.Semantic
                     return substitution;
                 }
             }
-
-            public override bool EqualsNonNull(Type other) =>
-                ReferenceEquals(Substitution, other.Substitution);
-
-            public override bool Contains(Type type) =>
-                ReferenceEquals(Substitution, type);
 
             protected override void UnifyInternal(Type other)
             {
@@ -143,6 +107,14 @@ namespace Yoakke.Compiler.Semantic
                 // Free to substitute
                 substitution = other;
             }
+
+            public override bool Contains(Type type) =>
+                ReferenceEquals(Substitution, type);
+            public override bool Equals(Type other) =>
+                ReferenceEquals(Substitution, other.Substitution);
+            public override int GetHashCode() => throw new NotImplementedException();
+            public override Value Clone() => throw new NotImplementedException();
+            public override string ToString() => "<variable>";
         }
 
         // TODO: This would require some proper subtyping. For now it's good enough for builtins.
@@ -153,16 +125,16 @@ namespace Yoakke.Compiler.Semantic
         {
             public override Type Type => Type.Type_;
 
-            public override bool EqualsNonNull(Type other) =>
-                ReferenceEquals(this, other);
-
-            public override bool Contains(Type type) =>
-                EqualsNonNull(type);
-
             protected override void UnifyInternal(Type other)
             {
                 // NO-OP
             }
+
+            public override bool Contains(Type type) => Equals(type);
+            public override bool Equals(Type other) => ReferenceEquals(this, other.Substitution);
+            public override int GetHashCode() => throw new NotImplementedException();
+            public override Value Clone() => throw new NotImplementedException();
+            public override string ToString() => "<any>";
         }
 
         /// <summary>
@@ -186,17 +158,15 @@ namespace Yoakke.Compiler.Semantic
                 Name = name;
             }
 
-            public override bool EqualsNonNull(Type other) =>
-                ReferenceEquals(this, other.Substitution);
-
-            public override bool Contains(Type type) =>
-                EqualsNonNull(type);
-
             protected override void UnifyInternal(Type other)
             {
-                if (!EqualsNonNull(other.Substitution)) throw new TypeError(this, other);
+                if (!Equals(other.Substitution)) throw new TypeError(this, other);
             }
 
+            public override bool Contains(Type type) => Equals(type);
+            public override bool Equals(Type other) => other.Substitution is Primitive o && Name == o.Name;
+            public override int GetHashCode() => this.HashCombinePoly(Name);
+            public override Value Clone() => new Primitive(Name);
             public override string ToString() => Name;
         }
 
@@ -211,28 +181,6 @@ namespace Yoakke.Compiler.Semantic
             /// The components this <see cref="Product"/> type consists of.
             /// </summary>
             public abstract IEnumerable<Value> Components { get; }
-
-            public override bool EqualsNonNull(Type other)
-            {
-                // Check if other is a product
-                if (!(other.Substitution is Product p)) return false;
-                // Check for same implementation types
-                if (GetType() != other.GetType()) return false;
-                // Check for sub-component count
-                if (Components.Count() != p.Components.Count()) return false;
-                // Check for sub-component equality
-                return Components.Zip(p.Components).All(x => x.First.Equals(x.Second));
-            }
-
-            public override bool Contains(Type type)
-            {
-                if (ReferenceEquals(this, type.Substitution)) return true;
-                foreach (var c in Components)
-                {
-                    if (c is Type t && t.Substitution.Contains(type)) return true;
-                }
-                return false;
-            }
 
             protected override void UnifyInternal(Type other)
             {
@@ -265,6 +213,30 @@ namespace Yoakke.Compiler.Semantic
                     }
                 }
             }
+
+            public override bool Contains(Type type)
+            {
+                if (ReferenceEquals(this, type.Substitution)) return true;
+                foreach (var c in Components)
+                {
+                    if (c is Type t && t.Substitution.Contains(type)) return true;
+                }
+                return false;
+            }
+
+            public override bool Equals(Type other)
+            {
+                // Check if other is a product
+                if (!(other.Substitution is Product p)) return false;
+                // Check for same implementation types
+                if (GetType() != other.GetType()) return false;
+                // Check for sub-component count
+                if (Components.Count() != p.Components.Count()) return false;
+                // Check for sub-component equality
+                return Components.Zip(p.Components).All(x => x.First.Equals(x.Second));
+            }
+
+            public override int GetHashCode() => this.HashCombinePoly(Components);
         }
 
         /// <summary>
@@ -288,6 +260,8 @@ namespace Yoakke.Compiler.Semantic
                 Types = types;
             }
 
+            public override Value Clone() =>
+                new Tuple(Types.Select(x => (Type)x.Clone()).ToList());
             public override string ToString() =>
                 $"({Types.Select(x => x.Substitution.ToString()).StringJoin(", ")})";
         }
@@ -319,6 +293,8 @@ namespace Yoakke.Compiler.Semantic
                 Return = ret;
             }
 
+            public override Value Clone() =>
+                new Proc(Parameters.Select(x => (Type)x.Clone()).ToList(), (Type)Return.Clone());
             public override string ToString() =>
                 $"proc({Parameters.Select(x => x.ToString()).StringJoin(", ")}) -> {Return.Substitution}";
         }
@@ -356,13 +332,6 @@ namespace Yoakke.Compiler.Semantic
                 Scope = scope;
             }
 
-            public override bool EqualsNonNull(Type other) =>
-                   other is Struct s 
-                && Token == s.Token 
-                && Fields.Keys.Count == s.Fields.Keys.Count
-                && Fields.Keys.All(k => s.Fields.ContainsKey(k))
-                && base.EqualsNonNull(other);
-
             protected override void UnifyInternal(Type other)
             {
                 // Check if other is a struct
@@ -376,6 +345,18 @@ namespace Yoakke.Compiler.Semantic
                 }
                 base.UnifyInternal(s);
             }
+
+            public override bool Equals(Type other) =>
+                   other.Substitution is Struct s 
+                && Token == s.Token 
+                && Fields.Keys.Count == s.Fields.Keys.Count
+                && Fields.Keys.All(k => s.Fields.ContainsKey(k))
+                && base.Equals(other);
+
+            public override Value Clone() =>
+                new Struct(Token, Fields.ToDictionary(kv => kv.Key, kv => (Type)kv.Value.Clone()), Scope);
+            public override string ToString() =>
+                $"{Token.Value} {{ {Fields.Select(kv => $"{kv.Key}: {kv.Value}").StringJoin("; ")} }}";
         }
     }
 }

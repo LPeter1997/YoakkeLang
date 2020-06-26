@@ -194,7 +194,7 @@ namespace Yoakke.Compiler.Semantic
             }
 
             public override bool Equals(Value other) =>
-                other is Extern e && Name == e.Name && Type.EqualsNonNull(e.Type);
+                other is Extern e && Name == e.Name && Type.Equals(e.Type);
             public override int GetHashCode() => this.HashCombinePoly(Type, Name);
             // NOTE: Does it make sense to clone this?
             public override Value Clone() => this;
@@ -227,7 +227,7 @@ namespace Yoakke.Compiler.Semantic
 
             // TODO: Do we count in the type?
             public override bool Equals(Value other) =>
-                other is Int i && Type.EqualsNonNull(i.Type) && Value == i.Value;
+                other is Int i && Type.Equals(i.Type) && Value == i.Value;
             public override int GetHashCode() => this.HashCombinePoly(Type, Value);
             public override Value Clone() => new Int(Type, Value);
             public override string ToString() => Value.ToString();
@@ -316,7 +316,7 @@ namespace Yoakke.Compiler.Semantic
 
             public override bool Equals(Value other) =>
                    other is Tuple t
-                && Type.EqualsNonNull(t.Type)
+                && Type.Equals(t.Type)
                 && Values.Zip(t.Values).All(vs => vs.First.Equals(vs.Second));
             public override int GetHashCode() => this.HashCombinePoly(Type, Values);
             public override Value Clone() => 
@@ -351,7 +351,7 @@ namespace Yoakke.Compiler.Semantic
 
             public override bool Equals(Value other) =>
                    other is Struct s
-                && Type.EqualsNonNull(s.Type)
+                && Type.Equals(s.Type)
                 && Fields.All(f => f.Value.Equals(s.Fields[f.Key]));
             // TODO: Maybe order matters here?
             public override int GetHashCode() => this.HashCombinePoly(Type, Fields);

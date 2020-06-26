@@ -248,7 +248,7 @@ namespace Yoakke.Compiler.IR
                 // (In theory it doesn't matter for rvalues, but always copies, but we can just copy the field)
 
                 var leftSemanticType = TypeEval.Evaluate(dotPath.Left);
-                if (Semantic.Type.Type_.EqualsNonNull(leftSemanticType))
+                if (Semantic.Type.Type_.Equals(leftSemanticType))
                 {
                     // Associated constant access
 
@@ -430,9 +430,9 @@ namespace Yoakke.Compiler.IR
 
         private Type Compile(Semantic.Type type)
         {
-            if (Semantic.Type.I32.EqualsNonNull(type)) return Type.I32;
-            if (Semantic.Type.Bool.EqualsNonNull(type)) return Type.Bool;
-            if (Semantic.Type.Unit.EqualsNonNull(type)) return Type.Void_;
+            if (Semantic.Type.I32.Equals(type)) return Type.I32;
+            if (Semantic.Type.Bool.Equals(type)) return Type.Bool;
+            if (Semantic.Type.Unit.Equals(type)) return Type.Void_;
 
             if (type is Semantic.Type.Proc proc)
             {

@@ -407,8 +407,8 @@ namespace Yoakke.Compiler.Tests
         }
 
         private bool PairwiseEquals((Type, Type) set1, (Type, Type) set2) =>
-               (set1.Item1.EqualsNonNull(set2.Item1) && set1.Item2.EqualsNonNull(set2.Item2))
-            || (set1.Item1.EqualsNonNull(set2.Item2) && set1.Item2.EqualsNonNull(set2.Item1));
+               (set1.Item1.Equals(set2.Item1) && set1.Item2.Equals(set2.Item2))
+            || (set1.Item1.Equals(set2.Item2) && set1.Item2.Equals(set2.Item1));
 
         [TestMethod]
         public void ConstantTypeMismatch()

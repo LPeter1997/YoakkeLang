@@ -184,7 +184,7 @@ namespace Yoakke.Compiler.Semantic
                 // We want it to be unit, we convert implicit returns to explicit ones in the desugaring process
                 Type.Unit.Unify(bodyRetTy);
                 // If the procedure's return-type is not unit, which can be implicitly returned, all paths must return a value
-                if (!Type.Unit.EqualsNonNull(procRetTy))
+                if (!Type.Unit.Equals(procRetTy))
                 {
                     var returnKind = ControlFlow.Analyze(proc.Body);
                     if (returnKind != ControlFlow.ReturnKind.AlwaysReturns)
