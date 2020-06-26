@@ -86,7 +86,7 @@ namespace Yoakke.Compiler.Semantic
                 {
                     expression.ConstantValue = EvaluateImpl(callStack, expression, canCache, lvalue);
                 }
-                value = lvalue ? expression.ConstantValue : expression.ConstantValue.CloneValue();
+                value = lvalue ? expression.ConstantValue : expression.ConstantValue.Clone();
             }
             else
             {

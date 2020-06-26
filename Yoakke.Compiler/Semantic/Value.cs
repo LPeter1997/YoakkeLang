@@ -11,9 +11,7 @@ namespace Yoakke.Compiler.Semantic
 {
     // Constants
 
-#pragma warning disable CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
     partial class Value
-#pragma warning restore CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
     {
         public static readonly Value Unit = new Tuple(new List<Value>());
     }
@@ -21,32 +19,37 @@ namespace Yoakke.Compiler.Semantic
     /// <summary>
     /// Represents a compile-time constant.
     /// </summary>
-#pragma warning disable CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
-    public abstract partial class Value : IEquatable<Value>, ICloneable
-#pragma warning restore CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
+    public abstract partial class Value
     {
         /// <summary>
         /// The <see cref="Type"/> of this constant value.
         /// </summary>
         public abstract Type Type { get; }
 
-        public override bool Equals(object? obj) =>
-            obj is Value v && Equals(v);
-
-        public bool Equals(Value? other) =>
-            other != null && EqualsNonNull(other);
-
         /// <summary>
         /// Checks, if another <see cref="Value"/> equals with this one.
         /// </summary>
         /// <param name="other">The other <see cref="Value"/> to compare.</param>
         /// <returns>True, if the two <see cref="Value"/>s are equal.</returns>
-        public abstract bool EqualsNonNull(Value other);
+        public abstract bool Equals(Value other);
 
-        public object Clone() =>
-            CloneValue();
+        /// <summary>
+        /// Calculates the hash code of this <see cref="Value"/>.
+        /// </summary>
+        /// <returns>The hash code of this <see cref="Value"/>.</returns>
+        public abstract override int GetHashCode();
 
-        public abstract Value CloneValue();
+        /// <summary>
+        /// Deep-clones this <see cref="Value"/>.
+        /// </summary>
+        /// <returns>The deep-clone of this <see cref="Value"/>.</returns>
+        public abstract Value Clone();
+
+        /// <summary>
+        /// Creates a <see cref="string"/> representation of this <see cref="Value"/>.
+        /// </summary>
+        /// <returns>The <see cref="string"/> representation of this <see cref="Value"/>.</returns>
+        public abstract override string ToString();
     }
 
     // Variants
@@ -59,18 +62,12 @@ namespace Yoakke.Compiler.Semantic
         /// </summary>
         public class UnderEvaluation : Value
         {
-            private Type type = new Type.Variable();
-            public override Type Type => type;
+            public override Type Type { get; } = new Type.Variable();
 
-            public override bool EqualsNonNull(Value other)
-            {
-                throw new NotImplementedException();
-            }
-
-            public override Value CloneValue()
-            {
-                throw new NotImplementedException();
-            }
+            public override bool Equals(Value other) => throw new NotImplementedException();
+            public override int GetHashCode() => throw new NotImplementedException();
+            public override Value Clone() => throw new NotImplementedException();
+            public override string ToString() => throw new NotImplementedException();
         }
 
         /// <summary>
@@ -102,17 +99,14 @@ namespace Yoakke.Compiler.Semantic
                 Setter = setter;
             }
 
-            public override bool EqualsNonNull(Value other)
-            {
-                // TODO
-                throw new NotImplementedException();
-            }
-
-            public override Value CloneValue()
-            {
-                // NOTE: Does it make sense to clone this?
-                return this;
-            }
+            // TODO
+            public override bool Equals(Value other) => throw new NotImplementedException();
+            // TODO
+            public override int GetHashCode() => throw new NotImplementedException();
+            // NOTE: Does it make sense to clone this?
+            public override Value Clone() => this;
+            // TODO
+            public override string ToString() => throw new NotImplementedException();
         }
 
         /// <summary>
@@ -125,8 +119,7 @@ namespace Yoakke.Compiler.Semantic
             /// </summary>
             public readonly Expression.ProcValue Node;
 
-            private Type type;
-            public override Type Type => Assert.NonNullValue(type);
+            public override Type Type { get; }
 
             /// <summary>
             /// Initializes a new <see cref="Proc"/>.
@@ -136,17 +129,16 @@ namespace Yoakke.Compiler.Semantic
             public Proc(Expression.ProcValue node, Type type)
             {
                 Node = node;
-                this.type = type;
+                Type = type;
             }
 
-            public override bool EqualsNonNull(Value other) =>
+            public override bool Equals(Value other) =>
                 other is Proc o && ReferenceEquals(Node, o.Node);
-
-            public override Value CloneValue()
-            {
-                // NOTE: Does it make sense to clone this?
-                return this;
-            }
+            public override int GetHashCode() => this.HashCombinePoly(Node);
+            // NOTE: Does it make sense to clone this?
+            public override Value Clone() => this;
+            // TODO
+            public override string ToString() => "<procedure>";
         }
 
         /// <summary>
@@ -170,17 +162,12 @@ namespace Yoakke.Compiler.Semantic
                 Symbol = symbol;
             }
 
-            public override bool EqualsNonNull(Value other) =>
+            public override bool Equals(Value other) =>
                 other is IntrinsicProc i && ReferenceEquals(Symbol, i.Symbol);
-
-            public override Value CloneValue()
-            {
-                // NOTE: Does it make sense to clone this?
-                return this;
-            }
-
-            public override string ToString() =>
-                Symbol.Name;
+            public override int GetHashCode() => this.HashCombinePoly(Symbol);
+            // NOTE: Does it make sense to clone this?
+            public override Value Clone() => this;
+            public override string ToString() => Symbol.Name;
         }
 
         /// <summary>
@@ -193,8 +180,7 @@ namespace Yoakke.Compiler.Semantic
             /// </summary>
             public readonly string Name;
 
-            private Type type;
-            public override Type Type => type;
+            public override Type Type { get; }
 
             /// <summary>
             /// Initializes a new <see cref="Extern"/>.
@@ -203,24 +189,16 @@ namespace Yoakke.Compiler.Semantic
             /// <param name="type">The <see cref="Type"/> of the external symbol.</param>
             public Extern(string name, Type type)
             {
-                this.type = type;
+                Type = type;
                 Name = name;
             }
 
-            public override bool EqualsNonNull(Value other) =>
-                   other is Extern e
-                && Name == e.Name
-                && Type.EqualsNonNull(e.Type)
-                ;
-
-            public override Value CloneValue()
-            {
-                // NOTE: Does it make sense to clone this?
-                return this;
-            }
-
-            public override string ToString() =>
-                $"external({Name})";
+            public override bool Equals(Value other) =>
+                other is Extern e && Name == e.Name && Type.EqualsNonNull(e.Type);
+            public override int GetHashCode() => this.HashCombinePoly(Type, Name);
+            // NOTE: Does it make sense to clone this?
+            public override Value Clone() => this;
+            public override string ToString() => $"external({Name})";
         }
 
         /// <summary>
@@ -233,8 +211,7 @@ namespace Yoakke.Compiler.Semantic
             /// </summary>
             public readonly BigInteger Value;
 
-            private readonly Type type;
-            public override Type Type => type;
+            public override Type Type { get; }
 
             // TODO: Make sure the passed in type is int?
             /// <summary>
@@ -244,22 +221,16 @@ namespace Yoakke.Compiler.Semantic
             /// <param name="value">The value of the integer.</param>
             public Int(Type type, BigInteger value)
             {
-                this.type = type;
+                Type = type;
                 Value = value;
             }
 
             // TODO: Do we count in the type?
-            public override bool EqualsNonNull(Value other) =>
-                   other is Int i
-                && type.EqualsNonNull(i.Type)
-                && Value == i.Value
-                ;
-
-            public override Value CloneValue() =>
-                new Int(type, Value);
-
-            public override string ToString() =>
-                Value.ToString();
+            public override bool Equals(Value other) =>
+                other is Int i && Type.EqualsNonNull(i.Type) && Value == i.Value;
+            public override int GetHashCode() => this.HashCombinePoly(Type, Value);
+            public override Value Clone() => new Int(Type, Value);
+            public override string ToString() => Value.ToString();
         }
 
         /// <summary>
@@ -283,14 +254,11 @@ namespace Yoakke.Compiler.Semantic
                 Value = value;
             }
 
-            public override bool EqualsNonNull(Value other) =>
+            public override bool Equals(Value other) =>
                 other is Bool b && Value == b.Value;
-
-            public override Value CloneValue() =>
-                new Bool(Value);
-
-            public override string ToString() =>
-                Value.ToString();
+            public override int GetHashCode() => this.HashCombinePoly(Type, Value);
+            public override Value Clone() => new Bool(Value);
+            public override string ToString() => Value.ToString();
         }
 
         // TODO: Later string value could be represented by a simple struct.
@@ -316,15 +284,12 @@ namespace Yoakke.Compiler.Semantic
                 Value = value;
             }
 
-            public override bool EqualsNonNull(Value other) =>
+            public override bool Equals(Value other) =>
                 other is Str s && Value == s.Value;
-
-            public override Value CloneValue() =>
-                // TODO: Is this correct?
-                new Str(Value);
-
-            public override string ToString() =>
-                $"\"{Value}\"";
+            public override int GetHashCode() => this.HashCombinePoly(Type, Value);
+            // TODO: Is this correct?
+            public override Value Clone() => new Str(Value);
+            public override string ToString() => $"\"{Value}\"";
         }
 
         /// <summary>
@@ -337,8 +302,7 @@ namespace Yoakke.Compiler.Semantic
             /// </summary>
             public readonly IList<Value> Values;
 
-            private Type type;
-            public override Type Type => type;
+            public override Type Type { get; }
 
             /// <summary>
             /// Initializes a new <see cref="Tuple"/>.
@@ -347,19 +311,19 @@ namespace Yoakke.Compiler.Semantic
             public Tuple(IList<Value> values)
             {
                 Values = values;
-                type = new Type.Tuple(values.Select(x => x.Type).ToList());
+                Type = new Type.Tuple(values.Select(x => x.Type).ToList());
             }
 
-            public override bool EqualsNonNull(Value other) =>
+            public override bool Equals(Value other) =>
                    other is Tuple t
-                && Values.Count == t.Values.Count
-                && Values.Zip(t.Values).All(vs => vs.First.EqualsNonNull(vs.Second));
-
-            public override Value CloneValue() =>
-                new Tuple(Values.Select(x => x.CloneValue()).ToList());
-
-            public override string ToString() =>
+                && Type.EqualsNonNull(t.Type)
+                && Values.Zip(t.Values).All(vs => vs.First.Equals(vs.Second));
+            public override int GetHashCode() => this.HashCombinePoly(Type, Values);
+            public override Value Clone() => 
+                new Tuple(Values.Select(x => x.Clone()).ToList());
+            public override string ToString() => 
                 $"({Values.Select(x => x.ToString()).StringJoin(", ")})";
+
         }
 
         /// <summary>
@@ -372,8 +336,7 @@ namespace Yoakke.Compiler.Semantic
             /// </summary>
             public readonly IDictionary<string, Value> Fields;
 
-            private Type type;
-            public override Type Type => type;
+            public override Type Type { get; }
 
             /// <summary>
             /// Initializes a new <see cref="Struct"/>.
@@ -382,17 +345,20 @@ namespace Yoakke.Compiler.Semantic
             /// <param name="fields">The field <see cref="Value"/>s of the created struct.</param>
             public Struct(Type type, IDictionary<string, Value> fields)
             {
-                this.type = type;
+                Type = type;
                 Fields = fields;
             }
 
-            public override Value CloneValue() =>
-                new Struct(type, Fields.ToDictionary(kv => kv.Key, kv => kv.Value.CloneValue()));
-
-            public override bool EqualsNonNull(Value other) =>
+            public override bool Equals(Value other) =>
                    other is Struct s
                 && Type.EqualsNonNull(s.Type)
-                && Fields.All(f => f.Value.EqualsNonNull(s.Fields[f.Key]));
+                && Fields.All(f => f.Value.Equals(s.Fields[f.Key]));
+            // TODO: Maybe order matters here?
+            public override int GetHashCode() => this.HashCombinePoly(Type, Fields);
+            public override Value Clone() => 
+                new Struct(Type, Fields.ToDictionary(kv => kv.Key, kv => kv.Value.Clone()));
+            public override string ToString() => 
+                $"{Type} {{ {Fields.Select(kv => $"{kv.Key} = {kv.Value}").StringJoin("; ")} }}";
         }
     }
 }

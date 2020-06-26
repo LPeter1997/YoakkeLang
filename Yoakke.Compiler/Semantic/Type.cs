@@ -30,7 +30,7 @@ namespace Yoakke.Compiler.Semantic
         /// </summary>
         public virtual Type Substitution => this;
 
-        public override bool EqualsNonNull(Value other) =>
+        public override bool Equals(Value other) =>
             other is Type t && Substitution.EqualsNonNull(t.Substitution);
 
         /// <summary>
@@ -68,10 +68,22 @@ namespace Yoakke.Compiler.Semantic
         /// <param name="other">The other <see cref="Type"/> to unify this one with.</param>
         protected abstract void UnifyInternal(Type other);
 
-        public override Value CloneValue()
+        public override Value Clone()
         {
             // TODO: Do we need a proper implementation of this?
             return this;
+        }
+
+        public override int GetHashCode()
+        {
+            // TODO
+            return GetType().GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            // TODO
+            throw new NotImplementedException();
         }
     }
 
@@ -209,7 +221,7 @@ namespace Yoakke.Compiler.Semantic
                 // Check for sub-component count
                 if (Components.Count() != p.Components.Count()) return false;
                 // Check for sub-component equality
-                return Components.Zip(p.Components).All(x => x.First.EqualsNonNull(x.Second));
+                return Components.Zip(p.Components).All(x => x.First.Equals(x.Second));
             }
 
             public override bool Contains(Type type)
