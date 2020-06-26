@@ -4,6 +4,9 @@ using System.Text;
 
 namespace Yoakke.Compiler.Utils
 {
+    /// <summary>
+    /// <see cref="IEnumerable{T}"/> utilities.
+    /// </summary>
     static class EnumerableExtensions
     {
         /// <summary>
