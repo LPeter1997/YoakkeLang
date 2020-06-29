@@ -237,6 +237,9 @@ namespace Yoakke.Compiler.IR
             }
         }
 
+        /// <summary>
+        /// Conditional jump.
+        /// </summary>
         public class JumpIf : Instruction
         {
             /// <summary>
@@ -265,6 +268,76 @@ namespace Yoakke.Compiler.IR
                 Condition = condition;
                 Then = then;
                 Else = els;
+            }
+        }
+
+        /// <summary>
+        /// Integer addition.
+        /// </summary>
+        public class IAdd : ValueInstruction
+        {
+            /// <summary>
+            /// The integer <see cref="Type"/> to perform the addition on.
+            /// </summary>
+            public Type Type { get; set; }
+            /// <summary>
+            /// The left-hand-side <see cref="Value"/> to add.
+            /// </summary>
+            public Value Left { get; set; }
+            /// <summary>
+            /// The right-hand-side <see cref="Value"/> to add.
+            /// </summary>
+            public Value Right { get; set; }
+
+            /// <summary>
+            /// Initializes a new <see cref="IAdd"/>.
+            /// </summary>
+            /// <param name="value">The register to store the result in.</param>
+            /// <param name="type">The integer <see cref="Type"/> to perform the addition on.</param>
+            /// <param name="left">The left-hand-side <see cref="Value"/> to add.</param>
+            /// <param name="right">The right-hand-side <see cref="Value"/> to add.</param>
+            public IAdd(Value.Register value, Type type, Value left, Value right) 
+                : base(value)
+            {
+                // TODO: Check if type is integer?
+                Type = type;
+                Left = left;
+                Right = right;
+            }
+        }
+
+        /// <summary>
+        /// Integer less-than comparison.
+        /// </summary>
+        public class ILess : ValueInstruction
+        {
+            /// <summary>
+            /// The integer <see cref="Type"/> to perform the comparison on.
+            /// </summary>
+            public Type Type { get; set; }
+            /// <summary>
+            /// The left-hand-side <see cref="Value"/> to compare.
+            /// </summary>
+            public Value Left { get; set; }
+            /// <summary>
+            /// The right-hand-side <see cref="Value"/> to compare.
+            /// </summary>
+            public Value Right { get; set; }
+
+            /// <summary>
+            /// Initializes a new <see cref="ILess"/>.
+            /// </summary>
+            /// <param name="value">The register to store the result in.</param>
+            /// <param name="type">The integer <see cref="Type"/> to perform the comparison on.</param>
+            /// <param name="left">The left-hand-side <see cref="Value"/> to compare.</param>
+            /// <param name="right">The right-hand-side <see cref="Value"/> to compare.</param>
+            public ILess(Value.Register value, Type type, Value left, Value right)
+                : base(value)
+            {
+                // TODO: Check if type is integer?
+                Type = type;
+                Left = left;
+                Right = right;
             }
         }
     }

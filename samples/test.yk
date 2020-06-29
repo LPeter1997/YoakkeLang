@@ -2,6 +2,10 @@
 const foo = proc() {};
 
 const main = proc() -> i32 {
+    var x = @ir.iadd(i32, 2, 3);
+    if @ir.iless(i32, x, 6) {
+        return 999;
+    }
     if true { foo(); return 5; }
     2
 };
