@@ -8,7 +8,7 @@ namespace Yoakke.Compiler.IR
     /// <summary>
     /// Base for all IR instructions.
     /// </summary>
-    abstract partial class Instruction
+    public abstract partial class Instruction
     {
         /// <summary>
         /// True, if this <see cref="Instruction"/> is any kind of jump.

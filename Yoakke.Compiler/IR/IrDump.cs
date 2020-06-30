@@ -129,6 +129,14 @@ namespace Yoakke.Compiler.IR
                 Write(builder, "jumpif ", jumpIf.Condition, ", ", jumpIf.Then, ", ", jumpIf.Else);
                 break;
 
+            case Instruction.IAdd add:
+                Write(builder, "iadd ", add.Type, ", ", add.Left, ", ", add.Right);
+                break;
+
+            case Instruction.ILess less:
+                Write(builder, "iless ", less.Type, ", ", less.Left, ", ", less.Right);
+                break;
+
             default: throw new NotImplementedException();
             }
         }

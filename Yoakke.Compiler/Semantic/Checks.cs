@@ -29,6 +29,8 @@ namespace Yoakke.Compiler.Semantic
             symbolTable.DefineBuiltinType("bool", Type.Bool);
 
             symbolTable.DefineBuiltinConstant("@extern", new Value.IntrinsicProc(
+                // TODO: This should be a forall thing instead of any???
+                // This is dangerous otherwise
                 new Type.Proc(new List<Type> { Type.Str, Type.Type_ }, Type.Any_),
                 args =>
                 {

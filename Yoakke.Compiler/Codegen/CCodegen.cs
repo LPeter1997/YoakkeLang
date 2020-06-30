@@ -234,6 +234,14 @@ namespace Yoakke.Compiler.Codegen
                 Write(builder, "if (", jumpIf.Condition, ") goto ", jumpIf.Then, "; else goto ", jumpIf.Else);
                 break;
 
+            case Instruction.IAdd add:
+                Write(builder, add.Left, " + ", add.Right);
+                break;
+
+            case Instruction.ILess less:
+                Write(builder, less.Left, " < ", less.Right);
+                break;
+
             default: throw new NotImplementedException();
             }    
         }
