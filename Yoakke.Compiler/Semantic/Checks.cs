@@ -31,6 +31,7 @@ namespace Yoakke.Compiler.Semantic
             symbolTable.DefineBuiltinConstant("@extern", new Value.IntrinsicProc(
                 // TODO: This should be a forall thing instead of any???
                 // This is dangerous otherwise
+                // This should have a type of proc(name: str, T: type) -> T
                 new Type.Proc(new List<Type> { Type.Str, Type.Type_ }, Type.Any_),
                 args =>
                 {
@@ -62,6 +63,24 @@ namespace Yoakke.Compiler.Semantic
                     var bits = (Value.Primitive<BigInteger>)args[1];
                     var signed = (Value.Primitive<bool>)args[2];
                     return new Type.Primitive(name.Value, new IR.Type.Int(signed.Value, (int)bits.Value));
+                })));
+            irScope.Define(new Symbol.Const("iadd", new Value.IntrinsicProc(
+                // TODO: This should have a type of proc(T: type, a: T, b: T) -> T
+                // Which we can't express yet
+                new Type.Proc(new List<Type> { Type.Type_, Type.Any_, Type.Any_ }, Type.Any_),
+                args =>
+                {
+                    // TODO
+                    throw new NotImplementedException();
+                })));
+            irScope.Define(new Symbol.Const("iless", new Value.IntrinsicProc(
+                // TODO: This should have a type of proc(T: type, a: T, b: T) -> T
+                // Which we can't express yet
+                new Type.Proc(new List<Type> { Type.Type_, Type.Any_, Type.Any_ }, Type.Any_),
+                args =>
+                {
+                    // TODO
+                    throw new NotImplementedException();
                 })));
             // End of abomination ///////////////////////////////////////////////////
 
