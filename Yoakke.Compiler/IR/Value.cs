@@ -17,7 +17,7 @@ namespace Yoakke.Compiler.IR
     /// <summary>
     /// Base for values during IR compilation.
     /// </summary>
-    abstract partial class Value
+    public abstract partial class Value
     {
         /// <summary>
         /// The <see cref="Type"/> of this <see cref="Value"/>.

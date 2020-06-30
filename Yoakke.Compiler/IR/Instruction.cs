@@ -19,7 +19,7 @@ namespace Yoakke.Compiler.IR
     /// <summary>
     /// Base for any <see cref="Instruction"/> that stores it's value inside a register.
     /// </summary>
-    abstract class ValueInstruction : Instruction
+    public abstract class ValueInstruction : Instruction
     {
         /// <summary>
         /// The register this <see cref="Instruction"/> returns it's value in.

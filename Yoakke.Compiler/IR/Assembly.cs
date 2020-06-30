@@ -63,7 +63,7 @@ namespace Yoakke.Compiler.IR
     /// A single basic-block inside a <see cref="Proc"/>. A basic block is a sequence of instructions,
     /// with a single entry point being the first instruction, and a single exit point being the last instruction.
     /// </summary>
-    class BasicBlock
+    public class BasicBlock
     {
         /// <summary>
         /// The <see cref="Instruction"/>s contain within this block.
