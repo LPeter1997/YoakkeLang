@@ -9,6 +9,11 @@ namespace Yoakke.Compiler.TypeSystem
     /// </summary>
     public abstract partial class Type : IEquatable<Type>
     {
+        /// <summary>
+        /// The substitution for this <see cref="Type"/>.
+        /// </summary>
+        internal virtual Type Substitution => this;
+
         public override bool Equals(object obj) => obj is Type t && Equals(t);
 
         /// <summary>
@@ -61,7 +66,7 @@ namespace Yoakke.Compiler.TypeSystem
             /// <summary>
             /// Returns the substitution of this <see cref="Var"/>. Returns itself, if there's no substitution.
             /// </summary>
-            internal Type Substitution
+            internal override Type Substitution
             {
                 get
                 {
@@ -84,12 +89,9 @@ namespace Yoakke.Compiler.TypeSystem
                     return;
                 }
                 // substitution is null
-                if (other is Var otherVar)
-                {
-                    other = otherVar.Substitution;
-                    // Unifying with self is a no-op
-                    if (this == other) return;
-                }
+                other = other.Substitution;
+                // Unifying with self is a no-op
+                if (this == other) return;
                 // Check if this is a type recursion
                 if (other.Contains(this)) throw new TypeRecursionError(other, this);
                 // Do the substitution
@@ -106,14 +108,9 @@ namespace Yoakke.Compiler.TypeSystem
                 return clone;
             }
 
-            public override bool Equals(Type other)
-            {
-                if (other is Var var) return Substitution == var.Substitution;
-                return false;
-            }
+            public override bool Equals(Type other) => Substitution == other.Substitution;
 
-            public override int GetHashCode() => 
-                HashCode.Combine(GetType(), instanceId);
+            public override int GetHashCode() => HashCode.Combine(GetType(), Substitution);
 
             public override string ToString()
             {
@@ -128,6 +125,43 @@ namespace Yoakke.Compiler.TypeSystem
                 }
                 return char.ToUpper(result[0]) + result.Substring(1) + '\'';
             }
+        }
+
+        /// <summary>
+        /// A primitive <see cref="Type"/>.
+        /// </summary>
+        public class Prim : Type
+        {
+            /// <summary>
+            /// The name of the primitive.
+            /// </summary>
+            public readonly string Name;
+
+            /// <summary>
+            /// Initializes a new <see cref="Prim"/>.
+            /// </summary>
+            /// <param name="name">The name of the primitive.</param>
+            public Prim(string name)
+            {
+                Name = name;
+            }
+
+            internal override bool Contains(Type other) => this == other.Substitution;
+
+            public override void UnifyWith(Type other)
+            {
+                other = other.Substitution;
+                if (!(other is Prim prim) || Name != prim.Name) throw new TypeMismatchError(this, other);
+            }
+
+            public override Type Clone() => new Prim(Name);
+
+            public override bool Equals(Type other) =>
+                other.Substitution is Prim prim && Name == prim.Name;
+
+            public override int GetHashCode() => HashCode.Combine(GetType(), Name);
+
+            public override string ToString() => Name;
         }
     }
 }

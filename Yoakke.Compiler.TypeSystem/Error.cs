@@ -36,4 +36,31 @@ namespace Yoakke.Compiler.TypeSystem
             Contained = contained;
         }
     }
+
+    /// <summary>
+    /// Represents a <see cref="TypeError"/> that occurred because of mismatching <see cref="Type"/>s during 
+    /// unification.
+    /// </summary>
+    public class TypeMismatchError : TypeError
+    {
+        /// <summary>
+        /// The first non-matching <see cref="Type"/>.
+        /// </summary>
+        public readonly Type First;
+        /// <summary>
+        /// The second non-matching <see cref="Type"/>.
+        /// </summary>
+        public readonly Type Second;
+
+        /// <summary>
+        /// Initializes a new <see cref="TypeMismatchError"/>.
+        /// </summary>
+        /// <param name="container">The first non-matching <see cref="Type"/>.</param>
+        /// <param name="contained">The second non-matching <see cref="Type"/>.</param>
+        public TypeMismatchError(Type first, Type second)
+        {
+            First = first;
+            Second = second;
+        }
+    }
 }
