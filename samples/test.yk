@@ -1,11 +1,10 @@
 
-const foo = proc() {};
+const Add = proc(TLhs: type, TRhs: type, TRes: type) -> type {
+    trait {
+        const add: proc(TLhs, TRhs) -> TRes;
+    }
+};
 
 const main = proc() -> i32 {
-    var x = @ir.iadd(i32, 2, 3);
-    if @ir.iless(i32, x, 6) {
-        return 999;
-    }
-    if true { foo(); return 5; }
     2
 };
