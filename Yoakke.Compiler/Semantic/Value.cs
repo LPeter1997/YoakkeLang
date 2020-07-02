@@ -9,13 +9,6 @@ using Yoakke.Compiler.Utils;
 
 namespace Yoakke.Compiler.Semantic
 {
-    // Constants
-
-    partial class Value
-    {
-        public static readonly Value Unit = new Tuple(new List<Value>());
-    }
-
     /// <summary>
     /// Represents a compile-time constant.
     /// </summary>
@@ -259,7 +252,6 @@ namespace Yoakke.Compiler.Semantic
 
             public override bool Equals(Value? other) =>
                 other is Struct s && Type.Equals(s.Type) && Fields.ValueEquals(s.Fields);
-            // TODO: Maybe order matters here?
             public override int GetHashCode() => this.HashCombinePoly(Type, Fields);
             public override Value Clone() => 
                 new Struct(Type, Fields.ToDictionary(kv => kv.Key, kv => kv.Value.Clone()));

@@ -13,45 +13,30 @@ namespace Yoakke.Compiler.Semantic
     partial class Type
     {
         public static readonly Type Any_ = new Any();
-        new public static readonly Type Unit = new Tuple(new List<Type>());
+        public static readonly Type Unit = new Tuple(new List<Type>());
         public static readonly Type Type_ = new Primitive("type", IR.Type.Void_); // TODO
         public static readonly Type Str = new Primitive("str", IR.Type.Void_); // TODO
         public static readonly Type I32 = new Primitive("i32", IR.Type.I32);
-        public static readonly Type Bool = new Primitive("bool", IR.Type.Bool);
+        public static readonly Type Bool = new Primitive("bool", IR.Type.Bool);    
     }
 
     /// <summary>
     /// The base class for types in the compiler.
     /// </summary>
-    public abstract partial class Type : Value
+    public abstract partial class Type : Value, IEquatable<Type>
     {
         /// <summary>
         /// Returns the substitution for this <see cref="Type"/>. Could be itself, if there's no substitution.
         /// </summary>
         public virtual Type Substitution => this;
 
+        /// <summary>
+        /// True, if this <see cref="Type"/> is fully specified, meaning there are no type variables in it.
+        /// </summary>
+        public abstract bool IsFullySpecified { get; }
+
         public override bool Equals(Value? other) =>
             other is Type t && Substitution.Equals(t.Substitution);
-
-        /// <summary>
-        /// Unifies this <see cref="Type"/> with another one.
-        /// </summary>
-        /// <param name="other">The other <see cref="Type"/> to unify this one with.</param>
-        public void Unify(Type other)
-        {
-            var s1 = Substitution;
-            var s2 = other.Substitution;
-            if (s2 is Variable v) v.UnifyInternal(s1);
-            else if (s2 is Any a) a.UnifyInternal(s1);
-            else s1.UnifyInternal(s2);
-        }
-
-        /// <summary>
-        /// Unifies this <see cref="Type"/> with another one.
-        /// This is the internal version that always has substitutions passed in.
-        /// </summary>
-        /// <param name="other">The other <see cref="Type"/> to unify this one with.</param>
-        protected abstract void UnifyInternal(Type other);
 
         /// <summary>
         /// Checks, if this <see cref="Type"/> contains the given <see cref="Type"/>.
@@ -62,11 +47,58 @@ namespace Yoakke.Compiler.Semantic
         public abstract bool Contains(Type type);
 
         /// <summary>
+        /// Unifies this <see cref="Type"/> with another one.
+        /// </summary>
+        /// <param name="other">The other <see cref="Type"/> to unify this one with.</param>
+        public abstract void UnifyWith(Type other);
+
+        /// <summary>
+        /// Deep-clones this <see cref="Type"/>.
+        /// </summary>
+        /// <returns>The deep-cloned <see cref="Type"/>.</returns>
+        public abstract override Value Clone();
+
+        /// <summary>
         /// Checks, if another <see cref="Type"/> equals with this one.
         /// </summary>
         /// <param name="other">The other <see cref="Type"/> to compare.</param>
         /// <returns>True, if the two <see cref="Type"/>s are equal.</returns>
-        public abstract bool Equals(Type other);
+        public abstract bool Equals(Type? other);
+
+        /// <summary>
+        /// Calculates a hash-code for this <see cref="Type"/>.
+        /// </summary>
+        /// <returns>A calculated hash code.</returns>
+        public abstract override int GetHashCode();
+
+        /// <summary>
+        /// Creates a <see cref="string"/> representation of this <see cref="Type"/>.
+        /// </summary>
+        /// <returns>The <see cref="string"/> representation of this <see cref="Type"/>.</returns>
+        public abstract override string ToString();
+
+        private static void UnifyLists((Type, IList<Type>) tup1, (Type, IList<Type>) tup2)
+        {
+            var (t1, list1) = tup1;
+            var (t2, list2) = tup2;
+            if (list1.Count != list2.Count) throw new TypeError(t1, t2);
+            foreach (var (left, right) in list1.Zip(list2)) left.UnifyWith(right);
+        }
+
+        private static void UnifyDictionaries<TKey>(
+            (Type, IDictionary<TKey, Type>) tup1, 
+            (Type, IDictionary<TKey, Type>) tup2)
+            where TKey: notnull
+        {
+            var (t1, dict1) = tup1;
+            var (t2, dict2) = tup2;
+            if (dict1.Count != dict2.Count) throw new TypeError(t1, t2);
+            foreach (var kv in dict1)
+            {
+                if (!dict2.TryGetValue(kv.Key, out var value)) throw new TypeError(t1, t2);
+                kv.Value.UnifyWith(value);
+            }
+        }
     }
 
     // Variants
@@ -78,8 +110,9 @@ namespace Yoakke.Compiler.Semantic
         /// </summary>
         public class Variable : Type
         {
-            public override Type Type => Type_;
+            private static int instanceCount = 0;
 
+            private readonly int instanceId;
             private Type? substitution;
             public override Type Substitution
             {
@@ -92,15 +125,33 @@ namespace Yoakke.Compiler.Semantic
                 }
             }
 
-            protected override void UnifyInternal(Type other)
+            public override Type Type => Type_;
+
+            public override bool IsFullySpecified => 
+                substitution == null ? false : Substitution.IsFullySpecified;
+
+            private Variable(int id) { instanceId = id;  }
+
+            public Variable() : this(instanceCount++) { }
+
+            public override bool Contains(Type type)
             {
-                Debug.Assert(substitution == null, "Can only substitute for a type variable once!");
+                type = type.Substitution;
+                return substitution == null ? ReferenceEquals(this, type) : Substitution.Contains(type);
+            }
+
+            public override void UnifyWith(Type other)
+            {
+                other = other.Substitution;
+                if (substitution != null)
+                {
+                    Substitution.UnifyWith(other);
+                    return;
+                }
                 // Other type variable
                 if (other is Variable var)
                 {
                     if (ReferenceEquals(this, var)) return;
-                    substitution = other;
-                    return;
                 }
                 // Something else
                 if (other.Contains(this)) throw new NotImplementedException("Type-recursion!");
@@ -108,13 +159,36 @@ namespace Yoakke.Compiler.Semantic
                 substitution = other;
             }
 
-            public override bool Contains(Type type) =>
-                ReferenceEquals(Substitution, type);
-            public override bool Equals(Type other) =>
-                ReferenceEquals(Substitution, other.Substitution);
-            public override int GetHashCode() => throw new NotImplementedException();
-            public override Value Clone() => throw new NotImplementedException();
-            public override string ToString() => "<variable>";
+            
+            public override Value Clone()
+            {
+                // If there's a substitution, clone that
+                if (substitution != null) return Substitution.Clone();
+                // Otherwise, create a variable whose substitution is this one
+                var result = new Variable(instanceId);
+                result.substitution = this;
+                return result;
+            }
+
+            public override bool Equals(Type? other) =>
+                ReferenceEquals(Substitution, other?.Substitution);
+
+            public override int GetHashCode() =>
+                substitution == null ? this.HashCombinePoly(instanceId) : Substitution.GetHashCode();
+
+            public override string ToString()
+            {
+                // We print it in a format of Xyz' using the same style Excel does
+                var result = string.Empty;
+                int counter = instanceId + 1;
+                while (counter > 0)
+                {
+                    var remainder = (counter - 1) % 26;
+                    result = (char)('a' + remainder) + result;
+                    counter = (counter - remainder) / 26;
+                }
+                return char.ToUpper(result[0]) + result.Substring(1) + '\'';
+            }
         }
 
         // TODO: This would require some proper subtyping. For now it's good enough for builtins.
@@ -123,17 +197,19 @@ namespace Yoakke.Compiler.Semantic
         /// </summary>
         public class Any : Type
         {
-            public override Type Type => Type.Type_;
+            public override Type Type => Type_;
+            public override bool IsFullySpecified => throw new NotImplementedException();
 
-            protected override void UnifyInternal(Type other)
+            public override bool Contains(Type type) => Equals(type);
+
+            public override void UnifyWith(Type other)
             {
                 // NO-OP
             }
 
-            public override bool Contains(Type type) => Equals(type);
-            public override bool Equals(Type other) => ReferenceEquals(this, other.Substitution);
-            public override int GetHashCode() => throw new NotImplementedException();
             public override Value Clone() => throw new NotImplementedException();
+            public override bool Equals(Type? other) => ReferenceEquals(this, other?.Substitution);
+            public override int GetHashCode() => throw new NotImplementedException();
             public override string ToString() => "<any>";
         }
 
@@ -152,6 +228,7 @@ namespace Yoakke.Compiler.Semantic
             public readonly IR.Type IrType;
 
             public override Type Type => Type_;
+            public override bool IsFullySpecified => true;
 
             /// <summary>
             /// Initializes a new <see cref="Primitive"/>.
@@ -163,96 +240,36 @@ namespace Yoakke.Compiler.Semantic
                 IrType = irType;
             }
 
-            protected override void UnifyInternal(Type other)
+            public override bool Contains(Type type) => Equals(type.Substitution);
+
+            public override void UnifyWith(Type other)
             {
-                if (!Equals(other.Substitution)) throw new TypeError(this, other);
+                other = other.Substitution;
+                if (other is Variable v)
+                {
+                    v.UnifyWith(this);
+                    return;
+                }
+                // TODO: We won't need this
+                if (other is Any any)
+                {
+                    any.UnifyWith(this);
+                    return;
+                }
+                if (!Equals(other)) throw new TypeError(this, other);
             }
 
-            public override bool Contains(Type type) => Equals(type);
-            public override bool Equals(Type other) => 
-                other.Substitution is Primitive o && Name == o.Name && IrType.EqualsNonNull(o.IrType);
-            public override int GetHashCode() =>
-                //this.HashCombinePoly(Name);
-                throw new NotImplementedException();
             public override Value Clone() => new Primitive(Name, IrType);
+            public override bool Equals(Type? other) => 
+                other?.Substitution is Primitive o && Name == o.Name && IrType.EqualsNonNull(o.IrType);
+            public override int GetHashCode() => this.HashCombinePoly(Name);
             public override string ToString() => Name;
-        }
-
-        /// <summary>
-        /// Abstraction for product <see cref="Type"/>s.
-        /// </summary>
-        public abstract class Product : Type
-        {
-            public override Type Type => Type_;
-
-            /// <summary>
-            /// The components this <see cref="Product"/> type consists of.
-            /// </summary>
-            public abstract IEnumerable<Value> Components { get; }
-
-            protected override void UnifyInternal(Type other)
-            {
-                // Check if other is a product
-                if (!(other.Substitution is Product p)) throw new TypeError(this, other.Substitution);
-                // Check for same implementation types
-                if (GetType() != p.GetType()) throw new TypeError(this, p);
-                // Check for sub-component count
-                if (Components.Count() != p.Components.Count()) throw new TypeError(this, p);
-                // Unify sub-components
-                var i1 = Components.GetEnumerator();
-                var i2 = p.Components.GetEnumerator();
-                while (i1.MoveNext() && i2.MoveNext())
-                {
-                    var c1 = i1.Current;
-                    var c2 = i2.Current;
-                    if (c1 is Type t1 && c2 is Type t2)
-                    {
-                        // Type-type
-                        t1.Unify(t2);
-                    }
-                    else if (c1 is Type || c2 is Type)
-                    {
-                        throw new Exception("Type-value mismatch!");
-                    }
-                    else if (!c1.Equals(c2))
-                    {
-                        // Value-value
-                        throw new Exception("Value mismatch!");
-                    }
-                }
-            }
-
-            public override bool Contains(Type type)
-            {
-                if (ReferenceEquals(this, type.Substitution)) return true;
-                foreach (var c in Components)
-                {
-                    if (c is Type t && t.Substitution.Contains(type)) return true;
-                }
-                return false;
-            }
-
-            public override bool Equals(Type other)
-            {
-                // Check if other is a product
-                if (!(other.Substitution is Product p)) return false;
-                // Check for same implementation types
-                if (GetType() != other.GetType()) return false;
-                // Check for sub-component count
-                if (Components.Count() != p.Components.Count()) return false;
-                // Check for sub-component equality
-                return Components.Zip(p.Components).All(x => x.First.Equals(x.Second));
-            }
-
-            public override int GetHashCode() =>
-                //this.HashCombinePoly(Components);
-                throw new NotImplementedException();
         }
 
         /// <summary>
         /// A list of <see cref="Type"/>s, known as a tuple.
         /// </summary>
-        new public class Tuple : Product
+        new public class Tuple : Type
         {
             /// <summary>
             /// The <see cref="Type"/>s this <see cref="Tuple"/> type consists of.
