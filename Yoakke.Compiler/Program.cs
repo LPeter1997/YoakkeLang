@@ -17,7 +17,6 @@ namespace Yoakke.Compiler
     {
         static void Main(string[] args)
         {
-#if false
             if (Debugger.IsAttached && args.Length == 0)
             {
                 // For simplicity we inject parameters so we can run from the IDE
@@ -36,13 +35,6 @@ namespace Yoakke.Compiler
             {
                 CommandLineApplication.Execute<Compiler>(args);
             }
-#else
-            for (int i = 0; i < 200; ++i)
-            {
-                var v1 = new TypeSystem.Type.Var();
-                Console.WriteLine(v1);
-            }
-#endif
         }
     }
 }

@@ -7,8 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Yoakke.Compiler", "Yoakke.C
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Yoakke.Compiler.Tests", "Yoakke.Compiler.Tests\Yoakke.Compiler.Tests.csproj", "{96150D79-2813-4348-8D8F-8D60AC4223AE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Yoakke.Compiler.TypeSystem", "Yoakke.Compiler.TypeSystem\Yoakke.Compiler.TypeSystem.csproj", "{7BC06B83-0043-4EB6-8C32-14C6BDA2DC0B}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,14 +31,6 @@ Global
 		{96150D79-2813-4348-8D8F-8D60AC4223AE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{96150D79-2813-4348-8D8F-8D60AC4223AE}.Release|x86.ActiveCfg = Release|x86
 		{96150D79-2813-4348-8D8F-8D60AC4223AE}.Release|x86.Build.0 = Release|x86
-		{7BC06B83-0043-4EB6-8C32-14C6BDA2DC0B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7BC06B83-0043-4EB6-8C32-14C6BDA2DC0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7BC06B83-0043-4EB6-8C32-14C6BDA2DC0B}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{7BC06B83-0043-4EB6-8C32-14C6BDA2DC0B}.Debug|x86.Build.0 = Debug|Any CPU
-		{7BC06B83-0043-4EB6-8C32-14C6BDA2DC0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7BC06B83-0043-4EB6-8C32-14C6BDA2DC0B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7BC06B83-0043-4EB6-8C32-14C6BDA2DC0B}.Release|x86.ActiveCfg = Release|Any CPU
-		{7BC06B83-0043-4EB6-8C32-14C6BDA2DC0B}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
