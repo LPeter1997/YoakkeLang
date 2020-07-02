@@ -1,49 +1,105 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Yoakke.Compiler.Utils
 {
     /// <summary>
-    /// Utilities for hashing.
+    /// Utilities and extensions for hashing.
     /// </summary>
     static class Hash
     {
         /// <summary>
-        /// Combines hash values.
-        /// For <see cref="IEnumerable"/>s, each element is hashed.
+        /// Calculates the hash value of the given values usin <see cref="AddAllDispatched(ref HashCode, object[])"/>.
         /// </summary>
-        /// <param name="values">The values to combine.</param>
-        /// <returns>The combined hash value.</returns>
-        public static int Combine(params object?[] values)
+        /// <param name="vs">The values to calculate the hash for.</param>
+        /// <returns>The calculated hash value.</returns>
+        public static int CombineDispatched(params object[] vs)
         {
-            var result = new HashCode();
-            CombineInternal(ref result, values);
-            return result.ToHashCode();
+            var hashCode = new HashCode();
+            hashCode.AddAllDispatched(vs);
+            return hashCode.ToHashCode();
         }
 
         /// <summary>
-        /// Combines hash values of a polymorphic object. The hash will include the type tag of the polymorphic type.
+        /// Calculates the hash value of the given values usin <see cref="CombineDispatched"/>, including
+        /// the type of the <see cref="object"/> it's called on.
+        /// This makes it suitable for polymorphic values to be hashed.
         /// </summary>
-        /// <param name="obj">The polymorphic <see cref="object"/>.</param>
-        /// <param name="values">The values to combine alongside the <see cref="object"/>.</param>
-        /// <returns>The combined hash value.</returns>
-        public static int HashCombinePoly(this object obj, params object?[] values) =>
-            Combine(obj.GetType(), values);
+        /// <param name="obj">The polymorphic <see cref="object"/> to include the type of in the hash.</param>
+        /// <param name="vs">The values to include in the hash.</param>
+        /// <returns>The calculated hash value.</returns>
+        public static int HashDispatchedPoly(this object obj, params object[] vs) =>
+            CombineDispatched(obj.GetType(), vs);
 
-        private static void CombineInternal(ref HashCode result, params object?[] values)
+        /// <summary>
+        /// Adds all of the values to the given <see cref="HashCode"/> using <see cref="AddDispatched(ref HashCode, object?)"/>.
+        /// </summary>
+        /// <param name="hashCode">The <see cref="HashCode"/> to add the values to.</param>
+        /// <param name="vs">Te values to add.</param>
+        public static void AddAllDispatched(ref this HashCode hashCode, params object[] vs)
         {
-            foreach (var value in values)
+            foreach (var v in vs) hashCode.AddDispatched(v);
+        }
+
+        /// <summary>
+        /// Adds a value to the given <see cref="HashCode"/>, either adding it using 
+        /// <see cref="AddEnumerable(ref HashCode, IEnumerable)"/>,
+        /// <see cref="AddDictionary{TKey, TValue}(ref HashCode, IDictionary{TKey, TValue})"/> or simply by 
+        /// <see cref="HashCode.Add{T}(T)"/>, depending on the type.
+        /// </summary>
+        /// <param name="hashCode">The <see cref="HashCode"/> to add the value to.</param>
+        /// <param name="obj">The value to add.</param>
+        public static void AddDispatched(ref this HashCode hashCode, object? obj)
+        {
+            if (obj == null) return;
+            var objType = obj.GetType();
+            if (objType.IsGenericType && typeof(IDictionary).IsAssignableFrom(objType))
             {
-                if (value is IEnumerable enumerable)
-                {
-                    foreach (var element in enumerable) CombineInternal(ref result, element);
-                }
-                else
-                {
-                    result.Add(value);
-                }
+                // IDictionary<K, V>
+                var method = typeof(Hash).GetMethod(nameof(AddDictionary));
+                var genericMethod = method?.MakeGenericMethod(objType.GenericTypeArguments);
+                var args = new object[] { hashCode, obj };
+                genericMethod?.Invoke(null, args);
+                hashCode = (HashCode)args[0];
+            }
+            else if (obj is IEnumerable enumerable)
+            {
+                hashCode.AddEnumerable(enumerable);
+            }
+            else
+            {
+                hashCode.Add(obj);
+            }
+        }
+
+        /// <summary>
+        /// Adds an <see cref="IEnumerable"/> to the <see cref="HashCode"/> by adding each element.
+        /// </summary>
+        /// <param name="hashCode">The <see cref="HashCode"/> to add the values to.</param>
+        /// <param name="enumerable">The <see cref="IEnumerable"/> of elements to add.</param>
+        public static void AddEnumerable(ref this HashCode hashCode, IEnumerable enumerable)
+        {
+            foreach (var element in enumerable) hashCode.Add(element);
+        }
+
+        /// <summary>
+        /// Adds an <see cref="IDictionary{TKey, TValue}"/> to the <see cref="HashCode"/>, while providing a stable hash.
+        /// It adds each key and value, sorted by the key.
+        /// </summary>
+        /// <typeparam name="TKey">The key type.</typeparam>
+        /// <typeparam name="TValue">The value type.</typeparam>
+        /// <param name="hashCode">The <see cref="HashCode"/> to add the values to.</param>
+        /// <param name="dict">The <see cref="IDictionary{TKey, TValue}"/> of values to add.</param>
+        public static void AddDictionary<TKey, TValue>(ref this HashCode hashCode, IDictionary<TKey, TValue> dict)
+            where TKey: notnull
+        {
+            foreach (var kv in dict.OrderBy(kv => kv.Key))
+            {
+                hashCode.Add(kv.Key);
+                hashCode.Add(kv.Value);
             }
         }
     }

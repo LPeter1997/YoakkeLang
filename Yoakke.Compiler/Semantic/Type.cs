@@ -171,7 +171,9 @@ namespace Yoakke.Compiler.Semantic
             public override bool Contains(Type type) => Equals(type);
             public override bool Equals(Type other) => 
                 other.Substitution is Primitive o && Name == o.Name && IrType.EqualsNonNull(o.IrType);
-            public override int GetHashCode() => this.HashCombinePoly(Name);
+            public override int GetHashCode() =>
+                //this.HashCombinePoly(Name);
+                throw new NotImplementedException();
             public override Value Clone() => new Primitive(Name, IrType);
             public override string ToString() => Name;
         }
@@ -242,7 +244,9 @@ namespace Yoakke.Compiler.Semantic
                 return Components.Zip(p.Components).All(x => x.First.Equals(x.Second));
             }
 
-            public override int GetHashCode() => this.HashCombinePoly(Components);
+            public override int GetHashCode() =>
+                //this.HashCombinePoly(Components);
+                throw new NotImplementedException();
         }
 
         /// <summary>

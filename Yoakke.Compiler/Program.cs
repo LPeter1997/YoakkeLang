@@ -9,6 +9,7 @@ using Yoakke.Compiler.IR;
 using Yoakke.Compiler.IR.Passes;
 using Yoakke.Compiler.Semantic;
 using Yoakke.Compiler.Syntax;
+using Yoakke.Compiler.Utils;
 using Type = Yoakke.Compiler.Semantic.Type;
 
 namespace Yoakke.Compiler
@@ -17,7 +18,7 @@ namespace Yoakke.Compiler
     {
         static void Main(string[] args)
         {
-            if (Debugger.IsAttached && args.Length == 0)
+            /*if (Debugger.IsAttached && args.Length == 0)
             {
                 // For simplicity we inject parameters so we can run from the IDE
                 var cmp = new Compiler
@@ -34,7 +35,10 @@ namespace Yoakke.Compiler
             else
             {
                 CommandLineApplication.Execute<Compiler>(args);
-            }
+            }*/
+            var d1 = new Dictionary<string, int> { { "asd", 45 }, { "def", 77 } };
+            var d2 = new Dictionary<string, int> { { "def", 77 }, { "asd", 45 } };
+            Console.WriteLine(d1.Equals(d2));
         }
     }
 }

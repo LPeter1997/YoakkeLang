@@ -134,7 +134,9 @@ namespace Yoakke.Compiler.Semantic
 
             public override bool Equals(Value other) =>
                 other is IntrinsicProc i && Type.Equals(i.Type) && ReferenceEquals(Function, i.Function);
-            public override int GetHashCode() => this.HashCombinePoly(Type, Function);
+            public override int GetHashCode() =>
+                //this.HashCombinePoly(Type, Function);
+                throw new NotImplementedException();
             // NOTE: Does it make sense to clone this?
             public override Value Clone() => this;
             public override string ToString() => "<intrinsic>";
@@ -165,7 +167,9 @@ namespace Yoakke.Compiler.Semantic
 
             public override bool Equals(Value other) =>
                 other is Extern e && Name == e.Name && Type.Equals(e.Type);
-            public override int GetHashCode() => this.HashCombinePoly(Type, Name);
+            public override int GetHashCode() =>
+                //this.HashCombinePoly(Type, Name);
+                throw new NotImplementedException();
             // NOTE: Does it make sense to clone this?
             public override Value Clone() => this;
             public override string ToString() => $"external({Name})";
@@ -198,7 +202,9 @@ namespace Yoakke.Compiler.Semantic
             public override bool Equals(Value other) =>
                 other is Primitive<T> p && Type.Equals(p.Type) && 
                 ((Value == null && p.Value == null) || (Value != null && Value.Equals(p.Value)));
-            public override int GetHashCode() => this.HashCombinePoly(Type, Value);
+            public override int GetHashCode() =>
+                //this.HashCombinePoly(Type, Value);
+                throw new NotImplementedException();
             public override Value Clone() => new Primitive<T>(Type, Value);
             public override string ToString() => Value?.ToString() ?? throw new NotImplementedException();
         }
@@ -229,7 +235,9 @@ namespace Yoakke.Compiler.Semantic
                    other is Tuple t
                 && Type.Equals(t.Type)
                 && Values.Zip(t.Values).All(vs => vs.First.Equals(vs.Second));
-            public override int GetHashCode() => this.HashCombinePoly(Type, Values);
+            public override int GetHashCode() =>
+                //this.HashCombinePoly(Type, Values);
+                throw new NotImplementedException();
             public override Value Clone() => 
                 new Tuple(Values.Select(x => x.Clone()).ToList());
             public override string ToString() => 
@@ -265,7 +273,9 @@ namespace Yoakke.Compiler.Semantic
                 && Type.Equals(s.Type)
                 && Fields.All(f => f.Value.Equals(s.Fields[f.Key]));
             // TODO: Maybe order matters here?
-            public override int GetHashCode() => this.HashCombinePoly(Type, Fields);
+            public override int GetHashCode() =>
+                //this.HashCombinePoly(Type, Fields);
+                throw new NotImplementedException();
             public override Value Clone() => 
                 new Struct(Type, Fields.ToDictionary(kv => kv.Key, kv => kv.Value.Clone()));
             public override string ToString() => 
