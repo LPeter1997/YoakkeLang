@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using Yoakke.Compiler.Ast;
 using Yoakke.Compiler.IR;
@@ -36,9 +37,6 @@ namespace Yoakke.Compiler
             {
                 CommandLineApplication.Execute<Compiler>(args);
             }*/
-            var d1 = new Dictionary<string, int> { { "asd", 45 }, { "def", 77 } };
-            var d2 = new Dictionary<string, int> { { "def", 77 }, { "asd", 45 } };
-            Console.WriteLine(d1.Equals(d2));
         }
     }
 }

@@ -31,7 +31,7 @@ namespace Yoakke.Compiler.Utils
         /// <param name="obj">The polymorphic <see cref="object"/> to include the type of in the hash.</param>
         /// <param name="vs">The values to include in the hash.</param>
         /// <returns>The calculated hash value.</returns>
-        public static int HashDispatchedPoly(this object obj, params object[] vs) =>
+        public static int HashCombinePoly(this object obj, params object[] vs) =>
             CombineDispatched(obj.GetType(), vs);
 
         /// <summary>

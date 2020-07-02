@@ -30,7 +30,7 @@ namespace Yoakke.Compiler.Semantic
         /// </summary>
         public virtual Type Substitution => this;
 
-        public override bool Equals(Value other) =>
+        public override bool Equals(Value? other) =>
             other is Type t && Substitution.Equals(t.Substitution);
 
         /// <summary>
