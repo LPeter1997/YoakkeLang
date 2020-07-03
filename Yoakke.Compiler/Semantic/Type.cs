@@ -276,7 +276,8 @@ namespace Yoakke.Compiler.Semantic
             /// </summary>
             public readonly IList<Type> Types;
 
-            public override IEnumerable<Value> Components => Types;
+            public override Type Type => Type_;
+            public override bool IsFullySpecified => Types.All(x => x.IsFullySpecified);
 
             /// <summary>
             /// Initializes a new <see cref="Tuple"/>.
@@ -287,8 +288,32 @@ namespace Yoakke.Compiler.Semantic
                 Types = types;
             }
 
+            public override bool Contains(Type type) => Types.Any(x => x.Contains(type));
+
+            public override void UnifyWith(Type other)
+            {
+                other = other.Substitution;
+                if (other is Variable v)
+                {
+                    v.UnifyWith(this);
+                    return;
+                }
+                // TODO: We won't need this
+                if (other is Any any)
+                {
+                    any.UnifyWith(this);
+                    return;
+                }
+                if (!(other is Tuple tup)) throw new TypeError(this, other);
+                UnifyLists((this, Types), (tup, tup.Types));
+            }
+
             public override Value Clone() =>
                 new Tuple(Types.Select(x => (Type)x.Clone()).ToList());
+            public override bool Equals(Type? other) =>
+                   other is Tuple tup && Types.Count == tup.Types.Count 
+                && Types.Zip(tup.Types).All(ts => ts.First.Equals(ts.Second));
+            public override int GetHashCode() => this.HashCombinePoly(Types);
             public override string ToString() =>
                 $"({Types.Select(x => x.Substitution.ToString()).StringJoin(", ")})";
         }
