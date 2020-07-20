@@ -41,7 +41,7 @@ namespace Yoakke.Compiler.Semantic
 
             // We know these are just types
             case Expression.StructType _:
-            case Expression.ProcType _: 
+            case Expression.ProcSignature _: 
                 return Type.Type_;
 
             case Expression.StructValue structValue:

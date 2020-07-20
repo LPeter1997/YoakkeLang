@@ -8,6 +8,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Yoakke.Compiler.Semantic;
 using Yoakke.Compiler.Syntax;
+using Yoakke.Compiler.Utils;
 
 namespace Yoakke.Compiler.Ast
 {
@@ -16,7 +17,7 @@ namespace Yoakke.Compiler.Ast
     /// <summary>
     /// Base class for all AST nodes.
     /// </summary>
-    public abstract class Node : ICloneable
+    public abstract class Node
     {
         /// <summary>
         /// The scope this AST node belongs to.
@@ -82,22 +83,18 @@ namespace Yoakke.Compiler.Ast
 
         private static void Indent(StringBuilder builder, int amount) =>
             builder.Append(' ', amount * 2);
-
-        public abstract object Clone();
     }
 
     /// <summary>
     /// Base class for all statements.
     /// </summary>
-    public abstract partial class Statement : Node
+    public abstract partial class Statement : Node, ICloneable<Statement>
     {
-        public override object Clone() => CloneStatement();
-
         /// <summary>
         /// Deep-clones this <see cref="Statement"/>.
         /// </summary>
         /// <returns>The deep-cloned <see cref="Statement"/>.</returns>
-        public abstract Statement CloneStatement();
+        public abstract Statement Clone();
     }
 
     /// <summary>
@@ -106,19 +103,12 @@ namespace Yoakke.Compiler.Ast
     /// </summary>
     public abstract partial class Declaration : Statement
     {
-        public override Statement CloneStatement() => CloneDeclaration();
-
-        /// <summary>
-        /// Deep-clones this <see cref="Declaration"/>.
-        /// </summary>
-        /// <returns>The deep-cloned <see cref="Declaration"/>.</returns>
-        public abstract Declaration CloneDeclaration();
     }
 
     /// <summary>
     /// Base class for all expressions, that result in a value and can participate in other expressions.
     /// </summary>
-    public abstract partial class Expression : Node
+    public abstract partial class Expression : Node, ICloneable<Expression>
     {
         // TODO: The same way we could remove names from IR, we could remove these and other crud from the tree
         // That would make the tree purely syntactic
@@ -133,12 +123,10 @@ namespace Yoakke.Compiler.Ast
         /// </summary>
         public Type? EvaluationType { get; set; }
 
-        public override object Clone() => CloneExpression();
-
         /// <summary>
         /// Deep-clones this <see cref="Expression"/>.
         /// </summary>
         /// <returns>The deep-cloned <see cref="Expression"/>.</returns>
-        public abstract Expression CloneExpression();
+        public abstract Expression Clone();
     }
 }

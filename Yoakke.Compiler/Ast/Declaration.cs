@@ -28,8 +28,8 @@ namespace Yoakke.Compiler.Ast
                 Declarations = declarations;
             }
 
-            public override Declaration CloneDeclaration() =>
-                new Program(Declarations.Select(x => x.CloneDeclaration()).ToList());
+            public override Statement Clone() =>
+                new Program(Declarations.Select(x => (Declaration)x.Clone()).ToList());
         }
 
         /// <summary>
@@ -75,8 +75,8 @@ namespace Yoakke.Compiler.Ast
                 Value = value;
             }
 
-            public override Declaration CloneDeclaration() =>
-                new ConstDef(Name, Type?.CloneExpression(), Value.CloneExpression());
+            public override Statement Clone() =>
+                new ConstDef(Name, Type?.Clone(), Value.Clone());
         }
     }
 }

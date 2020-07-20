@@ -151,19 +151,19 @@ namespace Yoakke.Compiler.Semantic
             }
             break;
 
-            case Expression.ProcType procType:
+            case Expression.ProcSignature procType:
                 // Just check subelements
-                foreach (var param in procType.ParameterTypes) Check(param);
+                foreach (var param in procType.Parameters) Check(param.Type);
                 if (procType.ReturnType != null) Check(procType.ReturnType);
                 break;
 
             case Expression.ProcValue proc:
             {
                 // Check argument and return type
-                foreach (var param in proc.Parameters) Check(param.Type);
-                if (proc.ReturnType != null) Check(proc.ReturnType);
+                foreach (var param in proc.Signature.Parameters) Check(param.Type);
+                if (proc.Signature.ReturnType != null) Check(proc.Signature.ReturnType);
                 // Before checking the body, we assign each parameter symbol it's proper type
-                foreach (var param in proc.Parameters)
+                foreach (var param in proc.Signature.Parameters)
                 {
                     Assert.NonNull(param.Symbol);
                     var paramType = ConstEval.EvaluateAsType(param.Type);
@@ -174,7 +174,9 @@ namespace Yoakke.Compiler.Semantic
                 var bodyScope = proc.Body.Scope;
                 Debug.Assert(bodyScope.Tag.HasFlag(ScopeTag.Proc));
                 // Unify return type with what the scope wants
-                var procRetTy = proc.ReturnType == null ? Type.Unit : ConstEval.EvaluateAsType(proc.ReturnType);
+                var procRetTy = proc.Signature.ReturnType == null 
+                    ? Type.Unit 
+                    : ConstEval.EvaluateAsType(proc.Signature.ReturnType);
                 bodyScope.ReturnType.UnifyWith(procRetTy);
                 // Now we can check the body
                 Check(proc.Body);

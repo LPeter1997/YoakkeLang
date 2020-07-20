@@ -91,26 +91,29 @@ namespace Yoakke.Compiler.Semantic
                 foreach (var field in structValue.Fields) Define(field.Value);
                 break;
 
-            case Expression.ProcType procType:
+            case Expression.ProcSignature procType:
                 // Define inside each parameter type
-                foreach (var param in procType.ParameterTypes) Define(param);
+                foreach (var param in procType.Parameters) Define(param.Type);
                 // Define in return type, if needed
                 if (procType.ReturnType != null) Define(procType.ReturnType);
                 break;
 
             case Expression.ProcValue proc:
                 // We define each parameter
-                foreach (var param in proc.Parameters)
+                foreach (var param in proc.Signature.Parameters)
                 {
                     // Also define inside each parameter type
                     Define(param.Type);
-                    param.Symbol = new Symbol.Variable(param.Name);
-                    // We use the type's scope to inject, as that's the same as the procedure's scope
-                    Assert.NonNull(param.Type.Scope);
-                    param.Type.Scope.Define(param.Symbol);
+                    if (param.Name != null)
+                    {
+                        param.Symbol = new Symbol.Variable(param.Name.Value);
+                        // We use the type's scope to inject, as that's the same as the procedure's scope
+                        Assert.NonNull(param.Type.Scope);
+                        param.Type.Scope.Define(param.Symbol);
+                    }
                 }
                 // Define in return-type
-                if (proc.ReturnType != null) Define(proc.ReturnType);
+                if (proc.Signature.ReturnType != null) Define(proc.Signature.ReturnType);
                 // Define in body
                 Define(proc.Body);
                 break;

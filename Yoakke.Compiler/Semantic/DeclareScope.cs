@@ -90,9 +90,9 @@ namespace Yoakke.Compiler.Semantic
                 foreach (var field in structValue.Fields) Declare(symbolTable, field.Value);
                 break;
 
-            case Expression.ProcType procType:
+            case Expression.ProcSignature procType:
                 // Declare in parameter types
-                foreach (var param in procType.ParameterTypes) Declare(symbolTable, param);
+                foreach (var param in procType.Parameters) Declare(symbolTable, param.Type);
                 // Declare in return type, if needed
                 if (procType.ReturnType != null) Declare(symbolTable, procType.ReturnType);
                 break;
@@ -101,9 +101,9 @@ namespace Yoakke.Compiler.Semantic
                 // Processes introduce a scope for their signature
                 symbolTable.PushScope(ScopeTag.Proc);
                 // Declare in parameters
-                foreach (var param in proc.Parameters) Declare(symbolTable, param.Type);
+                foreach (var param in proc.Signature.Parameters) Declare(symbolTable, param.Type);
                 // Declare in return-type
-                if (proc.ReturnType != null) Declare(symbolTable, proc.ReturnType);
+                if (proc.Signature.ReturnType != null) Declare(symbolTable, proc.Signature.ReturnType);
                 // Declare in body
                 Declare(symbolTable, proc.Body);
                 symbolTable.PopScope();

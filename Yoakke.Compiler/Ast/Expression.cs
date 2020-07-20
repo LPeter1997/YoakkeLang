@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Yoakke.Compiler.Semantic;
 using Yoakke.Compiler.Syntax;
+using Yoakke.Compiler.Utils;
 
 namespace Yoakke.Compiler.Ast
 {
@@ -28,7 +29,7 @@ namespace Yoakke.Compiler.Ast
                 Token = token;
             }
 
-            public override Expression CloneExpression() => new IntLit(Token);
+            public override Expression Clone() => new IntLit(Token);
         }
 
         /// <summary>
@@ -50,7 +51,7 @@ namespace Yoakke.Compiler.Ast
                 Token = token;
             }
 
-            public override Expression CloneExpression() => new BoolLit(Token);
+            public override Expression Clone() => new BoolLit(Token);
         }
 
         /// <summary>
@@ -95,7 +96,7 @@ namespace Yoakke.Compiler.Ast
                 return result.ToString();
             }
 
-            public override Expression CloneExpression() => new StrLit(Token);
+            public override Expression Clone() => new StrLit(Token);
         }
 
         /// <summary>
@@ -122,7 +123,7 @@ namespace Yoakke.Compiler.Ast
                 Token = token;
             }
 
-            public override Expression CloneExpression() => new Ident(Token);
+            public override Expression Clone() => new Ident(Token);
         }
 
         /// <summary>
@@ -154,8 +155,8 @@ namespace Yoakke.Compiler.Ast
                 Right = right;
             }
 
-            public override Expression CloneExpression() => 
-                new DotPath(Left.CloneExpression(), Right);
+            public override Expression Clone() => 
+                new DotPath(Left.Clone(), Right);
         }
 
         /// <summary>
@@ -177,7 +178,7 @@ namespace Yoakke.Compiler.Ast
             /// name: Type;
             /// ```
             /// </summary>
-            public class Field : ICloneable
+            public class Field : ICloneable<Field>
             {
                 /// <summary>
                 /// The name of the <see cref="Field"/>.
@@ -199,8 +200,7 @@ namespace Yoakke.Compiler.Ast
                     Type = type;
                 }
 
-                public object Clone() => CloneField();
-                public Field CloneField() => new Field(Name, Type.CloneExpression());
+                public Field Clone() => new Field(Name, Type.Clone());
             }
 
             /// <summary>
@@ -230,11 +230,11 @@ namespace Yoakke.Compiler.Ast
                 Declarations = declarations;
             }
 
-            public override Expression CloneExpression() =>
+            public override Expression Clone() =>
                 new StructType(
                     Token, 
-                    Fields.Select(x => x.CloneField()).ToList(), 
-                    Declarations.Select(x => x.CloneDeclaration()).ToList());
+                    Fields.Select(x => x.Clone()).ToList(), 
+                    Declarations.Select(x => (Declaration)x.Clone()).ToList());
         }
 
         /// <summary>
@@ -256,7 +256,7 @@ namespace Yoakke.Compiler.Ast
             /// name = Value;
             /// ```
             /// </summary>
-            public class Field : ICloneable
+            public class Field : ICloneable<Field>
             {
                 /// <summary>
                 /// The name of the <see cref="Field"/> being initialized.
@@ -278,8 +278,7 @@ namespace Yoakke.Compiler.Ast
                     Value = value;
                 }
 
-                public object Clone() => CloneField();
-                public Field CloneField() => new Field(Name, Value.CloneExpression());
+                public Field Clone() => new Field(Name, Value.Clone());
             }
 
             /// <summary>
@@ -302,14 +301,14 @@ namespace Yoakke.Compiler.Ast
                 Fields = fields;
             }
 
-            public override Expression CloneExpression() =>
+            public override Expression Clone() =>
                 new StructValue(
-                    StructType.CloneExpression(), 
-                    Fields.Select(x => x.CloneField()).ToList());
+                    StructType.Clone(), 
+                    Fields.Select(x => x.Clone()).ToList());
         }
 
         /// <summary>
-        /// A procedure type definition.
+        /// A procedure signature or type definition.
         /// Syntax:
         /// ```
         /// proc(ArgTypes...)
@@ -319,32 +318,73 @@ namespace Yoakke.Compiler.Ast
         /// proc(ArgTypes...) -> RetType
         /// ```
         /// </summary>
-        public class ProcType : Expression
+        public class ProcSignature : Expression
         {
             /// <summary>
-            /// The types of parameters this procedure type consists of.
+            /// A single parameter inside a procedure's parameter list.
+            /// They are in the form of:
+            /// ```
+            /// Name: Type
+            /// ```
+            /// or
+            /// ```
+            /// Type
+            /// ```
             /// </summary>
-            public List<Expression> ParameterTypes { get; set; }
+            public class Parameter : ICloneable<Parameter>
+            {
+                /// <summary>
+                /// The optional name <see cref="Token"/> of the <see cref="Parameter"/>.
+                /// </summary>
+                public Token? Name { get; set; }
+                /// <summary>
+                /// The type <see cref="Expression"/> of the <see cref="Parameter"/>.
+                /// </summary>
+                public Expression Type { get; set; }
+
+                /// <summary>
+                /// The <see cref="VariableSymbol"/> corresponding to this parameter.
+                /// </summary>
+                public Symbol.Variable? Symbol { get; set; }
+
+                /// <summary>
+                /// Initializes the <see cref="Parameter"/> with the given name and type.
+                /// </summary>
+                /// <param name="name">The name <see cref="Token?"/> of the parameter.</param>
+                /// <param name="type">The type <see cref="Expression"/> of the parameter.</param>
+                public Parameter(Token? name, Expression type)
+                {
+                    Name = name;
+                    Type = type;
+                }
+
+                public Parameter Clone() => new Parameter(Name, Type.Clone());
+            }
+
+            /// <summary>
+            /// The list of parameter types and optional names.
+            /// </summary>
+            public List<Parameter> Parameters { get; set; }
             /// <summary>
             /// The optional return type of this procedure type. Can be null for "no return value" (unit type).
             /// </summary>
             public Expression? ReturnType { get; set; }
 
             /// <summary>
-            /// Initializes a new <see cref="ProcType"/>.
+            /// Initializes a new <see cref="ProcSignature"/>.
             /// </summary>
-            /// <param name="parameters">The parameter types.</param>
+            /// <param name="parameters">The parameters.</param>
             /// <param name="returnType">The optional return type.</param>
-            public ProcType(List<Expression> parameters, Expression? returnType)
+            public ProcSignature(List<Parameter> parameters, Expression? returnType)
             {
-                ParameterTypes = parameters;
+                Parameters = parameters;
                 ReturnType = returnType;
             }
 
-            public override Expression CloneExpression() =>
-                new ProcType(
-                    ParameterTypes.Select(x => x.CloneExpression()).ToList(),
-                    ReturnType?.CloneExpression());
+            public override Expression Clone() =>
+                new ProcSignature(
+                    Parameters.Select(x => new Parameter(x.Name, x.Type.Clone())).ToList(),
+                    ReturnType?.Clone());
         }
 
         /// <summary>
@@ -361,51 +401,9 @@ namespace Yoakke.Compiler.Ast
         public class ProcValue : Expression
         {
             /// <summary>
-            /// A single parameter inside a procedure's parameter list.
-            /// They are in the form of:
-            /// ```
-            /// Name: Type
-            /// ```
+            /// The signature of this procedure.
             /// </summary>
-            public class Parameter : ICloneable
-            {
-                /// <summary>
-                /// The name <see cref="Token"/> of the <see cref="Parameter"/>.
-                /// </summary>
-                public Token Name { get; set; }
-                /// <summary>
-                /// The type <see cref="Expression"/> of the <see cref="Parameter"/>.
-                /// </summary>
-                public Expression Type { get; set; }
-
-                /// <summary>
-                /// The <see cref="VariableSymbol"/> corresponding to this parameter.
-                /// </summary>
-                public Symbol.Variable? Symbol { get; set; }
-
-                /// <summary>
-                /// Initializes the <see cref="Parameter"/> with the given name and type.
-                /// </summary>
-                /// <param name="name">The name <see cref="Token"/> of the parameter.</param>
-                /// <param name="type">The type <see cref="Expression"/> of the parameter.</param>
-                public Parameter(Token name, Expression type)
-                {
-                    Name = name;
-                    Type = type;
-                }
-
-                public object Clone() => CloneParameter();
-                public Parameter CloneParameter() => new Parameter(Name, Type.CloneExpression());
-            }
-
-            /// <summary>
-            /// The list of <see cref="Parameters"/> this procedure takes.
-            /// </summary>
-            public List<Parameter> Parameters { get; set; }
-            /// <summary>
-            /// The return type of this procedure. Can be null for no return value.
-            /// </summary>
-            public Expression? ReturnType { get; set; }
+            public ProcSignature Signature { get; set; }
             /// <summary>
             /// The body of this procedure.
             /// </summary>
@@ -414,21 +412,16 @@ namespace Yoakke.Compiler.Ast
             /// <summary>
             /// Initializes a new <see cref="ProcValue"/>.
             /// </summary>
-            /// <param name="parameters">The list of parameters the procedure takes.</param>
-            /// <param name="returnType">The return type of the procedure.</param>
+            /// <param name="signature">The signature of the procedure.</param>
             /// <param name="body">The body of the procedure.</param>
-            public ProcValue(List<Parameter> parameters, Expression? returnType, Expression body)
+            public ProcValue(ProcSignature signature, Expression body)
             {
-                Parameters = parameters;
-                ReturnType = returnType;
+                Signature = signature;
                 Body = body;
             }
 
-            public override Expression CloneExpression() =>
-                new ProcValue(
-                    Parameters.Select(x => x.CloneParameter()).ToList(),
-                    ReturnType?.CloneExpression(),
-                    Body.CloneExpression());
+            public override Expression Clone() =>
+                new ProcValue((ProcSignature)Signature.Clone(), Body.Clone());
         }
 
         /// <summary>
@@ -469,8 +462,8 @@ namespace Yoakke.Compiler.Ast
                 Value = value;
             }
 
-            public override Expression CloneExpression() =>
-                new Block(Statements.Select(x => x.CloneStatement()).ToList(), Value?.CloneExpression());
+            public override Expression Clone() =>
+                new Block(Statements.Select(x => x.Clone()).ToList(), Value?.Clone());
         }
 
         /// <summary>
@@ -502,8 +495,8 @@ namespace Yoakke.Compiler.Ast
                 Arguments = arguments;
             }
 
-            public override Expression CloneExpression() =>
-                new Call(Proc.CloneExpression(), Arguments.Select(x => x.CloneExpression()).ToList());
+            public override Expression Clone() =>
+                new Call(Proc.Clone(), Arguments.Select(x => x.Clone()).ToList());
         }
 
         /// <summary>
@@ -537,8 +530,8 @@ namespace Yoakke.Compiler.Ast
                 Else = els;
             }
 
-            public override Expression CloneExpression() =>
-                new If(Condition.CloneExpression(), Then.CloneExpression(), Else?.CloneExpression());
+            public override Expression Clone() =>
+                new If(Condition.Clone(), Then.Clone(), Else?.Clone());
         }
 
         /// <summary>
@@ -572,8 +565,8 @@ namespace Yoakke.Compiler.Ast
                 Right = right;
             }
 
-            public override Expression CloneExpression() =>
-                new BinOp(Left.CloneExpression(), Operator, Right.CloneExpression());
+            public override Expression Clone() =>
+                new BinOp(Left.Clone(), Operator, Right.Clone());
         }
     }
 }

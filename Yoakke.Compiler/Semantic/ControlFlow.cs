@@ -109,17 +109,17 @@ namespace Yoakke.Compiler.Semantic
                 return Sequence(r1, r2);
             }
 
-            case Expression.ProcType procType:
+            case Expression.ProcSignature procType:
             {
-                var result = Sequence(procType.ParameterTypes.Select(Analyze));
+                var result = Sequence(procType.Parameters.Select(x => Analyze(x.Type)));
                 if (procType.ReturnType != null) result = Sequence(result, Analyze(procType.ReturnType));
                 return result;
             }
 
             case Expression.ProcValue proc:
             {
-                var result = Sequence(proc.Parameters.Select(x => Analyze(x.Type)));
-                if (proc.ReturnType != null) result = Sequence(result, Analyze(proc.ReturnType));
+                var result = Sequence(proc.Signature.Parameters.Select(x => Analyze(x.Type)));
+                if (proc.Signature.ReturnType != null) result = Sequence(result, Analyze(proc.Signature.ReturnType));
                 // NOTE: We don't analyze the body here on purpose! Not part of the control flow.
                 return result;
             }

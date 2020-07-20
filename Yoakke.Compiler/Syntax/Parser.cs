@@ -257,11 +257,11 @@ namespace Yoakke.Compiler.Syntax
                 if (procValue != null) return procValue;
             }
 
-            var procType = TryParse(ref input, ParseProcTypeExpression);
+            var procType = TryParse(ref input, ParseProcSignatureExpression);
             if (procType != null)
             {
                 // This check eases the errors a bit
-                if (((Expression.ProcType)procType).ParameterTypes.Count > 0 || Peek(input) != TokenType.OpenBrace)
+                if (((Expression.ProcSignature)procType).Parameters.Count > 0 || Peek(input) != TokenType.OpenBrace)
                 {
                     return procType;
                 }
@@ -269,7 +269,7 @@ namespace Yoakke.Compiler.Syntax
 
             // NOTE: This is weird (calling it when already failed) but helps us raising better errors
             return state.HasFlag(ExprState.TypeOnly) 
-                 ? ParseProcTypeExpression(ref input2) 
+                 ? ParseProcSignatureExpression(ref input2) 
                  : ParseProcValueExpression(ref input2);
         }
 
@@ -324,38 +324,22 @@ namespace Yoakke.Compiler.Syntax
 
         private static Expression ParseProcValueExpression(ref Input input)
         {
-            Expect(ref input, TokenType.KwProc);
-            Expect(ref input, TokenType.OpenParen);
-            // Parameters
-            var parameters = new List<Expression.ProcValue.Parameter>();
-            while (true)
-            {
-                if (Match(ref input, TokenType.CloseParen)) break;
-                parameters.Add(ParseProcParameter(ref input));
-                if (Match(ref input, TokenType.Comma)) continue;
-
-                Expect(ref input, TokenType.CloseParen);
-                break;
-            }
-
-            Expression? returnType = null;
-            if (Match(ref input, TokenType.Arrow)) returnType = ParseExpression(ref input, ExprState.TypeOnly);
-
+            var signature = ParseProcSignatureExpression(ref input);
             var body = ParseBlockExpression(ref input);
 
-            return new Expression.ProcValue(parameters, returnType, body);
+            return new Expression.ProcValue(signature, body);
         }
 
-        private static Expression ParseProcTypeExpression(ref Input input)
+        private static Expression.ProcSignature ParseProcSignatureExpression(ref Input input)
         {
             Expect(ref input, TokenType.KwProc);
             Expect(ref input, TokenType.OpenParen);
             // Arguments
-            var arguments = new List<Expression>();
+            var arguments = new List<Expression.ProcSignature.Parameter>();
             while (true)
             {
                 if (Match(ref input, TokenType.CloseParen)) break;
-                arguments.Add(ParseExpression(ref input, ExprState.TypeOnly));
+                arguments.Add(ParseProcParameter(ref input));
                 if (Match(ref input, TokenType.Comma)) continue;
 
                 Expect(ref input, TokenType.CloseParen);
@@ -365,15 +349,22 @@ namespace Yoakke.Compiler.Syntax
             Expression? returnType = null;
             if (Match(ref input, TokenType.Arrow)) returnType = ParseExpression(ref input, ExprState.TypeOnly);
 
-            return new Expression.ProcType(arguments, returnType);
+            return new Expression.ProcSignature(arguments, returnType);
         }
 
-        private static Expression.ProcValue.Parameter ParseProcParameter(ref Input input)
+        private static Expression.ProcSignature.Parameter ParseProcParameter(ref Input input)
         {
-            Expect(ref input, TokenType.Identifier, out var name);
-            Expect(ref input, TokenType.Colon);
+            // A procedure parameter either has a name, or not
+            Token? name = null;
+            if (Peek(input, 1) == TokenType.Colon)
+            {
+                // Name + type
+                Expect(ref input, TokenType.Identifier, out var outName);
+                Expect(ref input, TokenType.Colon);
+                name = outName;
+            }
             var type = ParseExpression(ref input, ExprState.TypeOnly);
-            return new Expression.ProcValue.Parameter(name, type);
+            return new Expression.ProcSignature.Parameter(name, type);
         }
 
         // Helpers /////////////////////////////////////////////////////////////

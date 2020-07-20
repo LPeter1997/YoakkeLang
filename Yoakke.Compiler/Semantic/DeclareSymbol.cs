@@ -86,18 +86,18 @@ namespace Yoakke.Compiler.Semantic
                 foreach (var field in structValue.Fields) Declare(field.Value);
                 break;
 
-            case Expression.ProcType procType:
+            case Expression.ProcSignature procType:
                 // Declare in parameter types
-                foreach (var param in procType.ParameterTypes) Declare(param);
+                foreach (var param in procType.Parameters) Declare(param.Type);
                 // Declare in return type, if needed
                 if (procType.ReturnType != null) Declare(procType.ReturnType);
                 break;
 
             case Expression.ProcValue proc:
                 // Declare in parameters
-                foreach (var param in proc.Parameters) Declare(param.Type);
+                foreach (var param in proc.Signature.Parameters) Declare(param.Type);
                 // Declare in return-type
-                if (proc.ReturnType != null) Declare(proc.ReturnType);
+                if (proc.Signature.ReturnType != null) Declare(proc.Signature.ReturnType);
                 // Declare in body
                 Declare(proc.Body);
                 break;

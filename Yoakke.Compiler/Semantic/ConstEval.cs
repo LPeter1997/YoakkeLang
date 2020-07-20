@@ -313,11 +313,11 @@ namespace Yoakke.Compiler.Semantic
                 return new Value.Struct(structType, fields);
             }
 
-            case Expression.ProcType procType:
+            case Expression.ProcSignature procType:
             {
                 if (lvalue) throw new NotImplementedException("Procedure types can't be lvalues!");
                 // Evaluate parameters
-                var parameters = procType.ParameterTypes.Select(x => EvaluateAsType(callStack, x, canCache)).ToList();
+                var parameters = procType.Parameters.Select(x => EvaluateAsType(callStack, x.Type, canCache)).ToList();
                 // Evaluate return type, if any
                 var ret = procType.ReturnType == null ? Type.Unit : EvaluateAsType(callStack, procType.ReturnType, canCache);
                 // Create the procedure type
@@ -328,9 +328,11 @@ namespace Yoakke.Compiler.Semantic
             {
                 if (lvalue) throw new NotImplementedException("Procedure values can't be lvalues!");
                 // Evaluate parameters
-                var parameters = proc.Parameters.Select(x => EvaluateAsType(callStack, x.Type, canCache)).ToList();
+                var parameters = proc.Signature.Parameters.Select(x => EvaluateAsType(callStack, x.Type, canCache)).ToList();
                 // Evaluate return type, if any
-                var ret = proc.ReturnType == null ? Type.Unit : EvaluateAsType(callStack, proc.ReturnType, canCache);
+                var ret = proc.Signature.ReturnType == null 
+                    ? Type.Unit 
+                    : EvaluateAsType(callStack, proc.Signature.ReturnType, canCache);
                 // Get the body's scope, that's where we receive return types of explicit returns
                 Assert.NonNull(proc.Body.Scope);
                 var bodyScope = proc.Body.Scope;
@@ -376,7 +378,7 @@ namespace Yoakke.Compiler.Semantic
                     // Now actually call the procedure
                     callStack.Push(new StackFrame());
                     // Define arguments
-                    foreach (var arg in args.Zip(procValue.Value.Parameters.Select(x => x.Symbol)))
+                    foreach (var arg in args.Zip(procValue.Value.Signature.Parameters.Select(x => x.Symbol)))
                     {
                         Assert.NonNull(arg.Second);
                         callStack.Peek().Variables.Add(arg.Second, arg.First);
@@ -493,7 +495,7 @@ namespace Yoakke.Compiler.Semantic
                 {
                     var constSym = (Symbol.Const)sym;
                     Assert.NonNull(constSym.Definition);
-                    newConstants.Add(constSym.Definition.CloneDeclaration());
+                    newConstants.Add((Declaration)constSym.Definition.Clone());
                 }
                 // We pack it up as a program so we can do batched semantic steps on them
                 var constantBatch = new Declaration.Program(newConstants);

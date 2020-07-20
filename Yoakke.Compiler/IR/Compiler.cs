@@ -74,7 +74,7 @@ namespace Yoakke.Compiler.IR
             // We begin our new procedure
             var compiledProc = builder.CreateProcBegin(procType, proc);
             // Allocate registers for the parameters
-            foreach (var param in proc.Parameters)
+            foreach (var param in proc.Signature.Parameters)
             {
                 Assert.NonNull(param.Symbol);
                 // Compile it's type

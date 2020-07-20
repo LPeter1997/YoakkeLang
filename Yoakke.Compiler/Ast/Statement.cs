@@ -44,8 +44,8 @@ namespace Yoakke.Compiler.Ast
                 Value = value;
             }
 
-            public override Statement CloneStatement() =>
-                new VarDef(Name, Type?.CloneExpression(), Value.CloneExpression());
+            public override Statement Clone() =>
+                new VarDef(Name, Type?.Clone(), Value.Clone());
         }
 
         /// <summary>
@@ -71,8 +71,8 @@ namespace Yoakke.Compiler.Ast
                 Value = value;
             }
 
-            public override Statement CloneStatement() =>
-                new Return(Value?.CloneExpression());
+            public override Statement Clone() =>
+                new Return(Value?.Clone());
         }
 
         /// <summary>
@@ -101,8 +101,8 @@ namespace Yoakke.Compiler.Ast
                 HasSemicolon = hasSemicolon;
             }
 
-            public override Statement CloneStatement() =>
-                new Expression_(Expression.CloneExpression(), HasSemicolon);
+            public override Statement Clone() =>
+                new Expression_(Expression.Clone(), HasSemicolon);
         }
     }
 }

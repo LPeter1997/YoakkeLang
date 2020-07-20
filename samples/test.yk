@@ -1,9 +1,8 @@
 
-const Bar = struct {
-    const Instance = Bar{};
+const foo = proc(x: i32, y: i32) -> i32 {
+    y
 };
 
-const foo = proc() -> i32 {
-    var v = Bar.Instance;
-    17
+const main = proc() -> i32 {
+    foo(y = 2, x = 5)
 };

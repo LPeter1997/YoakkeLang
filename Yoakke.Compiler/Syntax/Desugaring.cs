@@ -83,16 +83,15 @@ namespace Yoakke.Compiler.Syntax
                     Desugar(structValue.StructType),
                     structValue.Fields.Select(x => new Expression.StructValue.Field(x.Name, Desugar(x.Value))).ToList());
 
-            case Expression.ProcType procType:
-                return new Expression.ProcType(
-                    DesugarList(procType.ParameterTypes),
+            case Expression.ProcSignature procType:
+                return new Expression.ProcSignature(
+                    procType.Parameters.Select(x => new Expression.ProcSignature.Parameter(x.Name, Desugar(x.Type))).ToList(),
                     DesugarNullable(procType.ReturnType));
 
             case Expression.ProcValue proc:
             {
                 var result = new Expression.ProcValue(
-                    proc.Parameters.Select(x => new Expression.ProcValue.Parameter(x.Name, Desugar(x.Type))).ToList(),
-                    DesugarNullable(proc.ReturnType),
+                    (Expression.ProcSignature)Desugar(proc.Signature),
                     Desugar(proc.Body));
                 if (HasExplicitValue(result.Body))
                 {
