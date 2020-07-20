@@ -27,7 +27,7 @@ namespace Yoakke.Compiler
                     SourceFile = "../../../../../../samples/test.yk",
                     //DumpAst = true,
                     //DumpIr = true,
-                    DumpBackend = true,
+                    //DumpBackend = true,
                     ExecuteImmediately = true,
                     OptimizationLevel = 0,
                     BackendFlags = new string[] { "../../../../../../samples/ffi.c" },

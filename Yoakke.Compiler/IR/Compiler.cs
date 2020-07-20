@@ -385,8 +385,24 @@ namespace Yoakke.Compiler.IR
                 }
                 else
                 {
-                    // TODO
-                    throw new NotImplementedException();
+                    // It's some binary operator that's potentially overloaded
+
+                    // TODO: Shouldn't when it's a lazy operator!
+                    // Compile sides
+                    var left = Compile(binOp.Left, false);
+                    var right = Compile(binOp.Right, false);
+
+                    // TODO: For now we hard-code some of these for i32
+                    if (binOp.Operator.Type == TokenType.Add)
+                    {
+                        var result = builder.AllocateRegister(Type.I32, null);
+                        builder.AddInstruction(new Instruction.IAdd(result, Type.I32, left, right));
+                        return result;
+                    }
+                    else
+                    {
+                        throw new NotImplementedException();
+                    }
                 }
             }
 

@@ -154,8 +154,22 @@ namespace Yoakke.Compiler.Semantic
                 }
                 else
                 {
-                    // TODO
-                    throw new NotImplementedException();
+                    // It's some binary operator that's potentially overloaded
+
+                    // TODO: For now we hard-code some of these for i32
+                    var leftType = Evaluate(binOp.Left);
+                    var rightType = Evaluate(binOp.Right);
+                    Type.I32.UnifyWith(leftType);
+                    Type.I32.UnifyWith(rightType);
+
+                    if (binOp.Operator.Type == TokenType.Add)
+                    {
+                        return Type.I32;
+                    }
+                    else
+                    {
+                        throw new NotImplementedException();
+                    }
                 }
 
             default: throw new NotImplementedException();

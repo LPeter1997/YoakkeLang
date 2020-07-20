@@ -162,6 +162,7 @@ namespace Yoakke.Compiler.Codegen
             case Instruction.ElementPtr _:
             case Instruction.Jump _:
             case Instruction.JumpIf _:
+            case Instruction.IAdd _:
                 break;
 
             case Instruction.Alloc alloc:
@@ -235,11 +236,11 @@ namespace Yoakke.Compiler.Codegen
                 break;
 
             case Instruction.IAdd add:
-                Write(builder, add.Left, " + ", add.Right);
+                Write(builder, add.Value, " = ", add.Left, " + ", add.Right);
                 break;
 
             case Instruction.ILess less:
-                Write(builder, less.Left, " < ", less.Right);
+                Write(builder, less.Value, " = ", less.Left, " < ", less.Right);
                 break;
 
             default: throw new NotImplementedException();
