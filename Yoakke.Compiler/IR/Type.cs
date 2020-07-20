@@ -54,8 +54,7 @@ namespace Yoakke.Compiler.IR
                 ReferenceEquals(this, other);
 
             public override int GetHashCode() =>
-                //this.HashCombinePoly();
-                throw new NotImplementedException();
+                this.HashCombinePoly();
         }
 
         /// <summary>
@@ -84,8 +83,7 @@ namespace Yoakke.Compiler.IR
                 other is Int i && Bits == i.Bits && Signed == i.Signed;
 
             public override int GetHashCode() =>
-                //this.HashCombinePoly(Signed, Bits);
-                throw new NotImplementedException();
+                this.HashCombinePoly(Signed, Bits);
         }
 
         /// <summary>
@@ -111,8 +109,7 @@ namespace Yoakke.Compiler.IR
                 other is Ptr p && ElementType.EqualsNonNull(p.ElementType);
 
             public override int GetHashCode() =>
-                //this.HashCombinePoly(ElementType);
-                throw new NotImplementedException();
+                this.HashCombinePoly(ElementType);
         }
 
         /// <summary>
@@ -147,8 +144,7 @@ namespace Yoakke.Compiler.IR
                 && Parameters.Zip(p.Parameters).All(ts => ts.First.EqualsNonNull(ts.Second));
 
             public override int GetHashCode() =>
-                //this.HashCombinePoly(Parameters, ReturnType);
-                throw new NotImplementedException();
+                this.HashCombinePoly(Parameters, ReturnType);
         }
 
         /// <summary>
@@ -177,8 +173,7 @@ namespace Yoakke.Compiler.IR
                 && Fields.Zip(s.Fields).All(fs => fs.First.EqualsNonNull(fs.Second));
 
             public override int GetHashCode() =>
-                //this.HashCombinePoly(Fields);
-                throw new NotImplementedException();
+                this.HashCombinePoly(Fields);
         }
     }
 }

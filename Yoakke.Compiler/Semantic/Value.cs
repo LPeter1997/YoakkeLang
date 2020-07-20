@@ -217,6 +217,14 @@ namespace Yoakke.Compiler.Semantic
                 Type = new Type.Tuple(values.Select(x => x.Type).ToList());
             }
 
+            /// <summary>
+            /// Initializes a new, empty <see cref="Tuple"/>.
+            /// </summary>
+            public Tuple()
+                : this(new List<Value>())
+            {
+            }
+
             public override bool Equals(Value? other) =>
                 other is Tuple t && Type.Equals(t.Type) && Values.ValueEquals(t.Values);
             public override int GetHashCode() => this.HashCombinePoly(Type, Values);

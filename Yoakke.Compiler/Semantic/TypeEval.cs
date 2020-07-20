@@ -119,7 +119,7 @@ namespace Yoakke.Compiler.Semantic
                 // We craft the call-site procedure type
                 var callSiteProcType = new Type.Proc(argTypes, retType);
                 // If we unify that with the actual procedure type, our type variable will be substituted for the return type
-                procType.Unify(callSiteProcType);
+                procType.UnifyWith(callSiteProcType);
                 return retType;
             }
 
@@ -127,18 +127,18 @@ namespace Yoakke.Compiler.Semantic
             {
                 // Condition must be a boolean
                 var condType = Evaluate(iff.Condition);
-                Type.Bool.Unify(condType);
+                Type.Bool.UnifyWith(condType);
                 // Then and else must yield the same type
                 var thenType = Evaluate(iff.Then);
                 if (iff.Else != null)
                 {
                     var elseType = Evaluate(iff.Else);
-                    thenType.Unify(elseType);
+                    thenType.UnifyWith(elseType);
                 }
                 else
                 {
                     // No else, must not return anything
-                    Type.Unit.Unify(thenType);
+                    Type.Unit.UnifyWith(thenType);
                 }
                 return thenType;
             }
@@ -149,7 +149,7 @@ namespace Yoakke.Compiler.Semantic
                     // The two types need to match to assign
                     var leftType = Evaluate(binOp.Left);
                     var rightType = Evaluate(binOp.Right);
-                    leftType.Unify(rightType);
+                    leftType.UnifyWith(rightType);
                     return leftType;
                 }
                 else

@@ -8,9 +8,7 @@ namespace Yoakke.Compiler.Syntax
     /// <summary>
     /// Represents an atom in the language's grammar and the lowest level element of parsing.
     /// </summary>
-#pragma warning disable CS0659, CS0661
     public readonly struct Token : IEquatable<Token>
-#pragma warning restore CS0661, CS0659
     {
         /// <summary>
         /// The <see cref="Position"/> of this <see cref="Token"/>.
@@ -48,6 +46,8 @@ namespace Yoakke.Compiler.Syntax
 
         // NOTE: This must uniquely identify the token
         public bool Equals(Token other) => Position == other.Position;
+
+        public override int GetHashCode() => HashCode.Combine(Position, Type, Value);
 
         public static bool operator ==(Token t1, Token t2) => t1.Equals(t2);
         public static bool operator !=(Token t1, Token t2) => !(t1 == t2);

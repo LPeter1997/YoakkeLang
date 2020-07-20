@@ -311,7 +311,7 @@ namespace Yoakke.Compiler.Semantic
             public override Value Clone() =>
                 new Tuple(Types.Select(x => (Type)x.Clone()).ToList());
             public override bool Equals(Type? other) =>
-                   other is Tuple tup && Types.Count == tup.Types.Count 
+                   other?.Substitution is Tuple tup && Types.Count == tup.Types.Count 
                 && Types.Zip(tup.Types).All(ts => ts.First.Equals(ts.Second));
             public override int GetHashCode() => this.HashCombinePoly(Types);
             public override string ToString() =>
@@ -321,7 +321,7 @@ namespace Yoakke.Compiler.Semantic
         /// <summary>
         /// A procedure's <see cref="Type"/>.
         /// </summary>
-        public class Proc : Product
+        public class Proc : Type
         {
             /// <summary>
             /// The parameter <see cref="Type"/>s of this procedure <see cref="Type"/>.
@@ -332,7 +332,9 @@ namespace Yoakke.Compiler.Semantic
             /// </summary>
             public readonly Type Return;
 
-            public override IEnumerable<Value> Components => Parameters.Append(Return);
+            public override Type Type => Type_;
+            public override bool IsFullySpecified => 
+                Parameters.All(x => x.IsFullySpecified) && Return.IsFullySpecified;
 
             /// <summary>
             /// Initializes a new <see cref="Proc"/>.
@@ -345,8 +347,36 @@ namespace Yoakke.Compiler.Semantic
                 Return = ret;
             }
 
+            public override bool Contains(Type type) => 
+                Parameters.Any(x => x.Contains(type)) || Return.Contains(type);
+
+            public override void UnifyWith(Type other)
+            {
+                other = other.Substitution;
+                if (other is Variable v)
+                {
+                    v.UnifyWith(this);
+                    return;
+                }
+                // TODO: We won't need this
+                if (other is Any any)
+                {
+                    any.UnifyWith(this);
+                    return;
+                }
+                if (!(other is Proc proc)) throw new TypeError(this, other);
+                UnifyLists((this, Parameters), (proc, proc.Parameters));
+                Return.UnifyWith(proc.Return);
+            }
+
             public override Value Clone() =>
                 new Proc(Parameters.Select(x => (Type)x.Clone()).ToList(), (Type)Return.Clone());
+            public override bool Equals(Type? other) =>
+                   other?.Substitution is Proc proc && Parameters.Count == proc.Parameters.Count
+                && Parameters.Zip(proc.Parameters).All(ts => ts.First.Equals(ts.Second))
+                && Return.Equals(proc.Return);
+            public override int GetHashCode() =>
+                this.HashCombinePoly(Parameters, Return);
             public override string ToString() =>
                 $"proc({Parameters.Select(x => x.ToString()).StringJoin(", ")}) -> {Return.Substitution}";
         }
@@ -354,7 +384,7 @@ namespace Yoakke.Compiler.Semantic
         /// <summary>
         /// A user-defined structure with named fields.
         /// </summary>
-        new public class Struct : Product
+        new public class Struct : Type
         {
             /// <summary>
             /// The 'struct' <see cref="Token"/> that defined this <see cref="Struct"/>.
@@ -369,7 +399,8 @@ namespace Yoakke.Compiler.Semantic
             /// </summary>
             public readonly Scope Scope;
 
-            public override IEnumerable<Value> Components => Fields.Values;
+            public override Type Type => Type_;
+            public override bool IsFullySpecified => Fields.Values.All(x => x.IsFullySpecified);
 
             /// <summary>
             /// Initializes a new <see cref="Struct"/>.
@@ -384,29 +415,43 @@ namespace Yoakke.Compiler.Semantic
                 Scope = scope;
             }
 
-            protected override void UnifyInternal(Type other)
-            {
-                // Check if other is a struct
-                // NOTE: This is repeated in Product.UnifyInternal, but we need to check field names here
-                // so we need to cast other to a struct
-                if (!(other.Substitution is Struct s)) throw new TypeError(this, other.Substitution);
-                if (Fields.Count != s.Fields.Count) throw new TypeError(this, s);
-                foreach (var f in Fields.Keys)
-                {
-                    if (!s.Fields.ContainsKey(f)) throw new TypeError(this, s);
-                }
-                base.UnifyInternal(s);
-            }
+            public override bool Contains(Type type) =>
+                Fields.Values.Any(x => x.Contains(type));
 
-            public override bool Equals(Type other) =>
-                   other.Substitution is Struct s 
-                && Token == s.Token 
-                && Fields.Keys.Count == s.Fields.Keys.Count
-                && Fields.Keys.All(k => s.Fields.ContainsKey(k))
-                && base.Equals(other);
+            public override void UnifyWith(Type other)
+            {
+                other = other.Substitution;
+                if (other is Variable v)
+                {
+                    v.UnifyWith(this);
+                    return;
+                }
+                // TODO: We won't need this
+                if (other is Any any)
+                {
+                    any.UnifyWith(this);
+                    return;
+                }
+                if (!(other.Substitution is Struct s)) throw new TypeError(this, other);
+                if (Token != s.Token) throw new TypeError(this, s);
+                if (Fields.Count != s.Fields.Count) throw new TypeError(this, s);
+                foreach (var f in Fields)
+                {
+                    if (!s.Fields.TryGetValue(f.Key, out var ty)) throw new TypeError(this, s);
+                    f.Value.UnifyWith(ty);
+                }
+            }
 
             public override Value Clone() =>
                 new Struct(Token, Fields.ToDictionary(kv => kv.Key, kv => (Type)kv.Value.Clone()), Scope);
+            public override bool Equals(Type? other) =>
+                   other?.Substitution is Struct s 
+                && Token == s.Token 
+                && Fields.Keys.Count == s.Fields.Keys.Count
+                && Fields.Keys.All(k => s.Fields.ContainsKey(k))
+                && Fields.All(kv => kv.Value.Equals(s.Fields[kv.Key]));
+            public override int GetHashCode() =>
+                this.HashCombinePoly(Token, Fields);
             public override string ToString() =>
                 $"{Token.Value} {{ {Fields.Select(kv => $"{kv.Key}: {kv.Value}").StringJoin("; ")} }}";
         }

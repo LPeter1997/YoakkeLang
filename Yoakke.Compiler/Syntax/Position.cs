@@ -8,9 +8,7 @@ namespace Yoakke.Compiler.Syntax
     /// <summary>
     /// Position in the souce text.
     /// </summary>
-#pragma warning disable CS0659, CS0661
     public readonly struct Position : IEquatable<Position>
-#pragma warning restore CS0661, CS0659
     {
         /// <summary>
         /// The <see cref="Source"/> this <see cref="Position"/> belongs to.
@@ -45,6 +43,9 @@ namespace Yoakke.Compiler.Syntax
                    Line == o.Line 
                 && Column == o.Column 
                 && Source.Path == o.Source.Path;
+
+        public override int GetHashCode() =>
+            HashCode.Combine(Source.Path, Line, Column);
 
         public static bool operator ==(Position p1, Position p2) => p1.Equals(p2);
         public static bool operator !=(Position p1, Position p2) => !(p1 == p2);

@@ -98,7 +98,7 @@ namespace Yoakke.Compiler.Semantic
         private static Type EvaluateAsType(Stack<StackFrame> callStack, Expression expression, bool canCache)
         {
             var value = Evaluate(callStack, expression, canCache, false);
-            value.Type.Unify(Type.Type_);
+            value.Type.UnifyWith(Type.Type_);
             return (Type)value;
         }
 
@@ -124,7 +124,7 @@ namespace Yoakke.Compiler.Semantic
                     // Then we do the actual evaluation
                     constDef.Symbol.Value = Evaluate(callStack, constDef.Value, true, false);
                     // Finally we unify the types of the two values to not to lose inference information
-                    constDef.Symbol.Value.Type.Unify(pseudoValue.Type);
+                    constDef.Symbol.Value.Type.UnifyWith(pseudoValue.Type);
                 }
                 // If has a type, unify with value
                 if (constDef.Type != null)
@@ -133,12 +133,12 @@ namespace Yoakke.Compiler.Semantic
                     Assert.NonNull(constDef.Value.ConstantValue);
 
                     var type = (Type)constDef.Type.ConstantValue;
-                    type.Unify(constDef.Value.ConstantValue.Type);
+                    type.UnifyWith(constDef.Value.ConstantValue.Type);
                 }
                 break;
 
             case Statement.Return ret:
-                throw new ReturnValue(ret.Value == null ? Value.Unit : Evaluate(callStack, ret.Value, canCache, false));
+                throw new ReturnValue(ret.Value == null ? new Value.Tuple() : Evaluate(callStack, ret.Value, canCache, false));
 
             case Statement.VarDef varDef:
                 if (varDef.Type != null)
@@ -148,7 +148,7 @@ namespace Yoakke.Compiler.Semantic
                     // Evaluate value
                     var value = Evaluate(callStack, varDef.Value, canCache, false);
                     // Unify with type
-                    type.Unify(value.Type);
+                    type.UnifyWith(value.Type);
                     // Assign the variable
                     Assert.NonNull(varDef.Symbol);
                     callStack.Peek().Variables.Add(varDef.Symbol, value);
@@ -166,7 +166,7 @@ namespace Yoakke.Compiler.Semantic
             case Statement.Expression_ expression:
             {
                 var value = Evaluate(callStack, expression.Expression, canCache, false);
-                if (!expression.HasSemicolon) Type.Unit.Unify(value.Type);
+                if (!expression.HasSemicolon) Type.Unit.UnifyWith(value.Type);
             }
             break;
 
@@ -335,7 +335,7 @@ namespace Yoakke.Compiler.Semantic
                 Assert.NonNull(proc.Body.Scope);
                 var bodyScope = proc.Body.Scope;
                 Debug.Assert(bodyScope.Tag.HasFlag(ScopeTag.Proc));
-                ret.Unify(bodyScope.ReturnType);
+                ret.UnifyWith(bodyScope.ReturnType);
                 // Type-check the body
                 var bodyType = TypeEval.Evaluate(proc.Body);
                 if (proc.Body is Expression.Block block && block.Value != null)
@@ -343,7 +343,7 @@ namespace Yoakke.Compiler.Semantic
                     // TODO: Same as in TypeCheck
 
                     // Unify with return type
-                    ret.Unify(bodyType);
+                    ret.UnifyWith(bodyType);
                 }
                 // Create the procedure type
                 var procType = new Type.Proc(parameters, ret);
@@ -354,7 +354,7 @@ namespace Yoakke.Compiler.Semantic
             case Expression.Block block:
             {
                 foreach (var stmt in block.Statements) Evaluate(callStack, stmt, canCache);
-                return block.Value == null ? Value.Unit : Evaluate(callStack, block.Value, canCache, lvalue);
+                return block.Value == null ? new Value.Tuple() : Evaluate(callStack, block.Value, canCache, lvalue);
             }
 
             case Expression.Call call:
@@ -372,7 +372,7 @@ namespace Yoakke.Compiler.Semantic
                     // The call-site type
                     var callSiteProcType = new Type.Proc(argTypes, retType);
                     // Unify with the procedure type itself
-                    procValue.Type.Unify(callSiteProcType);
+                    procValue.Type.UnifyWith(callSiteProcType);
                     // Now actually call the procedure
                     callStack.Push(new StackFrame());
                     // Define arguments
@@ -386,7 +386,7 @@ namespace Yoakke.Compiler.Semantic
                     try
                     {
                         var value = Evaluate(callStack, procValue.Value.Body, false, lvalue);
-                        returnValue = Value.Unit;
+                        returnValue = new Value.Tuple();
                     }
                     catch (ReturnValue ret)
                     {
@@ -405,7 +405,7 @@ namespace Yoakke.Compiler.Semantic
                     // The call-site type
                     var callSiteProcType = new Type.Proc(argTypes, retType);
                     // Unify with the procedure type itself
-                    intrinsic.Type.Unify(callSiteProcType);
+                    intrinsic.Type.UnifyWith(callSiteProcType);
                     // Call it
                     return intrinsic.Function(args.ToList());
                 }
@@ -420,7 +420,7 @@ namespace Yoakke.Compiler.Semantic
                 // Evaluate condition
                 var condition = Evaluate(callStack, iff.Condition, canCache, false);
                 // Enforce bool condition
-                Type.Bool.Unify(condition.Type);
+                Type.Bool.UnifyWith(condition.Type);
                 var condValue = ((Value.Primitive<bool>)condition).Value;
                 // We evaluate one, but only type-check the other
                 if (condValue)
@@ -430,11 +430,11 @@ namespace Yoakke.Compiler.Semantic
                     if (iff.Else != null)
                     {
                         var elseType = TypeEval.Evaluate(iff.Else);
-                        thenValue.Type.Unify(elseType);
+                        thenValue.Type.UnifyWith(elseType);
                     }
                     else
                     {
-                        Type.Unit.Unify(thenValue.Type);
+                        Type.Unit.UnifyWith(thenValue.Type);
                     }
                     return thenValue;
                 }
@@ -443,15 +443,15 @@ namespace Yoakke.Compiler.Semantic
                     var thenType = TypeEval.Evaluate(iff.Then);
                     // Evaluate else, type check then
                     var elseValue = Evaluate(callStack, iff.Else, canCache, lvalue);
-                    thenType.Unify(elseValue.Type);
+                    thenType.UnifyWith(elseValue.Type);
                     return elseValue;
                 }
                 else
                 {
                     var thenType = TypeEval.Evaluate(iff.Then);
-                    Type.Unit.Unify(thenType);
+                    Type.Unit.UnifyWith(thenType);
                 }
-                return Value.Unit;
+                return new Value.Tuple();
             }
 
             case Expression.BinOp binOp:
@@ -462,7 +462,7 @@ namespace Yoakke.Compiler.Semantic
                     // We must receive our tricky type on the left-hand-side
                     var left = (Value.Lvalue)Evaluate(callStack, binOp.Left, canCache, true);
                     var right = Evaluate(callStack, binOp.Right, canCache, false);
-                    left.Type.Unify(right.Type);
+                    left.Type.UnifyWith(right.Type);
                     // Set the value
                     left.Setter(right);
                     return right;

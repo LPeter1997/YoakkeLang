@@ -41,7 +41,7 @@ namespace Yoakke.Compiler.Semantic
                 Assert.NonNull(ret.Scope);
                 var scope = ret.Scope.AncestorWithTag(ScopeTag.Proc);
                 var returnType = ret.Value == null ? Type.Unit : TypeEval.Evaluate(ret.Value);
-                scope.ReturnType.Unify(returnType);
+                scope.ReturnType.UnifyWith(returnType);
             }
             break;
 
@@ -54,10 +54,10 @@ namespace Yoakke.Compiler.Semantic
                     var type = ConstEval.EvaluateAsType(varDef.Type);
                     // Type-check value, make sure it's type matches the defined one
                     var valueType = TypeEval.Evaluate(varDef.Value);
-                    type.Unify(valueType);
+                    type.UnifyWith(valueType);
                     // Assign the type to the symbol
                     Assert.NonNull(varDef.Symbol);
-                    varDef.Symbol.Type.Unify(type);
+                    varDef.Symbol.Type.UnifyWith(type);
                 }
                 else
                 {
@@ -66,7 +66,7 @@ namespace Yoakke.Compiler.Semantic
                     var valueType = TypeEval.Evaluate(varDef.Value);
                     // Assign the type to the symbol
                     Assert.NonNull(varDef.Symbol);
-                    varDef.Symbol.Type.Unify(valueType);
+                    varDef.Symbol.Type.UnifyWith(valueType);
                 }
                 break;
 
@@ -80,7 +80,7 @@ namespace Yoakke.Compiler.Semantic
                 // We force evaluation here to ensure checks
                 var ty = TypeEval.Evaluate(expression.Expression);
                 // An expression in a statement's position must produce a unit type, if it's not semicolon terminated
-                if (!expression.HasSemicolon) Type.Unit.Unify(ty);
+                if (!expression.HasSemicolon) Type.Unit.UnifyWith(ty);
             }
             break;
 
@@ -111,7 +111,7 @@ namespace Yoakke.Compiler.Semantic
                 }
                 // Unify type with the initialization value's type
                 var fieldType = ty.Fields[fieldName];
-                TypeEval.Evaluate(field.Value).Unify(fieldType);
+                TypeEval.Evaluate(field.Value).UnifyWith(fieldType);
             }
             // Check if we have uninitialized fields remaining
             if (uninitFields.Count > 0)
@@ -167,7 +167,7 @@ namespace Yoakke.Compiler.Semantic
                 {
                     Assert.NonNull(param.Symbol);
                     var paramType = ConstEval.EvaluateAsType(param.Type);
-                    param.Symbol.Type.Unify(paramType);
+                    param.Symbol.Type.UnifyWith(paramType);
                 }
                 // Get the body's scope, that's where we receive return types of explicit returns
                 Assert.NonNull(proc.Body.Scope);
@@ -175,13 +175,13 @@ namespace Yoakke.Compiler.Semantic
                 Debug.Assert(bodyScope.Tag.HasFlag(ScopeTag.Proc));
                 // Unify return type with what the scope wants
                 var procRetTy = proc.ReturnType == null ? Type.Unit : ConstEval.EvaluateAsType(proc.ReturnType);
-                bodyScope.ReturnType.Unify(procRetTy);
+                bodyScope.ReturnType.UnifyWith(procRetTy);
                 // Now we can check the body
                 Check(proc.Body);
                 // Check the body's return type
                 var bodyRetTy = TypeEval.Evaluate(proc.Body);
                 // We want it to be unit, we convert implicit returns to explicit ones in the desugaring process
-                Type.Unit.Unify(bodyRetTy);
+                Type.Unit.UnifyWith(bodyRetTy);
                 // If the procedure's return-type is not unit, which can be implicitly returned, all paths must return a value
                 if (!Type.Unit.Equals(procRetTy))
                 {

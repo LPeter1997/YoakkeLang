@@ -19,14 +19,15 @@ namespace Yoakke.Compiler
     {
         static void Main(string[] args)
         {
-            /*if (Debugger.IsAttached && args.Length == 0)
+            if (Debugger.IsAttached && args.Length == 0)
             {
                 // For simplicity we inject parameters so we can run from the IDE
                 var cmp = new Compiler
                 {
                     SourceFile = "../../../../../../samples/test.yk",
                     //DumpAst = true,
-                    DumpIr = true,
+                    //DumpIr = true,
+                    DumpBackend = true,
                     ExecuteImmediately = true,
                     OptimizationLevel = 0,
                     BackendFlags = new string[] { "../../../../../../samples/ffi.c" },
@@ -36,7 +37,7 @@ namespace Yoakke.Compiler
             else
             {
                 CommandLineApplication.Execute<Compiler>(args);
-            }*/
+            }
         }
     }
 }

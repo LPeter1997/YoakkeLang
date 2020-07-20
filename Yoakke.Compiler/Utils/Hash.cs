@@ -82,7 +82,8 @@ namespace Yoakke.Compiler.Utils
         /// <param name="enumerable">The <see cref="IEnumerable"/> of elements to add.</param>
         public static void AddEnumerable(ref this HashCode hashCode, IEnumerable enumerable)
         {
-            foreach (var element in enumerable) hashCode.Add(element);
+            // NOTE: We changed to AddDispatched here
+            foreach (var element in enumerable) hashCode.AddDispatched(element);
         }
 
         /// <summary>
