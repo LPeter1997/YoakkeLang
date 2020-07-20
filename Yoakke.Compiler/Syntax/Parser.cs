@@ -15,6 +15,43 @@ namespace Yoakke.Compiler.Syntax
     {
         private delegate T ParseFunc<T>(ref Input input);
 
+        // Helpers for operator precedence /////////////////////////////////////
+
+        private enum Associativity
+        {
+            Left, Right,
+        }
+
+        private struct Precedence
+        {
+            public Associativity Associativity { get; set; }
+            public HashSet<TokenType> Operators { get; set; }
+
+            private Precedence(Associativity associativity, HashSet<TokenType> operators)
+            {
+                Associativity = associativity;
+                Operators = operators;
+            }
+
+            public static Precedence Left(params TokenType[] operators) =>
+                new Precedence(Associativity.Left, operators.ToHashSet());
+            public static Precedence Right(params TokenType[] operators) =>
+                new Precedence(Associativity.Right, operators.ToHashSet());
+        }
+
+        // Operator precedence table ///////////////////////////////////////////
+
+        private static Precedence[] PrecedenceTable = new Precedence[]
+        {
+            Precedence.Right(TokenType.Assign),
+            Precedence.Left(TokenType.Or),
+            Precedence.Left(TokenType.And),
+            Precedence.Left(TokenType.Equal, TokenType.NotEqual),
+            Precedence.Left(TokenType.Greater, TokenType.GreaterEqual, TokenType.Less, TokenType.LessEqual),
+            Precedence.Left(TokenType.Add, TokenType.Subtract),
+            Precedence.Left(TokenType.Multiply, TokenType.Divide, TokenType.Modulo),
+        };
+
         /// <summary>
         /// Parses the <see cref="IEnumerable{Token}"/> into a program AST.
         /// </summary>
@@ -130,20 +167,39 @@ namespace Yoakke.Compiler.Syntax
         private static Expression ParseExpression(ref Input input, ExprState state) =>
             ParseBinaryExpression(ref input, state);
 
-        private static Expression ParseBinaryExpression(ref Input input, ExprState state)
+        private static Expression ParseBinaryExpression(ref Input input, ExprState state, int precedence = 0)
         {
-            // TODO: For now this is fine, but later we'd need a precedence and associativity table
-
-            var left = ParsePrefixExpression(ref input, state);
-            if (!state.HasFlag(ExprState.TypeOnly) && Match(ref input, TokenType.Assign, out var op))
+            if (precedence >= PrecedenceTable.Length || state.HasFlag(ExprState.TypeOnly))
             {
-                // '=' is right-associative, recurse
-                var right = ParseBinaryExpression(ref input, state);
-                // Fold right
-                left = new Expression.BinOp(left, op, right);
+                // Out of precedence table entries or we are parsing a type
+                return ParsePrefixExpression(ref input, state);
             }
 
-            return left;
+            var desc = PrecedenceTable[precedence];
+            var result = ParseBinaryExpression(ref input, state, precedence + 1);
+
+            if (desc.Associativity == Associativity.Left)
+            {
+                while (true)
+                {
+                    var op = input[0];
+                    if (!desc.Operators.Contains(op.Type)) break;
+
+                    input = input.Slice(1);
+                    var right = ParseBinaryExpression(ref input, state, precedence + 1);
+                    result = new Expression.BinOp(result, op, right);
+                }
+                return result;
+            }
+            else
+            {
+                var op = input[0];
+                if (!desc.Operators.Contains(op.Type)) return result;
+
+                input = input.Slice(1);
+                var right = ParseBinaryExpression(ref input, state, precedence);
+                return new Expression.BinOp(result, op, right);
+            }
         }
 
         private static Expression ParsePrefixExpression(ref Input input, ExprState state)
@@ -215,6 +271,14 @@ namespace Yoakke.Compiler.Syntax
             if (Match(ref input, TokenType.StringLiteral, out token)) return new Expression.StrLit(token);
             if (Match(ref input, TokenType.KwTrue, out token)) return new Expression.BoolLit(token);
             if (Match(ref input, TokenType.KwFalse, out token)) return new Expression.BoolLit(token);
+
+            // Grouping
+            if (Match(ref input, TokenType.OpenParen))
+            {
+                var result = ParseExpression(ref input, ExprState.None);
+                Expect(ref input, TokenType.CloseParen);
+                return result;
+            }
 
             throw new ExpectedError("expression", input[0]);
         }

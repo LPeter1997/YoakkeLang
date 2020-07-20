@@ -1,8 +1,6 @@
 
-const foo = proc(x: i32, y: i32) -> i32 {
-    y
-};
-
 const main = proc() -> i32 {
-    foo(y = 2, x = 5)
+    var x = 3;
+    x = x + 1;
+    x
 };
