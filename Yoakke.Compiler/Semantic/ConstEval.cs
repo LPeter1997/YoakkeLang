@@ -232,6 +232,10 @@ namespace Yoakke.Compiler.Semantic
                 default: throw new NotImplementedException();
                 }
 
+            case Expression.VarType varType:
+                if (varType.Type == null) varType.Type = new Type.Variable();
+                return varType.Type;
+
             case Expression.DotPath dotPath:
             {
                 // NOTE: This looks really-really bad

@@ -137,6 +137,11 @@ namespace Yoakke.Compiler.Ast
             public Token Token { get; set; }
 
             /// <summary>
+            /// The <see cref="Semantic.Type"/> inferred for this var type.
+            /// </summary>
+            public Semantic.Type? Type { get; set; }
+
+            /// <summary>
             /// Initializes a new <see cref="VarType"/>.
             /// </summary>
             /// <param name="token">The var token.</param>

@@ -40,6 +40,7 @@ namespace Yoakke.Compiler.Semantic
             case Expression.StrLit _: return Type.Str;
 
             // We know these are just types
+            case Expression.VarType _:
             case Expression.StructType _:
             case Expression.ProcSignature _: 
                 return Type.Type_;
