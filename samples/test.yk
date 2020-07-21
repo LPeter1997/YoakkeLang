@@ -2,5 +2,6 @@
 const main = proc() -> i32 {
     var x = 3;
     x = x + 1;
-    x
+    var y = x < 3;
+    if y { 56 } else { 85 }
 };

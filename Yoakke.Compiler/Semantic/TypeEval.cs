@@ -166,6 +166,10 @@ namespace Yoakke.Compiler.Semantic
                     {
                         return Type.I32;
                     }
+                    else if (binOp.Operator.Type == TokenType.Less)
+                    {
+                        return Type.Bool;
+                    }
                     else
                     {
                         throw new NotImplementedException();
