@@ -64,6 +64,7 @@ namespace Yoakke.Compiler.Semantic
             case Expression.BoolLit _:
             case Expression.StrLit _:
             case Expression.Ident _:
+            case Expression.VarType _:
                 // Nothing to declare, leaf nodes
                 break;
 

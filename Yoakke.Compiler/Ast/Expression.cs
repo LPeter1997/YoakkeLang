@@ -127,6 +127,28 @@ namespace Yoakke.Compiler.Ast
         }
 
         /// <summary>
+        /// A var keyword for a type that needs to be inferred.
+        /// </summary>
+        public class VarType : Expression
+        {
+            /// <summary>
+            /// The var token.
+            /// </summary>
+            public Token Token { get; set; }
+
+            /// <summary>
+            /// Initializes a new <see cref="VarType"/>.
+            /// </summary>
+            /// <param name="token">The var token.</param>
+            public VarType(Token token)
+            {
+                Token = token;
+            }
+
+            public override Expression Clone() => new VarType(Token);
+        }
+
+        /// <summary>
         /// A path separated by dot.
         /// Syntax:
         /// ```

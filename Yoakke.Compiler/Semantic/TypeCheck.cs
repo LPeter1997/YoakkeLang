@@ -129,6 +129,7 @@ namespace Yoakke.Compiler.Semantic
             case Expression.BoolLit _:
             case Expression.StrLit _:
             case Expression.Ident _:
+            case Expression.VarType _:
                 break;
 
             case Expression.DotPath dotPath:

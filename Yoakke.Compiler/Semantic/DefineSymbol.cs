@@ -63,6 +63,7 @@ namespace Yoakke.Compiler.Semantic
             case Expression.IntLit _:
             case Expression.BoolLit _:
             case Expression.StrLit _:
+            case Expression.VarType _:
                 // Nothing to define, primitive literal
                 break;
 

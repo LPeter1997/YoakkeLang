@@ -1,7 +1,9 @@
 
+const foo = proc(T: type) -> var {
+    proc(x: T) -> T { x }
+};
+
 const main = proc() -> i32 {
-    var x = 3;
-    x = x + 1;
-    var y = x < 3;
-    if y { 56 } else { 85 }
+    const Value = foo(i32)(5);
+    Value
 };
