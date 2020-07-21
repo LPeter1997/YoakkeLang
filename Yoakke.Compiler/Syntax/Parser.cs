@@ -108,6 +108,7 @@ namespace Yoakke.Compiler.Syntax
             // Greedy consumption of these expressions to avoid ambiguity
             case TokenType.OpenBrace: return new Statement.Expression_(ParseBlockExpression(ref input), false);
             case TokenType.KwIf: return new Statement.Expression_(ParseIfExpression(ref input), false);
+            case TokenType.KwWhile: return new Statement.Expression_(ParseWhileExpression(ref input), false);
             }
 
             var declaration = TryParse(ref input, ParseDeclaration);
@@ -261,6 +262,7 @@ namespace Yoakke.Compiler.Syntax
         {
             if (Peek(input) == TokenType.KwProc) return ParseProcExpression(ref input, state);
             if (Peek(input) == TokenType.KwIf) return ParseIfExpression(ref input);
+            if (Peek(input) == TokenType.KwWhile) return ParseWhileExpression(ref input);
             if (Peek(input) == TokenType.KwStruct) return ParseStructTypeExpression(ref input);
             if (!state.HasFlag(ExprState.NoBraced) && Peek(input) == TokenType.OpenBrace) return ParseBlockExpression(ref input);
 
@@ -353,6 +355,16 @@ namespace Yoakke.Compiler.Syntax
             }
 
             return new Expression.If(condition, then, els);
+        }
+
+        private static Expression ParseWhileExpression(ref Input input)
+        {
+            Expect(ref input, TokenType.KwWhile);
+
+            var condition = ParseExpression(ref input, ExprState.NoBraced);
+            var body = ParseBlockExpression(ref input);
+
+            return new Expression.While(condition, body);
         }
 
         private static Expression ParseStructTypeExpression(ref Input input)

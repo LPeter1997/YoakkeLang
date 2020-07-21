@@ -128,6 +128,9 @@ namespace Yoakke.Compiler.Syntax
             case Expression.If iff:
                 return new Expression.If(Desugar(iff.Condition), Desugar(iff.Then), DesugarNullable(iff.Else));
 
+            case Expression.While whil:
+                return new Expression.While(Desugar(whil.Condition), Desugar(whil.Body));
+
             case Expression.BinOp binOp:
                 return new Expression.BinOp(Desugar(binOp.Left), binOp.Operator, Desugar(binOp.Right));
 
