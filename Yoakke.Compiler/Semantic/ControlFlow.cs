@@ -142,6 +142,10 @@ namespace Yoakke.Compiler.Semantic
                 return Sequence(cond, Alternative(then, els));
             }
 
+            case Expression.While whil:
+                // We might never run the body, so we ignore it
+                return Analyze(whil.Condition);
+
             case Expression.BinOp binOp:
                 // TODO: For lazy operators this is the same as an if-else!
                 return Sequence(Analyze(binOp.Left), Analyze(binOp.Right));

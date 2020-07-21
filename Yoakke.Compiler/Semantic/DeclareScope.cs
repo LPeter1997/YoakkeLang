@@ -135,6 +135,12 @@ namespace Yoakke.Compiler.Semantic
                 if (iff.Else != null) Declare(symbolTable, iff.Else);
                 break;
 
+            case Expression.While whil:
+                // Declare in condition and body
+                Declare(symbolTable, whil.Condition);
+                Declare(symbolTable, whil.Body);
+                break;
+
             case Expression.BinOp binOp:
                 // Declare in both left and right
                 Declare(symbolTable, binOp.Left);

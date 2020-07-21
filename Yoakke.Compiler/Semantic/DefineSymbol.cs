@@ -141,6 +141,12 @@ namespace Yoakke.Compiler.Semantic
                 if (iff.Else != null) Define(iff.Else);
                 break;
 
+            case Expression.While whil:
+                // Define in condition and body
+                Define(whil.Condition);
+                Define(whil.Body);
+                break;
+
             case Expression.BinOp binOp:
                 // Define in left and right
                 Define(binOp.Left);
