@@ -1,9 +1,10 @@
 
-const foo = proc(T: type) -> var {
-    proc(x: T) -> T { x }
-};
-
 const main = proc() -> i32 {
-    const Value = foo(i32)(5);
-    Value
+    var x = 0;
+    var sum = 0;
+    while x < 10 {
+        sum = sum + x;
+        x = x + 1;
+    }
+    sum
 };

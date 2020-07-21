@@ -229,6 +229,10 @@ namespace Yoakke.Compiler.Syntax
         /// </summary>
         KwElse,
         /// <summary>
+        /// The keyword 'while'.
+        /// </summary>
+        KwWhile,
+        /// <summary>
         /// The keyword 'var'.
         /// </summary>
         KwVar,

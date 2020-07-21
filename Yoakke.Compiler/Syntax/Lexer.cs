@@ -158,6 +158,7 @@ namespace Yoakke.Compiler.Syntax
                     "false" => TokenType.KwFalse,
                     "if" => TokenType.KwIf,
                     "else" => TokenType.KwElse,
+                    "while" => TokenType.KwWhile,
                     "var" => TokenType.KwVar,
                     "return" => TokenType.KwReturn,
                     _ => TokenType.Identifier,

@@ -562,6 +562,35 @@ namespace Yoakke.Compiler.Ast
         }
 
         /// <summary>
+        /// Represents a conditional loop.
+        /// </summary>
+        public class While : Expression
+        {
+            /// <summary>
+            /// The condition that decides if the body should be executed.
+            /// </summary>
+            public Expression Condition { get; set; }
+            /// <summary>
+            /// The <see cref="Expression"/> that gets evaluated while the <see cref="Condition"/> is true.
+            /// </summary>
+            public Expression Body { get; set; }
+
+            /// <summary>
+            /// Initializes a new <see cref="While"/>.
+            /// </summary>
+            /// <param name="condition">The condition that decides if the body will be executed.</param>
+            /// <param name="body">The <see cref="Expression"/> that gets evaluated while the condition is true.</param>
+            public While(Expression condition, Expression body)
+            {
+                Condition = condition;
+                Body = body;
+            }
+
+            public override Expression Clone() =>
+                new While(Condition.Clone(), Body.Clone());
+        }
+
+        /// <summary>
         /// A binary operation between two <see cref="Expression"/>s.
         /// </summary>
         public class BinOp : Expression
