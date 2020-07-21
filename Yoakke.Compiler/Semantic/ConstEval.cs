@@ -517,6 +517,16 @@ namespace Yoakke.Compiler.Semantic
                     structType.Fields.ToDictionary(kv => kv.Key, kv => kv.Value),
                     newScope);
             }
+            else if (value is Value.Primitive<Expression.ProcValue> procValue)
+            {
+                // TODO
+                throw new NotImplementedException();
+            }
+            else if (value is Type.Proc procType)
+            {
+                // TODO
+                return value;
+            }
             else
             {
                 // Just return it as-is
