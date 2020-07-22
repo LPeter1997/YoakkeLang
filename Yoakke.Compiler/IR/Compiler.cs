@@ -368,6 +368,33 @@ namespace Yoakke.Compiler.IR
                 return retValue;
             }
 
+            case Expression.While whil:
+            {
+                // We create a condition, body and a finally basic block
+                var starterBasicBlock = builder.CurrentBasicBlock;
+                var conditionBB = builder.CreateBasicBlock();
+                var bodyBB = builder.CreateBasicBlock();
+                var finallyBB = builder.CreateBasicBlock();
+                // First we need to jump to the condition from wherever we are
+                builder.CurrentBasicBlock = starterBasicBlock;
+                builder.AddInstruction(new Instruction.Jump(conditionBB));
+                // We compile the condition
+                builder.CurrentBasicBlock = conditionBB;
+                var conditionValue = Compile(whil.Condition, false);
+                // From the condition we need to conditionally jump to body or finally
+                builder.AddInstruction(new Instruction.JumpIf(conditionValue, bodyBB, finallyBB));
+                // We compile the body
+                builder.CurrentBasicBlock = bodyBB;
+                Compile(whil.Body, lvalue);
+                // Jump back to the condition
+                builder.AddInstruction(new Instruction.Jump(conditionBB));
+                // We continue from the finally block
+                builder.CurrentBasicBlock = finallyBB;
+                // Just return nothing
+                if (lvalue) throw new NotImplementedException();
+                return Value.Void_;
+            }
+
             case Expression.BinOp binOp:
             {
                 if (binOp.Operator.Type == TokenType.Assign)

@@ -144,6 +144,17 @@ namespace Yoakke.Compiler.Semantic
                 return thenType;
             }
 
+            case Expression.While whil:
+            {
+                // Condition must be a boolean
+                var condType = Evaluate(whil.Condition);
+                Type.Bool.UnifyWith(condType);
+                // The body must return unit
+                var bodyType = Evaluate(whil.Body);
+                Type.Unit.UnifyWith(bodyType);
+                return bodyType;
+            }
+
             case Expression.BinOp binOp:
                 if (binOp.Operator.Type == TokenType.Assign)
                 {

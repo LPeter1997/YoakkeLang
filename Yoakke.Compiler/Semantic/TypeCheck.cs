@@ -217,6 +217,12 @@ namespace Yoakke.Compiler.Semantic
                 if (iff.Else != null) Check(iff.Else);
                 break;
 
+            case Expression.While whil:
+                // Check condition and body
+                Check(whil.Condition);
+                Check(whil.Body);
+                break;
+
             case Expression.BinOp binOp:
                 // Check left and right
                 Check(binOp.Left);
