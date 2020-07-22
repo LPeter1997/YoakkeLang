@@ -460,6 +460,23 @@ namespace Yoakke.Compiler.Semantic
                 return new Value.Tuple();
             }
 
+            case Expression.While whil:
+            {
+                while (true)
+                {
+                    // Evaluate condition
+                    var condition = Evaluate(callStack, whil.Condition, canCache, false);
+                    // Enforce bool condition
+                    Type.Bool.UnifyWith(condition.Type);
+                    var condValue = ((Value.Primitive<bool>)condition).Value;
+                    if (!condValue) break;
+                    // We evaluate the body
+                    var bodyValue = Evaluate(callStack, whil.Body, canCache, lvalue);
+                    Type.Unit.UnifyWith(bodyValue.Type);
+                }
+                return new Value.Tuple();
+            }
+
             case Expression.BinOp binOp:
                 if (binOp.Operator.Type == TokenType.Assign)
                 {

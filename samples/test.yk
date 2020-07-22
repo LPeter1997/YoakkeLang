@@ -1,5 +1,5 @@
 
-const main = proc() -> i32 {
+const Value = {
     var x = 0;
     var sum = 0;
     while x < 10 {
@@ -7,4 +7,8 @@ const main = proc() -> i32 {
         x = x + 1;
     }
     sum
+};
+
+const main = proc() -> i32 {
+    Value
 };
