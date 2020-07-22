@@ -78,19 +78,21 @@ namespace Yoakke.Compiler.Semantic
             // We could still cache, if we make caching dependent on the actual state, I.E. the call stack.
             // For now we just re-evaluate when we can't cache for sure.
 
+            // TODO: Remove cache-ing for now as it's a pain with side-effects...
+
             // Some simple cache-ing mechanism
             Value value;
-            if (canCache)
+            if (/* canCache */ false)
             {
-                if (expression.ConstantValue == null)
+                /*if (expression.ConstantValue == null)
                 {
                     expression.ConstantValue = EvaluateImpl(callStack, expression, canCache, lvalue);
                 }
-                value = lvalue ? expression.ConstantValue : expression.ConstantValue.Clone();
+                value = lvalue ? expression.ConstantValue : expression.ConstantValue.Clone();*/
             }
             else
             {
-                value = EvaluateImpl(callStack, expression, canCache, lvalue);
+                value = EvaluateImpl(callStack, expression, canCache, lvalue).Clone();
             }
             return value;
         }
@@ -129,11 +131,12 @@ namespace Yoakke.Compiler.Semantic
                 // If has a type, unify with value
                 if (constDef.Type != null)
                 {
-                    Assert.NonNull(constDef.Type.ConstantValue);
-                    Assert.NonNull(constDef.Value.ConstantValue);
+                    //Assert.NonNull(constDef.Type.ConstantValue);
+                    //Assert.NonNull(constDef.Value.ConstantValue);
 
-                    var type = (Type)constDef.Type.ConstantValue;
-                    type.UnifyWith(constDef.Value.ConstantValue.Type);
+                    var type = EvaluateAsType(callStack, constDef.Type, false);
+                    var value = Evaluate(callStack, constDef.Value, false, false);
+                    type.UnifyWith(value.Type);
                 }
                 break;
 
@@ -465,13 +468,13 @@ namespace Yoakke.Compiler.Semantic
                 while (true)
                 {
                     // Evaluate condition
-                    var condition = Evaluate(callStack, whil.Condition, canCache, false);
+                    var condition = Evaluate(callStack, whil.Condition, /* canCache */ false, false);
                     // Enforce bool condition
                     Type.Bool.UnifyWith(condition.Type);
                     var condValue = ((Value.Primitive<bool>)condition).Value;
                     if (!condValue) break;
                     // We evaluate the body
-                    var bodyValue = Evaluate(callStack, whil.Body, canCache, lvalue);
+                    var bodyValue = Evaluate(callStack, whil.Body, /* canCache */ false, lvalue);
                     Type.Unit.UnifyWith(bodyValue.Type);
                 }
                 return new Value.Tuple();
@@ -492,8 +495,29 @@ namespace Yoakke.Compiler.Semantic
                 }
                 else
                 {
-                    // TODO
-                    throw new NotImplementedException();
+                    // It's some binary operator that's potentially overloaded
+
+                    // TODO: For now we hard-code some of these for i32
+                    var leftValue = Evaluate(callStack, binOp.Left, canCache, false);
+                    var rightValue = Evaluate(callStack, binOp.Right, canCache, false);
+                    Type.I32.UnifyWith(leftValue.Type);
+                    Type.I32.UnifyWith(rightValue.Type);
+
+                    var leftI32 = ((Value.Primitive<BigInteger>)leftValue).Value;
+                    var rightI32 = ((Value.Primitive<BigInteger>)rightValue).Value;
+
+                    if (binOp.Operator.Type == TokenType.Add)
+                    {
+                        return new Value.Primitive<BigInteger>(Type.I32, leftI32 + rightI32);
+                    }
+                    else if (binOp.Operator.Type == TokenType.Less)
+                    {
+                        return new Value.Primitive<bool>(Type.Bool, leftI32 < rightI32);
+                    }
+                    else
+                    {
+                        throw new NotImplementedException();
+                    }
                 }
 
             default: throw new NotImplementedException();
