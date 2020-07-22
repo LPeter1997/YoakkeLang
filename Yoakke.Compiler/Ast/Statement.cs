@@ -24,7 +24,7 @@ namespace Yoakke.Compiler.Ast
             /// <summary>
             /// The initial value of the variable.
             /// </summary>
-            public Expression Value { get; set; }
+            public Expression? Value { get; set; }
 
             /// <summary>
             /// The <see cref="Symbol"/> this variable defines.
@@ -37,7 +37,7 @@ namespace Yoakke.Compiler.Ast
             /// <param name="name">The name of the defined variable.</param>
             /// <param name="type">The type of the defined variable.</param>
             /// <param name="value">The initial value of the variable.</param>
-            public VarDef(Token name, Expression? type, Expression value)
+            public VarDef(Token name, Expression? type, Expression? value)
             {
                 Name = name;
                 Type = type;
@@ -45,7 +45,7 @@ namespace Yoakke.Compiler.Ast
             }
 
             public override Statement Clone() =>
-                new VarDef(Name, Type?.Clone(), Value.Clone());
+                new VarDef(Name, Type?.Clone(), Value?.Clone());
         }
 
         /// <summary>

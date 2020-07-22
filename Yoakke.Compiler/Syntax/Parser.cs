@@ -128,8 +128,8 @@ namespace Yoakke.Compiler.Syntax
             Expression? type = null;
             if (Match(ref input, TokenType.Colon)) type = ParseExpression(ref input, ExprState.TypeOnly);
 
-            Expect(ref input, TokenType.Assign);
-            var value = ParseExpression(ref input, ExprState.None);
+            Expression? value = null;
+            if (Match(ref input, TokenType.Assign)) value = ParseExpression(ref input, ExprState.None);
 
             Expect(ref input, TokenType.Semicolon);
 

@@ -44,7 +44,7 @@ namespace Yoakke.Compiler.Syntax
                 return new Statement.Return(DesugarNullable(ret.Value));
 
             case Statement.VarDef varDef:
-                return new Statement.VarDef(varDef.Name, DesugarNullable(varDef.Type), Desugar(varDef.Value));
+                return new Statement.VarDef(varDef.Name, DesugarNullable(varDef.Type), DesugarNullable(varDef.Value));
 
             case Statement.Expression_ expr:
                 return new Statement.Expression_(Desugar(expr.Expression), expr.HasSemicolon);

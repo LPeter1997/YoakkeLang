@@ -37,10 +37,10 @@ namespace Yoakke.Compiler.Semantic
                 break;
 
             case Statement.VarDef varDef:
-                // Define in type of needed
+                // Define in type if needed
                 if (varDef.Type != null) Define(varDef.Type);
-                // Define in value
-                Define(varDef.Value);
+                // Define in value if needed
+                if (varDef.Value != null) Define(varDef.Value);
                 // Declare this symbol, store, add it to symbol table
                 Assert.NonNull(varDef.Scope);
                 varDef.Symbol = new Symbol.Variable(varDef.Name);

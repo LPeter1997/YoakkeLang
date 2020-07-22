@@ -73,7 +73,8 @@ namespace Yoakke.Compiler.Semantic
             {
                 var result = ReturnKind.DoesNotReturn;
                 if (varDef.Type != null) result = Sequence(result, Analyze(varDef.Type));
-                return Sequence(result, Analyze(varDef.Value));
+                if (varDef.Value != null) Sequence(result, Analyze(varDef.Value));
+                return result;
             }
             
             default: throw new NotImplementedException();

@@ -144,27 +144,24 @@ namespace Yoakke.Compiler.Semantic
                 throw new ReturnValue(ret.Value == null ? new Value.Tuple() : Evaluate(callStack, ret.Value, canCache, false));
 
             case Statement.VarDef varDef:
+            {
+                Assert.NonNull(varDef.Symbol);
+                Type inferredType = new Type.Variable();
                 if (varDef.Type != null)
                 {
-                    // Evaluate type
                     var type = EvaluateAsType(callStack, varDef.Type, canCache);
-                    // Evaluate value
-                    var value = Evaluate(callStack, varDef.Value, canCache, false);
-                    // Unify with type
-                    type.UnifyWith(value.Type);
-                    // Assign the variable
-                    Assert.NonNull(varDef.Symbol);
-                    callStack.Peek().Variables.Add(varDef.Symbol, value);
+                    inferredType.UnifyWith(type);
                 }
-                else
+                if (varDef.Value != null)
                 {
-                    // Evaluate value
                     var value = Evaluate(callStack, varDef.Value, canCache, false);
-                    // Assign the variable
-                    Assert.NonNull(varDef.Symbol);
+                    inferredType.UnifyWith(value.Type);
+                    // TODO: Since we only assign a variable here, the type can be cheated in constant contexts for now?
+                    // There's no connection if you write `var x: i32;`.
                     callStack.Peek().Variables.Add(varDef.Symbol, value);
                 }
-                break;
+            }
+            break;
 
             case Statement.Expression_ expression:
             {

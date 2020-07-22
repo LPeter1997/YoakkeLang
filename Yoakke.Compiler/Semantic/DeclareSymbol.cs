@@ -41,10 +41,10 @@ namespace Yoakke.Compiler.Semantic
                 break;
 
             case Statement.VarDef varDef:
-                // Declare in type of needed
+                // Declare in type if needed
                 if (varDef.Type != null) Declare(varDef.Type);
-                // Declare in value
-                Declare(varDef.Value);
+                // Declare in value if needed
+                if (varDef.Value != null) Declare(varDef.Value);
                 break;
 
             case Statement.Expression_ expression:

@@ -188,9 +188,12 @@ namespace Yoakke.Compiler.IR
                 // Allocate space for the variable
                 var regPtr = builder.AllocateRegister(new Type.Ptr(varType), varDef.Symbol);
                 builder.AddInstruction(new Instruction.Alloc(regPtr));
-                // Compile value, store it
-                var value = Compile(varDef.Value, false);
-                builder.AddInstruction(new Instruction.Store(regPtr, value));
+                // Compile value, store it, if needed
+                if (varDef.Value != null)
+                {
+                    var value = Compile(varDef.Value, false);
+                    builder.AddInstruction(new Instruction.Store(regPtr, value));
+                }
             }
             break;
 

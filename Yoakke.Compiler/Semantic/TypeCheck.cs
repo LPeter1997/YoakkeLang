@@ -46,29 +46,23 @@ namespace Yoakke.Compiler.Semantic
             break;
 
             case Statement.VarDef varDef:
+            {
+                Type inferredType = new Type.Variable();
                 if (varDef.Type != null)
                 {
                     Check(varDef.Type);
-                    Check(varDef.Value);
-                    // There is a type, we need to unify that to the value's type
                     var type = ConstEval.EvaluateAsType(varDef.Type);
-                    // Type-check value, make sure it's type matches the defined one
-                    var valueType = TypeEval.Evaluate(varDef.Value);
-                    type.UnifyWith(valueType);
-                    // Assign the type to the symbol
-                    Assert.NonNull(varDef.Symbol);
-                    varDef.Symbol.Type.UnifyWith(type);
+                    inferredType.UnifyWith(type);
                 }
-                else
+                if (varDef.Value != null)
                 {
-                    Check(varDef.Value);
-                    // Type-check value
                     var valueType = TypeEval.Evaluate(varDef.Value);
-                    // Assign the type to the symbol
-                    Assert.NonNull(varDef.Symbol);
-                    varDef.Symbol.Type.UnifyWith(valueType);
+                    inferredType.UnifyWith(valueType);
                 }
-                break;
+                Assert.NonNull(varDef.Symbol);
+                varDef.Symbol.Type.UnifyWith(inferredType);
+            }
+            break;
 
             case Statement.Expression_ expression:
             {
