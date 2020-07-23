@@ -82,7 +82,7 @@ namespace Yoakke.Compiler.Syntax
                 _ => throw new ExpectedError("declaration", input[0]),
             };
 
-        private static Declaration ParseConstDefinition(ref Input input)
+        private static Declaration.ConstDef ParseConstDefinition(ref Input input)
         {
             Expect(ref input, TokenType.KwConst);
             Expect(ref input, TokenType.Identifier, out var name);
@@ -120,7 +120,7 @@ namespace Yoakke.Compiler.Syntax
             throw new ExpectedError("statement", input[0]);
         }
 
-        private static Statement ParseVarStatement(ref Input input)
+        private static Statement.VarDef ParseVarStatement(ref Input input)
         {
             Expect(ref input, TokenType.KwVar);
             Expect(ref input, TokenType.Identifier, out var name);
@@ -377,23 +377,32 @@ namespace Yoakke.Compiler.Syntax
 
             while (!Match(ref input, TokenType.CloseBrace))
             {
-                // TODO: Our parsing is flawed, somtimes not the furthest error gets exposed!
+                // TODO: Our parsing is flawed, sometimes not the furthest error gets exposed!
                 // Instead of hiding failed alternatives, we should collect the furthest ones and return those!
 
-                // First we try a declaration
-                var decl = TryParse(ref input, ParseDeclaration);
-                if (decl != null)
+                // Either a field (var) or a declaration (const)
+                switch (Peek(input))
                 {
-                    declarations.Add(decl);
-                    continue;
+                case TokenType.KwVar:
+                {
+                    // Custom parser for a var because for now we don't handle them the same
+                    // NOTE: We could parse them the same tho
+                    Expect(ref input, TokenType.KwVar);
+                    Expect(ref input, TokenType.Identifier, out var ident);
+                    Expect(ref input, TokenType.Colon);
+                    var type = ParseExpression(ref input, ExprState.TypeOnly);
+                    Expect(ref input, TokenType.Semicolon);
+                    fields.Add(new Expression.StructType.Field(ident, type));
                 }
-                // We parse a field
-                // It's in the form of `identifier: Type expression`
-                Expect(ref input, TokenType.Identifier, out var ident);
-                Expect(ref input, TokenType.Colon);
-                var type = ParseExpression(ref input, ExprState.TypeOnly);
-                Expect(ref input, TokenType.Semicolon);
-                fields.Add(new Expression.StructType.Field(ident, type));
+                break;
+
+                case TokenType.KwConst:
+                    declarations.Add(ParseConstDefinition(ref input));
+                    break;
+
+                default: 
+                    throw new ExpectedError("field or declaration", input[0], "struct type");
+                }
             }
 
             return new Expression.StructType(token, fields, declarations);

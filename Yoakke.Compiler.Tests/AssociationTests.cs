@@ -81,7 +81,7 @@ namespace Yoakke.Compiler.Tests
         {
             string source = @"
             const Bar = struct {
-                value: i32;
+                var value: i32;
 
                 const Self = Bar;
             };
@@ -115,7 +115,7 @@ namespace Yoakke.Compiler.Tests
         {
             string source = @"
             const Bar = struct {
-                value: i32;
+                var value: i32;
 
                 const Instance = Bar{ value = 43; };
             };
@@ -132,7 +132,7 @@ namespace Yoakke.Compiler.Tests
         {
             string source = @"
             const Bar = struct {
-                value: i32;
+                var value: i32;
 
                 const new = proc() -> Bar {
                     Bar { value = 37; }
@@ -152,7 +152,7 @@ namespace Yoakke.Compiler.Tests
             string source = @"
             const Bar = proc(T: type) -> type {
             	struct {
-                	value: T;
+                	var value: T;
             
                 	const new = proc(v: T) -> Bar(T) {
                     	Bar(T) { value = v; }
@@ -177,8 +177,8 @@ namespace Yoakke.Compiler.Tests
                 struct {
                     const Self = Vector2(hello);
             
-                    x: hello;
-                    y: T;
+                    var x: hello;
+                    var y: T;
             
                     const new = proc(x: hello, y: T) -> Self {
                         Self { x = x; y = y; }
@@ -203,8 +203,8 @@ namespace Yoakke.Compiler.Tests
                 struct {
                     const Self = Vector2(hello);
             
-                    x: hello;
-                    y: T;
+                    var x: hello;
+                    var y: T;
 
                     const ZeroI32 = Vector2(i32) { x = 0; y = 0; };
             

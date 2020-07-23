@@ -597,8 +597,8 @@ namespace Yoakke.Compiler.Tests
         {
             string source = @"
             const Vector2 = struct {
-                x: i32;
-                y: i32;
+                var x: i32;
+                var y: i32;
             };
             const foo = proc() -> Vector2 {
                 Vector2 {
@@ -616,8 +616,8 @@ namespace Yoakke.Compiler.Tests
         {
             string source = @"
             const Vector2 = struct {
-                x: i32;
-                y: i32;
+                var x: i32;
+                var y: i32;
             };
             const A = Vector2 {
                 x = 0;
@@ -880,8 +880,8 @@ namespace Yoakke.Compiler.Tests
         {
             string source = @"
             const Vector2 = struct {
-                x: i32;
-                y: i32;
+                var x: i32;
+                var y: i32;
             };
 
             const foo = proc() -> i32 {
@@ -902,8 +902,8 @@ namespace Yoakke.Compiler.Tests
         {
             string source = @"
             const Vector2 = struct {
-                x: i32;
-                y: i32;
+                var x: i32;
+                var y: i32;
             };
 
             const foo = proc() -> i32 { 
@@ -924,8 +924,8 @@ namespace Yoakke.Compiler.Tests
         {
             string source = @"
             const Vector2 = struct {
-                x: i32;
-                y: i32;
+                var x: i32;
+                var y: i32;
             };
 
             const foo = proc() -> i32 { 
@@ -945,8 +945,8 @@ namespace Yoakke.Compiler.Tests
         {
             string source = @"
             const Vector2 = struct {
-                x: i32;
-                y: i32;
+                var x: i32;
+                var y: i32;
             };
 
             const foo = proc() -> i32 { 
@@ -966,8 +966,8 @@ namespace Yoakke.Compiler.Tests
         {
             string source = @"
             const Vector2 = struct {
-                x: i32;
-                y: i32;
+                var x: i32;
+                var y: i32;
             };
 
             const foo = proc() -> i32 { 
@@ -989,8 +989,8 @@ namespace Yoakke.Compiler.Tests
         {
             string source = @"
             const Vector2 = struct {
-                x: i32;
-                y: i32;
+                var x: i32;
+                var y: i32;
             };
             const Value = {
                 var v = Vector2 {
@@ -1012,8 +1012,8 @@ namespace Yoakke.Compiler.Tests
         {
             string source = @"
             const Vector2 = struct {
-                x: i32;
-                y: i32;
+                var x: i32;
+                var y: i32;
             };
             const Value = {
                 var v = Vector2 {
@@ -1035,8 +1035,8 @@ namespace Yoakke.Compiler.Tests
         {
             string source = @"
             const Vector2 = struct {
-                x: i32;
-                y: i32;
+                var x: i32;
+                var y: i32;
             };
             const Value = {
                 var v = Vector2 {
@@ -1060,8 +1060,8 @@ namespace Yoakke.Compiler.Tests
         {
             string source = @"
             const Vector2 = struct {
-                x: i32;
-                y: i32;
+                var x: i32;
+                var y: i32;
             };
             const Value = Vector2 { x = 45; y = 71; };
             const foo = proc() -> i32 {
@@ -1078,8 +1078,8 @@ namespace Yoakke.Compiler.Tests
         {
             string source = @"
             const Vector2 = struct {
-                x: i32;
-                y: i32;
+                var x: i32;
+                var y: i32;
             };
             const Value = Vector2 { x = 45; y = 71; };
             const foo = proc() -> i32 {
@@ -1095,8 +1095,8 @@ namespace Yoakke.Compiler.Tests
         {
             string source = @"
             const Vector2 = struct {
-                x: i32;
-                y: i32;
+                var x: i32;
+                var y: i32;
             };
             const foo = proc() -> i32 {
                 var v = Vector2{ x = 35; y = 16; };
@@ -1115,8 +1115,8 @@ namespace Yoakke.Compiler.Tests
         {
             string source = @"
             const Vector2 = struct {
-                x: i32;
-                y: i32;
+                var x: i32;
+                var y: i32;
             };
             const Value = {
                 var v = Vector2{ x = 35; y = 16; };
@@ -1138,10 +1138,10 @@ namespace Yoakke.Compiler.Tests
         {
             string source = @"
             const Outer = struct {
-                m: Inner;
+                var m: Inner;
             };
             const Inner = struct {
-                n: i32;
+                var n: i32;
             };
             const foo = proc() -> i32 { 
                 var v = Outer {
@@ -1161,10 +1161,10 @@ namespace Yoakke.Compiler.Tests
         {
             string source = @"
             const Outer = struct {
-                m: Inner;
+                var m: Inner;
             };
             const Inner = struct {
-                n: i32;
+                var n: i32;
             };
             const foo = proc() -> i32 { 
                 var v = Outer {
@@ -1185,10 +1185,10 @@ namespace Yoakke.Compiler.Tests
         {
             string source = @"
             const Outer = struct {
-                m: Inner;
+                var m: Inner;
             };
             const Inner = struct {
-                n: i32;
+                var n: i32;
             };
             const Value = {
                 var v = Outer {
@@ -1212,10 +1212,10 @@ namespace Yoakke.Compiler.Tests
         {
             string source = @"
             const Outer = struct {
-                m: Inner;
+                var m: Inner;
             };
             const Inner = struct {
-                n: i32;
+                var n: i32;
             };
             const foo = proc() -> i32 { 
                 var v = Outer {
@@ -1237,10 +1237,10 @@ namespace Yoakke.Compiler.Tests
         {
             string source = @"
             const Outer = struct {
-                m: Inner;
+                var m: Inner;
             };
             const Inner = struct {
-                n: i32;
+                var n: i32;
             };
             const Value = {
                 var v = Outer {
