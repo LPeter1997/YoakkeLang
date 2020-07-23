@@ -397,7 +397,6 @@ namespace Yoakke.Compiler.Tests
     {
         private void Compile(string source)
         {
-            var output = Path.GetFullPath($"binaries/should_not_exist.dll");
             var compiler = new Compiler
             {
                 Source = new Syntax.Source("test.yk", source),
