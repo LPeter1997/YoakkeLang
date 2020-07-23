@@ -9,17 +9,11 @@ namespace Yoakke.Compiler.Tests
     // https://github.com/LPeter1997/YoakkeLang/issues/1
 
     [TestClass]
-    public class Issue0001
+    public class Issue0001 : TestBase
     {
-        public TestContext TestContext { get; set; }
-
-        [ClassInitialize]
-        public static void CreateBinariesFolder(TestContext testContext)
-        {
-            Directory.CreateDirectory("binaries");
-        }
-
-        private T CompileAndLoadFunc<T>(string source, string fname = "foo") where T : Delegate
+        // TODO: Because of this backend flag we had to rewrite the function
+        // We should factor out these stuff!
+        new private T CompileAndLoadFunc<T>(string source, string fname = "foo") where T : Delegate
         {
             var output = Path.GetFullPath($"binaries/{TestContext.TestName}.dll");
             var compiler = new Compiler

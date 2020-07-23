@@ -56,6 +56,7 @@ namespace Yoakke.Compiler.Semantic
                 }
                 if (varDef.Value != null)
                 {
+                    Check(varDef.Value);
                     var valueType = TypeEval.Evaluate(varDef.Value);
                     inferredType.UnifyWith(valueType);
                 }

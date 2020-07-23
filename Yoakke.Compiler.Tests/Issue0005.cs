@@ -6,19 +6,11 @@ using System.Text;
 
 namespace Yoakke.Compiler.Tests
 {
-    [TestClass]
-    public class Issue0005
-    {
-        private void Compile(string source)
-        {
-            var compiler = new Compiler
-            {
-                Source = new Syntax.Source("test.yk", source),
-                DumpIr = true, // So we don't compile
-            };
-            compiler.Execute();
-        }
+    // https://github.com/LPeter1997/YoakkeLang/issues/5
 
+    [TestClass]
+    public class Issue0005 : TestBase
+    {
         [TestMethod]
         public void Test()
         {
@@ -31,7 +23,7 @@ const main = proc() -> i32 {
     0
 };
 ";
-            Compile(source);
+            Assert.AreEqual(Compile(source), 0);
         }
     }
 }

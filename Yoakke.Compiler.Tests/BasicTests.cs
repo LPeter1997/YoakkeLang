@@ -9,30 +9,8 @@ using Type = Yoakke.Compiler.Semantic.Type;
 namespace Yoakke.Compiler.Tests
 {
     [TestClass]
-    public class ImplicitReturnTests
+    public class ImplicitReturnTests : TestBase
     {
-        public TestContext TestContext { get; set; }
-
-        [ClassInitialize]
-        public static void CreateBinariesFolder(TestContext testContext)
-        {
-            Directory.CreateDirectory("binaries");
-        }
-
-        private T CompileAndLoadFunc<T>(string source, string fname = "foo") where T : Delegate
-        {
-            var output = Path.GetFullPath($"binaries/{TestContext.TestName}.dll");
-            var compiler = new Compiler
-            {
-                Source = new Syntax.Source("test.yk", source),
-                OutputType = OutputType.Shared,
-                OutputPath = output,
-            };
-            var exitCode = compiler.Execute();
-            Assert.AreEqual(exitCode, 0);
-            return NativeUtils.LoadNativeMethod<T>(output, fname);
-        }
-
         [TestMethod]
         public void ReturnNumberLiteral()
         {
@@ -203,30 +181,8 @@ namespace Yoakke.Compiler.Tests
     }
 
     [TestClass]
-    public class ExplicitReturnTests
+    public class ExplicitReturnTests : TestBase
     {
-        public TestContext TestContext { get; set; }
-
-        [ClassInitialize]
-        public static void CreateBinariesFolder(TestContext testContext)
-        {
-            Directory.CreateDirectory("binaries");
-        }
-
-        private T CompileAndLoadFunc<T>(string source, string fname = "foo") where T : Delegate
-        {
-            var output = Path.GetFullPath($"binaries/{TestContext.TestName}.dll");
-            var compiler = new Compiler
-            {
-                Source = new Syntax.Source("test.yk", source),
-                OutputType = OutputType.Shared,
-                OutputPath = output,
-            };
-            var exitCode = compiler.Execute();
-            Assert.AreEqual(exitCode, 0);
-            return NativeUtils.LoadNativeMethod<T>(output, fname);
-        }
-
         [TestMethod]
         public void ExplicitReturnNumberLiteral()
         {
@@ -393,18 +349,8 @@ namespace Yoakke.Compiler.Tests
     }
 
     [TestClass]
-    public class TypeErrorTests
+    public class TypeErrorTests : TestBase
     {
-        private void Compile(string source)
-        {
-            var compiler = new Compiler
-            {
-                Source = new Syntax.Source("test.yk", source),
-                DumpIr = true, // So we don't compile
-            };
-            compiler.Execute();
-        }
-
         private bool PairwiseEquals((Type, Type) set1, (Type, Type) set2) =>
                (set1.Item1.Equals(set2.Item1) && set1.Item2.Equals(set2.Item2))
             || (set1.Item1.Equals(set2.Item2) && set1.Item2.Equals(set2.Item1));
@@ -684,30 +630,8 @@ namespace Yoakke.Compiler.Tests
     }
 
     [TestClass]
-    public class VariableTests
+    public class VariableTests : TestBase
     {
-        public TestContext TestContext { get; set; }
-
-        [ClassInitialize]
-        public static void CreateBinariesFolder(TestContext testContext)
-        {
-            Directory.CreateDirectory("binaries");
-        }
-
-        private T CompileAndLoadFunc<T>(string source, string fname = "foo") where T : Delegate
-        {
-            var output = Path.GetFullPath($"binaries/{TestContext.TestName}.dll");
-            var compiler = new Compiler
-            {
-                Source = new Syntax.Source("test.yk", source),
-                OutputType = OutputType.Shared,
-                OutputPath = output,
-            };
-            var exitCode = compiler.Execute();
-            Assert.AreEqual(exitCode, 0);
-            return NativeUtils.LoadNativeMethod<T>(output, fname);
-        }
-
         [TestMethod]
         public void InitializedValue()
         {
@@ -825,30 +749,8 @@ namespace Yoakke.Compiler.Tests
     }
 
     [TestClass]
-    public class IfElseTests
+    public class IfElseTests : TestBase
     {
-        public TestContext TestContext { get; set; }
-
-        [ClassInitialize]
-        public static void CreateBinariesFolder(TestContext testContext)
-        {
-            Directory.CreateDirectory("binaries");
-        }
-
-        private T CompileAndLoadFunc<T>(string source, string fname = "foo") where T : Delegate
-        {
-            var output = Path.GetFullPath($"binaries/{TestContext.TestName}.dll");
-            var compiler = new Compiler
-            {
-                Source = new Syntax.Source("test.yk", source),
-                OutputType = OutputType.Shared,
-                OutputPath = output,
-            };
-            var exitCode = compiler.Execute();
-            Assert.AreEqual(exitCode, 0);
-            return NativeUtils.LoadNativeMethod<T>(output, fname);
-        }
-
         [TestMethod]
         public void IfWithoutElseRuns()
         {
@@ -971,41 +873,8 @@ namespace Yoakke.Compiler.Tests
     }
 
     [TestClass]
-    public class StructTests
+    public class StructTests : TestBase
     {
-        public TestContext TestContext { get; set; }
-
-        [ClassInitialize]
-        public static void CreateBinariesFolder(TestContext testContext)
-        {
-            Directory.CreateDirectory("binaries");
-        }
-
-        private void Compile(string source)
-        {
-            var output = Path.GetFullPath($"binaries/should_not_exist.dll");
-            var compiler = new Compiler
-            {
-                Source = new Syntax.Source("test.yk", source),
-                DumpIr = true, // So we don't compile
-            };
-            compiler.Execute();
-        }
-
-        private T CompileAndLoadFunc<T>(string source, string fname = "foo") where T : Delegate
-        {
-            var output = Path.GetFullPath($"binaries/{TestContext.TestName}.dll");
-            var compiler = new Compiler
-            {
-                Source = new Syntax.Source("test.yk", source),
-                OutputType = OutputType.Shared,
-                OutputPath = output,
-            };
-            var exitCode = compiler.Execute();
-            Assert.AreEqual(exitCode, 0);
-            return NativeUtils.LoadNativeMethod<T>(output, fname);
-        }
-
         [TestMethod]
         public void NotAllMembersAreInitialized()
         {
@@ -1015,10 +884,11 @@ namespace Yoakke.Compiler.Tests
                 y: i32;
             };
 
-            const foo = proc() -> i32 { 
+            const foo = proc() -> i32 {
                 var v = Vector2 {
                     x = 12;
                 };
+                0
             };
 ";
             var err = Assert.ThrowsException<InitializationError>(() => Compile(source));
@@ -1041,6 +911,7 @@ namespace Yoakke.Compiler.Tests
                     x = 12;
                     z = 34;
                 };
+                0
             };
 ";
             var err = Assert.ThrowsException<InitializationError>(() => Compile(source));
