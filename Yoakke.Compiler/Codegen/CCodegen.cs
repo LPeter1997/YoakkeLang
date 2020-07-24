@@ -153,27 +153,11 @@ namespace Yoakke.Compiler.Codegen
                 Write(builder, "    ", vi.Value.Type, ' ', vi.Value, ";\n");
             }
 
-            switch (instruction)
+            if (instruction is Instruction.Alloc alloc)
             {
-            case Instruction.Ret _:
-            case Instruction.Store _:
-            case Instruction.Load _:
-            case Instruction.Call _:
-            case Instruction.ElementPtr _:
-            case Instruction.Jump _:
-            case Instruction.JumpIf _:
-            case Instruction.IAdd _:
-            case Instruction.IMul _:
-            case Instruction.ILess _:
-                break;
-
-            case Instruction.Alloc alloc:
                 // T rX_value;
                 // T* rX = &rX_value;
                 Write(builder, "    ", alloc.ElementType, ' ', alloc.Value, "_value;\n");
-                break;
-
-            default: throw new NotImplementedException();
             }
         }
 

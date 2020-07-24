@@ -1,4 +1,9 @@
 
+const factorial = proc(x: i32, y: i32) -> i32 {
+    if x < y { return x * factorial(x + 1, y); }
+    return 1;
+};
+
 const main = proc() -> i32 {
-    5 * 7
+    factorial(1, 5)
 };
