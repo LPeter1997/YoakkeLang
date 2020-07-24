@@ -1,0 +1,72 @@
+
+// No sugar, things are constant assignment ////////////////////////////////////
+
+const foo1 = proc(x: i32) -> i32 {
+    x
+};
+
+const Type1 = struct {
+    var x: i32;
+    var y: i32;
+
+    const new = proc() -> Type1 {
+        Type1 { x = 0; y = 0; }
+    };
+};
+
+// Generics are kind of a hassle this way, bit it shows the underlying mechanics
+const Vector2_v1 = proc(T: type) -> type {
+    struct {
+        var x: i32;
+        var y: i32;
+
+        const new = proc(x: T, y: T) -> Vector2_v1(T) {
+            Vector2_v1(T) { x = x; y = y; }
+        };
+    }
+};
+
+// With some sugar /////////////////////////////////////////////////////////////
+
+proc foo2(x: i32) -> i32 {
+    x
+}
+
+struct Type2 {
+    var x: i32;
+    var y: i32;
+
+    proc new() -> Type2 {
+        Type2 { x = 0; y = 0; }
+    }
+}
+
+// Generics are still a hassle, they need more sugar
+proc Vector2_v2(T: type) -> type {
+    struct {
+        // Just showcasing aliasing
+        const Self = Vector2_v2(T);
+
+        var x: i32;
+        var y: i32;
+
+        proc new(x: T, y: T) -> Self {
+            Self { x = x; y = y; }
+        }
+    }
+}
+
+// The next step would be allowing structs to be parameterized, that gets
+// translated to the one above
+// This looks pretty close to C++ templates, but the underlying mechanism is no
+// different from compile-time evaluation and value semantics
+struct Vector2_v3(T: type) {
+    const Self = Vector2_v3(T);
+
+    var x: i32;
+    var y: i32;
+
+    proc new(x: T, y: T) -> Self {
+        Self { x = x; y = y; }
+    }
+}
