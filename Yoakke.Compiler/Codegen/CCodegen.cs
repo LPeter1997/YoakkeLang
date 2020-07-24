@@ -240,6 +240,10 @@ namespace Yoakke.Compiler.Codegen
                 Write(builder, add.Value, " = ", add.Left, " + ", add.Right);
                 break;
 
+            case Instruction.IMul mul:
+                Write(builder, mul.Value, " = ", mul.Left, " * ", mul.Right);
+                break;
+
             case Instruction.ILess less:
                 Write(builder, less.Value, " = ", less.Left, " < ", less.Right);
                 break;

@@ -133,6 +133,10 @@ namespace Yoakke.Compiler.IR
                 Write(builder, "iadd ", add.Type, ", ", add.Left, ", ", add.Right);
                 break;
 
+            case Instruction.IMul mul:
+                Write(builder, "imul ", mul.Type, ", ", mul.Left, ", ", mul.Right);
+                break;
+
             case Instruction.ILess less:
                 Write(builder, "iless ", less.Type, ", ", less.Left, ", ", less.Right);
                 break;

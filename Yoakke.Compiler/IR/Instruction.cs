@@ -307,6 +307,41 @@ namespace Yoakke.Compiler.IR
         }
 
         /// <summary>
+        /// Integer multiplication.
+        /// </summary>
+        public class IMul : ValueInstruction
+        {
+            /// <summary>
+            /// The integer <see cref="Type"/> to perform the multiplication on.
+            /// </summary>
+            public Type Type { get; set; }
+            /// <summary>
+            /// The left-hand-side <see cref="Value"/> to multiply.
+            /// </summary>
+            public Value Left { get; set; }
+            /// <summary>
+            /// The right-hand-side <see cref="Value"/> to multiply.
+            /// </summary>
+            public Value Right { get; set; }
+
+            /// <summary>
+            /// Initializes a new <see cref="IMul"/>.
+            /// </summary>
+            /// <param name="value">The register to store the result in.</param>
+            /// <param name="type">The integer <see cref="Type"/> to perform the multiplication on.</param>
+            /// <param name="left">The left-hand-side <see cref="Value"/> to multiply.</param>
+            /// <param name="right">The right-hand-side <see cref="Value"/> to multiply.</param>
+            public IMul(Value.Register value, Type type, Value left, Value right)
+                : base(value)
+            {
+                // TODO: Check if type is integer?
+                Type = type;
+                Left = left;
+                Right = right;
+            }
+        }
+
+        /// <summary>
         /// Integer less-than comparison.
         /// </summary>
         public class ILess : ValueInstruction
