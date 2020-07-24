@@ -163,6 +163,7 @@ namespace Yoakke.Compiler.Codegen
             case Instruction.Jump _:
             case Instruction.JumpIf _:
             case Instruction.IAdd _:
+            case Instruction.IMul _:
             case Instruction.ILess _:
                 break;
 

@@ -507,6 +507,10 @@ namespace Yoakke.Compiler.Semantic
                     {
                         return new Value.Primitive<BigInteger>(Type.I32, leftI32 + rightI32);
                     }
+                    else if (binOp.Operator.Type == TokenType.Multiply)
+                    {
+                        return new Value.Primitive<BigInteger>(Type.I32, leftI32 * rightI32);
+                    }
                     else if (binOp.Operator.Type == TokenType.Less)
                     {
                         return new Value.Primitive<bool>(Type.Bool, leftI32 < rightI32);

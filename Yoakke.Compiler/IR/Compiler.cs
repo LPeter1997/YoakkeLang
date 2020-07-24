@@ -429,6 +429,12 @@ namespace Yoakke.Compiler.IR
                         builder.AddInstruction(new Instruction.IAdd(result, Type.I32, left, right));
                         return result;
                     }
+                    else if (binOp.Operator.Type == TokenType.Multiply)
+                    {
+                        var result = builder.AllocateRegister(Type.I32, null);
+                        builder.AddInstruction(new Instruction.IMul(result, Type.I32, left, right));
+                        return result;
+                    }
                     else if (binOp.Operator.Type == TokenType.Less)
                     {
                         var result = builder.AllocateRegister(Type.Bool, null);

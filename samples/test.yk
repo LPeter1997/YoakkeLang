@@ -1,8 +1,4 @@
 
-const bar = proc(x: var) -> var { x };
-
 const main = proc() -> i32 {
-    var x: i32 = bar(3);
-    var y: bool = bar(true);
-    0
+    5 * 7
 };

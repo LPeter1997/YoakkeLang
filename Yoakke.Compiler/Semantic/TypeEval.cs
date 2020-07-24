@@ -174,7 +174,8 @@ namespace Yoakke.Compiler.Semantic
                     Type.I32.UnifyWith(leftType);
                     Type.I32.UnifyWith(rightType);
 
-                    if (binOp.Operator.Type == TokenType.Add)
+                    if (   binOp.Operator.Type == TokenType.Add
+                        || binOp.Operator.Type == TokenType.Multiply)
                     {
                         return Type.I32;
                     }
