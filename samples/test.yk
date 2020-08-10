@@ -1,9 +1,10 @@
 
-const factorial = proc(x: i32, y: i32) -> i32 {
-    if x < y { return x * factorial(x + 1, y); }
-    return 1;
+const identity = proc(x: var) -> var {
+    x
 };
 
 const main = proc() -> i32 {
-    factorial(1, 5)
+    var x: i32 = identity(12);
+    var y: bool = identity(true);
+    0
 };

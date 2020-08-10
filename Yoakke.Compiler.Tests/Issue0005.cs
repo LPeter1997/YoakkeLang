@@ -25,5 +25,20 @@ const main = proc() -> i32 {
 ";
             Assert.AreEqual(Compile(source), 0);
         }
+
+        [TestMethod]
+        public void TestIdentity()
+        {
+            string source = @"
+const identity = proc(x: var) -> var { x };
+
+const main = proc() -> i32 {
+    var a: i32 = identity(3);
+    var b: bool = identity(true);
+    0
+};
+";
+            Assert.AreEqual(Compile(source), 0);
+        }
     }
 }
