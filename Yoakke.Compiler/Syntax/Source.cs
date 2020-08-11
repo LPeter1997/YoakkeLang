@@ -32,7 +32,8 @@ namespace Yoakke.Compiler.Syntax
         /// <param name="text">The source text.</param>
         public Source(string path, string text)
         {
-            Path = System.IO.Path.GetFullPath(path);
+            if (System.IO.File.Exists(path)) path = System.IO.Path.GetFullPath(path);
+            Path = path;
             text = NormalizeNewline(text);
             if (!text.EndsWith('\n')) text = text + '\n';
             Text = text;
