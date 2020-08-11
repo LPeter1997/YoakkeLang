@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace Yoakke.Compiler.Syntax
@@ -7,10 +8,10 @@ namespace Yoakke.Compiler.Syntax
     /// <summary>
     /// Represents source code that can be accessed line-by-line.
     /// </summary>
-    public readonly struct Source
+    public readonly struct Source : IEquatable<Source>
     {
         /// <summary>
-        /// The path of the source.
+        /// The full path of the source.
         /// </summary>
         public readonly string Path;
         /// <summary>
@@ -31,9 +32,9 @@ namespace Yoakke.Compiler.Syntax
         /// <param name="text">The source text.</param>
         public Source(string path, string text)
         {
-            Path = path;
+            Path = System.IO.Path.GetFullPath(path);
             text = NormalizeNewline(text);
-            if (!text.EndsWith("\n")) text = text + "\n";
+            if (!text.EndsWith('\n')) text = text + '\n';
             Text = text;
             lineStarts = LineStarts(Text);
         }
@@ -49,6 +50,10 @@ namespace Yoakke.Compiler.Syntax
             if (index + 1 >= lineStarts.Count) return Text.AsSpan(lineStarts[index]);
             return Text.AsSpan(lineStarts[index], lineStarts[index + 1] - lineStarts[index]);
         }
+
+        public override bool Equals(object? obj) => obj is Source src && Equals(src);
+        public bool Equals(Source other) => Path == other.Path;
+        public override int GetHashCode() => Path.GetHashCode();
 
         private static string NormalizeNewline(string source) =>
             source.Replace("\r\n", "\n").Replace("\r", "\n");

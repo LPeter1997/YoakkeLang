@@ -45,7 +45,7 @@ namespace Yoakke.Compiler.Syntax
                 && Source.Path == o.Source.Path;
 
         public override int GetHashCode() =>
-            HashCode.Combine(Source.Path, Line, Column);
+            HashCode.Combine(Source, Line, Column);
 
         public static bool operator ==(Position p1, Position p2) => p1.Equals(p2);
         public static bool operator !=(Position p1, Position p2) => !(p1 == p2);
