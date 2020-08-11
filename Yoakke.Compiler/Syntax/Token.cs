@@ -41,12 +41,9 @@ namespace Yoakke.Compiler.Syntax
             Value = value;
         }
 
-        public override bool Equals(object? obj) =>
-            obj != null && obj is Token t && Equals(t);
-
+        public override bool Equals(object? obj) => obj is Token t && Equals(t);
         // NOTE: This must uniquely identify the token
         public bool Equals(Token other) => Position == other.Position;
-
         public override int GetHashCode() => HashCode.Combine(Position, Type, Value);
 
         public static bool operator ==(Token t1, Token t2) => t1.Equals(t2);
