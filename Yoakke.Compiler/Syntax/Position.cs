@@ -40,7 +40,7 @@ namespace Yoakke.Compiler.Syntax
         public bool Equals(Position o) => 
                Line == o.Line 
             && Column == o.Column 
-            && Source.Path == o.Source.Path;
+            && Source == o.Source;
         public override int GetHashCode() =>
             HashCode.Combine(Source, Line, Column);
 
