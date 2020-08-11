@@ -23,6 +23,7 @@ namespace Yoakke.Compiler.Syntax
         /// </summary>
         public int LineCount => lineStarts.Count;
 
+        private readonly string privatePath;
         private readonly List<int> lineStarts;
 
         /// <summary>
@@ -32,6 +33,7 @@ namespace Yoakke.Compiler.Syntax
         /// <param name="text">The source text.</param>
         public Source(string path, string text)
         {
+            privatePath = path;
             if (System.IO.File.Exists(path)) path = System.IO.Path.GetFullPath(path);
             Path = path;
             text = NormalizeNewline(text);
@@ -55,6 +57,11 @@ namespace Yoakke.Compiler.Syntax
         public override bool Equals(object? obj) => obj is Source src && Equals(src);
         public bool Equals(Source other) => Path == other.Path;
         public override int GetHashCode() => Path.GetHashCode();
+
+        public static bool operator ==(Source s1, Source s2) => s1.Equals(s2);
+        public static bool operator !=(Source s1, Source s2) => !(s1 == s2);
+
+        public override string ToString() => privatePath;
 
         private static string NormalizeNewline(string source) =>
             source.Replace("\r\n", "\n").Replace("\r", "\n");

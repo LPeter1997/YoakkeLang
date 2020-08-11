@@ -36,19 +36,19 @@ namespace Yoakke.Compiler.Syntax
             Column = column;
         }
 
-        public override bool Equals(object? obj) =>
-            obj != null && obj is Position p && Equals(p);
-
-        public bool Equals(Position o) =>
-                   Line == o.Line 
-                && Column == o.Column 
-                && Source.Path == o.Source.Path;
-
+        public override bool Equals(object? obj) => obj is Position p && Equals(p);
+        public bool Equals(Position o) => 
+               Line == o.Line 
+            && Column == o.Column 
+            && Source.Path == o.Source.Path;
         public override int GetHashCode() =>
             HashCode.Combine(Source, Line, Column);
 
         public static bool operator ==(Position p1, Position p2) => p1.Equals(p2);
         public static bool operator !=(Position p1, Position p2) => !(p1 == p2);
+
+        public override string ToString() =>
+            $"in file '{Source}': line {Line}, column {Column}";
 
         /// <summary>
         /// Creates a <see cref="Position"/> that's advanced in the current line by the given amount.
@@ -64,8 +64,5 @@ namespace Yoakke.Compiler.Syntax
         /// <returns>A position in the next line's first character.</returns>
         public Position Newline() =>
             new Position(source: Source, line: Line + 1, column: 0);
-
-        public override string ToString() =>
-            $"in file '{Source.Path}': line {Line}, column {Column}";
     }
 }
