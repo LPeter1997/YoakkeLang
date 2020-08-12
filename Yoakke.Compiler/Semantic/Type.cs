@@ -434,22 +434,15 @@ namespace Yoakke.Compiler.Semantic
                 }
                 if (!(other.Substitution is Struct s)) throw new TypeError(this, other);
                 if (Token != s.Token) throw new TypeError(this, s);
-                if (Fields.Count != s.Fields.Count) throw new TypeError(this, s);
-                foreach (var f in Fields)
-                {
-                    if (!s.Fields.TryGetValue(f.Key, out var ty)) throw new TypeError(this, s);
-                    f.Value.UnifyWith(ty);
-                }
+                UnifyDictionaries((this, Fields), (s, s.Fields));
             }
 
             public override Value Clone() =>
                 new Struct(Token, Fields.ToDictionary(kv => kv.Key, kv => (Type)kv.Value.Clone()), Scope);
             public override bool Equals(Type? other) =>
-                   other?.Substitution is Struct s 
-                && Token == s.Token 
-                && Fields.Keys.Count == s.Fields.Keys.Count
-                && Fields.Keys.All(k => s.Fields.ContainsKey(k))
-                && Fields.All(kv => kv.Value.Equals(s.Fields[kv.Key]));
+                   other?.Substitution is Struct s
+                && Token == s.Token
+                && Fields.ValueEquals(s.Fields);
             public override int GetHashCode() =>
                 this.HashCombinePoly(Token, Fields);
             public override string ToString() =>
