@@ -315,7 +315,7 @@ namespace Yoakke.Compiler.Semantic
                 && Types.Zip(tup.Types).All(ts => ts.First.Equals(ts.Second));
             public override int GetHashCode() => this.HashCombinePoly(Types);
             public override string ToString() =>
-                $"({Types.Select(x => x.Substitution.ToString()).StringJoin(", ")})";
+                $"({string.Join(", ", Types.Select(x => x.Substitution.ToString()))})";
         }
 
         /// <summary>
@@ -378,7 +378,7 @@ namespace Yoakke.Compiler.Semantic
             public override int GetHashCode() =>
                 this.HashCombinePoly(Parameters, Return);
             public override string ToString() =>
-                $"proc({Parameters.Select(x => x.ToString()).StringJoin(", ")}) -> {Return.Substitution}";
+                $"proc({string.Join(", ", Parameters.Select(x => x.ToString()))}) -> {Return.Substitution}";
         }
 
         /// <summary>
@@ -446,7 +446,7 @@ namespace Yoakke.Compiler.Semantic
             public override int GetHashCode() =>
                 this.HashCombinePoly(Token, Fields);
             public override string ToString() =>
-                $"{Token.Value} {{ {Fields.Select(kv => $"{kv.Key}: {kv.Value}").StringJoin("; ")} }}";
+                $"{Token.Value} {{ {string.Join("; ", Fields.Select(kv => $"{kv.Key}: {kv.Value}"))} }}";
         }
     }
 }

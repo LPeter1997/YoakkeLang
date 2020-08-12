@@ -124,7 +124,7 @@ namespace Yoakke.Compiler.Semantic
             if (UninitializedFields != null)
             {
                 Console.WriteLine("Initialization error!");
-                Console.WriteLine($"Uninitialized fields: {UninitializedFields.Select(x => $"'{x}'").StringJoin(", ")}.");
+                Console.WriteLine($"Uninitialized fields: {string.Join(", ", UninitializedFields.Select(x => $"'{x}'"))}.");
             }
             else
             {

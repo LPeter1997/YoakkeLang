@@ -231,7 +231,7 @@ namespace Yoakke.Compiler.Semantic
             public override Value Clone() => 
                 new Tuple(Values.Select(x => x.Clone()).ToList());
             public override string ToString() => 
-                $"({Values.Select(x => x.ToString()).StringJoin(", ")})";
+                $"({string.Join(", ", Values.Select(x => x.ToString()))})";
 
         }
 
@@ -264,7 +264,7 @@ namespace Yoakke.Compiler.Semantic
             public override Value Clone() => 
                 new Struct(Type, Fields.ToDictionary(kv => kv.Key, kv => kv.Value.Clone()));
             public override string ToString() => 
-                $"{Type} {{ {Fields.Select(kv => $"{kv.Key} = {kv.Value}").StringJoin("; ")} }}";
+                $"{Type} {{ {string.Join("; ", Fields.Select(kv => $"{kv.Key} = {kv.Value}"))} }}";
         }
     }
 }

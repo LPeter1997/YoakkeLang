@@ -16,6 +16,6 @@ namespace Yoakke.Compiler.Utils
         /// <param name="args">The list of arguments.</param>
         /// <returns>The escaped argument list as a string.</returns>
         public static string EscapeArgs(IEnumerable<object> args) =>
-            args.Select(x => $"\"{x}\"").StringJoin(" ");
+            string.Join(" ", args.Select(x => $"\"{x}\""));
     }
 }
