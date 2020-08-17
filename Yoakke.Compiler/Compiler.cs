@@ -149,6 +149,7 @@ namespace Yoakke.Compiler
             // If the output type is IR, just write that out now
             if (OutputType == OutputType.IR)
             {
+                Assert.NonNull(SourceFile);
                 var ir = IrDump.Dump(namingCtx);
                 File.WriteAllText(SourceFile, ir);
                 return 0;
@@ -180,6 +181,7 @@ namespace Yoakke.Compiler
                 startInfo.CreateNoWindow = true;
 
                 var process = Process.Start(startInfo);
+                Assert.NonNull(process);
                 while (!process.StandardError.EndOfStream)
                 {
                     string? line = process.StandardError.ReadLine();

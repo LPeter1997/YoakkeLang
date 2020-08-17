@@ -66,6 +66,7 @@ namespace Yoakke.Compiler.Codegen
             startInfo.CreateNoWindow = true;
 
             var process = Process.Start(startInfo);
+            Assert.NonNull(process);
             while (!process.StandardError.EndOfStream)
             {
                 string? line = process.StandardError.ReadLine();

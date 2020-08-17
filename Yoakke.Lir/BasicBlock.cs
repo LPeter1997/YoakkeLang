@@ -31,5 +31,8 @@ namespace Yoakke.Lir
         {
             Name = name;
         }
+
+        public override string ToString() => 
+            $"label {Name}:\n{string.Join('\n', Instructions.Select(i => $"    {i}"))}";
     }
 }

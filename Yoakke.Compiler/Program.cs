@@ -1,17 +1,6 @@
-﻿using McMaster.Extensions.CommandLineUtils;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Numerics;
-using System.Runtime.InteropServices;
-using Yoakke.Compiler.Ast;
-using Yoakke.Compiler.IR;
-using Yoakke.Compiler.IR.Passes;
-using Yoakke.Compiler.Semantic;
-using Yoakke.Compiler.Syntax;
-using Yoakke.Compiler.Utils;
-using Type = Yoakke.Compiler.Semantic.Type;
+﻿using Yoakke.Lir;
+using Yoakke.Lir.Instructions;
+using Yoakke.Lir.Types;
 
 namespace Yoakke.Compiler
 {
@@ -19,6 +8,7 @@ namespace Yoakke.Compiler
     {
         static void Main(string[] args)
         {
+#if false
             if (Debugger.IsAttached && args.Length == 0)
             {
                 // For simplicity we inject parameters so we can run from the IDE
@@ -38,6 +28,12 @@ namespace Yoakke.Compiler
             {
                 CommandLineApplication.Execute<Compiler>(args);
             }
+#else
+            var i32 = new Type.Int(true, 32);
+            var p = new Proc("main");
+            p.BasicBlocks[0].Instructions.Add(new Instr.Ret(i32.NewValue(0)));
+            System.Console.WriteLine(p);
+#endif
         }
     }
 }
