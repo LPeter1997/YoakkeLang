@@ -7,8 +7,4 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Folder Include="Types\" />
-  </ItemGroup>
-
 </Project>

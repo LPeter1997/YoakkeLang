@@ -1,4 +1,5 @@
 ﻿using Yoakke.Lir;
+using Yoakke.Lir.Backend;
 using Yoakke.Lir.Instructions;
 using Yoakke.Lir.Types;
 
@@ -29,10 +30,8 @@ namespace Yoakke.Compiler
                 CommandLineApplication.Execute<Compiler>(args);
             }
 #else
-            var i32 = new Type.Int(true, 32);
-            var p = new Proc("main");
-            p.BasicBlocks[0].Instructions.Add(new Instr.Ret(i32.NewValue(0)));
-            System.Console.WriteLine(p);
+            var triplet = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
+            System.Console.WriteLine(triplet);
 #endif
         }
     }
