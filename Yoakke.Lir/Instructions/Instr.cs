@@ -16,5 +16,7 @@ namespace Yoakke.Lir.Instructions
         /// jump.
         /// </summary>
         public virtual bool IsJump => false;
+
+        public abstract override string ToString();
     }
 }

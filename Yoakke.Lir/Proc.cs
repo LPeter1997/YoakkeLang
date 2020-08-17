@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Yoakke.Lir.Types;
 
 namespace Yoakke.Lir
 {
@@ -15,6 +15,16 @@ namespace Yoakke.Lir
         /// The name of the <see cref="Proc"/>.
         /// </summary>
         public readonly string Name;
+        // TODO: Change this to default to void
+        /// <summary>
+        /// The return <see cref="Type"/> of the procedure.
+        /// </summary>
+        public Type Return { get; set; } = new Type.Int(true, 32);
+        /// <summary>
+        /// The parameters of this procedure.
+        /// </summary>
+        public readonly IList<Register> Parameters = new List<Register>();
+        // TODO: Add utility to get type.
         /// <summary>
         /// The calling convention to use when calling this procedure.
         /// </summary>
@@ -33,5 +43,9 @@ namespace Yoakke.Lir
             Name = name;
             BasicBlocks.Add(new BasicBlock("begin"));
         }
+
+        public override string ToString() => 
+            $"{Return} proc[callconv = {CallConv.ToString().ToLower()}] {Name}({string.Join(", ", Parameters)}):\n" +
+            $"{string.Join('\n', BasicBlocks)}";
     }
 }
