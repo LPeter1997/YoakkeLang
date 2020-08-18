@@ -66,13 +66,14 @@ namespace Yoakke.Lir.Backend.Backends
 
         private void CompileProc(Proc proc)
         {
-            // Compile the first basic block separately
-            CompileBasicBlock(proc, proc.BasicBlocks[0], true);
-            foreach (var bb in proc.BasicBlocks.Skip(1)) CompileBasicBlock(proc, bb, false);
+            // Just compile every basic block
+            foreach (var bb in proc.BasicBlocks) CompileBasicBlock(proc, bb);
         }
 
-        private void CompileBasicBlock(Proc proc, BasicBlock basicBlock, bool first)
+        private void CompileBasicBlock(Proc proc, BasicBlock basicBlock)
         {
+            bool first = ReferenceEquals(proc.BasicBlocks[0], basicBlock);
+
             if (proc.CallConv != CallConv.Cdecl) throw new NotImplementedException();
 
             // If this is the first basic block, we use the procedure's name as the label name
