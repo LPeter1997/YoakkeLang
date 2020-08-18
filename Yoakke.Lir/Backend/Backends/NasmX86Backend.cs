@@ -100,7 +100,7 @@ namespace Yoakke.Lir.Backend.Backends
                 if (valueSize > 0)
                 {
                     // Store return value
-                    if (ret.Value.Type is Type.Int && SizeOf(ret.Value) <= 4)
+                    if (proc.CallConv == CallConv.Cdecl && ret.Value.Type is Type.Int && SizeOf(ret.Value) <= 4)
                     {
                         // We can return integral values with at most 32 bits in EAX
                         textCode.AppendLine($"    mov eax, {CompileValue(ret.Value)}");
