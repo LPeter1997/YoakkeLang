@@ -1,8 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using Yoakke.Lir.Instructions;
+using Yoakke.Lir.Values;
+using Type = Yoakke.Lir.Types.Type;
 
 namespace Yoakke.Lir.Backend.Backends
 {
@@ -12,6 +13,17 @@ namespace Yoakke.Lir.Backend.Backends
     public class NasmX86Backend : IBackend
     {
         public Toolchain Toolchain { get; set; }
+
+        private TargetTriplet targetTriplet;
+        private StringBuilder globalsCode = new StringBuilder();
+        private StringBuilder textCode = new StringBuilder();
+
+        // Pointer size in bytes
+        private int PointerSize => targetTriplet.CpuFamily switch
+        {
+            CpuFamily.X86 => 4,
+            _ => throw new NotImplementedException(),
+        };
 
         /// <summary>
         /// Initializes a new <see cref="NasmX86Backend"/>.
@@ -31,7 +43,97 @@ namespace Yoakke.Lir.Backend.Backends
             {
                 throw new NotSupportedException("The given target triplet is not supported by this backend!");
             }
-            throw new NotImplementedException();
+            this.targetTriplet = targetTriplet;
+
+            globalsCode.Clear();
+            textCode.Clear();
+            CompileAssembly(assembly);
+
+            // Stitch code together
+            return new StringBuilder()
+                .AppendLine($"[BITS {PointerSize * 8}]")
+                .Append(globalsCode)
+                .AppendLine("SECTION .TEXT")
+                .Append(textCode)
+                .ToString();
         }
+
+        private void CompileAssembly(Assembly assembly)
+        {
+            // Compile procedures
+            foreach (var p in assembly.Procedures) CompileProc(p);
+        }
+
+        private void CompileProc(Proc proc)
+        {
+            // Compile the first basic block separately
+            CompileBasicBlock(proc, proc.BasicBlocks[0], true);
+            foreach (var bb in proc.BasicBlocks.Skip(1)) CompileBasicBlock(proc, bb, false);
+        }
+
+        private void CompileBasicBlock(Proc proc, BasicBlock basicBlock, bool first)
+        {
+            if (proc.CallConv != CallConv.Cdecl) throw new NotImplementedException();
+
+            // If this is the first basic block, we use the procedure's name as the label name
+            // Otherwise we allocate an unused label name
+            // TODO: This is not a bulletproof name allocation
+            var procName = GetProcName(proc);
+            var labelName = first ? procName : $"{procName}.{basicBlock.Name}";
+            // If it's a public procedure, we need to define it global
+            if (first && proc.Visibility == Visibility.Public) globalsCode.AppendLine($"GLOBAL {labelName}");
+
+            // Now just write the label name, then the instructions
+            textCode.AppendLine($"{labelName}:");
+            // Write out instructions
+            foreach (var ins in basicBlock.Instructions) CompileInstruction(proc, ins);
+        }
+
+        private void CompileInstruction(Proc proc, Instr instr)
+        {
+            switch (instr)
+            {
+            case Instr.Ret ret:
+            {
+                var valueSize = SizeOf(ret.Value);
+                if (valueSize > 0)
+                {
+                    // Store return value
+                    if (ret.Value.Type is Type.Int && SizeOf(ret.Value) <= 4)
+                    {
+                        // We can return integral values with at most 32 bits in EAX
+                        textCode.AppendLine($"    mov eax, {CompileValue(ret.Value)}");
+                    }
+                    else
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                textCode.AppendLine("    ret");
+            } 
+            break;
+
+            default: throw new NotImplementedException();
+            }
+        }
+
+        private string CompileValue(Value value) => value switch
+        {
+            Value.Int i => i.Value.ToString(),
+            _ => throw new NotImplementedException(),
+        };
+
+        private string GetProcName(Proc proc) =>
+               // On Windows, Cdecl will cause a '_' prefix
+               targetTriplet.OperatingSystem == OperatingSystem.Windows
+            && proc.CallConv == CallConv.Cdecl
+               ? $"_{proc.Name}" : proc.Name;
+
+        private int SizeOf(Value value) => SizeOf(value.Type);
+        private int SizeOf(Type type) => type switch
+        {
+            Type.Int i => (i.Bits + 7) / 8,
+            _ => throw new NotImplementedException(),
+        };
     }
 }

@@ -30,8 +30,25 @@ namespace Yoakke.Compiler
                 CommandLineApplication.Execute<Compiler>(args);
             }
 #else
-            var triplet = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
-            System.Console.WriteLine(triplet);
+            var i32 = new Type.Int(true, 32);
+            var proc = new Proc("main");
+            proc.Visibility = Visibility.Public;
+            proc.Return = i32;
+            var asm = new Assembly();
+            asm.Procedures.Add(proc);
+            proc.BasicBlocks[0].Instructions.Add(new Instr.Ret(i32.NewValue(12)));
+
+            System.Console.WriteLine(asm);
+            System.Console.WriteLine("\n\n");
+
+            var tt = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
+            var tc = new Toolchain
+            {
+            };
+            var be = new Lir.Backend.Backends.NasmX86Backend(tc);
+            var code = be.Compile(tt, asm);
+
+            System.Console.WriteLine(code);
 #endif
         }
     }

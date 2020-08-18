@@ -1,9 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using Yoakke.Lir.Types;
+using Type = Yoakke.Lir.Types.Type;
 
 namespace Yoakke.Lir.Values
 {
@@ -30,7 +27,7 @@ namespace Yoakke.Lir.Values
             {
                 if (value < type.MinValue || value > type.MaxValue)
                 {
-                    throw new System.ArgumentOutOfRangeException(nameof(type), 
+                    throw new ArgumentOutOfRangeException(nameof(type), 
                         "The integer type is too small to store the given value!");
                 }
                 Type = type;

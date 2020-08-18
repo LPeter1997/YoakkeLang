@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Yoakke.Lir.Backend
+﻿namespace Yoakke.Lir.Backend
 {
     /// <summary>
     /// Interface for every IR backend, that compiles the IR to some other representation.

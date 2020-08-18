@@ -1,7 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Yoakke.Lir.Types;
 
 namespace Yoakke.Lir
@@ -30,6 +27,10 @@ namespace Yoakke.Lir
         /// </summary>
         public CallConv CallConv { get; set; } = CallConv.Default;
         /// <summary>
+        /// The <see cref="Visibility"/> of this procedure.
+        /// </summary>
+        public Visibility Visibility { get; set; }
+        /// <summary>
         /// The list of <see cref="BasicBlock"/>s the procedure consists of.
         /// </summary>
         public readonly IList<BasicBlock> BasicBlocks = new List<BasicBlock>();
@@ -45,7 +46,8 @@ namespace Yoakke.Lir
         }
 
         public override string ToString() => 
-            $"{Return} proc[callconv = {CallConv.ToString().ToLower()}] {Name}({string.Join(", ", Parameters)}):\n" +
+            $"{Return} proc[callconv = {CallConv.ToString().ToLower()}] {Name}({string.Join(", ", Parameters)}) " +
+            $"[visibility = {Visibility.ToString().ToLower()}]:\n" +
             $"{string.Join('\n', BasicBlocks)}";
     }
 }

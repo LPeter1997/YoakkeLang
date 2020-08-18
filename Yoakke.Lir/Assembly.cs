@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 
 namespace Yoakke.Lir
 {
@@ -13,5 +11,8 @@ namespace Yoakke.Lir
         /// The <see cref="Proc"/>s defined in this <see cref="Assembly"/>.
         /// </summary>
         public readonly IList<Proc> Procedures = new List<Proc>();
+
+        public override string ToString() =>
+            string.Join("\n\n", Procedures);
     }
 }

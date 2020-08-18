@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-
-namespace Yoakke.Lir
+﻿namespace Yoakke.Lir
 {
     /// <summary>
     /// Storage type for the VM.
