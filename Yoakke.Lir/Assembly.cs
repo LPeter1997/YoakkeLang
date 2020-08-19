@@ -7,7 +7,13 @@ namespace Yoakke.Lir
     /// </summary>
     public class Assembly
     {
-        // TODO: Entry point name?
+        /// <summary>
+        /// The entry point of the <see cref="Assembly"/>.
+        /// If null, the procedure named "main" will be chosen, or the singleton, if there's 
+        /// only one procedure defined.
+        /// </summary>
+        public Proc? EntryPoint { get; set; }
+
         /// <summary>
         /// The <see cref="Proc"/>s defined in this <see cref="Assembly"/>.
         /// </summary>
