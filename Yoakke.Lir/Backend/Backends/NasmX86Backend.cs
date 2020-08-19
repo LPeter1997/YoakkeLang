@@ -55,7 +55,8 @@ namespace Yoakke.Lir.Backend.Backends
                 .Append(globalsCode)
                 .AppendLine("SECTION .TEXT")
                 .Append(textCode)
-                .ToString();
+                .ToString()
+                .Trim();
         }
 
         private void CompileAssembly(Assembly assembly)

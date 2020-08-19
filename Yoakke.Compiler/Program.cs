@@ -1,6 +1,7 @@
 ﻿using Yoakke.Lir;
 using Yoakke.Lir.Backend;
 using Yoakke.Lir.Instructions;
+using Yoakke.Lir.Runtime;
 using Yoakke.Lir.Types;
 
 namespace Yoakke.Compiler
@@ -30,13 +31,12 @@ namespace Yoakke.Compiler
                 CommandLineApplication.Execute<Compiler>(args);
             }
 #else
-            var i32 = new Type.Int(true, 32);
             var proc = new Proc("main");
             proc.Visibility = Visibility.Public;
-            proc.Return = i32;
+            proc.Return = Type.I32;
             var asm = new Assembly();
             asm.Procedures.Add(proc);
-            proc.BasicBlocks[0].Instructions.Add(new Instr.Ret(i32.NewValue(12)));
+            proc.BasicBlocks[0].Instructions.Add(new Instr.Ret(Type.I32.NewValue(12)));
 
             System.Console.WriteLine(asm);
             System.Console.WriteLine("\n\n");
@@ -49,6 +49,11 @@ namespace Yoakke.Compiler
             var code = be.Compile(tt, asm);
 
             System.Console.WriteLine(code);
+            System.Console.WriteLine("\n\n");
+
+            var vm = new VirtualMachine(asm);
+            var res = vm.Execute("main");
+            System.Console.WriteLine($"VM result = {res}");
 #endif
         }
     }

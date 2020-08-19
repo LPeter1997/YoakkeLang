@@ -12,6 +12,7 @@ namespace Yoakke.Lir
         /// The name of the <see cref="Proc"/>.
         /// </summary>
         public readonly string Name;
+        // TODO: Procedure alignment
         // TODO: Change this to default to void
         /// <summary>
         /// The return <see cref="Type"/> of the procedure.
