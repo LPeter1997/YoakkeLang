@@ -61,8 +61,16 @@ namespace Yoakke.Lir.Backend.Backends
 
         private void CompileAssembly(Assembly assembly)
         {
+            // Add externals
+            foreach (var e in assembly.Externals) CompileExtern(e);
             // Compile procedures
             foreach (var p in assembly.Procedures) CompileProc(p);
+        }
+
+        private void CompileExtern(Extern ext)
+        {
+            // TODO: Should calling convention affect name in case of external procedures?
+            globalsCode.AppendLine($"EXTERN {ext.Name}");
         }
 
         private void CompileProc(Proc proc)

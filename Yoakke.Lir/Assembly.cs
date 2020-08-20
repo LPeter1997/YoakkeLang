@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text;
 
 namespace Yoakke.Lir
 {
@@ -15,11 +16,18 @@ namespace Yoakke.Lir
         public Proc? EntryPoint { get; set; }
 
         /// <summary>
+        /// The <see cref="Extern"/>s the <see cref="Assembly"/> references.
+        /// </summary>
+        public readonly IList<Extern> Externals = new List<Extern>();
+        /// <summary>
         /// The <see cref="Proc"/>s defined in this <see cref="Assembly"/>.
         /// </summary>
         public readonly IList<Proc> Procedures = new List<Proc>();
 
-        public override string ToString() =>
-            string.Join("\n\n", Procedures).Trim();
+        public override string ToString() => new StringBuilder()
+            .AppendJoin('\n', Externals)
+            .Append("\n\n")
+            .AppendJoin("\n\n", Procedures)
+            .ToString().Trim();
     }
 }
