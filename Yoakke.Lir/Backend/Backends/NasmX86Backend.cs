@@ -70,7 +70,7 @@ namespace Yoakke.Lir.Backend.Backends
         private void CompileExtern(Extern ext)
         {
             // TODO: Should calling convention affect name in case of external procedures?
-            globalsCode.AppendLine($"EXTERN {ext.Name}");
+            globalsCode.AppendLine($"EXTERN {GetExternName(ext)}");
         }
 
         private void CompileProc(Proc proc)
@@ -129,7 +129,9 @@ namespace Yoakke.Lir.Backend.Backends
 
         private string CompileValue(Value value) => value switch
         {
-            Value.Int i => i.Value.ToString(),
+            // TODO: Lvalue vs rvalue?
+            Value.Int i => i.ToString(),
+            Value.Extern e => $"[{GetExternName(e.Value)}]",
             _ => throw new NotImplementedException(),
         };
 
@@ -138,6 +140,11 @@ namespace Yoakke.Lir.Backend.Backends
                targetTriplet.OperatingSystem == OperatingSystem.Windows
             && proc.CallConv == CallConv.Cdecl
                ? $"_{proc.Name}" : proc.Name;
+
+        private string GetExternName(Extern ext) =>
+            // NOTE: We need a '_' prefix here too
+            targetTriplet.OperatingSystem == OperatingSystem.Windows
+            ? $"_{ext.Name}" : ext.Name;
 
         private int SizeOf(Value value) => SizeOf(value.Type);
         private int SizeOf(Type type) => type switch

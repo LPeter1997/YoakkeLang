@@ -3,6 +3,7 @@ using Yoakke.Lir.Backend;
 using Yoakke.Lir.Instructions;
 using Yoakke.Lir.Runtime;
 using Yoakke.Lir.Types;
+using Yoakke.Lir.Values;
 
 namespace Yoakke.Compiler
 {
@@ -36,9 +37,9 @@ namespace Yoakke.Compiler
             proc.Return = Type.I32;
             var asm = new Assembly();
             asm.Procedures.Add(proc);
-            proc.BasicBlocks[0].Instructions.Add(new Instr.Ret(Type.I32.NewValue(12)));
-
-            asm.Externals.Add(new Extern("gods_number", Type.I32, "libc.lib"));
+            var someNumber = new Extern("some_number", Type.I32, "C:/TMP/globals.o");
+            asm.Externals.Add(someNumber);
+            proc.BasicBlocks[0].Instructions.Add(new Instr.Ret(new Value.Extern(someNumber)));
 
             System.Console.WriteLine(asm);
             System.Console.WriteLine("\n\n");
