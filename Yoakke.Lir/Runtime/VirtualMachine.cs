@@ -60,23 +60,6 @@ namespace Yoakke.Lir.Runtime
                 }
             }
             // Link the object files
-            var linker = GetLinker();
-            var link = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = "LINK",
-                    Arguments = $"/NOLOGO /OUT:objs.dll /DLL {string.Join(' ', objFiles)}",
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    CreateNoWindow = true,
-                }
-            };
-            link.Start();
-            var output = link.StandardOutput.ReadToEnd();
-            link.WaitForExit();
-            Console.WriteLine(output);
-            Debug.Assert(link.ExitCode == 0);
             // TODO
             // Collect externals
             // TODO

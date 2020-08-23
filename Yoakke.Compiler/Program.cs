@@ -48,15 +48,15 @@ namespace Yoakke.Compiler
             System.Console.WriteLine("\n\n");
 
             var tt = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
-            var be = new NasmX86Backend();
+            var be = new MasmX86Backend();
             var code = be.Compile(tt, asm);
 
             System.Console.WriteLine(code);
             System.Console.WriteLine("\n\n");
 
-            var vm = new VirtualMachine(asm);
-            var res = vm.Execute("main");
-            System.Console.WriteLine($"VM result = {res}");
+            //var vm = new VirtualMachine(asm);
+            //var res = vm.Execute("main");
+            //System.Console.WriteLine($"VM result = {res}");
 #else
             var tt = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
             var tcLocator = new MsvcToolchainLocator();

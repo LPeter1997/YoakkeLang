@@ -2,26 +2,20 @@
 using System.Linq;
 using System.Text;
 using Yoakke.Lir.Instructions;
+using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;
 using Type = Yoakke.Lir.Types.Type;
 
 namespace Yoakke.Lir.Backend.Backends
 {
     /// <summary>
-    /// Backend for NASM on X86.
+    /// Backend for MASM for Windows on X86.
     /// </summary>
-    public class NasmX86Backend : IBackend
+    public class MasmX86Backend : IBackend
     {
         private TargetTriplet targetTriplet;
         private StringBuilder globalsCode = new StringBuilder();
         private StringBuilder textCode = new StringBuilder();
-
-        // Pointer size in bytes
-        private int PointerSize => targetTriplet.CpuFamily switch
-        {
-            CpuFamily.X86 => 4,
-            _ => throw new NotImplementedException(),
-        };
 
         public bool IsSupported(TargetTriplet t) =>
             t.CpuFamily == CpuFamily.X86 && t.OperatingSystem == OperatingSystem.Windows;
@@ -40,12 +34,12 @@ namespace Yoakke.Lir.Backend.Backends
 
             // Stitch code together
             return new StringBuilder()
-                .AppendLine($"[BITS {PointerSize * 8}]")
                 .Append(globalsCode)
-                .AppendLine("SECTION .TEXT")
+                .AppendLine("_text SEGMENT")
                 .Append(textCode)
-                .ToString()
-                .Trim();
+                .AppendLine("_text ENDS")
+                .AppendLine("END")
+                .ToString();
         }
 
         private void CompileAssembly(Assembly assembly)
@@ -59,13 +53,17 @@ namespace Yoakke.Lir.Backend.Backends
         private void CompileExtern(Extern ext)
         {
             // TODO: Should calling convention affect name in case of external procedures?
-            globalsCode.AppendLine($"EXTERN {GetExternName(ext)}");
+            globalsCode.AppendLine($"EXTERN {GetExternName(ext)}: {TypeToString(ext.Type)}");
         }
 
         private void CompileProc(Proc proc)
         {
+            var procName = GetProcName(proc);
+            var visibility = proc.Visibility == Visibility.Public ? "PUBLIC" : string.Empty;
+            textCode.AppendLine($"{procName} PROC {visibility}");
             // Just compile every basic block
             foreach (var bb in proc.BasicBlocks) CompileBasicBlock(proc, bb);
+            textCode.AppendLine($"{procName} ENDP");
         }
 
         private void CompileBasicBlock(Proc proc, BasicBlock basicBlock)
@@ -74,16 +72,8 @@ namespace Yoakke.Lir.Backend.Backends
 
             if (proc.CallConv != CallConv.Cdecl) throw new NotImplementedException();
 
-            // If this is the first basic block, we use the procedure's name as the label name
-            // Otherwise we allocate an unused label name
-            // TODO: This is not a bulletproof name allocation
-            var procName = GetProcName(proc);
-            var labelName = first ? procName : $"{procName}.{basicBlock.Name}";
-            // If it's a public procedure, we need to define it global
-            if (first && proc.Visibility == Visibility.Public) globalsCode.AppendLine($"GLOBAL {labelName}");
-
             // Now just write the label name, then the instructions
-            textCode.AppendLine($"{labelName}:");
+            if (!first) textCode.AppendLine($"{GetProcName(proc)}@{basicBlock.Name}:");
             // Write out instructions
             foreach (var ins in basicBlock.Instructions) CompileInstruction(proc, ins);
         }
@@ -134,6 +124,18 @@ namespace Yoakke.Lir.Backend.Backends
             // NOTE: We need a '_' prefix here too
             targetTriplet.OperatingSystem == OperatingSystem.Windows
             ? $"_{ext.Name}" : ext.Name;
+
+        private string TypeToString(Type type) => type switch
+        {
+            Type.Int i => ((i.Bits + 7) / 8) switch
+            {
+                1 => "BYTE",
+                2 => "WORD",
+                4 => "DWORD",
+                _ => throw new NotImplementedException(),
+            },
+            _ => throw new NotImplementedException(),
+        };
 
         private int SizeOf(Value value) => SizeOf(value.Type);
         private int SizeOf(Type type) => type switch

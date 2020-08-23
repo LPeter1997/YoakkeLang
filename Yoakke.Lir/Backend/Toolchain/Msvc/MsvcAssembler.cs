@@ -27,9 +27,16 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
             // The actual file name to invoke
             var ml = TargetTriplet.CpuFamily == CpuFamily.X86 ? "ML" : "ML64";
             // Construct the command
-            var command = $"{ml} /NOLOGO /OUT:\"{outputPath}\" {files}";
+            var command = $"{ml} /nologo /Fo \"{outputPath}\" {GetOutputKindFlag()} {files}";
             // Run it
             return InvokeWithEnvironment(command);
         }
+
+        private string GetOutputKindFlag() => OutputKind switch
+        {
+            OutputKind.Executable => string.Empty,
+            OutputKind.Object => "/c",
+            _ => throw new NotSupportedException($"The output kind {OutputKind} is not supported by ML (MASM)!"),
+        };
     }
 }
