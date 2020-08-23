@@ -64,11 +64,10 @@ namespace Yoakke.Compiler
             {
                 // TODO: Eww
                 Debug.Assert(tc != null);
-                Debug.Assert(tc.Linker != null);
                 tc.Linker.TargetTriplet = tt;
 
-                tc.Linker.Files.Add("C:/TMP/hello.o");
-                tc.Linker.Files.Add("C:/TMP/globals.obj");
+                tc.Linker.SourceFiles.Add("C:/TMP/hello.o");
+                tc.Linker.SourceFiles.Add("C:/TMP/globals.obj");
                 var err = tc.Linker.Link("C:/TMP/reee.exe");
                 System.Console.WriteLine($"Linker exit code: {err}");
             }

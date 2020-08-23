@@ -12,7 +12,7 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
     public class MsvcLinker : MsvcToolBase, ILinker
     {
         public TargetTriplet TargetTriplet { get; set; }
-        public IList<string> Files { get; } = new List<string>();
+        public IList<string> SourceFiles { get; } = new List<string>();
         public OutputKind OutputKind { get; set; } = OutputKind.Executable;
 
         public MsvcLinker(string vcVarsAllPath) 
@@ -20,10 +20,10 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
         {
         }
 
-        public int Link(string outputPath)
+        public int Execute(string outputPath)
         {
             // Escape file names
-            var files = string.Join(' ', Files.Select(f => $"\"{f}\""));
+            var files = string.Join(' ', SourceFiles.Select(f => $"\"{f}\""));
             // Construct the command
             var command = $"LINK /NOLOGO {GetOutputKindFlag()} /OUT:\"{outputPath}\" {files}";
             var proc = InvokeWithEnvironment(command, TargetTriplet);

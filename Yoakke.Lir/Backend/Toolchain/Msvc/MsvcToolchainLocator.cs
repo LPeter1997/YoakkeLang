@@ -14,7 +14,7 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
     /// </summary>
     public class MsvcToolchainLocator : IToolchainLocator
     {
-        public bool TryLocate(out Toolchain? toolchain)
+        public bool TryLocate(out IToolchain? toolchain)
         {
             toolchain = null;
             // First we need to call vswhere, as it can tell us Visual C++ tools installation
@@ -37,11 +37,7 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
                 var vcvarsallPath = Path.Combine(installationPath, "VC", "Auxiliary", "Build", "vcvarsall.bat");
                 if (!File.Exists(vcvarsallPath)) continue;
                 // We have vcvarsall we assume everything else is present
-                toolchain = new Toolchain
-                {
-                    Linker = new MsvcLinker(vcvarsallPath),
-                    Assembler = new MsvcAssembler(),
-                };
+                toolchain = new MsvcToolchain(vcvarsallPath);
                 return true;
             }
             // No matching installation
@@ -52,7 +48,7 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
         {
             if (TryLocate(out var tc))
             {
-                assembler = tc?.Assembler;
+                assembler = (tc as MsvcToolchain)?.Assembler;
                 return true;
             }
             assembler = null;
@@ -63,10 +59,21 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
         {
             if (TryLocate(out var tc))
             {
-                linker = tc?.Linker;
+                linker = (tc as MsvcToolchain)?.Linker;
                 return true;
             }
             linker = null;
+            return false;
+        }
+
+        public bool TryLocateArchiver(out IArchiver? archiver)
+        {
+            if (TryLocate(out var tc))
+            {
+                archiver = (tc as MsvcToolchain)?.Archiver;
+                return true;
+            }
+            archiver = null;
             return false;
         }
 

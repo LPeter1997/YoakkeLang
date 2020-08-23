@@ -9,26 +9,18 @@ namespace Yoakke.Lir.Backend.Toolchain
     /// <summary>
     /// Interface for linkers.
     /// </summary>
-    public interface ILinker
+    public interface ILinker : ITool
     {
-        /// <summary>
-        /// The <see cref="TargetTriplet"/> the linker targets.
-        /// </summary>
-        public TargetTriplet TargetTriplet { get; set; }
-        /// <summary>
-        /// The files that need to be linked.
-        /// </summary>
-        public IList<string> Files { get; }
         /// <summary>
         /// The <see cref="OutputKind"/> the linker needs to produce.
         /// </summary>
         public OutputKind OutputKind { get; set; }
 
         /// <summary>
-        /// Links the given <see cref="Files"/>.
+        /// Links the given source files.
         /// </summary>
         /// <param name="outputPath">The output path of the result.</param>
         /// <returns>The error code. 0 if succeeded.</returns>
-        public int Link(string outputPath);
+        public int Link(string outputPath) => Execute(outputPath);
     }
 }

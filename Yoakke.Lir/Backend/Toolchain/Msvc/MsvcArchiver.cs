@@ -7,15 +7,15 @@ using System.Threading.Tasks;
 namespace Yoakke.Lir.Backend.Toolchain.Msvc
 {
     /// <summary>
-    /// The MSVC MASM assembler.
+    /// The MSVC LIB tool.
     /// </summary>
-    public class MsvcAssembler : MsvcToolBase, IAssembler
+    public class MsvcArchiver : MsvcToolBase, IArchiver
     {
+        public OutputKind OutputKind { get; set; } = OutputKind.StaticLibrary;
         public TargetTriplet TargetTriplet { get; set; }
         public IList<string> SourceFiles { get; } = new List<string>();
-        public OutputKind OutputKind { get; set; } = OutputKind.Object;
 
-        public MsvcAssembler(string vcVarsAllPath) 
+        public MsvcArchiver(string vcVarsAllPath) 
             : base(vcVarsAllPath)
         {
         }

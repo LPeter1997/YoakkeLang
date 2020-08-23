@@ -7,21 +7,20 @@ using System.Threading.Tasks;
 namespace Yoakke.Lir.Backend.Toolchain
 {
     /// <summary>
-    /// Interface for assemblers.
+    /// Interface for archivers.
     /// </summary>
-    public interface IAssembler : ITool
+    public interface IArchiver : ITool
     {
         /// <summary>
-        /// The <see cref="OutputKind"/> the assembler needs to produce.
+        /// The <see cref="OutputKind"/> the archiver needs to produce.
         /// </summary>
         public OutputKind OutputKind { get; set; }
 
         /// <summary>
-        /// Assembles the given source files.
+        /// Archives the given source files.
         /// </summary>
-        /// <param name="sourcePath">The source file to assemble.</param>
         /// <param name="outputPath">The output path of the result.</param>
         /// <returns>The error code. 0 if succeeded.</returns>
-        public int Assemble(string outputPath) => Execute(outputPath);
+        public int Archive(string outputPath) => Execute(outputPath);
     }
 }
