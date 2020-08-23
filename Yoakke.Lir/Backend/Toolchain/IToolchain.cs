@@ -18,7 +18,11 @@ namespace Yoakke.Lir.Backend.Toolchain
         /// <summary>
         /// The <see cref="TargetTriplet"/> the toolchain targets.
         /// </summary>
-        public TargetTriplet TargetTriplet { get; set; }
+        public TargetTriplet TargetTriplet 
+        { 
+            get => Tools.First().TargetTriplet; 
+            set { foreach (var tool in Tools) tool.TargetTriplet = value; }
+        }
         /// <summary>
         /// The files that need to be compiled.
         /// </summary>

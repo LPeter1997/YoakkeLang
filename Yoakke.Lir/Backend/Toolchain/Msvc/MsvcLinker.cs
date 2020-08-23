@@ -11,8 +11,8 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
     /// </summary>
     public class MsvcLinker : MsvcToolBase, ILinker
     {
-        public TargetTriplet TargetTriplet { get; set; }
-        public IList<string> SourceFiles { get; } = new List<string>();
+        public override TargetTriplet TargetTriplet { get; set; }
+        public override IList<string> SourceFiles { get; } = new List<string>();
         public OutputKind OutputKind { get; set; } = OutputKind.Executable;
 
         public MsvcLinker(string vcVarsAllPath) 
@@ -20,26 +20,21 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
         {
         }
 
-        public int Execute(string outputPath)
+        public override int Execute(string outputPath)
         {
             // Escape file names
             var files = string.Join(' ', SourceFiles.Select(f => $"\"{f}\""));
             // Construct the command
-            var command = $"LINK /NOLOGO {GetOutputKindFlag()} /OUT:\"{outputPath}\" {files}";
-            var proc = InvokeWithEnvironment(command, TargetTriplet);
-            // Execute
-            proc.Start();
-            var err = proc.StandardError.ReadToEnd();
-            proc.WaitForExit();
-            Console.Error.Write(err);
-            return proc.ExitCode;
+            var command = $"LINK /NOLOGO {GetOutputKindFlag()} /MACHINE:{GetTargetMachineId()} /OUT:\"{outputPath}\" {files}";
+            // Run it
+            return InvokeWithEnvironment(command);
         }
 
         private string GetOutputKindFlag() => OutputKind switch
         {
             OutputKind.Executable => string.Empty,
             OutputKind.DynamicLibrary => "/DLL",
-            _ => throw new NotImplementedException(),
+            _ => throw new NotSupportedException($"The output kind {OutputKind} is not supported by LINK!"),
         };
     }
 }

@@ -20,11 +20,6 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
                 yield return Archiver;
             }
         }
-        public TargetTriplet TargetTriplet 
-        { 
-            get => Assembler.TargetTriplet; 
-            set { foreach (var tool in Tools) tool.TargetTriplet = value; }
-        }
         public IList<string> SourceFiles { get; } = new List<string>();
         public OutputKind OutputKind { get => Linker.OutputKind; set => Linker.OutputKind = value; }
 

@@ -10,8 +10,11 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
     /// <summary>
     /// Base class for MSVC tools that require the environment set up by vcvarsall.
     /// </summary>
-    public class MsvcToolBase
+    public abstract class MsvcToolBase : ITool
     {
+        public abstract TargetTriplet TargetTriplet { get; set; }
+        public abstract IList<string> SourceFiles { get; }
+
         private string vcVarsAllPath;
 
         /// <summary>
@@ -23,16 +26,9 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
             this.vcVarsAllPath = vcVarsAllPath;
         }
 
-        /// <summary>
-        /// Creates a <see cref="Process"/> that will have automatically have it's environment set up
-        /// by 'vcvarsall'.
-        /// </summary>
-        /// <param name="command">The command to execute.</param>
-        /// <param name="targetTriplet">The <see cref="TargetTriplet"/> the tool should be set up for.</param>
-        /// <returns>The <see cref="Process"/> that can be started to execute the command.</returns>
-        protected Process InvokeWithEnvironment(string command, TargetTriplet targetTriplet)
+        protected int InvokeWithEnvironment(string command)
         {
-            var archId = GetArchId(targetTriplet);
+            var archId = GetTargetMachineId();
             var proc = new Process
             {
                 StartInfo = new ProcessStartInfo
@@ -43,13 +39,19 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
                     CreateNoWindow = true,
                 }
             };
-            return proc;
+            proc.Start();
+            var err = proc.StandardError.ReadToEnd();
+            proc.WaitForExit();
+            Console.Error.Write(err);
+            return proc.ExitCode;
         }
 
-        private string GetArchId(TargetTriplet targetTriplet) => targetTriplet.CpuFamily switch
+        protected string GetTargetMachineId() => TargetTriplet.CpuFamily switch
         {
             CpuFamily.X86 => "x86",
-            _ => throw new NotImplementedException(),
+            _ => throw new NotSupportedException($"The CPU {TargetTriplet.CpuFamily} is not supported by MSVC tools!"),
         };
+
+        public abstract int Execute(string outputPath);
     }
 }

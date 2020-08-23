@@ -11,8 +11,8 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
     /// </summary>
     public class MsvcAssembler : MsvcToolBase, IAssembler
     {
-        public TargetTriplet TargetTriplet { get; set; }
-        public IList<string> SourceFiles { get; } = new List<string>();
+        public override TargetTriplet TargetTriplet { get; set; }
+        public override IList<string> SourceFiles { get; } = new List<string>();
         public OutputKind OutputKind { get; set; } = OutputKind.Object;
 
         public MsvcAssembler(string vcVarsAllPath) 
@@ -20,7 +20,7 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
         {
         }
 
-        public int Execute(string outputPath)
+        public override int Execute(string outputPath)
         {
             throw new NotImplementedException();
         }
