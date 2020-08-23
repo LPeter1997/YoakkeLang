@@ -22,7 +22,14 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
 
         public override int Execute(string outputPath)
         {
-            throw new NotImplementedException();
+            // Escape file names
+            var files = string.Join(' ', SourceFiles.Select(f => $"\"{f}\""));
+            // The actual file name to invoke
+            var ml = TargetTriplet.CpuFamily == CpuFamily.X86 ? "ML" : "ML64";
+            // Construct the command
+            var command = $"{ml} /NOLOGO /OUT:\"{outputPath}\" {files}";
+            // Run it
+            return InvokeWithEnvironment(command);
         }
     }
 }

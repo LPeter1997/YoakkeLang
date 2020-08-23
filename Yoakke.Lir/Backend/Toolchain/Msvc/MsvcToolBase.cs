@@ -35,14 +35,23 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
                 {
                     FileName = "cmd.exe",
                     Arguments = $"/C (\"{vcVarsAllPath}\" {archId}) && ({command})",
+                    RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     CreateNoWindow = true,
                 }
             };
+            var outputBuilder = new StringBuilder();
+            proc.OutputDataReceived += (_, e) => outputBuilder.AppendLine(e.Data);
+            proc.ErrorDataReceived += (_, e) => outputBuilder.AppendLine(e.Data);
             proc.Start();
-            var err = proc.StandardError.ReadToEnd();
+            proc.BeginOutputReadLine();
+            proc.BeginErrorReadLine();
             proc.WaitForExit();
-            Console.Error.Write(err);
+            if (proc.ExitCode != 0)
+            {
+                Console.Error.WriteLine($"Command '{command}' failed to run!");
+                Console.Error.Write(outputBuilder);
+            }
             return proc.ExitCode;
         }
 
