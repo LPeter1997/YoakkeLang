@@ -1,6 +1,8 @@
-﻿using Yoakke.Lir;
+﻿using System.Diagnostics;
+using Yoakke.Lir;
 using Yoakke.Lir.Backend;
 using Yoakke.Lir.Backend.Backends;
+using Yoakke.Lir.Backend.Toolchain.Msvc;
 using Yoakke.Lir.Instructions;
 using Yoakke.Lir.Runtime;
 using Yoakke.Lir.Types;
@@ -32,7 +34,7 @@ namespace Yoakke.Compiler
             {
                 CommandLineApplication.Execute<Compiler>(args);
             }
-#else
+#elif false
             var proc = new Proc("main");
             proc.Visibility = Visibility.Public;
             proc.Return = Type.I32;
@@ -55,6 +57,21 @@ namespace Yoakke.Compiler
             var vm = new VirtualMachine(asm);
             var res = vm.Execute("main");
             System.Console.WriteLine($"VM result = {res}");
+#else
+            var tt = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
+            var tcLocator = new MsvcToolchainLocator();
+            if (tcLocator.TryLocate(out var tc))
+            {
+                // TODO: Eww
+                Debug.Assert(tc != null);
+                Debug.Assert(tc.Linker != null);
+                tc.Linker.TargetTriplet = tt;
+
+                tc.Linker.Files.Add("C:/TMP/hello.o");
+                tc.Linker.Files.Add("C:/TMP/globals.obj");
+                var err = tc.Linker.Link("C:/TMP/reee.exe");
+                System.Console.WriteLine($"Linker exit code: {err}");
+            }
 #endif
         }
     }

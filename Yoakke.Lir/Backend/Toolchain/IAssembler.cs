@@ -21,6 +21,7 @@ namespace Yoakke.Lir.Backend.Toolchain
         /// </summary>
         /// <param name="sourcePath">The source file to assemble.</param>
         /// <param name="outputPath">The output path of the result.</param>
-        public void Link(string sourcePath, string outputPath);
+        /// <returns>The error code. 0 if succeeded.</returns>
+        public int Assemble(string sourcePath, string outputPath);
     }
 }

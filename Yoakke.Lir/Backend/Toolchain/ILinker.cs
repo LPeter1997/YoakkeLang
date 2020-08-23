@@ -28,6 +28,7 @@ namespace Yoakke.Lir.Backend.Toolchain
         /// Links the given <see cref="Files"/>.
         /// </summary>
         /// <param name="outputPath">The output path of the result.</param>
-        public void Link(string outputPath);
+        /// <returns>The error code. 0 if succeeded.</returns>
+        public int Link(string outputPath);
     }
 }
