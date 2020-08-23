@@ -22,6 +22,12 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
 
         public override int Execute(string outputPath)
         {
+            if (OutputKind == OutputKind.Object && SourceFiles.Count > 1)
+            {
+                // TODO: Better error
+                // We can't merge objs on windows
+                throw new NotSupportedException();
+            }
             // Escape file names
             var files = string.Join(' ', SourceFiles.Select(f => $"\"{f}\""));
             // The actual file name to invoke
