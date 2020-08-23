@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Yoakke.Lir.Instructions;
@@ -44,6 +45,21 @@ namespace Yoakke.Lir.Runtime
         // a Dictionary from label to address.
         private void CompileAssembly()
         {
+            // Collect object file references for compilation
+            var objFiles = new HashSet<string>();
+            foreach (var ext in Assembly.Externals)
+            {
+                // TODO: A more sophisticated way? Or factor it out at least?
+                if (ext.Path.EndsWith(".o") || ext.Path.EndsWith(".obj"))
+                {
+                    objFiles.Add(ext.Path);
+                }
+            }
+            // Link the object files
+            // TODO
+            // Collect externals
+            // TODO
+            // Flatten code structure
             code.Clear();
             addresses.Clear();
             foreach (var proc in Assembly.Procedures)

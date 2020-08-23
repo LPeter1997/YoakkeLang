@@ -37,7 +37,7 @@ namespace Yoakke.Compiler
             proc.Return = Type.I32;
             var asm = new Assembly();
             asm.Procedures.Add(proc);
-            var someNumber = new Extern("some_number", Type.I32, "C:/TMP/globals.o");
+            var someNumber = new Extern("some_number", Type.I32, "C:/TMP/globals.obj");
             asm.Externals.Add(someNumber);
             proc.BasicBlocks[0].Instructions.Add(new Instr.Ret(new Value.Extern(someNumber)));
 
