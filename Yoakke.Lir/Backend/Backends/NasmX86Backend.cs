@@ -12,8 +12,6 @@ namespace Yoakke.Lir.Backend.Backends
     /// </summary>
     public class NasmX86Backend : IBackend
     {
-        public Toolchain Toolchain { get; set; }
-
         private TargetTriplet targetTriplet;
         private StringBuilder globalsCode = new StringBuilder();
         private StringBuilder textCode = new StringBuilder();
@@ -24,15 +22,6 @@ namespace Yoakke.Lir.Backend.Backends
             CpuFamily.X86 => 4,
             _ => throw new NotImplementedException(),
         };
-
-        /// <summary>
-        /// Initializes a new <see cref="NasmX86Backend"/>.
-        /// </summary>
-        /// <param name="toolchain">The <see cref="Toolchain"/> to be used by the NASM backend.</param>
-        public NasmX86Backend(Toolchain toolchain)
-        {
-            Toolchain = toolchain;
-        }
 
         public bool IsSupported(TargetTriplet t) =>
             t.CpuFamily == CpuFamily.X86 && t.OperatingSystem == OperatingSystem.Windows;

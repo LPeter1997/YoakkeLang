@@ -1,5 +1,6 @@
 ﻿using Yoakke.Lir;
 using Yoakke.Lir.Backend;
+using Yoakke.Lir.Backend.Backends;
 using Yoakke.Lir.Instructions;
 using Yoakke.Lir.Runtime;
 using Yoakke.Lir.Types;
@@ -45,10 +46,7 @@ namespace Yoakke.Compiler
             System.Console.WriteLine("\n\n");
 
             var tt = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
-            var tc = new Toolchain
-            {
-            };
-            var be = new Lir.Backend.Backends.NasmX86Backend(tc);
+            var be = new NasmX86Backend();
             var code = be.Compile(tt, asm);
 
             System.Console.WriteLine(code);

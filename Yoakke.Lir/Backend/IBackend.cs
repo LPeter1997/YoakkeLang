@@ -6,11 +6,6 @@
     public interface IBackend
     {
         /// <summary>
-        /// The toolchain used by this backend.
-        /// </summary>
-        public Toolchain Toolchain { get; set; }
-
-        /// <summary>
         /// Checks, if the given <see cref="TargetTriplet"/> is supported by this backend.
         /// </summary>
         /// <param name="targetTriplet"></param>
