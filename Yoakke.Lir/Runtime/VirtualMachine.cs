@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Yoakke.Lir.Instructions;
 using Yoakke.Lir.Values;
@@ -56,6 +60,23 @@ namespace Yoakke.Lir.Runtime
                 }
             }
             // Link the object files
+            var linker = GetLinker();
+            var link = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "LINK",
+                    Arguments = $"/NOLOGO /OUT:objs.dll /DLL {string.Join(' ', objFiles)}",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    CreateNoWindow = true,
+                }
+            };
+            link.Start();
+            var output = link.StandardOutput.ReadToEnd();
+            link.WaitForExit();
+            Console.WriteLine(output);
+            Debug.Assert(link.ExitCode == 0);
             // TODO
             // Collect externals
             // TODO
@@ -70,6 +91,63 @@ namespace Yoakke.Lir.Runtime
                     addresses[bb] = code.Count;
                     foreach (var i in bb.Instructions) code.Add(i);
                 }
+            }
+        }
+
+        // TODO: Factor this out, we'd need some automatic toolchain detection published somewhere anyway
+        private static string GetLinker()
+        {
+            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
+            {
+                var pfx86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
+                var vswherePath = Path.Combine(pfx86, "Microsoft Visual Studio", "Installer", "vswhere.exe");
+                // TODO: Maybe we can require MSVC with the requires parameter?
+                var proc = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        
+                        FileName = vswherePath,
+                        Arguments = "-format json",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        CreateNoWindow = true,
+                    }
+                };
+                proc.Start();
+                var output = proc.StandardOutput.ReadToEnd();
+                proc.WaitForExit();
+                // TODO: We could be more sophisticated with this
+                var vsInstall = JsonDocument.Parse(output).RootElement[0].GetProperty("installationPath").ToString();
+                Debug.Assert(vsInstall != null);
+                var msvcToolsPath = Path.Combine(vsInstall, "VC", "Tools", "MSVC");
+                var msvcToolPathVer = Directory.GetDirectories(msvcToolsPath)[0];
+                // TODO: Don't hardcode these maybe
+                var linkerPath = Path.Combine(msvcToolPathVer, "bin", "Hostx64", "x86", "link.exe");
+                // TODO: This doesn't belong here! Setting up environment should be a global process if we use
+                // MSVC toolchains!
+                var vcvarsall = Path.Combine(vsInstall, "VC", "Auxiliary", "Build", "vcvarsall.bat");
+                var proc2 = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+
+                        FileName = vcvarsall,
+                        Arguments = "x86",
+                        //RedirectStandardOutput = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                    }
+                };
+                proc2.Start();
+                //var output2 = proc2.StandardOutput.ReadToEnd();
+                //Console.WriteLine(output2);
+                proc2.WaitForExit();
+                return linkerPath;
+            }
+            else
+            {
+                throw new NotImplementedException();
             }
         }
 
