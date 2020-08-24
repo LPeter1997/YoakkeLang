@@ -34,10 +34,11 @@ namespace Yoakke.Lir.Backend.Backends
 
             // Stitch code together
             return new StringBuilder()
+                .AppendLine(".386")
+                .AppendLine(".MODEL flat")
                 .Append(globalsCode)
-                .AppendLine("_text SEGMENT")
+                .AppendLine(".CODE")
                 .Append(textCode)
-                .AppendLine("_text ENDS")
                 .AppendLine("END")
                 .ToString();
         }

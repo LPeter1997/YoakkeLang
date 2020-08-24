@@ -14,6 +14,7 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
         public override TargetTriplet TargetTriplet { get; set; }
         public override IList<string> SourceFiles { get; } = new List<string>();
         public OutputKind OutputKind { get; set; } = OutputKind.Executable;
+        public string EntryPoint { get; set; } = "main";
 
         public MsvcLinker(string vcVarsAllPath) 
             : base(vcVarsAllPath)
@@ -25,7 +26,7 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
             // Escape file names
             var files = string.Join(' ', SourceFiles.Select(f => $"\"{f}\""));
             // Construct the command
-            var command = $"LINK /NOLOGO {GetOutputKindFlag()} /MACHINE:{GetTargetMachineId()} /OUT:\"{outputPath}\" {files}";
+            var command = $"LINK /NOLOGO {GetOutputKindFlag()} /MACHINE:{GetTargetMachineId()} /ENTRY:\"{EntryPoint}\" /OUT:\"{outputPath}\" {files}";
             // Run it
             return InvokeWithEnvironment(command);
         }

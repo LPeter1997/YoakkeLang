@@ -51,5 +51,15 @@ namespace Yoakke.Lir.Backend.Toolchain
         /// <param name="outputPath">The resulting binary's path.</param>
         /// <returns>The error code. 0 if succeeded.</returns>
         public int Compile(string outputPath);
+
+        /// <summary>
+        /// Adds an intermediate object file to the compilation.
+        /// </summary>
+        /// <param name="objPath">The path to the object file.</param>
+        public void AddObjectFile(string objPath)
+        {
+            Linker.SourceFiles.Add(objPath);
+            Archiver.SourceFiles.Add(objPath);
+        }
     }
 }

@@ -67,22 +67,10 @@ namespace Yoakke.Compiler
 
                 tc.TargetTriplet = tt;
 
-                /*
-                // Try linker
-                tc.Linker.SourceFiles.Add("C:/TMP/hello.o");
-                tc.Linker.SourceFiles.Add("C:/TMP/globals.obj");
-                tc.Linker.OutputKind = OutputKind.DynamicLibrary;
-                var err = tc.Linker.Link("C:/TMP/reee.dll");
-                System.Console.WriteLine($"Linker exit code: {err}");
-                // Try the archiver
-                tc.Archiver.SourceFiles.Add("C:/TMP/globals.obj");
-                err = tc.Archiver.Archive("C:/TMP/testlib.lib");
-                System.Console.WriteLine($"Archiver exit code: {err}");
-                */
-                // Try the assembler
-                tc.Assembler.SourceFiles.Add("C:/TMP/hello.asm");
-                var err = tc.Assembler.Assemble("C:/TMP/oof.o");
-                System.Console.WriteLine($"Assembler exit code: {err}");
+                tc.AddObjectFile("C:/TMP/globals.obj");
+                tc.SourceFiles.Add("C:/TMP/hello.asm");
+                var err = tc.Compile("C:/TMP/globals.exe");
+                System.Console.WriteLine($"Toolchain exit code: {err}");
             }
 #endif
         }

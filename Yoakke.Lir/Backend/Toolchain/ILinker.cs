@@ -15,6 +15,10 @@ namespace Yoakke.Lir.Backend.Toolchain
         /// The <see cref="OutputKind"/> the linker needs to produce.
         /// </summary>
         public OutputKind OutputKind { get; set; }
+        /// <summary>
+        /// The entry point of the binary.
+        /// </summary>
+        public string EntryPoint { get; set; }
 
         /// <summary>
         /// Links the given source files.
