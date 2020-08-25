@@ -59,13 +59,13 @@ namespace Yoakke.Lir.Runtime
             // We need to compile every external binary to a DLL
             // TODO: We'd need to target what this application _is_
             // If this application is x86, we need x86, ...
-            var linker = Toolchains.All().First().Archi;
+            var linker = Toolchains.All().First().Linker;
             var externalBinaries = Assembly.BinaryReferences.ToList();
             foreach (var ext in externalBinaries) linker.SourceFiles.Add(ext);
             linker.OutputKind = OutputKind.DynamicLibrary;
             // NOTE: Don't we need to delete this when the VM dies?
             //var linkedBinariesPath = Path.GetTempFileName();
-            var linkedBinariesPath = "C:/TMP/vm_test.lib";
+            var linkedBinariesPath = "C:/TMP/vm_test.dll";
             if (linker.Link(linkedBinariesPath) != 0)
             {
                 // TODO
@@ -77,7 +77,13 @@ namespace Yoakke.Lir.Runtime
             externals.Clear();
             foreach (var ext in Assembly.Externals)
             {
-                externals[ext] = NativeLibrary.GetExport(linkedBinaries, $"_{ext.Name}");
+                externals[ext] = NativeLibrary.GetExport(linkedBinaries, $"{ext.Name}");
+                unsafe
+                {
+                    IntPtr p = externals[ext];
+                    int* ip = (int*)p.ToPointer();
+                    var iv = *ip;
+                }
             }
             // Flatten code structure
             code.Clear();
