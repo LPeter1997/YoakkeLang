@@ -8,6 +8,8 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Yoakke.Lir.Backend;
+using Yoakke.Lir.Backend.Toolchain;
 using Yoakke.Lir.Instructions;
 using Yoakke.Lir.Values;
 using Type = Yoakke.Lir.Types.Type;
@@ -24,11 +26,15 @@ namespace Yoakke.Lir.Runtime
         /// </summary>
         public readonly Assembly Assembly;
 
+        // Code
+        private IList<Instr> code;
+        private IDictionary<object, int> addresses;
+        private IDictionary<Extern, IntPtr> externals;
+
+        // Runtime
         private Stack<StackFrame> callStack = new Stack<StackFrame>();
         // TODO: Change this to void constant later
         private Value returnValue = Type.I32.NewValue(0);
-        private IList<Instr> code;
-        private IDictionary<object, int> addresses;
         private int instructionPointer;
 
         /// <summary>
@@ -40,6 +46,7 @@ namespace Yoakke.Lir.Runtime
             Assembly = assembly;
             code = new List<Instr>();
             addresses = new Dictionary<object, int>();
+            externals = new Dictionary<Extern, IntPtr>();
             CompileAssembly();
         }
 
@@ -49,20 +56,29 @@ namespace Yoakke.Lir.Runtime
         // a Dictionary from label to address.
         private void CompileAssembly()
         {
-            // Collect object file references for compilation
-            var objFiles = new HashSet<string>();
+            // We need to compile every external binary to a DLL
+            // TODO: We'd need to target what this application _is_
+            // If this application is x86, we need x86, ...
+            var linker = Toolchains.All().First().Archi;
+            var externalBinaries = Assembly.BinaryReferences.ToList();
+            foreach (var ext in externalBinaries) linker.SourceFiles.Add(ext);
+            linker.OutputKind = OutputKind.DynamicLibrary;
+            // NOTE: Don't we need to delete this when the VM dies?
+            //var linkedBinariesPath = Path.GetTempFileName();
+            var linkedBinariesPath = "C:/TMP/vm_test.lib";
+            if (linker.Link(linkedBinariesPath) != 0)
+            {
+                // TODO
+                throw new NotImplementedException();
+            }
+            // Collect externals
+            // NOTE: Don't we need to free this when the VM dies?
+            var linkedBinaries = NativeLibrary.Load(linkedBinariesPath);
+            externals.Clear();
             foreach (var ext in Assembly.Externals)
             {
-                // TODO: A more sophisticated way? Or factor it out at least?
-                if (ext.Path.EndsWith(".o") || ext.Path.EndsWith(".obj"))
-                {
-                    objFiles.Add(ext.Path);
-                }
+                externals[ext] = NativeLibrary.GetExport(linkedBinaries, $"_{ext.Name}");
             }
-            // Link the object files
-            // TODO
-            // Collect externals
-            // TODO
             // Flatten code structure
             code.Clear();
             addresses.Clear();
@@ -74,63 +90,6 @@ namespace Yoakke.Lir.Runtime
                     addresses[bb] = code.Count;
                     foreach (var i in bb.Instructions) code.Add(i);
                 }
-            }
-        }
-
-        // TODO: Factor this out, we'd need some automatic toolchain detection published somewhere anyway
-        private static string GetLinker()
-        {
-            if (Environment.OSVersion.Platform == PlatformID.Win32NT)
-            {
-                var pfx86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
-                var vswherePath = Path.Combine(pfx86, "Microsoft Visual Studio", "Installer", "vswhere.exe");
-                // TODO: Maybe we can require MSVC with the requires parameter?
-                var proc = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        
-                        FileName = vswherePath,
-                        Arguments = "-format json",
-                        UseShellExecute = false,
-                        RedirectStandardOutput = true,
-                        CreateNoWindow = true,
-                    }
-                };
-                proc.Start();
-                var output = proc.StandardOutput.ReadToEnd();
-                proc.WaitForExit();
-                // TODO: We could be more sophisticated with this
-                var vsInstall = JsonDocument.Parse(output).RootElement[0].GetProperty("installationPath").ToString();
-                Debug.Assert(vsInstall != null);
-                var msvcToolsPath = Path.Combine(vsInstall, "VC", "Tools", "MSVC");
-                var msvcToolPathVer = Directory.GetDirectories(msvcToolsPath)[0];
-                // TODO: Don't hardcode these maybe
-                var linkerPath = Path.Combine(msvcToolPathVer, "bin", "Hostx64", "x86", "link.exe");
-                // TODO: This doesn't belong here! Setting up environment should be a global process if we use
-                // MSVC toolchains!
-                var vcvarsall = Path.Combine(vsInstall, "VC", "Auxiliary", "Build", "vcvarsall.bat");
-                var proc2 = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-
-                        FileName = vcvarsall,
-                        Arguments = "x86",
-                        //RedirectStandardOutput = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true,
-                    }
-                };
-                proc2.Start();
-                //var output2 = proc2.StandardOutput.ReadToEnd();
-                //Console.WriteLine(output2);
-                proc2.WaitForExit();
-                return linkerPath;
-            }
-            else
-            {
-                throw new NotImplementedException();
             }
         }
 
@@ -177,6 +136,10 @@ namespace Yoakke.Lir.Runtime
         }
 
         // TODO: Unwrap if register
-        private Value Unwrap(Value value) => value;
+        private Value Unwrap(Value value) => value switch
+        {
+            Value.Extern e => throw new NotImplementedException(),
+            _ => value,
+        };
     }
 }

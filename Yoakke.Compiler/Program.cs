@@ -51,10 +51,9 @@ namespace Yoakke.Compiler
             System.Console.WriteLine(asm);
             System.Console.WriteLine("\n\n");
 
-            // TODO: Execution
-            // var vm = new VirtualMachine(asm);
-            // var res = vm.Execute("main");
-            // System.Console.WriteLine($"VM result = {res}");
+            var vm = new VirtualMachine(asm);
+            var res = vm.Execute("main");
+            System.Console.WriteLine($"VM result = {res}");
 
             // Compile it to backend
             var tt = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);

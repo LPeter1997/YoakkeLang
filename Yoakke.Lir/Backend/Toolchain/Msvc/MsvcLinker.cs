@@ -26,7 +26,8 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
             // Escape file names
             var files = string.Join(' ', SourceFiles.Select(f => $"\"{f}\""));
             // Construct the command
-            var command = $"LINK /NOLOGO {GetOutputKindFlag()} /MACHINE:{GetTargetMachineId()} /ENTRY:\"{EntryPoint}\" /OUT:\"{outputPath}\" {files}";
+            var entry = OutputKind == OutputKind.Executable ? $"/ENTRY:\"{EntryPoint}\"" : string.Empty;
+            var command = $"LINK /NOLOGO {GetOutputKindFlag()} /MACHINE:{GetTargetMachineId()} {entry} /OUT:\"{outputPath}\" {files}";
             // Run it
             return InvokeWithEnvironment(command);
         }
