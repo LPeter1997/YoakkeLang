@@ -13,21 +13,13 @@ namespace Yoakke.Lir.Backend.Backends
     /// </summary>
     public class MasmX86Backend : IBackend
     {
-        private TargetTriplet targetTriplet;
+        public TargetTriplet TargetTriplet { get; set; }
+
         private StringBuilder globalsCode = new StringBuilder();
         private StringBuilder textCode = new StringBuilder();
 
-        public bool IsSupported(TargetTriplet t) =>
-            t.CpuFamily == CpuFamily.X86 && t.OperatingSystem == OperatingSystem.Windows;
-
-        public string Compile(TargetTriplet targetTriplet, Assembly assembly)
+        public string Compile(Assembly assembly)
         {
-            if (!IsSupported(targetTriplet))
-            {
-                throw new NotSupportedException("The given target triplet is not supported by this backend!");
-            }
-            this.targetTriplet = targetTriplet;
-
             globalsCode.Clear();
             textCode.Clear();
             CompileAssembly(assembly);
@@ -117,13 +109,13 @@ namespace Yoakke.Lir.Backend.Backends
 
         private string GetProcName(Proc proc) =>
                // On Windows, Cdecl will cause a '_' prefix
-               targetTriplet.OperatingSystem == OperatingSystem.Windows
+               TargetTriplet.OperatingSystem == OperatingSystem.Windows
             && proc.CallConv == CallConv.Cdecl
                ? $"_{proc.Name}" : proc.Name;
 
         private string GetExternName(Extern ext) =>
             // NOTE: We need a '_' prefix here too
-            targetTriplet.OperatingSystem == OperatingSystem.Windows
+            TargetTriplet.OperatingSystem == OperatingSystem.Windows
             ? $"_{ext.Name}" : ext.Name;
 
         private string TypeToString(Type type) => type switch

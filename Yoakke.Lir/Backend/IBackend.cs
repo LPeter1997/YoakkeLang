@@ -1,4 +1,6 @@
-﻿namespace Yoakke.Lir.Backend
+﻿using System.IO;
+
+namespace Yoakke.Lir.Backend
 {
     /// <summary>
     /// Interface for every IR backend, that compiles the IR to some other representation.
@@ -6,18 +8,23 @@
     public interface IBackend
     {
         /// <summary>
-        /// Checks, if the given <see cref="TargetTriplet"/> is supported by this backend.
+        /// The <see cref="TargetTriplet"/> of the backend.
         /// </summary>
-        /// <param name="targetTriplet"></param>
-        /// <returns></returns>
-        public bool IsSupported(TargetTriplet targetTriplet);
+        public TargetTriplet TargetTriplet { get; set; }
 
         /// <summary>
         /// Compiles the given <see cref="Assembly"/> to the backend's representation.
         /// </summary>
-        /// <param name="targetTriplet">The target to compile to.</param>
         /// <param name="assembly">The <see cref="Assembly"/> to compile.</param>
-        /// <returns>The backend's code representation.</returns>
-        public string Compile(TargetTriplet targetTriplet, Assembly assembly);
+        /// <returns>The string representation of the backend.</returns>
+        public string Compile(Assembly assembly);
+
+        /// <summary>
+        /// Compiles the given <see cref="Assembly"/> to the backend's representation.
+        /// </summary>
+        /// <param name="assembly">The <see cref="Assembly"/> to compile.</param>
+        /// <param name="outputPath">The path of the output file.</param>
+        public void Compile(Assembly assembly, string outputPath) =>
+            File.WriteAllText(outputPath, Compile(assembly));
     }
 }

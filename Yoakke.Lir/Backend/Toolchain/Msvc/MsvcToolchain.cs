@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Yoakke.Lir.Backend.Backends;
 
 namespace Yoakke.Lir.Backend.Toolchain.Msvc
 {
@@ -12,6 +13,7 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
     /// </summary>
     public class MsvcToolchain : IToolchain
     {
+        public IBackend Backend { get; } = new MasmX86Backend();
         public IEnumerable<ITool> Tools
         {
             get
@@ -21,8 +23,9 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
                 yield return Archiver;
             }
         }
-        public IList<string> SourceFiles { get; } = new List<string>();
+        public IList<Assembly> Assemblies { get; } = new List<Assembly>();
         public OutputKind OutputKind { get => Linker.OutputKind; set => Linker.OutputKind = value; }
+        public string BuildDirectory { get; set; } = ".";
 
         public readonly IAssembler Assembler;
         public readonly ILinker Linker;
@@ -35,11 +38,20 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
             Archiver = new MsvcArchiver(vcVarsAllPath);
         }
 
+        public bool IsSupported(TargetTriplet t) =>
+            t.CpuFamily == CpuFamily.X86 && t.OperatingSystem == OperatingSystem.Windows;
+
         public int Compile(string outputPath)
         {
-            // First we assemble each file
+            // We translate the IR assemblies to the given backend
+            var backendFiles = new List<string>();
+            foreach (var asm in Assemblies)
+            {
+                var outFile = Path.Combine(BuildDirectory, $"{asm.Name}.lir");
+            }
+            // Then we assemble each file
             var assembledFiles = new List<string>();
-            foreach (var file in SourceFiles)
+            foreach (var file in backendFiles)
             {
                 var outFile = Path.ChangeExtension(file, ".o");
                 var err = Assembler.Assemble(file, outFile);
