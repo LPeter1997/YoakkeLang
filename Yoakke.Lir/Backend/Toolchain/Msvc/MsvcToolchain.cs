@@ -44,6 +44,7 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
         public int Compile(string outputPath)
         {
             Directory.CreateDirectory(BuildDirectory);
+            if (Assemblies.Count == 0) return 0;
             // We translate the IR assemblies to the given backend
             var backendFiles = new List<string>();
             foreach (var asm in Assemblies)
