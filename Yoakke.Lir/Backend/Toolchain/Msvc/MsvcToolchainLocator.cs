@@ -14,67 +14,33 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
     /// </summary>
     public class MsvcToolchainLocator : IToolchainLocator
     {
-        public bool TryLocate(out IToolchain? toolchain)
+        public IEnumerable<IToolchain> Locate()
         {
-            toolchain = null;
             // First we need to call vswhere, as it can tell us Visual C++ tools installation
             // We construct the expected path for VsWhere
             var vsWherePath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
                 "Microsoft Visual Studio", "Installer", "vswhere.exe");
             // If there's no vswhere, there's probably no valid installation
-            if (!File.Exists(vsWherePath)) return false;
+            if (!File.Exists(vsWherePath)) yield break;
             // There is vswhere, call it and get the list of results
             var installations = ExecuteVsWhere(vsWherePath);
             // If no match, return
-            if (installations == null) return false;
+            if (installations == null) yield break;
             // Go through each installation, pick the first one that finds the assembler and linker
             foreach (var installation in installations.RootElement.EnumerateArray())
             {
                 var installationPath = installation.GetProperty("installationPath").ToString();
+                var installationVersion = installation.GetProperty("displayName").ToString();
                 Debug.Assert(installationPath != null);
+                Debug.Assert(installationVersion != null);
+                installationVersion = installationVersion.ToLower().Replace(' ', '-');
                 // Get vcvarsall
                 var vcvarsallPath = Path.Combine(installationPath, "VC", "Auxiliary", "Build", "vcvarsall.bat");
                 if (!File.Exists(vcvarsallPath)) continue;
                 // We have vcvarsall we assume everything else is present
-                toolchain = new MsvcToolchain(vcvarsallPath);
-                return true;
+                yield return new MsvcToolchain(installationVersion, vcvarsallPath);
             }
-            // No matching installation
-            return false;
-        }
-
-        public bool TryLocateAssembler(out IAssembler? assembler)
-        {
-            if (TryLocate(out var tc))
-            {
-                assembler = (tc as MsvcToolchain)?.Assembler;
-                return true;
-            }
-            assembler = null;
-            return false;
-        }
-
-        public bool TryLocateLinker(out ILinker? linker)
-        {
-            if (TryLocate(out var tc))
-            {
-                linker = (tc as MsvcToolchain)?.Linker;
-                return true;
-            }
-            linker = null;
-            return false;
-        }
-
-        public bool TryLocateArchiver(out IArchiver? archiver)
-        {
-            if (TryLocate(out var tc))
-            {
-                archiver = (tc as MsvcToolchain)?.Archiver;
-                return true;
-            }
-            archiver = null;
-            return false;
         }
 
         private static JsonDocument? ExecuteVsWhere(string path)

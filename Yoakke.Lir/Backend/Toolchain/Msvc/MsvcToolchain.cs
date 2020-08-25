@@ -31,8 +31,11 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
         public readonly ILinker Linker;
         public readonly IArchiver Archiver;
 
-        public MsvcToolchain(string vcVarsAllPath)
+        private string version;
+
+        public MsvcToolchain(string version, string vcVarsAllPath)
         {
+            this.version = version;
             Assembler = new MsvcAssembler(vcVarsAllPath);
             Linker = new MsvcLinker(vcVarsAllPath);
             Archiver = new MsvcArchiver(vcVarsAllPath);
@@ -76,5 +79,7 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
             }
             return 0;
         }
+
+        public override string ToString() => $"msvc-{version}";
     }
 }

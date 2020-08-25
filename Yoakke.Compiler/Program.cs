@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Linq;
 using Yoakke.Lir;
 using Yoakke.Lir.Backend;
 using Yoakke.Lir.Backend.Backends;
@@ -57,19 +58,15 @@ namespace Yoakke.Compiler
             // Compile it to backend
             var tt = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
             var tcLocator = new MsvcToolchainLocator();
-            if (tcLocator.TryLocate(out var tc))
-            {
-                // TODO: Eww
-                Debug.Assert(tc != null);
+            var tc = tcLocator.Locate().First();
 
-                tc.Assemblies.Add(asm);
-                tc.BuildDirectory = "C:/TMP/test_app_build";
-                tc.TargetTriplet = tt;
+            tc.Assemblies.Add(asm);
+            tc.BuildDirectory = "C:/TMP/test_app_build";
+            tc.TargetTriplet = tt;
 
-                tc.AddObjectFile("C:/TMP/globals.obj");
-                var err = tc.Compile("C:/TMP/globals.exe");
-                System.Console.WriteLine($"Toolchain exit code: {err}");
-            }
+            tc.AddObjectFile("C:/TMP/globals.obj");
+            var err = tc.Compile("C:/TMP/globals.exe");
+            System.Console.WriteLine($"Toolchain exit code: {err}");
 #endif
         }
     }
