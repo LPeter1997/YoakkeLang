@@ -34,30 +34,27 @@ namespace Yoakke.Compiler
             {
                 CommandLineApplication.Execute<Compiler>(args);
             }
-#elif false
+#else
+            // First we build the IR code
             var proc = new Proc("main");
             proc.Visibility = Visibility.Public;
             proc.Return = Type.I32;
-            var asm = new Assembly();
+            var asm = new Assembly("test_app");
             asm.Procedures.Add(proc);
             var someNumber = new Extern("some_number", Type.I32, "C:/TMP/globals.obj");
             asm.Externals.Add(someNumber);
             proc.BasicBlocks[0].Instructions.Add(new Instr.Ret(new Value.Extern(someNumber)));
 
+            // Dump IR code
             System.Console.WriteLine(asm);
             System.Console.WriteLine("\n\n");
 
-            var tt = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
-            var be = new MasmX86Backend();
-            var code = be.Compile(tt, asm);
+            // TODO: Execution
+            // var vm = new VirtualMachine(asm);
+            // var res = vm.Execute("main");
+            // System.Console.WriteLine($"VM result = {res}");
 
-            System.Console.WriteLine(code);
-            System.Console.WriteLine("\n\n");
-
-            //var vm = new VirtualMachine(asm);
-            //var res = vm.Execute("main");
-            //System.Console.WriteLine($"VM result = {res}");
-#else
+            // Compile it to backend
             var tt = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
             var tcLocator = new MsvcToolchainLocator();
             if (tcLocator.TryLocate(out var tc))
@@ -65,10 +62,11 @@ namespace Yoakke.Compiler
                 // TODO: Eww
                 Debug.Assert(tc != null);
 
+                tc.Assemblies.Add(asm);
+                tc.BuildDirectory = "C:/TMP/test_app_build";
                 tc.TargetTriplet = tt;
 
                 tc.AddObjectFile("C:/TMP/globals.obj");
-                tc.SourceFiles.Add("C:/TMP/hello.asm");
                 var err = tc.Compile("C:/TMP/globals.exe");
                 System.Console.WriteLine($"Toolchain exit code: {err}");
             }

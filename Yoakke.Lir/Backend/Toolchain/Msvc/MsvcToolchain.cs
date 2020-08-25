@@ -43,11 +43,14 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
 
         public int Compile(string outputPath)
         {
+            Directory.CreateDirectory(BuildDirectory);
             // We translate the IR assemblies to the given backend
             var backendFiles = new List<string>();
             foreach (var asm in Assemblies)
             {
                 var outFile = Path.Combine(BuildDirectory, $"{asm.Name}.lir");
+                Backend.Compile(asm, outFile);
+                backendFiles.Add(outFile);
             }
             // Then we assemble each file
             var assembledFiles = new List<string>();
