@@ -3,6 +3,7 @@ using System.Linq;
 using Yoakke.Lir;
 using Yoakke.Lir.Backend;
 using Yoakke.Lir.Backend.Backends;
+using Yoakke.Lir.Backend.Toolchain;
 using Yoakke.Lir.Backend.Toolchain.Msvc;
 using Yoakke.Lir.Instructions;
 using Yoakke.Lir.Runtime;
@@ -57,8 +58,7 @@ namespace Yoakke.Compiler
 
             // Compile it to backend
             var tt = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
-            var tcLocator = new MsvcToolchainLocator();
-            var tc = tcLocator.Locate().First();
+            var tc = Toolchains.Supporting(tt).First();
 
             tc.Assemblies.Add(asm);
             tc.BuildDirectory = "C:/TMP/test_app_build";

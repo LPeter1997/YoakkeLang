@@ -52,7 +52,7 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
             var backendFiles = new List<string>();
             foreach (var asm in Assemblies)
             {
-                var outFile = Path.Combine(BuildDirectory, $"{asm.Name}.lir");
+                var outFile = Path.Combine(BuildDirectory, $"{asm.Name}.asm");
                 Backend.Compile(asm, outFile);
                 backendFiles.Add(outFile);
             }
