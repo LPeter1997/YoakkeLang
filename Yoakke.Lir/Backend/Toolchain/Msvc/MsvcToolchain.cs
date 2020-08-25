@@ -65,6 +65,12 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
                 if (err != 0) return err;
                 assembledFiles.Add(outFile);
             }
+            // We append external binaries here
+            foreach (var externalBinary in Assemblies.SelectMany(asm => asm.BinaryReferences))
+            {
+                assembledFiles.Add(externalBinary);
+            }
+            // Invoke the linker (LINK) or the archiver (LIB)
             if (OutputKind == OutputKind.Executable || OutputKind == OutputKind.DynamicLibrary)
             {
                 // We use the linker

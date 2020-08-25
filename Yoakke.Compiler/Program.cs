@@ -64,7 +64,6 @@ namespace Yoakke.Compiler
             tc.BuildDirectory = "C:/TMP/test_app_build";
             tc.TargetTriplet = tt;
 
-            tc.AddObjectFile("C:/TMP/globals.obj");
             var err = tc.Compile("C:/TMP/globals.exe");
             System.Console.WriteLine($"Toolchain exit code: {err}");
 #endif

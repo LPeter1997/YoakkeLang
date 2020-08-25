@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace Yoakke.Lir
@@ -28,6 +30,12 @@ namespace Yoakke.Lir
         /// The <see cref="Proc"/>s defined in this <see cref="Assembly"/>.
         /// </summary>
         public readonly IList<Proc> Procedures = new List<Proc>();
+
+        /// <summary>
+        /// Returns all of the distinct external binary references in this <see cref="Assembly"/>.
+        /// </summary>
+        public IEnumerable<string> BinaryReferences =>
+            Externals.Select(e => Path.GetFullPath(e.Path)).Distinct();
 
         /// <summary>
         /// Initializes a new <see cref="Assembly"/>.
