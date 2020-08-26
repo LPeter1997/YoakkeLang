@@ -38,7 +38,6 @@ namespace Yoakke.Lir
         public Proc(string name)
         {
             Name = name;
-            BasicBlocks.Add(new BasicBlock("begin"));
         }
 
         public override string ToString() => 

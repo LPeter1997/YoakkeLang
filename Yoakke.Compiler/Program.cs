@@ -40,23 +40,24 @@ namespace Yoakke.Compiler
                 CommandLineApplication.Execute<Compiler>(args);
             }
 #else
-            // First we build the IR code
-            var proc = new Proc("main");
-            proc.Visibility = Visibility.Public;
-            proc.Return = Type.I32;
+
             var asm = new Assembly("test_app");
-            asm.Procedures.Add(proc);
-            var someNumber = new Extern("some_number", Type.I32, "C:/TMP/globals.obj");
-            asm.Externals.Add(someNumber);
-            proc.BasicBlocks[0].Instructions.Add(new Instr.Ret(new Value.Extern(someNumber)));
+            var builder = new Builder(asm);
+
+            var some_number = builder.DefineExtern("some_number", Type.I32, "C:/TMP/globals.obj");
+            var main = builder.DefineProc("main");
+            main.CallConv = CallConv.Cdecl;
+            main.Return = Type.I32;
+            main.Visibility = Visibility.Public;
+            builder.Ret(some_number);
 
             // Dump IR code
             Console.WriteLine(asm);
             Console.WriteLine("\n\n");
 
-            var vm = new VirtualMachine(asm);
-            var res = vm.Execute("main");
-            Console.WriteLine($"VM result = {res}");
+            //var vm = new VirtualMachine(asm);
+            //var res = vm.Execute("main");
+            //Console.WriteLine($"VM result = {res}");
 
             // Compile it to backend
             /*
