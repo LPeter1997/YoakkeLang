@@ -28,11 +28,18 @@ namespace Yoakke.Lir.Backend.Toolchain
         /// <summary>
         /// Finds all of the <see cref="IToolchain"/>s on the current platform that supports a 
         /// specific <see cref="TargetTriplet"/>.
+        /// Also defaults the <see cref="TargetTriplet"/> for the results to the checked one.
         /// </summary>
         /// <param name="targetTriplet">The <see cref="TargetTriplet"/> to check support for.</param>
         /// <returns>The<see cref="IEnumerable{T}"/> of all of the<see cref="IToolchain"/> s on the platform
         /// that supports the given <see cref="TargetTriplet"/>.</returns>
         public static IEnumerable<IToolchain> Supporting(TargetTriplet targetTriplet) =>
-            All().Where(tc => tc.IsSupported(targetTriplet));
+            All().Where(tc => tc.IsSupported(targetTriplet))
+            // Select the default
+            .Select(tc =>
+            {
+                tc.TargetTriplet = targetTriplet;
+                return tc;
+            });
     }
 }

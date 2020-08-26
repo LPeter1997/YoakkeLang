@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using Yoakke.Lir;
 using Yoakke.Lir.Backend;
@@ -9,6 +10,8 @@ using Yoakke.Lir.Instructions;
 using Yoakke.Lir.Runtime;
 using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;
+using OperatingSystem = Yoakke.Lir.Backend.OperatingSystem;
+using Type = Yoakke.Lir.Types.Type;
 
 namespace Yoakke.Compiler
 {
@@ -51,9 +54,9 @@ namespace Yoakke.Compiler
             System.Console.WriteLine(asm);
             System.Console.WriteLine("\n\n");
 
-            var vm = new VirtualMachine(asm);
-            var res = vm.Execute("main");
-            System.Console.WriteLine($"VM result = {res}");
+            //var vm = new VirtualMachine(asm);
+            //var res = vm.Execute("main");
+            //System.Console.WriteLine($"VM result = {res}");
 
             // Compile it to backend
             var tt = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
@@ -61,10 +64,9 @@ namespace Yoakke.Compiler
 
             tc.Assemblies.Add(asm);
             tc.BuildDirectory = "C:/TMP/test_app_build";
-            tc.TargetTriplet = tt;
 
             var err = tc.Compile("C:/TMP/globals.exe");
-            System.Console.WriteLine($"Toolchain exit code: {err}");
+            Console.WriteLine($"Toolchain exit code: {err}");
 #endif
         }
     }
