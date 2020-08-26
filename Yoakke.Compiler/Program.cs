@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using Yoakke.Compiler.Syntax;
 using Yoakke.Lir;
 using Yoakke.Lir.Backend;
 using Yoakke.Lir.Backend.Backends;
@@ -39,7 +40,7 @@ namespace Yoakke.Compiler
             {
                 CommandLineApplication.Execute<Compiler>(args);
             }
-#else
+#elif false
 
             var asm = new Assembly("test_app");
             var builder = new Builder(asm);
@@ -70,6 +71,17 @@ namespace Yoakke.Compiler
             var err = tc.Compile("C:/TMP/globals.exe");
             Console.WriteLine($"Toolchain exit code: {err}");
             //*/
+#else
+            var p1 = new Yoakke.Text.Position(3, 45);
+            var p2 = new Yoakke.Text.Position(444, 134);
+            var p3 = new Yoakke.Text.Position(3, 45);
+
+            Console.WriteLine(p1);
+            Console.WriteLine(p1.Equals(p2));
+            Console.WriteLine(p1.Equals(p3));
+            Console.WriteLine(p1.GetHashCode());
+            Console.WriteLine(p2.GetHashCode());
+            Console.WriteLine(p3.GetHashCode());
 #endif
         }
     }
