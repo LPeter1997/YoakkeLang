@@ -19,6 +19,10 @@ namespace Yoakke.Lir.Backend.Toolchain
         /// The entry point of the binary.
         /// </summary>
         public string EntryPoint { get; set; }
+        /// <summary>
+        /// The list of <see cref="ISymbol"/>s the linker exports into a DLL.
+        /// </summary>
+        public IList<ISymbol> Exports { get; }
 
         /// <summary>
         /// Links the given source files.

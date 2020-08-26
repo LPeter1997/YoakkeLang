@@ -15,6 +15,7 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
         public override IList<string> SourceFiles { get; } = new List<string>();
         public OutputKind OutputKind { get; set; } = OutputKind.Executable;
         public string EntryPoint { get; set; } = "main";
+        public IList<ISymbol> Exports { get; } = new List<ISymbol>();
 
         public MsvcLinker(string vcVarsAllPath) 
             : base(vcVarsAllPath)
@@ -27,9 +28,8 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
             var files = string.Join(' ', SourceFiles.Select(f => $"\"{f}\""));
             // Construct the command
             var entry = OutputKind == OutputKind.Executable ? $"/ENTRY:\"{EntryPoint}\"" : string.Empty;
-            // TODO
-            var tmp = $"/EXPORT:\"some_number\"";
-            var command = $"LINK /NOLOGO {GetOutputKindFlag()} {tmp} /MACHINE:{GetTargetMachineId()} {entry} /OUT:\"{outputPath}\" {files}";
+            var exports = string.Join(' ', Exports.Select(e => $"/EXPORT:\"{e.Name}\""));
+            var command = $"LINK /NOLOGO {GetOutputKindFlag()} {exports} /MACHINE:{GetTargetMachineId()} {entry} /OUT:\"{outputPath}\" {files}";
             // Run it
             return InvokeWithEnvironment(command);
         }

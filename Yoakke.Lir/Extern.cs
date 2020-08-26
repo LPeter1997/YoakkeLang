@@ -9,13 +9,11 @@ namespace Yoakke.Lir
     /// <summary>
     /// An external symbol.
     /// </summary>
-    public class Extern
+    public class Extern : ISymbol
     {
-        // TODO: Alignment
-        /// <summary>
-        /// The name of the external symbol.
-        /// </summary>
-        public readonly string Name;
+        public string Name { get; }
+        public Visibility Visibility { get; set; } = Visibility.Public;
+
         /// <summary>
         /// The <see cref="Type"/> of the external symbol.
         /// </summary>

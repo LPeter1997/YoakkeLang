@@ -6,12 +6,11 @@ namespace Yoakke.Lir
     /// <summary>
     /// An IR procedure.
     /// </summary>
-    public class Proc
+    public class Proc : ISymbol
     {
-        /// <summary>
-        /// The name of the <see cref="Proc"/>.
-        /// </summary>
-        public readonly string Name;
+        public string Name { get; }
+        public Visibility Visibility { get; set; }
+
         // TODO: Procedure alignment
         // TODO: Change this to default to void
         /// <summary>
@@ -27,10 +26,6 @@ namespace Yoakke.Lir
         /// The calling convention to use when calling this procedure.
         /// </summary>
         public CallConv CallConv { get; set; } = CallConv.Default;
-        /// <summary>
-        /// The <see cref="Visibility"/> of this procedure.
-        /// </summary>
-        public Visibility Visibility { get; set; }
         /// <summary>
         /// The list of <see cref="BasicBlock"/>s the procedure consists of.
         /// </summary>

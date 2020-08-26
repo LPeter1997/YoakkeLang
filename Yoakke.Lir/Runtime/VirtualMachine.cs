@@ -63,6 +63,8 @@ namespace Yoakke.Lir.Runtime
             var externalBinaries = Assembly.BinaryReferences.ToList();
             foreach (var ext in externalBinaries) linker.SourceFiles.Add(ext);
             linker.OutputKind = OutputKind.DynamicLibrary;
+            // Export external symbols
+            foreach (var sym in Assembly.Externals) linker.Exports.Add(sym);
             // NOTE: Don't we need to delete this when the VM dies?
             var linkedBinariesPath = Path.GetTempFileName();
             if (linker.Link(linkedBinariesPath) != 0)

@@ -32,6 +32,11 @@ namespace Yoakke.Lir
         public readonly IList<Proc> Procedures = new List<Proc>();
 
         /// <summary>
+        /// All symbols this <see cref="Assembly"/> defines.
+        /// </summary>
+        public IEnumerable<ISymbol> Symbols => Externals.Cast<ISymbol>().Concat(Procedures);
+
+        /// <summary>
         /// Returns all of the distinct external binary references in this <see cref="Assembly"/>.
         /// </summary>
         public IEnumerable<string> BinaryReferences =>

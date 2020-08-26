@@ -73,6 +73,11 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
             // Invoke the linker (LINK) or the archiver (LIB)
             if (OutputKind == OutputKind.Executable || OutputKind == OutputKind.DynamicLibrary)
             {
+                // We need to explicitly tell the linker to export everything public
+                foreach (var sym in Assemblies.SelectMany(asm => asm.Symbols).Where(sym => sym.Visibility == Visibility.Public))
+                {
+                    Linker.Exports.Add(sym);
+                }
                 // We use the linker
                 foreach (var f in assembledFiles) Linker.SourceFiles.Add(f);
                 return Linker.Link(outputPath);
