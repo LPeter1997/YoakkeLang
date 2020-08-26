@@ -51,14 +51,15 @@ namespace Yoakke.Compiler
             proc.BasicBlocks[0].Instructions.Add(new Instr.Ret(new Value.Extern(someNumber)));
 
             // Dump IR code
-            System.Console.WriteLine(asm);
-            System.Console.WriteLine("\n\n");
+            Console.WriteLine(asm);
+            Console.WriteLine("\n\n");
 
-            //var vm = new VirtualMachine(asm);
-            //var res = vm.Execute("main");
-            //System.Console.WriteLine($"VM result = {res}");
+            var vm = new VirtualMachine(asm);
+            var res = vm.Execute("main");
+            Console.WriteLine($"VM result = {res}");
 
             // Compile it to backend
+            /*
             var tt = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
             var tc = Toolchains.Supporting(tt).First();
 
@@ -67,6 +68,7 @@ namespace Yoakke.Compiler
 
             var err = tc.Compile("C:/TMP/globals.exe");
             Console.WriteLine($"Toolchain exit code: {err}");
+            //*/
 #endif
         }
     }

@@ -77,12 +77,6 @@ namespace Yoakke.Lir.Runtime
             foreach (var ext in Assembly.Externals)
             {
                 externals[ext] = NativeLibrary.GetExport(linkedBinaries, $"{ext.Name}");
-                unsafe
-                {
-                    IntPtr p = externals[ext];
-                    int* ip = (int*)p.ToPointer();
-                    var iv = *ip;
-                }
             }
             // Flatten code structure
             code.Clear();
@@ -140,11 +134,36 @@ namespace Yoakke.Lir.Runtime
             instructionPointer = top.ReturnAddress;
         }
 
+        // TODO: Differentiate lvalues and rvalues?
         // TODO: Unwrap if register
         private Value Unwrap(Value value) => value switch
         {
-            Value.Extern e => throw new NotImplementedException(),
+            Value.Extern ext => UnwrapExternal(ext.Type, externals[ext.Value]),
             _ => value,
         };
+
+        // TODO: This will be the same as materializing a non-external pointer
+        // We could rename it to ReadValueFromMemory or something
+        private Value UnwrapExternal(Type type, IntPtr intPtr)
+        {
+            unsafe
+            {
+                switch (type)
+                {
+                case Type.Int i:
+                    if (i.Signed && i.Bits == 32)
+                    {
+                        Int32 val = *(Int32*)intPtr.ToPointer();
+                        return Type.I32.NewValue(val);
+                    }
+                    else
+                    {
+                        throw new NotImplementedException();
+                    }
+
+                default: throw new NotImplementedException();
+                }
+            }
+        }
     }
 }
