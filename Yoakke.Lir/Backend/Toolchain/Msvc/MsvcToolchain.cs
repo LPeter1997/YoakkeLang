@@ -75,13 +75,13 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
             {
                 // We use the linker
                 foreach (var f in assembledFiles) Linker.SourceFiles.Add(f);
-                Linker.Link(outputPath);
+                return Linker.Link(outputPath);
             }
             else if (OutputKind == OutputKind.StaticLibrary)
             {
                 // We use the archiver
                 foreach (var f in assembledFiles) Archiver.SourceFiles.Add(f);
-                Archiver.Archive(outputPath);
+                return Archiver.Archive(outputPath);
             }
             return 0;
         }

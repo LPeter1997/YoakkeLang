@@ -64,8 +64,7 @@ namespace Yoakke.Lir.Runtime
             foreach (var ext in externalBinaries) linker.SourceFiles.Add(ext);
             linker.OutputKind = OutputKind.DynamicLibrary;
             // NOTE: Don't we need to delete this when the VM dies?
-            //var linkedBinariesPath = Path.GetTempFileName();
-            var linkedBinariesPath = "C:/TMP/vm_test.dll";
+            var linkedBinariesPath = Path.GetTempFileName();
             if (linker.Link(linkedBinariesPath) != 0)
             {
                 // TODO
