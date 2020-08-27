@@ -45,5 +45,12 @@ namespace Yoakke.Text
 
         public static bool operator ==(Span s1, Span s2) => s1.Equals(s2);
         public static bool operator !=(Span s1, Span s2) => !(s1 == s2);
+
+        /// <summary>
+        /// Checks, if a given <see cref="Position"/> is within the bounds of this <see cref="Span"/>.
+        /// </summary>
+        /// <param name="position">The <see cref="Position"/> to check.</param>
+        /// <returns>True, if the <see cref="Position"/> is contained in this <see cref="Span"/>.</returns>
+        public bool Contains(Position position) => Start <= position && position < End;
     }
 }

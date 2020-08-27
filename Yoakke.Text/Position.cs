@@ -31,6 +31,11 @@ namespace Yoakke.Text
 
         public static bool operator ==(Position p1, Position p2) => p1.Equals(p2);
         public static bool operator !=(Position p1, Position p2) => !(p1 == p2);
+        public static bool operator <(Position p1, Position p2) => 
+            p1.Line < p2.Line || (p1.Line == p2.Line && p1.Column < p2.Column);
+        public static bool operator >(Position p1, Position p2) => p2 < p1;
+        public static bool operator <=(Position p1, Position p2) => !(p1 > p2);
+        public static bool operator >=(Position p1, Position p2) => !(p1 < p2);
 
         public override string ToString() => $"line {Line + 1}, column {Column + 1}";
 
