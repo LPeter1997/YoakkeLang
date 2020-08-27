@@ -6,7 +6,7 @@ namespace Yoakke.Text
     /// Represents 2D position inside some text.
     /// </summary>
 #pragma warning disable CS0660, CS0661 // No reason to override Equals or GetHashCode
-    public readonly struct Position
+    public readonly struct Position : IComparable<Position>
 #pragma warning restore CS0660, CS0661
     {
         /// <summary>
@@ -29,13 +29,18 @@ namespace Yoakke.Text
             Column = column;
         }
 
-        public static bool operator ==(Position p1, Position p2) => p1.Equals(p2);
-        public static bool operator !=(Position p1, Position p2) => !(p1 == p2);
-        public static bool operator <(Position p1, Position p2) => 
-            p1.Line < p2.Line || (p1.Line == p2.Line && p1.Column < p2.Column);
-        public static bool operator >(Position p1, Position p2) => p2 < p1;
-        public static bool operator <=(Position p1, Position p2) => !(p1 > p2);
-        public static bool operator >=(Position p1, Position p2) => !(p1 < p2);
+        public int CompareTo(Position other)
+        {
+            var l = Line.CompareTo(other.Line);
+            return l == 0 ? Column.CompareTo(other.Column) : l;
+        }
+
+        public static bool operator ==(Position p1, Position p2) => p1.CompareTo(p2) == 0;
+        public static bool operator !=(Position p1, Position p2) => p1.CompareTo(p2) != 0;
+        public static bool operator <(Position p1, Position p2) => p1.CompareTo(p2) < 0;
+        public static bool operator >(Position p1, Position p2) => p1.CompareTo(p2) > 0;
+        public static bool operator <=(Position p1, Position p2) => p1.CompareTo(p2) <= 0;
+        public static bool operator >=(Position p1, Position p2) => p1.CompareTo(p2) >= 0;
 
         public override string ToString() => $"line {Line + 1}, column {Column + 1}";
 
