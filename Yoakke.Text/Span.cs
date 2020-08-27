@@ -29,6 +29,8 @@ namespace Yoakke.Text
         /// <param name="end">The first <see cref="Position"/> after this span.</param>
         public Span(Position start, Position end)
         {
+            if (end < start) throw new ArgumentException("The end can't be smaller than the start!");
+
             Start = start;
             End = end;
         }
