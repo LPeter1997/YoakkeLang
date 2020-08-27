@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 using Yoakke.Compiler.Syntax;
+using Yoakke.DataStructures;
 using Yoakke.Lir;
 using Yoakke.Lir.Backend;
 using Yoakke.Lir.Backend.Backends;
@@ -71,7 +72,7 @@ namespace Yoakke.Compiler
             var err = tc.Compile("C:/TMP/globals.exe");
             Console.WriteLine($"Toolchain exit code: {err}");
             //*/
-#else
+#elif false
             var p1 = new Yoakke.Text.Position(3, 45);
             var p2 = new Yoakke.Text.Position(444, 134);
             var p3 = new Yoakke.Text.Position(3, 45);
@@ -82,6 +83,14 @@ namespace Yoakke.Compiler
             Console.WriteLine(p1.GetHashCode());
             Console.WriteLine(p2.GetHashCode());
             Console.WriteLine(p3.GetHashCode());
+#else
+            var bt = new RedBlackTree<int, int>();
+            bt.Insert(5);
+            bt.Insert(2);
+            bt.Insert(9);
+            bt.Insert(7);
+            bt.Insert(8);
+            Console.WriteLine(bt.ToJSON());
 #endif
         }
     }
