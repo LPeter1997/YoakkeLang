@@ -84,12 +84,34 @@ namespace Yoakke.Compiler
             Console.WriteLine(p2.GetHashCode());
             Console.WriteLine(p3.GetHashCode());
 #else
-            var bt = new RedBlackTree<int, int>();
-            bt.Insert(5);
-            bt.Insert(2);
-            bt.Insert(9);
-            bt.Insert(7);
-            bt.Insert(8);
+            var bt = new RedBlackTree<int, int>(x => x);
+            var n0 = bt.Insert(18);
+            var n1 = bt.Insert(25);
+            var n2 = bt.Insert(27);
+            var n3 = bt.Insert(20);
+            var n4 = bt.Insert(24);
+            var n5 = bt.Insert(29);
+            var n6 = bt.Insert(3);
+            var n8 = bt.Insert(15);
+            var n9 = bt.Insert(30);
+            var n10 = bt.Insert(13);
+            var n12 = bt.Insert(5);
+            var n13 = bt.Insert(39);
+            var n15 = bt.Insert(9);
+            var n17 = bt.Insert(36);
+            var n18 = bt.Insert(26);
+
+            bt.Remove(n4);
+            bt.Remove(n13);
+            bt.Remove(n18);
+            bt.Remove(n17);
+            bt.Remove(n3);
+            bt.Remove(n15);
+
+            bt.Remove(n5);
+            bt.Remove(n2);
+            bt.Remove(n9);
+
             Console.WriteLine(bt.ToJSON());
 #endif
         }

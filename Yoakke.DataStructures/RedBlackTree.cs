@@ -4,85 +4,159 @@ using System.Diagnostics;
 
 namespace Yoakke.DataStructures
 {
+    /// <summary>
+    /// A red-black tree implementation to support other data-structures.
+    /// </summary>
+    /// <typeparam name="TKey">The key-type that the tree is sorted by.</typeparam>
+    /// <typeparam name="TValue">The value-type the nodes store.</typeparam>
     public class RedBlackTree<TKey, TValue>
     {
-        private enum Color { Red, Black }
-
-        private class Node
+        // TODO: Debug
+        public string ToJSON() => ToJSON(Root);
+        public string ToJSON(Node node)
         {
-            public bool IsNil => 
-                Left == null && Right == null && Color == Color.Black && !HasValue;
+            if (node.IsNil) return "null";
+            Debug.Assert(node.Left != null);
+            Debug.Assert(node.Right != null);
+            return $"{{ \"color\": \"{(node.Color == Color.Black ? "black" : "red")}\", \"value\": {node.Value}, \"left\": {ToJSON(node.Left)}, \"right\": {ToJSON(node.Right)} }}";
+        }
 
-            public Node? Parent { get; set; }
-            public Node? Left { get; set; }
-            public Node? Right { get; set; }
+        /// <summary>
+        /// The colors of a red-black tree node.
+        /// </summary>
+        public enum Color { Red, Black }
 
-            public Color Color { get; set; } = Color.Black;
-            public bool HasValue { get; private set; } = false;
-            public TValue? Value { get; private set; }
+        /// <summary>
+        /// The node-type the red-black tree consists of.
+        /// </summary>
+        public class Node
+        {
+            /// <summary>
+            /// The parent of this <see cref="Node"/>.
+            /// Can be null, if this is the root or nil.
+            /// </summary>
+            public Node? Parent { get; internal set; }
+            /// <summary>
+            /// The left child of this <see cref="Node"/>.
+            /// </summary>
+            public Node? Left { get; internal set; }
+            /// <summary>
+            /// The right child of this <see cref="Node"/>.
+            /// </summary>
+            public Node? Right { get; internal set; }
 
+            /// <summary>
+            /// The <see cref="Color"/> of this <see cref="Node"/>.
+            /// </summary>
+            public Color Color { get; internal set; } = Color.Black;
+            /// <summary>
+            /// The value stored inside this <see cref="Node"/>.
+            /// </summary>
+            public TValue Value
+            {
+                get
+                {
+                    if (IsNil) throw new InvalidOperationException();
+                    Debug.Assert(value != null);
+                    return value;
+                }
+                set => this.value = value;
+            }
+            private TValue? value;
+
+            /// <summary>
+            /// True, if this <see cref="Node"/> is a leaf.
+            /// </summary>
+            public bool IsNil => Left == null && Right == null;
+            /// <summary>
+            /// The parent of the parent's <see cref="Node"/>.
+            /// </summary>
+            public Node? Grandparent => Parent?.Parent;
+            /// <summary>
+            /// The other child of the parent of this <see cref="Node"/>.
+            /// </summary>
             public Node? Sibling => Parent?.Left == this ? Parent?.Right : Parent?.Left;
+            /// <summary>
+            /// The sibling of the parent of this <see cref="Node"/>.
+            /// </summary>
             public Node? Uncle => Parent?.Sibling;
 
-            // TODO: Debug only
-            public string ToJSON()
+            internal Node()
             {
-                if (IsNil) return "null";
-                Debug.Assert(Left != null);
-                Debug.Assert(Right != null);
-                Debug.Assert(Value != null);
-                return $"{{ \"value\": {Value}, \"color\": \"{(Color == Color.Black ? "black" : "red")}\", \"left\": {Left.ToJSON()}, \"right\": {Right.ToJSON()} }}";
-            }
-
-            public void AssignValue(TValue value)
-            {
-                Debug.Assert(!HasValue);
-                HasValue = true;
-                Value = value;
             }
         }
 
-        private Node root;
-        private Func<TValue, TKey> keySelector;
-        private IComparer<TKey> comparer;
+        /// <summary>
+        /// The root <see cref="Node"/> of this red-black tree.
+        /// </summary>
+        public Node Root { get; private set; }
+        /// <summary>
+        /// The key selector function.
+        /// </summary>
+        public Func<TValue, TKey> KeySelector { get; }
+        /// <summary>
+        /// The comparer to compare keys.
+        /// </summary>
+        public IComparer<TKey> Comparer { get; }
 
-        public RedBlackTree()
+        /// <summary>
+        /// Initializes a new <see cref="RedBlackTree{TKey, TValue}"/>.
+        /// </summary>
+        /// <param name="keySelector">The key selector function.</param>
+        /// <param name="comparer">The key comparer.</param>
+        public RedBlackTree(Func<TValue, TKey> keySelector, IComparer<TKey> comparer)
         {
-            root = new Node();
-            // TODO: Let these be passed as an argument
-            keySelector = x => (TKey)(object?)x ?? throw new NotImplementedException();
-            comparer = Comparer<TKey>.Default;
+            Root = new Node();
+            KeySelector = keySelector;
+            Comparer = comparer;
         }
 
-        // TODO: Debug only
-        public string ToJSON() => root.ToJSON();
+        /// <summary>
+        /// Initializes a new <see cref="RedBlackTree{TKey, TValue}"/>.
+        /// </summary>
+        /// <param name="keySelector">The key selector function.</param>
+        public RedBlackTree(Func<TValue, TKey> keySelector)
+            : this(keySelector, Comparer<TKey>.Default)
+        {
+        }
 
-        public void Insert(TValue value)
+        // Insertion
+
+        /// <summary>
+        /// Inserts a new <see cref="Node"/> with the given value.
+        /// </summary>
+        /// <param name="value">The value to insert the new <see cref="Node"/> with.</param>
+        /// <returns>The inserted <see cref="Node"/>.</returns>
+        public Node Insert(TValue value)
         {
             var node = InsertLikeBinarySearchTree(value);
             RebalanceInsertion(node);
+
+            // Search root
+            Root = node;
+            while (Root.Parent != null) Root = Root.Parent;
+
+            return node;
         }
 
         private Node InsertLikeBinarySearchTree(TValue value)
         {
-            var key = keySelector(value);
+            var key = KeySelector(value);
             Node? prev = null;
-            var current = root;
-            while (current.HasValue)
+            var current = Root;
+            while (!current.IsNil)
             {
-                // A node which has a value must have two children, as it's not a leaf node
-                Debug.Assert(current.Value != null);
                 Debug.Assert(current.Left != null);
                 Debug.Assert(current.Right != null);
 
                 prev = current;
-                var cmp = comparer.Compare(key, keySelector(current.Value));
+                var cmp = Comparer.Compare(key, KeySelector(current.Value));
                 current = cmp < 0 ? current.Left : current.Right;
             }
             // Now current must be a nil leaf
             Debug.Assert(current.IsNil);
             // Now we must insert the value and make it red
-            current.AssignValue(value);
+            current.Value = value;
             current.Color = Color.Red;
             current.Parent = prev;
             // Add the two stub nil nodes
@@ -113,42 +187,298 @@ namespace Yoakke.DataStructures
                 // Case 3: Parent and uncle are red
                 node.Parent.Color = Color.Black;
                 uncle.Color = Color.Black;
-                var grandparent = node.Parent.Parent;
+                var grandparent = node.Grandparent;
                 Debug.Assert(grandparent != null);
                 grandparent.Color = Color.Red;
                 RebalanceInsertion(grandparent);
                 return;
             }
             // Case 4
-            var p = node.Parent;
-            var g = p.Parent;
-            Debug.Assert(g != null);
-            if (node == p.Right && p == g.Left)
+            var parent = node.Parent;
+            var grandpa = node.Grandparent;
+            Debug.Assert(grandpa != null);
+            if (node == parent.Right && parent == grandpa.Left)
             {
                 Debug.Assert(node.Left != null);
-                RotateLeft(p);
+                RotateLeft(parent);
                 node = node.Left;
             }
-            else if (node == p.Left && p == g.Right)
+            else if (node == parent.Left && parent == grandpa.Right)
             {
                 Debug.Assert(node.Right != null);
-                RotateRight(p);
+                RotateRight(parent);
                 node = node.Right;
             }
-            p = node.Parent;
-            Debug.Assert(p != null);
-            g = p.Parent;
-            Debug.Assert(g != null);
-            if (node == p.Left) RotateRight(g);
-            else RotateLeft(g);
-            p.Color = Color.Black;
-            g.Color = Color.Red;
+            parent = node.Parent;
+            Debug.Assert(parent != null);
+            grandpa = parent.Parent;
+            Debug.Assert(grandpa != null);
+            if (node == parent.Left) RotateRight(grandpa);
+            else RotateLeft(grandpa);
+            parent.Color = Color.Black;
+            grandpa.Color = Color.Red;
         }
+
+        // Removal
+
+        /// <summary>
+        /// Removes the given <see cref="Node"/>.
+        /// </summary>
+        /// <param name="node">The <see cref="Node"/> to remove.</param>
+        public void Remove(Node node)
+        {
+            if (node.IsNil) throw new InvalidOperationException();
+
+            Debug.Assert(node.Left != null);
+            Debug.Assert(node.Right != null);
+
+            var rootCandidate = Root;
+            if (node == Root) rootCandidate = node.Right;
+
+            if (!node.Left.IsNil && !node.Right.IsNil)
+            {
+                // Search for the largest element in the left subtree
+                Node leftMax = node.Left;
+                while (true)
+                {
+                    Debug.Assert(leftMax.Right != null);
+                    if (leftMax.Right.IsNil) break;
+                    leftMax = leftMax.Right;
+                }
+                // Swap the two nodes
+                SwapNodesForDelete(node, leftMax);
+            }
+
+            Debug.Assert(node.Left.IsNil || node.Right.IsNil);
+
+            var child = node.Right.IsNil ? node.Left : node.Right;
+            ReplaceForDelete(node, child);
+            if (node.Color == Color.Black)
+            {
+                if (child.Color == Color.Red) child.Color = Color.Black;
+                else DeleteCase1(child);
+            }
+
+            // Search root
+            Root = rootCandidate;
+            while (Root.Parent != null) Root = Root.Parent;
+        }
+
+        private void DeleteCase1(Node node)
+        {
+            if (node.Parent != null) DeleteCase2(node);
+        }
+
+        private void DeleteCase2(Node node)
+        {
+            var sibling = node.Sibling;
+            Debug.Assert(sibling != null);
+            if (sibling.Color == Color.Red)
+            {
+                Debug.Assert(node.Parent != null);
+                node.Parent.Color = Color.Red;
+                sibling.Color = Color.Black;
+                if (node == node.Parent.Left) RotateLeft(node.Parent);
+                else RotateRight(node.Parent);
+            }
+            DeleteCase3(node);
+        }
+
+        private void DeleteCase3(Node node)
+        {
+            var sibling = node.Sibling;
+            Debug.Assert(node.Parent != null);
+            Debug.Assert(sibling != null);
+            Debug.Assert(sibling.Left != null);
+            Debug.Assert(sibling.Right != null);
+            if (node.Parent.Color == Color.Black && sibling.Color == Color.Black
+             && sibling.Left.Color == Color.Black && sibling.Right.Color == Color.Black)
+            {
+                sibling.Color = Color.Red;
+                DeleteCase1(node.Parent);
+            }
+            else
+            {
+                DeleteCase4(node);
+            }
+        }
+
+        private void DeleteCase4(Node node)
+        {
+            var sibling = node.Sibling;
+            Debug.Assert(node.Parent != null);
+            Debug.Assert(sibling != null);
+            Debug.Assert(sibling.Left != null);
+            Debug.Assert(sibling.Right != null);
+            if (node.Parent.Color == Color.Red && sibling.Color == Color.Black
+             && sibling.Left.Color == Color.Black && sibling.Right.Color == Color.Black)
+            {
+                sibling.Color = Color.Red;
+                node.Parent.Color = Color.Black;
+            }
+            else
+            {
+                DeleteCase5(node);
+            }
+        }
+
+        private void DeleteCase5(Node node)
+        {
+            var sibling = node.Sibling;
+            Debug.Assert(node.Parent != null);
+            Debug.Assert(sibling != null);
+            Debug.Assert(sibling.Left != null);
+            Debug.Assert(sibling.Right != null);
+            if (sibling.Color == Color.Black)
+            {
+                if (node == node.Parent.Left && sibling.Right.Color == Color.Black
+                 && sibling.Left.Color == Color.Red)
+                {
+                    sibling.Color = Color.Red;
+                    sibling.Left.Color = Color.Black;
+                    RotateRight(sibling);
+                }
+                else if (node == node.Parent.Right && sibling.Left.Color == Color.Black
+                      && sibling.Right.Color == Color.Red)
+                {
+                    sibling.Color = Color.Red;
+                    sibling.Right.Color = Color.Black;
+                    RotateLeft(sibling);
+                }
+            }
+            DeleteCase6(node);
+        }
+
+        private void DeleteCase6(Node node)
+        {
+            var sibling = node.Sibling;
+            Debug.Assert(node.Parent != null);
+            Debug.Assert(sibling != null);
+            Debug.Assert(sibling.Left != null);
+            Debug.Assert(sibling.Right != null);
+            sibling.Color = node.Parent.Color;
+            node.Parent.Color = Color.Black;
+
+            if (node == node.Parent.Left)
+            {
+                sibling.Right.Color = Color.Black;
+                RotateLeft(node.Parent);
+            }
+            else
+            {
+                sibling.Left.Color = Color.Black;
+                RotateRight(node.Parent);
+            }
+        }
+
+        private void ReplaceForDelete(Node node, Node child)
+        {
+            Debug.Assert(node.Parent != null);
+            child.Parent = node.Parent;
+            if (node == node.Parent.Left) node.Parent.Left = child;
+            else node.Parent.Right = child;
+        }
+
+        private void SwapNodesForDelete(Node n1, Node n2)
+        {
+            var ctmp = n1.Color;
+            n1.Color = n2.Color;
+            n2.Color = ctmp;
+
+            if (n1.Parent == n2)
+            {
+                SwapParentAndChild(n2, n1);
+                return;
+            }
+            if (n2.Parent == n1)
+            {
+                SwapParentAndChild(n1, n2);
+                return;
+            }
+
+            var n1Parent = n1.Parent;
+            var n1Left = n1.Left;
+            var n1Right = n1.Right;
+            Debug.Assert(n1Left != null);
+            Debug.Assert(n1Right != null);
+
+            var n2Parent = n2.Parent;
+            var n2Left = n2.Left;
+            var n2Right = n2.Right;
+            Debug.Assert(n2Left != null);
+            Debug.Assert(n2Right != null);
+
+            if (n1Parent != null)
+            {
+                if (n1Parent.Left == n1) n1Parent.Left = n2;
+                else n1Parent.Right = n2;
+            }
+            if (n2Parent != null)
+            {
+                if (n2Parent.Left == n2) n2Parent.Left = n1;
+                else n2Parent.Right = n1;
+            }
+            n1.Parent = n2Parent;
+            n2.Parent = n1Parent;
+
+            n2.Left = n1Left;
+            n1Left.Parent = n2;
+            n2.Right = n1Right;
+            n1Right.Parent = n2;
+
+            n1.Left = n2Left;
+            n2Left.Parent = n1;
+            n1.Right = n2Right;
+            n2Right.Parent = n1;
+        }
+
+        private void SwapParentAndChild(Node parent, Node child)
+        {
+            Debug.Assert(parent.Left != null);
+            Debug.Assert(parent.Right != null);
+            Debug.Assert(child.Parent != null);
+            Debug.Assert(child.Left != null);
+            Debug.Assert(child.Right != null);
+
+            var parentParent = parent.Parent;
+            var parentLeft = parent.Left;
+            var parentRight = parent.Right;
+            var childLeft = child.Left;
+            var childRight = child.Right;
+
+            childLeft.Parent = parent;
+            childRight.Parent = parent;
+            parent.Left = childLeft;
+            parent.Right = childRight;
+            parent.Parent = child;
+            child.Parent = parentParent;
+
+            if (parentParent != null)
+            {
+                if (parentParent.Left == parent) parentParent.Left = child;
+                else parentParent.Right = child;
+            }
+
+            if (parentLeft == child)
+            {
+                child.Left = parent;
+                child.Right = parentRight;
+                parentRight.Parent = child;
+            }
+            else
+            {
+                child.Right = parent;
+                child.Left = parentLeft;
+                parentLeft.Parent = child;
+            }
+        }
+
+        // General utilities
 
         private void RotateLeft(Node n)
         {
             var nnew = n.Right;
-            var p = n.Parent;
+            var parent = n.Parent;
             Debug.Assert(nnew != null);
 
             n.Right = nnew.Left;
@@ -156,20 +486,19 @@ namespace Yoakke.DataStructures
             n.Parent = nnew;
 
             if (n.Right != null) n.Right.Parent = n;
-
-            if (p != null)
+            if (parent != null)
             {
-                if (n == p.Left) p.Left = nnew;
-                else if (n == p.Right) p.Right = nnew;
+                if (n == parent.Left) parent.Left = nnew;
+                else if (n == parent.Right) parent.Right = nnew;
             }
 
-            nnew.Parent = p;
+            nnew.Parent = parent;
         }
 
         private void RotateRight(Node n)
         {
             var nnew = n.Left;
-            var p = n.Parent;
+            var parent = n.Parent;
             Debug.Assert(nnew != null);
 
             n.Left = nnew.Right;
@@ -177,14 +506,13 @@ namespace Yoakke.DataStructures
             n.Parent = nnew;
 
             if (n.Left != null) n.Left.Parent = n;
-
-            if (p != null)
+            if (parent != null)
             {
-                if (n == p.Left) p.Left = nnew;
-                else if (n == p.Right) p.Right = nnew;
+                if (n == parent.Left) parent.Left = nnew;
+                else if (n == parent.Right) parent.Right = nnew;
             }
 
-            nnew.Parent = p;
+            nnew.Parent = parent;
         }
     }
 }
