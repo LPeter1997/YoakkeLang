@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 
 namespace Yoakke.DataStructures
@@ -31,19 +32,7 @@ namespace Yoakke.DataStructures
         /// </summary>
         public class Node
         {
-            /// <summary>
-            /// The parent of this <see cref="Node"/>.
-            /// Can be null, if this is the root or nil.
-            /// </summary>
-            public Node? Parent { get; internal set; }
-            /// <summary>
-            /// The left child of this <see cref="Node"/>.
-            /// </summary>
-            public Node? Left { get; internal set; }
-            /// <summary>
-            /// The right child of this <see cref="Node"/>.
-            /// </summary>
-            public Node? Right { get; internal set; }
+            // Payload
 
             /// <summary>
             /// The <see cref="Color"/> of this <see cref="Node"/>.
@@ -60,14 +49,60 @@ namespace Yoakke.DataStructures
                     Debug.Assert(value != null);
                     return value;
                 }
-                set => this.value = value;
+                internal set => this.value = value;
             }
             private TValue? value;
+
+            // Neighbors
+
+            /// <summary>
+            /// The parent of this <see cref="Node"/>.
+            /// Can be null, if this is the root or nil.
+            /// </summary>
+            public Node? Parent { get; internal set; }
+            /// <summary>
+            /// The left child of this <see cref="Node"/>.
+            /// </summary>
+            public Node Left
+            {
+                get
+                {
+                    if (IsNil) throw new InvalidOperationException();
+                    Debug.Assert(left != null);
+                    return left;
+                }
+                internal set => left = value;
+            }
+            private Node? left;
+            /// <summary>
+            /// The right child of this <see cref="Node"/>.
+            /// </summary>
+            public Node Right 
+            { 
+                get
+                {
+                    if (IsNil) throw new InvalidOperationException();
+                    Debug.Assert(right != null);
+                    return right;
+                }
+                internal set => right = value; 
+            }
+            private Node? right;
+
+            // Observers
 
             /// <summary>
             /// True, if this <see cref="Node"/> is a leaf.
             /// </summary>
-            public bool IsNil => Left == null && Right == null;
+            public bool IsNil => left == null && right == null;
+            /// <summary>
+            /// True, if this is a left child of it's parent.
+            /// </summary>
+            public bool IsLeftChild => Parent?.Left == this;
+            /// <summary>
+            /// True, if this is a right child of it's parent.
+            /// </summary>
+            public bool IsRightChild => Parent?.Right == this;
             /// <summary>
             /// The parent of the parent's <see cref="Node"/>.
             /// </summary>
@@ -75,14 +110,89 @@ namespace Yoakke.DataStructures
             /// <summary>
             /// The other child of the parent of this <see cref="Node"/>.
             /// </summary>
-            public Node? Sibling => Parent?.Left == this ? Parent?.Right : Parent?.Left;
+            public Node? Sibling => IsLeftChild ? Parent?.Right : Parent?.Left;
             /// <summary>
             /// The sibling of the parent of this <see cref="Node"/>.
             /// </summary>
             public Node? Uncle => Parent?.Sibling;
+            /// <summary>
+            /// The minimum (leftmost) element in this <see cref="Node"/>s subtree.
+            /// </summary>
+            public Node Minimum
+            {
+                get
+                {
+                    if (IsNil) throw new InvalidOperationException();
+                    var result = this;
+                    while (!result.Left.IsNil) result = result.Left;
+                    return result;
+                }
+            }
+            /// <summary>
+            /// The maximum (rightmost) element in this <see cref="Node"/>s subtree.
+            /// </summary>
+            public Node Maximum
+            {
+                get
+                {
+                    if (IsNil) throw new InvalidOperationException();
+                    var result = this;
+                    while (!result.Right.IsNil) result = result.Right;
+                    return result;
+                }
+            }
+            /// <summary>
+            /// The predecessor (maximum of the left subtree) of this <see cref="Node"/>.
+            /// </summary>
+            public Node? Predecessor
+            {
+                get
+                {
+                    if (IsNil) throw new InvalidOperationException();
+                    if (Left.IsNil) return null;
+                    return Left.Maximum;
+                }
+            }
+            /// <summary>
+            /// The successor (minimum of the right subtree) of this <see cref="Node"/>.
+            /// </summary>
+            public Node? Successor
+            {
+                get
+                {
+                    if (IsNil) throw new InvalidOperationException();
+                    if (Right.IsNil) return null;
+                    return Right.Minimum;
+                }
+            }
+            /// <summary>
+            /// The black height of this subtree.
+            /// </summary>
+            public int BlackHeight => 
+                (Color == Color.Black ? 1 : 0) + (left == null ? 0 : left.BlackHeight);
 
             internal Node()
             {
+            }
+
+            internal void Validate()
+            {
+                // Every leaf must be black
+                if (IsNil && Color != Color.Black) throw new ValidationException("Nil node is not black!");
+                if (!IsNil)
+                {
+                    // Every path from this node to the leaves must contain the same amount of  black nodes
+                    var leftBlackHeight = Left.BlackHeight;
+                    var rightBlackHeight = Right.BlackHeight;
+                    if (leftBlackHeight != rightBlackHeight) throw new ValidationException("Black height mismatch!");
+                    // Every red node's child must be black
+                    if (Color == Color.Red && (Left.Color != Color.Black || Right.Color != Color.Black))
+                    {
+                        throw new ValidationException("Children of red are not both black!");
+                    }
+                    Left.Validate();
+                    Right.Validate();
+                }
             }
         }
 
@@ -98,6 +208,10 @@ namespace Yoakke.DataStructures
         /// The comparer to compare keys.
         /// </summary>
         public IComparer<TKey> Comparer { get; }
+        /// <summary>
+        /// The number of <see cref="Node"/>s present in the tree, not counting nil nodes.
+        /// </summary>
+        public int Count { get; private set; }
 
         /// <summary>
         /// Initializes a new <see cref="RedBlackTree{TKey, TValue}"/>.
@@ -120,6 +234,12 @@ namespace Yoakke.DataStructures
         {
         }
 
+        public void Validate()
+        {
+            if (Root.Color != Color.Black) throw new ValidationException("Root is not black!");
+            Root.Validate();
+        }
+
         // Insertion
 
         /// <summary>
@@ -136,6 +256,7 @@ namespace Yoakke.DataStructures
             Root = node;
             while (Root.Parent != null) Root = Root.Parent;
 
+            ++Count;
             return node;
         }
 
@@ -229,6 +350,14 @@ namespace Yoakke.DataStructures
         {
             if (node.IsNil) throw new InvalidOperationException();
 
+            if (Count == 1)
+            {
+                Debug.Assert(node == Root);
+                Root = new Node();
+                Count = 0;
+                return;
+            }
+
             Debug.Assert(node.Left != null);
             Debug.Assert(node.Right != null);
 
@@ -262,6 +391,8 @@ namespace Yoakke.DataStructures
             // Search root
             Root = rootCandidate;
             while (Root.Parent != null) Root = Root.Parent;
+
+            --Count;
         }
 
         private void DeleteCase1(Node node)
@@ -373,10 +504,12 @@ namespace Yoakke.DataStructures
 
         private void ReplaceForDelete(Node node, Node child)
         {
-            Debug.Assert(node.Parent != null);
             child.Parent = node.Parent;
-            if (node == node.Parent.Left) node.Parent.Left = child;
-            else node.Parent.Right = child;
+            if (node.Parent != null)
+            {
+                if (node == node.Parent.Left) node.Parent.Left = child;
+                else node.Parent.Right = child;
+            }
         }
 
         private void SwapNodesForDelete(Node n1, Node n2)
