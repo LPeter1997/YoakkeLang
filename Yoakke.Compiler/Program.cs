@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http.Headers;
 using Yoakke.Compiler.Syntax;
 using Yoakke.DataStructures;
 using Yoakke.Lir;
@@ -85,10 +86,52 @@ namespace Yoakke.Compiler
             Console.WriteLine(p2.GetHashCode());
             Console.WriteLine(p3.GetHashCode());
 #else
-            var rnd = new Random();
-            var bt = new RedBlackTree<int, int>(x => x);
-            var nodes = new List<RedBlackTree<int, int>.Node>();
 
+            /*
+             * Reproduces:
+             n0 = bt.Insert(9);
+             n1 = bt.Insert(0);
+             n2 = bt.Insert(5);
+             bt.Remove(n0);
+             bt.Remove(n2);
+             */
+
+            try
+            {
+                while (true)
+                {
+                    Console.Clear();
+
+                    var rnd = new Random();
+                    var bt = new RedBlackTree<int, int>(x => x);
+                    var nodes = new List<(RedBlackTree<int, int>.Node, int)>();
+
+                    int nodeCount = 3;
+                    for (int i = 0; i < nodeCount; ++i)
+                    {
+                        var value = rnd.Next(0, 10);
+                        Console.WriteLine($"n{i} = bt.Insert({value});");
+                        nodes.Add((bt.Insert(value), i));
+                        bt.Validate();
+                    }
+                    for (int i = 0; i < nodeCount; ++i)
+                    {
+                        var idx = rnd.Next(0, nodes.Count);
+                        var (node, ii) = nodes[idx];
+                        Console.WriteLine($"bt.Remove(n{ii});");
+                        bt.Remove(node);
+                        nodes.RemoveAt(idx);
+                        bt.Validate();
+                    }
+                }
+            }
+            catch (Exception e) 
+            {
+                Console.WriteLine($"Error: {e}");
+                Console.ReadLine();
+            }
+
+            /*
             while (true)
             {
                 for (int i = 0; i < 5000; ++i)
@@ -107,6 +150,7 @@ namespace Yoakke.Compiler
                 }
                 Console.WriteLine("Removed 5k");
             }
+            */
 #endif
         }
     }

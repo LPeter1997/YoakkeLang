@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
+using System.Linq;
+using System.Text;
 
 namespace Yoakke.DataStructures
 {
@@ -13,13 +15,23 @@ namespace Yoakke.DataStructures
     public class RedBlackTree<TKey, TValue>
     {
         // TODO: Debug
-        public string ToJSON() => ToJSON(Root);
-        public string ToJSON(Node node)
+        public string ToDOT()
         {
-            if (node.IsNil) return "null";
-            Debug.Assert(node.Left != null);
-            Debug.Assert(node.Right != null);
-            return $"{{ \"color\": \"{(node.Color == Color.Black ? "black" : "red")}\", \"value\": {node.Value}, \"left\": {ToJSON(node.Left)}, \"right\": {ToJSON(node.Right)} }}";
+            int count = 0;
+            var result = new StringBuilder();
+            ToDOT(result, Root, out var _, ref count);
+            return $"digraph g {{\n {result} }}";
+        }
+        public void ToDOT(StringBuilder result, Node node, out string name, ref int count)
+        {
+            name = $"\"{(node.IsNil ? "nil" : node.Value?.ToString())} [{count++}]\"";
+            result.AppendLine($"  {name} [color={(node.Color == Color.Black ? "black" : "red")}, style=filled, fontcolor=white]");
+            if (node.IsNil) return;
+
+            ToDOT(result, node.Left, out var leftName, ref count);
+            ToDOT(result, node.Right, out var rightName, ref count);
+            result.AppendLine($"  {name} -> {leftName}");
+            result.AppendLine($"  {name} -> {rightName}");
         }
 
         /// <summary>
@@ -367,13 +379,8 @@ namespace Yoakke.DataStructures
             if (!node.Left.IsNil && !node.Right.IsNil)
             {
                 // Search for the largest element in the left subtree
-                Node leftMax = node.Left;
-                while (true)
-                {
-                    Debug.Assert(leftMax.Right != null);
-                    if (leftMax.Right.IsNil) break;
-                    leftMax = leftMax.Right;
-                }
+                var leftMax = node.Predecessor;
+                Debug.Assert(leftMax != null);
                 // Swap the two nodes
                 SwapNodesForDelete(node, leftMax);
             }
