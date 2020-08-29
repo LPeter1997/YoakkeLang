@@ -74,17 +74,6 @@ namespace Yoakke.Compiler
             var err = tc.Compile("C:/TMP/globals.exe");
             Console.WriteLine($"Toolchain exit code: {err}");
             //*/
-#elif false
-            var p1 = new Yoakke.Text.Position(3, 45);
-            var p2 = new Yoakke.Text.Position(444, 134);
-            var p3 = new Yoakke.Text.Position(3, 45);
-
-            Console.WriteLine(p1);
-            Console.WriteLine(p1.Equals(p2));
-            Console.WriteLine(p1.Equals(p3));
-            Console.WriteLine(p1.GetHashCode());
-            Console.WriteLine(p2.GetHashCode());
-            Console.WriteLine(p3.GetHashCode());
 #else
             try
             {
@@ -94,7 +83,7 @@ namespace Yoakke.Compiler
                     var bt = new RedBlackTree<int, int>(x => x);
                     var nodes = new List<(RedBlackTree<int, int>.Node, int)>();
 
-                    int nodeCount = 5000;
+                    int nodeCount = 1000;
                     for (int i = 0; i < nodeCount; ++i)
                     {
                         var value = rnd.Next(0, 10);
@@ -119,27 +108,6 @@ namespace Yoakke.Compiler
                 Console.WriteLine($"Error: {e}");
                 Console.ReadLine();
             }
-
-            /*
-            while (true)
-            {
-                for (int i = 0; i < 5000; ++i)
-                {
-                    nodes.Add(bt.Insert(rnd.Next(0, 50)));
-                    bt.Validate();
-                }
-                Console.WriteLine("Inserted 5k");
-
-                for (int i = 0; i < 5000; ++i)
-                {
-                    var idx = rnd.Next(0, nodes.Count);
-                    bt.Remove(nodes[idx]);
-                    nodes.RemoveAt(idx);
-                    bt.Validate();
-                }
-                Console.WriteLine("Removed 5k");
-            }
-            */
 #endif
         }
     }

@@ -282,9 +282,6 @@ namespace Yoakke.DataStructures
             var current = Root;
             while (!current.IsNil)
             {
-                Debug.Assert(current.Left != null);
-                Debug.Assert(current.Right != null);
-
                 prev = current;
                 var cmp = Comparer.Compare(key, KeySelector(current.Value));
                 current = cmp < 0 ? current.Left : current.Right;
@@ -333,13 +330,13 @@ namespace Yoakke.DataStructures
             var parent = node.Parent;
             var grandpa = node.Grandparent;
             Debug.Assert(grandpa != null);
-            if (node == parent.Right && parent == grandpa.Left)
+            if (node.IsRightChild && parent.IsLeftChild)
             {
                 Debug.Assert(node.Left != null);
                 RotateLeft(parent);
                 node = node.Left;
             }
-            else if (node == parent.Left && parent == grandpa.Right)
+            else if (node.IsLeftChild && parent.IsRightChild)
             {
                 Debug.Assert(node.Right != null);
                 RotateRight(parent);
@@ -349,7 +346,7 @@ namespace Yoakke.DataStructures
             Debug.Assert(parent != null);
             grandpa = parent.Parent;
             Debug.Assert(grandpa != null);
-            if (node == parent.Left) RotateRight(grandpa);
+            if (node.IsLeftChild) RotateRight(grandpa);
             else RotateLeft(grandpa);
             parent.Color = Color.Black;
             grandpa.Color = Color.Red;
@@ -372,9 +369,6 @@ namespace Yoakke.DataStructures
                 Count = 0;
                 return;
             }
-
-            Debug.Assert(node.Left != null);
-            Debug.Assert(node.Right != null);
 
             if (!node.Left.IsNil && !node.Right.IsNil)
             {
@@ -404,59 +398,45 @@ namespace Yoakke.DataStructures
 
         private void DeleteCase1(Node node)
         {
-            if (node.Parent != null) DeleteCase2(node);
-        }
-
-        private void DeleteCase2(Node node)
-        {
-            var sibling = node.Sibling;
-            Debug.Assert(sibling != null);
-            if (sibling.Color == Color.Red)
+            if (node.Parent != null)
             {
-                Debug.Assert(node.Parent != null);
-                node.Parent.Color = Color.Red;
-                sibling.Color = Color.Black;
-                if (node == node.Parent.Left) RotateLeft(node.Parent);
-                else RotateRight(node.Parent);
-            }
-            DeleteCase3(node);
-        }
-
-        private void DeleteCase3(Node node)
-        {
-            var sibling = node.Sibling;
-            Debug.Assert(node.Parent != null);
-            Debug.Assert(sibling != null);
-            Debug.Assert(sibling.Left != null);
-            Debug.Assert(sibling.Right != null);
-            if (node.Parent.Color == Color.Black && sibling.Color == Color.Black
-             && sibling.Left.Color == Color.Black && sibling.Right.Color == Color.Black)
-            {
-                sibling.Color = Color.Red;
-                DeleteCase1(node.Parent);
-            }
-            else
-            {
-                DeleteCase4(node);
-            }
-        }
-
-        private void DeleteCase4(Node node)
-        {
-            var sibling = node.Sibling;
-            Debug.Assert(node.Parent != null);
-            Debug.Assert(sibling != null);
-            Debug.Assert(sibling.Left != null);
-            Debug.Assert(sibling.Right != null);
-            if (node.Parent.Color == Color.Red && sibling.Color == Color.Black
-             && sibling.Left.Color == Color.Black && sibling.Right.Color == Color.Black)
-            {
-                sibling.Color = Color.Red;
-                node.Parent.Color = Color.Black;
-            }
-            else
-            {
-                DeleteCase5(node);
+                // Case 2
+                var sibling = node.Sibling;
+                Debug.Assert(sibling != null);
+                if (sibling.Color == Color.Red)
+                {
+                    Debug.Assert(node.Parent != null);
+                    node.Parent.Color = Color.Red;
+                    sibling.Color = Color.Black;
+                    if (node == node.Parent.Left) RotateLeft(node.Parent);
+                    else RotateRight(node.Parent);
+                }
+                // Case 3
+                sibling = node.Sibling;
+                Debug.Assert(sibling != null);
+                if (node.Parent.Color == Color.Black && sibling.Color == Color.Black
+                 && sibling.Left.Color == Color.Black && sibling.Right.Color == Color.Black)
+                {
+                    sibling.Color = Color.Red;
+                    DeleteCase1(node.Parent);
+                }
+                else
+                {
+                    // Case 4
+                    sibling = node.Sibling;
+                    Debug.Assert(node.Parent != null);
+                    Debug.Assert(sibling != null);
+                    if (node.Parent.Color == Color.Red && sibling.Color == Color.Black
+                     && sibling.Left.Color == Color.Black && sibling.Right.Color == Color.Black)
+                    {
+                        sibling.Color = Color.Red;
+                        node.Parent.Color = Color.Black;
+                    }
+                    else
+                    {
+                        DeleteCase5(node);
+                    }
+                }
             }
         }
 
@@ -484,16 +464,10 @@ namespace Yoakke.DataStructures
                     RotateLeft(sibling);
                 }
             }
-            DeleteCase6(node);
-        }
-
-        private void DeleteCase6(Node node)
-        {
-            var sibling = node.Sibling;
+            // Case 6
+            sibling = node.Sibling;
             Debug.Assert(node.Parent != null);
             Debug.Assert(sibling != null);
-            Debug.Assert(sibling.Left != null);
-            Debug.Assert(sibling.Right != null);
             sibling.Color = node.Parent.Color;
             node.Parent.Color = Color.Black;
 
@@ -615,44 +589,42 @@ namespace Yoakke.DataStructures
 
         // General utilities
 
-        private void RotateLeft(Node n)
+        private void RotateLeft(Node root)
         {
-            var nnew = n.Right;
-            var parent = n.Parent;
-            Debug.Assert(nnew != null);
+            var pivot = root.Right;
+            var parent = root.Parent;
 
-            n.Right = nnew.Left;
-            nnew.Left = n;
-            n.Parent = nnew;
+            root.Right = pivot.Left;
+            pivot.Left = root;
+            root.Right.Parent = root;
 
-            if (n.Right != null) n.Right.Parent = n;
             if (parent != null)
             {
-                if (n == parent.Left) parent.Left = nnew;
-                else if (n == parent.Right) parent.Right = nnew;
+                if (root.IsLeftChild) parent.Left = pivot;
+                else parent.Right = pivot;
             }
 
-            nnew.Parent = parent;
+            root.Parent = pivot;
+            pivot.Parent = parent;
         }
 
-        private void RotateRight(Node n)
+        private void RotateRight(Node root)
         {
-            var nnew = n.Left;
-            var parent = n.Parent;
-            Debug.Assert(nnew != null);
+            var pivot = root.Left;
+            var parent = root.Parent;
 
-            n.Left = nnew.Right;
-            nnew.Right = n;
-            n.Parent = nnew;
+            root.Left = pivot.Right;
+            pivot.Right = root;
+            root.Left.Parent = root;
 
-            if (n.Left != null) n.Left.Parent = n;
             if (parent != null)
             {
-                if (n == parent.Left) parent.Left = nnew;
-                else if (n == parent.Right) parent.Right = nnew;
+                if (root.IsLeftChild) parent.Left = pivot;
+                else parent.Right = pivot;
             }
 
-            nnew.Parent = parent;
+            root.Parent = pivot;
+            pivot.Parent = parent;
         }
     }
 }
