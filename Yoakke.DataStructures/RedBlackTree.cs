@@ -590,6 +590,8 @@ namespace Yoakke.DataStructures
         // General utilities
 
         /**
+         * parent            parent
+         *   |                 |
          *  root              pivot
          *  /  \              /  \
          * x   pivot   =>   root  z 
@@ -616,6 +618,8 @@ namespace Yoakke.DataStructures
         }
 
         /**
+         *    parent        parent
+         *      |              |
          *     root          pivot
          *     /  \          /  \
          *  pivot  z   =>   x   root
