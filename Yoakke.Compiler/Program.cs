@@ -102,7 +102,7 @@ namespace Yoakke.Compiler
                         nodes.Add((bt.Insert(value), i));
                         bt.Validate();
                     }
-                    for (int i = 0; i < nodeCount - 3000; ++i)
+                    for (int i = 0; i < nodeCount; ++i)
                     {
                         var idx = rnd.Next(0, nodes.Count);
                         var (node, ii) = nodes[idx];

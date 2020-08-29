@@ -246,6 +246,9 @@ namespace Yoakke.DataStructures
         {
         }
 
+        /// <summary>
+        /// Validates the constraints of this red-black tree.
+        /// </summary>
         public void Validate()
         {
             if (Root.Color != Color.Black) throw new ValidationException("Root is not black!");
