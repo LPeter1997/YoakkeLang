@@ -589,6 +589,13 @@ namespace Yoakke.DataStructures
 
         // General utilities
 
+        /**
+         *  root              pivot
+         *  /  \              /  \
+         * x   pivot   =>   root  z 
+         *     /  \         /  \
+         *    y    z       x    y
+         */
         private void RotateLeft(Node root)
         {
             var pivot = root.Right;
@@ -608,6 +615,13 @@ namespace Yoakke.DataStructures
             pivot.Parent = parent;
         }
 
+        /**
+         *     root          pivot
+         *     /  \          /  \
+         *  pivot  z   =>   x   root
+         *   /  \               /  \
+         *  x    y             y    z
+         */
         private void RotateRight(Node root)
         {
             var pivot = root.Left;
