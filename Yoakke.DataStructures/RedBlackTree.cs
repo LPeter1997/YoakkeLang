@@ -89,15 +89,15 @@ namespace Yoakke.DataStructures
             /// <summary>
             /// The right child of this <see cref="Node"/>.
             /// </summary>
-            public Node Right 
-            { 
+            public Node Right
+            {
                 get
                 {
                     if (IsNil) throw new InvalidOperationException();
                     Debug.Assert(right != null);
                     return right;
                 }
-                internal set => right = value; 
+                internal set => right = value;
             }
             private Node? right;
 
@@ -180,7 +180,7 @@ namespace Yoakke.DataStructures
             /// <summary>
             /// The black height of this subtree.
             /// </summary>
-            public int BlackHeight => 
+            public int BlackHeight =>
                 (Color == Color.Black ? 1 : 0) + (left == null ? 0 : left.BlackHeight);
 
             internal Node()
@@ -253,6 +253,94 @@ namespace Yoakke.DataStructures
         {
             if (Root.Color != Color.Black) throw new ValidationException("Root is not black!");
             Root.Validate();
+        }
+
+        // Observers
+
+        // TODO: Doc
+        public IEnumerable<Node> Preorder(bool includeNil = false)
+        {
+            var stack = new Stack<Node>();
+            stack.Push(Root);
+            while (stack.Count > 0)
+            {
+                var node = stack.Pop();
+                if (node.IsNil)
+                {
+                    if (includeNil) yield return node;
+                }
+                else
+                {
+                    yield return node;
+                    stack.Push(node.Right);
+                    stack.Push(node.Left);
+                }
+            }
+        }
+
+        // TODO: Doc
+        public IEnumerable<Node> Inorder(bool includeNil = false)
+        {
+            var stack = new Stack<Node>();
+            Node? node = Root;
+            while (stack.Count > 0 || node != null)
+            {
+                if (node != null)
+                {
+                    stack.Push(node);
+                    node = node.IsNil ? node.Left : null;
+                }
+                else
+                {
+                    node = stack.Pop();
+                    if (node.IsNil)
+                    {
+                        if (includeNil) yield return node;
+                        node = null;
+                    }
+                    else
+                    {
+                        yield return node;
+                        node = node.Right;
+                    }
+                }
+            }
+        }
+
+        // TODO: Doc
+        public IEnumerable<Node> Postorder(bool includeNil = false)
+        {
+            var stack = new Stack<Node>();
+            Node? node = Root;
+            Node? lastVisited = null;
+            while (stack.Count > 0 || node != null)
+            {
+                if (node != null)
+                {
+                    stack.Push(node);
+                    node = node.IsNil ? node.Left : null;
+                }
+                else
+                {
+                    var peekNode = stack.Peek();
+                    if (!peekNode.IsNil && lastVisited != peekNode.Right)
+                    {
+                        node = peekNode.Right;
+                    }
+                    else
+                    {
+                        if (peekNode.IsNil)
+                        {
+                            if (includeNil) yield return peekNode;
+                        }
+                        else
+                        {
+                            yield return peekNode;
+                        }
+                        lastVisited = stack.Pop();
+                    }
+                }
+            }
         }
 
         // Insertion
