@@ -408,7 +408,7 @@ namespace Yoakke.DataStructures
                     Debug.Assert(node.Parent != null);
                     node.Parent.Color = Color.Red;
                     sibling.Color = Color.Black;
-                    if (node == node.Parent.Left) RotateLeft(node.Parent);
+                    if (node.IsLeftChild) RotateLeft(node.Parent);
                     else RotateRight(node.Parent);
                 }
                 // Case 3
@@ -445,18 +445,16 @@ namespace Yoakke.DataStructures
             var sibling = node.Sibling;
             Debug.Assert(node.Parent != null);
             Debug.Assert(sibling != null);
-            Debug.Assert(sibling.Left != null);
-            Debug.Assert(sibling.Right != null);
             if (sibling.Color == Color.Black)
             {
-                if (node == node.Parent.Left && sibling.Right.Color == Color.Black
+                if (node.IsLeftChild && sibling.Right.Color == Color.Black
                  && sibling.Left.Color == Color.Red)
                 {
                     sibling.Color = Color.Red;
                     sibling.Left.Color = Color.Black;
                     RotateRight(sibling);
                 }
-                else if (node == node.Parent.Right && sibling.Left.Color == Color.Black
+                else if (node.IsRightChild && sibling.Left.Color == Color.Black
                       && sibling.Right.Color == Color.Red)
                 {
                     sibling.Color = Color.Red;
@@ -471,7 +469,7 @@ namespace Yoakke.DataStructures
             sibling.Color = node.Parent.Color;
             node.Parent.Color = Color.Black;
 
-            if (node == node.Parent.Left)
+            if (node.IsLeftChild)
             {
                 sibling.Right.Color = Color.Black;
                 RotateLeft(node.Parent);
@@ -513,14 +511,10 @@ namespace Yoakke.DataStructures
             var n1Parent = n1.Parent;
             var n1Left = n1.Left;
             var n1Right = n1.Right;
-            Debug.Assert(n1Left != null);
-            Debug.Assert(n1Right != null);
 
             var n2Parent = n2.Parent;
             var n2Left = n2.Left;
             var n2Right = n2.Right;
-            Debug.Assert(n2Left != null);
-            Debug.Assert(n2Right != null);
 
             if (n1Parent != null)
             {
@@ -548,11 +542,7 @@ namespace Yoakke.DataStructures
 
         private void SwapParentAndChild(Node parent, Node child)
         {
-            Debug.Assert(parent.Left != null);
-            Debug.Assert(parent.Right != null);
             Debug.Assert(child.Parent != null);
-            Debug.Assert(child.Left != null);
-            Debug.Assert(child.Right != null);
 
             var parentParent = parent.Parent;
             var parentLeft = parent.Left;
@@ -591,7 +581,7 @@ namespace Yoakke.DataStructures
 
         /**
          * parent            parent
-         *   |                 |
+         *   |                  |
          *  root              pivot
          *  /  \              /  \
          * x   pivot   =>   root  z 
