@@ -373,9 +373,6 @@ namespace Yoakke.DataStructures
             Debug.Assert(node.Left != null);
             Debug.Assert(node.Right != null);
 
-            var rootCandidate = Root;
-            if (node == Root) rootCandidate = node.Right;
-
             if (!node.Left.IsNil && !node.Right.IsNil)
             {
                 // Search for the largest element in the left subtree
@@ -396,7 +393,7 @@ namespace Yoakke.DataStructures
             }
 
             // Search root
-            Root = rootCandidate;
+            Root = child;
             while (Root.Parent != null) Root = Root.Parent;
 
             --Count;

@@ -86,43 +86,32 @@ namespace Yoakke.Compiler
             Console.WriteLine(p2.GetHashCode());
             Console.WriteLine(p3.GetHashCode());
 #else
-
-            /*
-             * Reproduces:
-             n0 = bt.Insert(9);
-             n1 = bt.Insert(0);
-             n2 = bt.Insert(5);
-             bt.Remove(n0);
-             bt.Remove(n2);
-             */
-
             try
             {
                 while (true)
                 {
-                    Console.Clear();
-
                     var rnd = new Random();
                     var bt = new RedBlackTree<int, int>(x => x);
                     var nodes = new List<(RedBlackTree<int, int>.Node, int)>();
 
-                    int nodeCount = 3;
+                    int nodeCount = 5000;
                     for (int i = 0; i < nodeCount; ++i)
                     {
                         var value = rnd.Next(0, 10);
-                        Console.WriteLine($"n{i} = bt.Insert({value});");
+                        //Console.WriteLine($"var n{i} = bt.Insert({value});");
                         nodes.Add((bt.Insert(value), i));
                         bt.Validate();
                     }
-                    for (int i = 0; i < nodeCount; ++i)
+                    for (int i = 0; i < nodeCount - 3000; ++i)
                     {
                         var idx = rnd.Next(0, nodes.Count);
                         var (node, ii) = nodes[idx];
-                        Console.WriteLine($"bt.Remove(n{ii});");
+                        //Console.WriteLine($"bt.Remove(n{ii});");
                         bt.Remove(node);
                         nodes.RemoveAt(idx);
                         bt.Validate();
                     }
+                    Console.WriteLine("iter");
                 }
             }
             catch (Exception e) 
