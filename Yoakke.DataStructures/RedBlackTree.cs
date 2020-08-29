@@ -27,9 +27,8 @@ namespace Yoakke.DataStructures
             name = $"\"{(node.IsNil ? "nil" : node.Value?.ToString())} [{count++}]\"";
             result.AppendLine($"  {name} [color={(node.Color == Color.Black ? "black" : "red")}, style=filled, fontcolor=white]");
             if (node.IsNil) return;
-
-            ToDOT(result, node.Left, out var leftName, ref count);
-            ToDOT(result, node.Right, out var rightName, ref count);
+            ToDOT(result, node.LeftUnwrap, out var leftName, ref count);
+            ToDOT(result, node.RightUnwrap, out var rightName, ref count);
             result.AppendLine($"  {name} -> {leftName}");
             result.AppendLine($"  {name} -> {rightName}");
         }
@@ -75,38 +74,21 @@ namespace Yoakke.DataStructures
             /// <summary>
             /// The left child of this <see cref="Node"/>.
             /// </summary>
-            public Node Left
-            {
-                get
-                {
-                    if (IsNil) throw new InvalidOperationException();
-                    Debug.Assert(left != null);
-                    return left;
-                }
-                internal set => left = value;
-            }
-            private Node? left;
+            public Node? Left { get; set; }
             /// <summary>
             /// The right child of this <see cref="Node"/>.
             /// </summary>
-            public Node Right
-            {
-                get
-                {
-                    if (IsNil) throw new InvalidOperationException();
-                    Debug.Assert(right != null);
-                    return right;
-                }
-                internal set => right = value;
-            }
-            private Node? right;
+            public Node? Right { get; set; }
+
+            internal Node LeftUnwrap => Left ?? throw new InvalidOperationException();
+            internal Node RightUnwrap => Right ?? throw new InvalidOperationException();
 
             // Observers
 
             /// <summary>
             /// True, if this <see cref="Node"/> is a leaf.
             /// </summary>
-            public bool IsNil => left == null && right == null;
+            public bool IsNil => Left == null && Right == null;
             /// <summary>
             /// True, if this is a left child of it's parent.
             /// </summary>
@@ -130,58 +112,44 @@ namespace Yoakke.DataStructures
             /// <summary>
             /// The minimum (leftmost) element in this <see cref="Node"/>s subtree.
             /// </summary>
-            public Node Minimum
+            public Node? Minimum
             {
                 get
                 {
-                    if (IsNil) throw new InvalidOperationException();
+                    if (IsNil) return null;
                     var result = this;
-                    while (!result.Left.IsNil) result = result.Left;
+                    while (!result.LeftUnwrap.IsNil) result = result.LeftUnwrap;
                     return result;
                 }
             }
             /// <summary>
             /// The maximum (rightmost) element in this <see cref="Node"/>s subtree.
             /// </summary>
-            public Node Maximum
+            public Node? Maximum
             {
                 get
                 {
                     if (IsNil) throw new InvalidOperationException();
                     var result = this;
-                    while (!result.Right.IsNil) result = result.Right;
+                    while (!result.RightUnwrap.IsNil) result = result.RightUnwrap;
                     return result;
                 }
             }
             /// <summary>
             /// The predecessor (maximum of the left subtree) of this <see cref="Node"/>.
             /// </summary>
-            public Node? Predecessor
-            {
-                get
-                {
-                    if (IsNil) throw new InvalidOperationException();
-                    if (Left.IsNil) return null;
-                    return Left.Maximum;
-                }
-            }
+            public Node? Predecessor => 
+                (IsNil || LeftUnwrap.IsNil) ? null : LeftUnwrap.Maximum;
             /// <summary>
             /// The successor (minimum of the right subtree) of this <see cref="Node"/>.
             /// </summary>
-            public Node? Successor
-            {
-                get
-                {
-                    if (IsNil) throw new InvalidOperationException();
-                    if (Right.IsNil) return null;
-                    return Right.Minimum;
-                }
-            }
+            public Node? Successor =>
+                (IsNil || RightUnwrap.IsNil) ? null : RightUnwrap.Minimum;
             /// <summary>
             /// The black height of this subtree.
             /// </summary>
             public int BlackHeight =>
-                (Color == Color.Black ? 1 : 0) + (left == null ? 0 : left.BlackHeight);
+                (Color == Color.Black ? 1 : 0) + (Left?.BlackHeight ?? 0);
 
             internal Node()
             {
@@ -194,16 +162,16 @@ namespace Yoakke.DataStructures
                 if (!IsNil)
                 {
                     // Every path from this node to the leaves must contain the same amount of  black nodes
-                    var leftBlackHeight = Left.BlackHeight;
-                    var rightBlackHeight = Right.BlackHeight;
+                    var leftBlackHeight = LeftUnwrap.BlackHeight;
+                    var rightBlackHeight = RightUnwrap.BlackHeight;
                     if (leftBlackHeight != rightBlackHeight) throw new ValidationException("Black height mismatch!");
                     // Every red node's child must be black
-                    if (Color == Color.Red && (Left.Color != Color.Black || Right.Color != Color.Black))
+                    if (Color == Color.Red && (LeftUnwrap.Color != Color.Black || RightUnwrap.Color != Color.Black))
                     {
                         throw new ValidationException("Children of red are not both black!");
                     }
-                    Left.Validate();
-                    Right.Validate();
+                    LeftUnwrap.Validate();
+                    RightUnwrap.Validate();
                 }
             }
         }
@@ -272,8 +240,8 @@ namespace Yoakke.DataStructures
                 else
                 {
                     yield return node;
-                    stack.Push(node.Right);
-                    stack.Push(node.Left);
+                    stack.Push(node.RightUnwrap);
+                    stack.Push(node.LeftUnwrap);
                 }
             }
         }
@@ -288,7 +256,7 @@ namespace Yoakke.DataStructures
                 if (node != null)
                 {
                     stack.Push(node);
-                    node = node.IsNil ? node.Left : null;
+                    node = node.IsNil ? null : node.Left;
                 }
                 else
                 {
@@ -318,7 +286,7 @@ namespace Yoakke.DataStructures
                 if (node != null)
                 {
                     stack.Push(node);
-                    node = node.IsNil ? node.Left : null;
+                    node = node.IsNil ? null : node.Left;
                 }
                 else
                 {
@@ -372,7 +340,7 @@ namespace Yoakke.DataStructures
             {
                 prev = current;
                 var cmp = Comparer.Compare(key, KeySelector(current.Value));
-                current = cmp < 0 ? current.Left : current.Right;
+                current = cmp < 0 ? current.LeftUnwrap : current.RightUnwrap;
             }
             // Now current must be a nil leaf
             Debug.Assert(current.IsNil);
@@ -421,12 +389,12 @@ namespace Yoakke.DataStructures
             if (node.IsRightChild && parent.IsLeftChild)
             {
                 RotateLeft(parent);
-                node = node.Left;
+                node = node.LeftUnwrap;
             }
             else if (node.IsLeftChild && parent.IsRightChild)
             {
                 RotateRight(parent);
-                node = node.Right;
+                node = node.RightUnwrap;
             }
             parent = node.Parent;
             Debug.Assert(parent != null);
@@ -456,7 +424,7 @@ namespace Yoakke.DataStructures
                 return;
             }
 
-            if (!node.Left.IsNil && !node.Right.IsNil)
+            if (!node.LeftUnwrap.IsNil && !node.RightUnwrap.IsNil)
             {
                 // Search for the largest element in the left subtree
                 var leftMax = node.Predecessor;
@@ -465,9 +433,9 @@ namespace Yoakke.DataStructures
                 SwapNodesForDelete(node, leftMax);
             }
 
-            Debug.Assert(node.Left.IsNil || node.Right.IsNil);
+            Debug.Assert(node.LeftUnwrap.IsNil || node.RightUnwrap.IsNil);
 
-            var child = node.Right.IsNil ? node.Left : node.Right;
+            var child = node.RightUnwrap.IsNil ? node.LeftUnwrap : node.RightUnwrap;
             ReplaceForDelete(node, child);
             if (node.Color == Color.Black)
             {
@@ -501,7 +469,7 @@ namespace Yoakke.DataStructures
                 sibling = node.Sibling;
                 Debug.Assert(sibling != null);
                 if (node.Parent.Color == Color.Black && sibling.Color == Color.Black
-                 && sibling.Left.Color == Color.Black && sibling.Right.Color == Color.Black)
+                 && sibling.LeftUnwrap.Color == Color.Black && sibling.RightUnwrap.Color == Color.Black)
                 {
                     sibling.Color = Color.Red;
                     DeleteCase1(node.Parent);
@@ -512,7 +480,7 @@ namespace Yoakke.DataStructures
                     Debug.Assert(node.Parent != null);
                     Debug.Assert(sibling != null);
                     if (node.Parent.Color == Color.Red && sibling.Color == Color.Black
-                     && sibling.Left.Color == Color.Black && sibling.Right.Color == Color.Black)
+                     && sibling.LeftUnwrap.Color == Color.Black && sibling.RightUnwrap.Color == Color.Black)
                     {
                         sibling.Color = Color.Red;
                         node.Parent.Color = Color.Black;
@@ -532,18 +500,18 @@ namespace Yoakke.DataStructures
             Debug.Assert(sibling != null);
             if (sibling.Color == Color.Black)
             {
-                if (node.IsLeftChild && sibling.Right.Color == Color.Black
-                 && sibling.Left.Color == Color.Red)
+                if (node.IsLeftChild && sibling.RightUnwrap.Color == Color.Black
+                 && sibling.LeftUnwrap.Color == Color.Red)
                 {
                     sibling.Color = Color.Red;
-                    sibling.Left.Color = Color.Black;
+                    sibling.LeftUnwrap.Color = Color.Black;
                     RotateRight(sibling);
                 }
-                else if (node.IsRightChild && sibling.Left.Color == Color.Black
-                      && sibling.Right.Color == Color.Red)
+                else if (node.IsRightChild && sibling.LeftUnwrap.Color == Color.Black
+                      && sibling.RightUnwrap.Color == Color.Red)
                 {
                     sibling.Color = Color.Red;
-                    sibling.Right.Color = Color.Black;
+                    sibling.RightUnwrap.Color = Color.Black;
                     RotateLeft(sibling);
                 }
             }
@@ -556,12 +524,12 @@ namespace Yoakke.DataStructures
 
             if (node.IsLeftChild)
             {
-                sibling.Right.Color = Color.Black;
+                sibling.RightUnwrap.Color = Color.Black;
                 RotateLeft(node.Parent);
             }
             else
             {
-                sibling.Left.Color = Color.Black;
+                sibling.LeftUnwrap.Color = Color.Black;
                 RotateRight(node.Parent);
             }
         }
@@ -594,12 +562,12 @@ namespace Yoakke.DataStructures
             }
 
             var n1Parent = n1.Parent;
-            var n1Left = n1.Left;
-            var n1Right = n1.Right;
+            var n1Left = n1.LeftUnwrap;
+            var n1Right = n1.RightUnwrap;
 
             var n2Parent = n2.Parent;
-            var n2Left = n2.Left;
-            var n2Right = n2.Right;
+            var n2Left = n2.LeftUnwrap;
+            var n2Right = n2.RightUnwrap;
 
             if (n1Parent != null)
             {
@@ -630,10 +598,10 @@ namespace Yoakke.DataStructures
             Debug.Assert(child.Parent != null);
 
             var parentParent = parent.Parent;
-            var parentLeft = parent.Left;
-            var parentRight = parent.Right;
-            var childLeft = child.Left;
-            var childRight = child.Right;
+            var parentLeft = parent.LeftUnwrap;
+            var parentRight = parent.RightUnwrap;
+            var childLeft = child.LeftUnwrap;
+            var childRight = child.RightUnwrap;
 
             childLeft.Parent = parent;
             childRight.Parent = parent;
@@ -675,12 +643,12 @@ namespace Yoakke.DataStructures
          */
         private void RotateLeft(Node root)
         {
-            var pivot = root.Right;
+            var pivot = root.RightUnwrap;
             var parent = root.Parent;
 
             root.Right = pivot.Left;
             pivot.Left = root;
-            root.Right.Parent = root;
+            root.RightUnwrap.Parent = root;
 
             if (parent != null)
             {
@@ -703,12 +671,12 @@ namespace Yoakke.DataStructures
          */
         private void RotateRight(Node root)
         {
-            var pivot = root.Left;
+            var pivot = root.LeftUnwrap;
             var parent = root.Parent;
 
             root.Left = pivot.Right;
             pivot.Right = root;
-            root.Left.Parent = root;
+            root.LeftUnwrap.Parent = root;
 
             if (parent != null)
             {
