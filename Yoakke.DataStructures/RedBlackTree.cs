@@ -332,13 +332,11 @@ namespace Yoakke.DataStructures
             Debug.Assert(grandpa != null);
             if (node.IsRightChild && parent.IsLeftChild)
             {
-                Debug.Assert(node.Left != null);
                 RotateLeft(parent);
                 node = node.Left;
             }
             else if (node.IsLeftChild && parent.IsRightChild)
             {
-                Debug.Assert(node.Right != null);
                 RotateRight(parent);
                 node = node.Right;
             }
@@ -423,7 +421,6 @@ namespace Yoakke.DataStructures
                 else
                 {
                     // Case 4
-                    sibling = node.Sibling;
                     Debug.Assert(node.Parent != null);
                     Debug.Assert(sibling != null);
                     if (node.Parent.Color == Color.Red && sibling.Color == Color.Black
