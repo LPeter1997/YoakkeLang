@@ -235,14 +235,17 @@ namespace Yoakke.DataStructures
             var (n1Left, n2Left) = (n1.Left, n2.Left);
             var (n1Right, n2Right) = (n1.Right, n2.Right);
 
+            // NOTE: Needed in case the parent is the same
+            var n1IsLeftChild = n1Parent?.Left == n1;
+            var n2IsLeftChild = n2Parent?.Left == n2;
             if (n1Parent != null)
             {
-                if (n1Parent.Left == n1) n1Parent.Left = n2;
+                if (n1IsLeftChild) n1Parent.Left = n2;
                 else n1Parent.Right = n2;
             }
             if (n2Parent != null)
             {
-                if (n2Parent.Left == n2) n2Parent.Left = n1;
+                if (n2IsLeftChild) n2Parent.Left = n1;
                 else n2Parent.Right = n1;
             }
             n1.Parent = n2Parent;
