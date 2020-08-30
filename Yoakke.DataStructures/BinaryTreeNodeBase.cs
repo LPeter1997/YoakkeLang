@@ -11,20 +11,20 @@ namespace Yoakke.DataStructures
     /// The node interface for the binary trees.
     /// </summary>
     /// <typeparam name="TNode">The implementation type.</typeparam>
-    public interface IBinaryTreeNode<TNode> where TNode : class, IBinaryTreeNode<TNode>
+    public abstract class BinaryTreeNodeBase<TNode> where TNode : BinaryTreeNodeBase<TNode>
     {
         /// <summary>
         /// The parent of this node.
         /// </summary>
-        public TNode? Parent { get; set; }
+        public abstract TNode? Parent { get; set; }
         /// <summary>
         /// The left child of this node.
         /// </summary>
-        public TNode? Left { get; set; }
+        public abstract TNode? Left { get; set; }
         /// <summary>
         /// The right child of this node.
         /// </summary>
-        public TNode? Right { get; set; }
+        public abstract TNode? Right { get; set; }
 
         // Observers
 
@@ -83,7 +83,7 @@ namespace Yoakke.DataStructures
         ///      /  \         /  \
         ///     y   z        x    y
         /// </summary>
-        public void RotateLeft()
+        public virtual void RotateLeft()
         {
             var pivot = Right;
             if (pivot == null) throw new InvalidOperationException("Can't rotate left without a right child!");
@@ -116,7 +116,7 @@ namespace Yoakke.DataStructures
         ///  /  \               /  \
         /// x    y             y    z
         /// </summary>
-        public void RotateRight()
+        public virtual void RotateRight()
         {
             var pivot = Left;
             if (pivot == null) throw new InvalidOperationException("Can't rotate right without a left child!");
@@ -141,7 +141,7 @@ namespace Yoakke.DataStructures
         /// </summary>
         /// <returns>The <see cref="IEnumerable{TNode}"/> that yields the nodes in the order of pre-order
         /// traversal.</returns>
-        public IEnumerable<TNode> PreOrder()
+        public virtual IEnumerable<TNode> PreOrder()
         {
             var stack = new Stack<TNode>();
             stack.Push((TNode)this);
@@ -159,7 +159,7 @@ namespace Yoakke.DataStructures
         /// </summary>
         /// <returns>The <see cref="IEnumerable{TNode}"/> that yields the nodes in the order of in-order
         /// traversal.</returns>
-        public IEnumerable<TNode> InOrder()
+        public virtual IEnumerable<TNode> InOrder()
         {
             var stack = new Stack<TNode>();
             TNode? node = (TNode)this;
@@ -184,7 +184,7 @@ namespace Yoakke.DataStructures
         /// </summary>
         /// <returns>The <see cref="IEnumerable{TNode}"/> that yields the nodes in the order of post-order
         /// traversal.</returns>
-        public IEnumerable<TNode> PostOrder()
+        public virtual IEnumerable<TNode> PostOrder()
         {
             var stack = new Stack<TNode>();
             TNode? node = (TNode)this;
