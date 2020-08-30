@@ -308,5 +308,40 @@ namespace Yoakke.DataStructures
         /// The number of nodes in this tree.
         /// </summary>
         public int Count { get; }
+
+        /// <summary>
+        /// Inserts the given node into this tree.
+        /// </summary>
+        /// <param name="node">The node to insert.</param>
+        /// <param name="hint">The hint for the insertion. The hint must be a parent of the subtree
+        /// where the insertion should happen.</param>
+        public void Insert(INode node, INode? hint = null);
+
+        /// <summary>
+        /// Removes the given node from this tree.
+        /// </summary>
+        /// <param name="node">The node to remove.</param>
+        public void Remove(INode node);
+
+        /// <summary>
+        /// Does preorder traversal on this tree.
+        /// </summary>
+        /// <returns>The <see cref="IEnumerable{INode}"/> that yields the nodes in the order of pre-order
+        /// traversal.</returns>
+        public IEnumerable<INode> PreOrder() => Root?.PreOrder() ?? Enumerable.Empty<INode>();
+
+        /// <summary>
+        /// Does inorder traversal on this tree.
+        /// </summary>
+        /// <returns>The <see cref="IEnumerable{INode}"/> that yields the nodes in the order of in-order
+        /// traversal.</returns>
+        public IEnumerable<INode> InOrder() => Root?.InOrder() ?? Enumerable.Empty<INode>();
+
+        /// <summary>
+        /// Does postorder traversal on this tree.
+        /// </summary>
+        /// <returns>The <see cref="IEnumerable{INode}"/> that yields the nodes in the order of post-order
+        /// traversal.</returns>
+        public IEnumerable<INode> PostOrder() => Root?.PostOrder() ?? Enumerable.Empty<INode>();
     }
 }
