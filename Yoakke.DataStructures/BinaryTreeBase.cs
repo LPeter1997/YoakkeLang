@@ -57,5 +57,16 @@ namespace Yoakke.DataStructures
         /// <returns>The <see cref="IEnumerable{TNode}"/> that yields the nodes in the order of post-order
         /// traversal.</returns>
         public virtual IEnumerable<TNode> PostOrder() => Root?.PostOrder() ?? Enumerable.Empty<TNode>();
+
+        /// <summary>
+        /// Finds the new root node for this tree.
+        /// </summary>
+        /// <param name="start">The node to start the search from.</param>
+        /// <returns>The root node found from the starting node.</returns>
+        public virtual TNode FindRoot(TNode start)
+        {
+            for (; start.Parent != null; start = start.Parent) ;
+            return start;
+        }
     }
 }

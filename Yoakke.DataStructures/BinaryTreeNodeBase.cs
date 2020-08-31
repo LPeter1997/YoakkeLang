@@ -54,19 +54,35 @@ namespace Yoakke.DataStructures
         /// <summary>
         /// The minimum (leftmost) element in this node's subtree.
         /// </summary>
-        public TNode Minimum => Left?.Minimum ?? (TNode)this;
+        public virtual TNode Minimum
+        {
+            get
+            {
+                var result = this;
+                while (result.Left != null) result = result.Left;
+                return (TNode)result;
+            }
+        }
         /// <summary>
         /// The maximum (rightmost) element in this node's subtree.
         /// </summary>
-        public TNode Maximum => Right?.Maximum ?? (TNode)this;
+        public virtual TNode Maximum
+        {
+            get
+            {
+                var result = this;
+                while (result.Right != null) result = result.Right;
+                return (TNode)result;
+            }
+        }
         /// <summary>
         /// The predecessor (maximum of the left subtree) of this node.
         /// </summary>
-        public TNode? Predecessor => Left?.Maximum;
+        public virtual TNode? Predecessor => Left?.Maximum;
         /// <summary>
         /// The successor (minimum of the right subtree) of this node.
         /// </summary>
-        public TNode? Successor => Right?.Minimum;
+        public virtual TNode? Successor => Right?.Minimum;
 
         // Operations
 

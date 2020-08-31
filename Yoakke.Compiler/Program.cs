@@ -81,7 +81,7 @@ namespace Yoakke.Compiler
                 {
                     var rnd = new Random();
                     var bt = new RedBlackTree<int, int>(x => x);
-                    var nodes = new List<(RedBlackTree<int, int>.Node, int)>();
+                    var nodes = new List<(RedBlackTreeNode<int>, int)>();
 
                     int nodeCount = 1000;
                     for (int i = 0; i < nodeCount; ++i)
@@ -91,6 +91,7 @@ namespace Yoakke.Compiler
                         nodes.Add((bt.Insert(value), i));
                         bt.Validate();
                     }
+                    //Console.WriteLine(bt.ToDOT());
                     for (int i = 0; i < nodeCount; ++i)
                     {
                         var idx = rnd.Next(0, nodes.Count);
@@ -109,25 +110,11 @@ namespace Yoakke.Compiler
                 //Console.ReadLine();
             //}
 #else
-            var rnd = new Random();
             var bt = new RedBlackTree<int, int>(x => x);
-            int nodeCount = 10;
-            for (int i = 0; i < nodeCount; ++i)
-            {
-                var value = rnd.Next(0, 20);
-                bt.Insert(value);
-                bt.Validate();
-            }
-            Console.WriteLine(bt.ToDOT());
-            Console.WriteLine("==============");
-            Console.WriteLine("Pre:");
-            foreach (var n in bt.Preorder()) Console.WriteLine(n.Value);
-            Console.WriteLine("==============");
-            Console.WriteLine("In:");
-            foreach (var n in bt.Inorder()) Console.WriteLine(n.Value);
-            Console.WriteLine("==============");
-            Console.WriteLine("Post:");
-            foreach (var n in bt.Postorder()) Console.WriteLine(n.Value);
+            var n0 = bt.Insert(4);
+            var n1 = bt.Insert(7);
+            var n2 = bt.Insert(2);
+            bt.Remove(n0);
 #endif
         }
     }
