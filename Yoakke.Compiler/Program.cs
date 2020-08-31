@@ -75,46 +75,17 @@ namespace Yoakke.Compiler
             Console.WriteLine($"Toolchain exit code: {err}");
             //*/
 #elif true
-            //try
-            {
-                while (true)
-                {
-                    var rnd = new Random();
-                    var bt = new RedBlackTree<int, int>(x => x);
-                    var nodes = new List<(RedBlackTreeNode<int>, int)>();
+            var it = new IntervalTree<int, string>();
+            it.Add(2, 7, "a");
+            it.Add(7, 13, "b");
+            it.Add(5, 10, "c");
+            it.Add(0, 1, "d");
+            it.Add(15, 18, "e");
 
-                    int nodeCount = 1000;
-                    for (int i = 0; i < nodeCount; ++i)
-                    {
-                        var value = rnd.Next(0, 1000);
-                        //Console.WriteLine($"var n{i} = bt.Insert({value});");
-                        nodes.Add((bt.Insert(value), i));
-                        bt.Validate();
-                    }
-                    //Console.WriteLine(bt.ToDOT());
-                    for (int i = 0; i < nodeCount; ++i)
-                    {
-                        var idx = rnd.Next(0, nodes.Count);
-                        var (node, ii) = nodes[idx];
-                        //Console.WriteLine($"bt.Remove(n{ii});");
-                        bt.Remove(node);
-                        nodes.RemoveAt(idx);
-                        bt.Validate();
-                    }
-                    Console.WriteLine("iter");
-                }
+            foreach (var item in it.Query(1, 8))
+            {
+                Console.WriteLine(item.Value);
             }
-            //catch (Exception e) 
-            //{
-                //Console.WriteLine($"Error: {e}");
-                //Console.ReadLine();
-            //}
-#else
-            var bt = new RedBlackTree<int, int>(x => x);
-            var n0 = bt.Insert(4);
-            var n1 = bt.Insert(7);
-            var n2 = bt.Insert(2);
-            bt.Remove(n0);
 #endif
         }
     }
