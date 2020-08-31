@@ -41,6 +41,9 @@ namespace Yoakke.DataStructures
         {
         }
 
+        public IEnumerator<IntervalValuePair<TKey, TValue>> GetEnumerator() => elements.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
         public IEnumerable<IntervalValuePair<TKey, TValue>> Query(TKey point) =>
             elements.Where(e => Contains(e.Start, e.End, point));
 
@@ -65,9 +68,6 @@ namespace Yoakke.DataStructures
         }
 
         public void Clear() => elements.Clear();
-
-        public IEnumerator<IntervalValuePair<TKey, TValue>> GetEnumerator() => elements.GetEnumerator();
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         private bool Contains(TKey start, TKey end, TKey point) =>
                Comparer.Compare(start, point) <= 0
