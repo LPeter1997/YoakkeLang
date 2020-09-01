@@ -56,7 +56,14 @@ namespace Yoakke.DataStructures
             {
                 throw new ArgumentOutOfRangeException($"{nameof(from)} can't be larger than {nameof(to)}!");
             }
-            elements.Add(new IntervalValuePair<TKey, TValue>(from, to, value));
+            // NOTE: We insert ordered by start here so we can iterate in that order
+            // If we rewrite the datastructure we might be able to get rid of the sort or something
+            var toInsert = new IntervalValuePair<TKey, TValue>(from, to, value);
+            int idx = elements.BinarySearch(
+                toInsert,
+                Comparer<IntervalValuePair<TKey, TValue>>.Create((x, y) => Comparer.Compare(x.Start, y.Start)));
+            if (idx < 0) idx = ~idx;
+            elements.Insert(idx, toInsert);
         }
 
         public void Remove(TValue value)

@@ -38,28 +38,28 @@ namespace Yoakke.Text
         private StringBuilder builder = new StringBuilder();
         private int cursorIndex;
 
-        public void Append(object? value)
+        public Span Append(object? value)
         {
             builder.Append(value);
-            UpdateCursor();
+            return UpdateCursor();
         }
 
-        public void AppendLine(string value = "")
+        public Span AppendLine(string value = "")
         {
             builder.AppendLine(value);
-            UpdateCursor();
+            return UpdateCursor();
         }
 
-        public void AppendJoin<T>(string separator, IEnumerable<T> enumerable)
+        public Span AppendJoin<T>(string separator, IEnumerable<T> enumerable)
         {
             builder.AppendJoin(separator, enumerable);
-            UpdateCursor();
+            return UpdateCursor();
         }
 
-        public void AppendJoin<T>(char separator, IEnumerable<T> enumerable)
+        public Span AppendJoin<T>(char separator, IEnumerable<T> enumerable)
         {
             builder.AppendJoin(separator, enumerable);
-            UpdateCursor();
+            return UpdateCursor();
         }
 
         public void Clear()
@@ -70,12 +70,15 @@ namespace Yoakke.Text
 
         public override string ToString() => builder.ToString();
 
-        private void UpdateCursor()
+        private Span UpdateCursor()
         {
+            var start = cursor.Position;
             for (; cursorIndex < builder.Length; ++cursorIndex)
             {
                 cursor.Append(builder[cursorIndex]);
             }
+            var end = cursor.Position;
+            return new Span(start, end);
         }
     }
 }
