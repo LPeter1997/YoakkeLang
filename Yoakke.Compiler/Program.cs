@@ -14,6 +14,7 @@ using Yoakke.Lir.Instructions;
 using Yoakke.Lir.Runtime;
 using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;
+using Yoakke.Text;
 using OperatingSystem = Yoakke.Lir.Backend.OperatingSystem;
 using Type = Yoakke.Lir.Types.Type;
 
@@ -74,18 +75,6 @@ namespace Yoakke.Compiler
             var err = tc.Compile("C:/TMP/globals.exe");
             Console.WriteLine($"Toolchain exit code: {err}");
             //*/
-#elif true
-            var it = new IntervalTree<int, string>();
-            it.Add(2, 7, "a");
-            it.Add(7, 13, "b");
-            it.Add(5, 10, "c");
-            it.Add(0, 1, "d");
-            it.Add(15, 18, "e");
-
-            foreach (var item in it.Query(1, 8))
-            {
-                Console.WriteLine(item.Value);
-            }
 #endif
         }
     }

@@ -31,5 +31,11 @@ namespace Yoakke.Text
             Span = span;
             Value = value;
         }
+
+        public void Deconstruct(out Span span, out TValue value)
+        {
+            span = Span;
+            value = Value;
+        }
     }
 }
