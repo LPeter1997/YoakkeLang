@@ -1,10 +1,18 @@
-﻿namespace Yoakke.Lir.Backend
+﻿using System;
+using System.Reflection;
+
+namespace Yoakke.Lir.Backend
 {
     /// <summary>
     /// The target-triplet defining the target machine.
     /// </summary>
     public readonly struct TargetTriplet
     {
+        /// <summary>
+        /// Gets the <see cref="TargetTriplet"/> representing this machine.
+        /// </summary>
+        public TargetTriplet HostMachine => GetHostMachine();
+
         /// <summary>
         /// The <see cref="CpuFamily"/> of the <see cref="TargetTriplet"/>.
         /// </summary>
@@ -42,5 +50,21 @@
         }
 
         public override string ToString() => $"{CpuFamily}-{Vendor}-{OperatingSystem}".ToLower();
+
+        private static TargetTriplet GetHostMachine()
+        {
+            var asm = System.Reflection.Assembly.GetExecutingAssembly();
+            var cpuFamily = asm.GetName().ProcessorArchitecture switch
+            {
+                ProcessorArchitecture.X86 => CpuFamily.X86,
+                _ => throw new NotImplementedException(),
+            };
+            var os = Environment.OSVersion.Platform switch
+            {
+                PlatformID.Win32NT => OperatingSystem.Windows,
+                _ => throw new NotImplementedException(),
+            };
+            return new TargetTriplet(cpuFamily, os);
+        }
     }
 }
