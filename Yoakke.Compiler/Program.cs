@@ -44,7 +44,7 @@ namespace Yoakke.Compiler
             {
                 CommandLineApplication.Execute<Compiler>(args);
             }
-#elif false
+#elif true
 
             var asm = new Assembly("test_app");
             var builder = new Builder(asm);
