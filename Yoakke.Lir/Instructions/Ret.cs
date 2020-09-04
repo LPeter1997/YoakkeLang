@@ -2,12 +2,12 @@
 
 namespace Yoakke.Lir.Instructions
 {
-    partial record Instr
+    partial class Instr
     {
         /// <summary>
         /// Return instruction.
         /// </summary>
-        public record Ret : Instr
+        public class Ret : Instr
         {
             /// <summary>
             /// The returned <see cref="Value"/>.

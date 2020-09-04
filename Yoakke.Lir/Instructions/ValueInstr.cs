@@ -3,7 +3,7 @@
     /// <summary>
     /// Base for every instruction that yields some value in a <see cref="Register"/>.
     /// </summary>
-    public abstract record ValueInstr : Instr
+    public abstract class ValueInstr : Instr
     {
         /// <summary>
         /// The <see cref="Register"/> storing the result of the instruction.

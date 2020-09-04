@@ -3,7 +3,7 @@
     /// <summary>
     /// Base for every instruction.
     /// </summary>
-    public abstract partial record Instr 
+    public abstract partial class Instr 
     {
         /// <summary>
         /// True, if this instruction performs some kind of (conditional or unconditional)
