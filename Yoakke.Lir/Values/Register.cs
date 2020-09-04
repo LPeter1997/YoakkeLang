@@ -9,13 +9,13 @@ namespace Yoakke.Lir.Values
     partial record Value
     {
         /// <summary>
-        /// Reference to an <see cref="ISymbol"/>.
+        /// Reference to a <see cref="Lir.Register"/>.
         /// </summary>
-        public record Symbol(ISymbol Value) : Value
+        public record Register(Lir.Register Value) : Value
         {
             public override Type Type => Value.Type;
 
-            public override string ToString() => Value.Name;
+            public override string ToString() => $"r{Value.Index}";
         }
     }
 }

@@ -19,6 +19,11 @@ namespace Yoakke.DataStructures
         public int Count => underlying.Count;
         public bool IsReadOnly => underlying.IsReadOnly;
 
+        public ValueList()
+            : this(new List<T>())
+        {
+        }
+
         public ValueList(IList<T> underlying)
         {
             this.underlying = underlying;

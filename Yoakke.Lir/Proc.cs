@@ -45,8 +45,8 @@ namespace Yoakke.Lir
         }
 
         public override string ToString() => 
-            $"{Return} proc[callconv = {CallConv.ToString().ToLower()}] {Name}({string.Join(", ", Parameters)}) " +
-            $"[visibility = {Visibility.ToString().ToLower()}]:\n" +
+            $"{Return} proc[callconv = {CallConv}] {Name}({string.Join(", ", Parameters)}) " +
+            $"[visibility = {Visibility}]:\n" +
             $"{string.Join('\n', BasicBlocks)}";
     }
 }

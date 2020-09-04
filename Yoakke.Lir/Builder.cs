@@ -16,6 +16,11 @@ namespace Yoakke.Lir
     /// </summary>
     public class Builder
     {
+        private class ProcContext
+        {
+            public int RegisterCount { get; set; }
+        }
+
         /// <summary>
         /// The <see cref="Assembly"/> the <see cref="Builder"/> works with.
         /// </summary>
@@ -50,6 +55,7 @@ namespace Yoakke.Lir
 
         private Proc? currentProc;
         private BasicBlock? currentBasicBlock;
+        private IDictionary<Proc, ProcContext> procContexts = new Dictionary<Proc, ProcContext>();
 
         /// <summary>
         /// Initializes a new <see cref="Builder"/>.
@@ -97,7 +103,39 @@ namespace Yoakke.Lir
 
         // Instructions ////////////////////////////////////////////////////////
 
-        public void Ret(Value value) => 
-            CurrentBasicBlock.Instructions.Add(new Instr.Ret(value));
+        // TODO: Doc
+        public void AddInstruction(Instr instr) =>
+            CurrentBasicBlock.Instructions.Add(instr);
+
+        // TODO: Doc
+        public void Ret(Value value) => AddInstruction(new Instr.Ret(value));
+
+        // TODO: Doc
+        public Value Call(Value procedure, IList<Value> arguments)
+        {
+            if (!(procedure.Type is Type.Proc procType))
+            {
+                throw new ArgumentException("The procedure value must have a procedure type!", nameof(procedure));
+            }
+            if (!procType.Parameters.SequenceEqual(arguments.Select(arg => arg.Type)))
+            {
+                throw new ArgumentException("The procedure is not callable with the given arguments!", nameof(arguments));
+            }
+            var resultReg = AllocateRegister(procType.Return);
+            AddInstruction(new Instr.Call(resultReg, procedure, arguments));
+            return new Value.Register(resultReg);
+        }
+
+        // Internals
+
+        private Register AllocateRegister(Type type)
+        {
+            if (!procContexts.TryGetValue(CurrentProc, out var ctx))
+            {
+                ctx = new ProcContext();
+                procContexts.Add(CurrentProc, ctx);
+            }
+            return new Register(type, ctx.RegisterCount++);
+        }
     }
 }
