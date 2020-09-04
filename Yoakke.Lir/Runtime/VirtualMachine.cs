@@ -116,6 +116,34 @@ namespace Yoakke.Lir.Runtime
                 Return(Unwrap(ret.Value));
                 break;
 
+            case Instr.Call call:
+            {
+                var proc = Unwrap(call.Procedure);
+                if (proc is Value.Symbol sym)
+                {
+                    if (sym.Value is Proc irProc)
+                    {
+                        // TODO
+                        throw new NotImplementedException();
+                    }
+                    else
+                    {
+                        Debug.Assert(sym.Value is Extern);
+                        var external = (Extern)sym.Value;
+                        // TODO
+                        throw new NotImplementedException();
+                    }
+                }
+                else
+                {
+                    // TODO: Like.. function pointers and stuff
+                    throw new NotImplementedException();
+                }
+            }
+#pragma warning disable CS0162 // Unreachable code detected
+            break;
+#pragma warning restore CS0162 // Unreachable code detected
+
             default: throw new NotImplementedException();
             }
         }
@@ -137,20 +165,19 @@ namespace Yoakke.Lir.Runtime
         }
 
         // TODO: Differentiate lvalues and rvalues?
-        // TODO: Unwrap if register
         private Value Unwrap(Value value) => value switch
         {
             Value.Symbol sym => sym.Value switch
             {
-                Extern ext => UnwrapExternal(ext.Type, externals[ext]),
+                Extern ext => ReadValueFromPtr(ext.Type, externals[ext]),
                 _ => value,
             },
+            // TODO
+            Value.Register reg => throw new NotImplementedException(),
             _ => value,
         };
 
-        // TODO: This will be the same as materializing a non-external pointer
-        // We could rename it to ReadValueFromMemory or something
-        private Value UnwrapExternal(Type type, IntPtr intPtr)
+        private Value ReadValueFromPtr(Type type, IntPtr intPtr)
         {
             unsafe
             {

@@ -70,9 +70,9 @@ namespace Yoakke.Compiler
             //var code = tc.Backend.Compile(asm);
             //Console.WriteLine(code);
 
-            //var vm = new VirtualMachine(asm);
-            //var res = vm.Execute("main");
-            //Console.WriteLine($"VM result = {res}");
+            var vm = new VirtualMachine(asm);
+            var res = vm.Execute("main");
+            Console.WriteLine($"VM result = {res}");
 
             // Compile it to backend
             /*
