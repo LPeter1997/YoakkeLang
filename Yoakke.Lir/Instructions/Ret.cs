@@ -1,4 +1,5 @@
-﻿using Yoakke.Lir.Values;
+﻿using System.Collections.Generic;
+using Yoakke.Lir.Values;
 
 namespace Yoakke.Lir.Instructions
 {
@@ -13,6 +14,14 @@ namespace Yoakke.Lir.Instructions
             /// The returned <see cref="Value"/>.
             /// </summary>
             public Value Value { get; set; }
+
+            public override IEnumerable<IInstrArg> InstrArgs
+            {
+                get
+                {
+                    yield return Value;
+                }
+            }
 
             /// <summary>
             /// Initializes a new <see cref="Ret"/>.

@@ -11,13 +11,10 @@ namespace Yoakke.Lir
     /// </summary>
     public class Extern : ISymbol
     {
+        public Type Type { get; }
         public string Name { get; }
         public Visibility Visibility { get; set; } = Visibility.Public;
 
-        /// <summary>
-        /// The <see cref="Type"/> of the external symbol.
-        /// </summary>
-        public readonly Type Type;
         /// <summary>
         /// The path of the binary the symbol originates from.
         /// </summary>

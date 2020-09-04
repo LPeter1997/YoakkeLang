@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using Yoakke.DataStructures;
 using Yoakke.Lir.Types;
 
 namespace Yoakke.Lir
@@ -8,6 +10,8 @@ namespace Yoakke.Lir
     /// </summary>
     public class Proc : ISymbol
     {
+        public Type Type =>
+            new Type.Proc(CallConv, Return, Parameters.Select(p => p.Type).ToList().AsValueList());
         public string Name { get; }
         public Visibility Visibility { get; set; }
 
@@ -16,7 +20,7 @@ namespace Yoakke.Lir
         /// <summary>
         /// The return <see cref="Type"/> of the procedure.
         /// </summary>
-        public Type Return { get; set; } = new Type.Int(true, 32);
+        public Type Return { get; set; } = Type.Void_;
         /// <summary>
         /// The parameters of this procedure.
         /// </summary>

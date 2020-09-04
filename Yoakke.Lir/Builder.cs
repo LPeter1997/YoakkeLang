@@ -67,12 +67,12 @@ namespace Yoakke.Lir
         /// <param name="type">The <see cref="Type"/> of the external symbol.</param>
         /// <param name="path">The path to the binary containing the external symbol.</param>
         /// <returns>The <see cref="Value"/> referring to the external symbol.</returns>
-        public Value.Extern DefineExtern(string name, Type type, string path)
+        public Value.Symbol DefineExtern(string name, Type type, string path)
         {
             // TODO: Check name uniqueness
             var external = new Extern(name, type, path);
             Assembly.Externals.Add(external);
-            return new Value.Extern(external);
+            return new Value.Symbol(external);
         }
 
         // TODO: Return value instead

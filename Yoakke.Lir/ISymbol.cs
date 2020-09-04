@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Yoakke.Lir.Types;
 
 namespace Yoakke.Lir
 {
@@ -11,6 +11,10 @@ namespace Yoakke.Lir
     /// </summary>
     public interface ISymbol
     {
+        /// <summary>
+        /// The <see cref="Type"/> of this <see cref="ISymbol"/>.
+        /// </summary>
+        public Type Type { get; }
         /// <summary>
         /// The name of the <see cref="ISymbol"/>.
         /// </summary>

@@ -8,4 +8,8 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Yoakke.DataStructures\Yoakke.DataStructures.csproj" />
+  </ItemGroup>
+
 </Project>

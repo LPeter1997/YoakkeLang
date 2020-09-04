@@ -51,7 +51,7 @@ namespace Yoakke.Lir.Backend.Backends
 
         private void CompileProc(Proc proc)
         {
-            var procName = GetProcName(proc);
+            var procName = GetSymbolName(proc);
             var visibility = proc.Visibility == Visibility.Public ? "PUBLIC" : string.Empty;
             textCode.AppendLine($"{procName} PROC {visibility}");
             // Just compile every basic block
@@ -66,7 +66,7 @@ namespace Yoakke.Lir.Backend.Backends
             if (proc.CallConv != CallConv.Cdecl) throw new NotImplementedException();
 
             // Now just write the label name, then the instructions
-            if (!first) textCode.AppendLine($"{GetProcName(proc)}@{basicBlock.Name}:");
+            if (!first) textCode.AppendLine($"{GetSymbolName(proc)}@{basicBlock.Name}:");
             // Write out instructions
             foreach (var ins in basicBlock.Instructions) CompileInstruction(proc, ins);
         }
@@ -103,15 +103,16 @@ namespace Yoakke.Lir.Backend.Backends
         {
             // TODO: Lvalue vs rvalue?
             Value.Int i => i.ToString(),
-            Value.Extern e => $"[{GetExternName(e.Value)}]",
+            Value.Symbol e => $"[{GetSymbolName(e.Value)}]",
             _ => throw new NotImplementedException(),
         };
 
-        private string GetProcName(Proc proc) =>
-               // On Windows, Cdecl will cause a '_' prefix
-               TargetTriplet.OperatingSystem == OperatingSystem.Windows
-            && proc.CallConv == CallConv.Cdecl
-               ? $"_{proc.Name}" : proc.Name;
+        private string GetSymbolName(ISymbol symbol) =>
+               // For Cdecl procedures we assume an underscore prefix
+               (symbol is Proc proc && proc.CallConv == CallConv.Cdecl)
+            // For non-procedures too
+            || !(symbol is Proc)
+            ? $"_{symbol.Name}" : symbol.Name;
 
         private string GetExternName(Extern ext) =>
             // NOTE: We need a '_' prefix here too

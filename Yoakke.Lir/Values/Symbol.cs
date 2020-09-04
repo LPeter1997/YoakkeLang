@@ -9,22 +9,22 @@ namespace Yoakke.Lir.Values
     partial record Value
     {
         /// <summary>
-        /// Reference to an <see cref="Extern"/> value.
+        /// Reference to an <see cref="ISymbol"/>.
         /// </summary>
-        public record Extern : Value
+        public record Symbol : Value
         {
             /// <summary>
-            /// The <see cref="Lir.Extern"/> value.
+            /// The <see cref="ISymbol"/> value.
             /// </summary>
-            public readonly Lir.Extern Value;
+            public readonly ISymbol Value;
 
             public override Type Type => Value.Type;
 
             /// <summary>
-            /// Initializes a new <see cref="Extern"/>.
+            /// Initializes a new <see cref="Symbol"/>.
             /// </summary>
-            /// <param name="value">The <see cref="Lir.Extern"/> value.</param>
-            public Extern(Lir.Extern value)
+            /// <param name="value">The <see cref="ISymbol"/> value.</param>
+            public Symbol(ISymbol value)
             {
                 Value = value;
             }

@@ -140,7 +140,11 @@ namespace Yoakke.Lir.Runtime
         // TODO: Unwrap if register
         private Value Unwrap(Value value) => value switch
         {
-            Value.Extern ext => UnwrapExternal(ext.Type, externals[ext.Value]),
+            Value.Symbol sym => sym.Value switch
+            {
+                Extern ext => UnwrapExternal(ext.Type, externals[ext]),
+                _ => value,
+            },
             _ => value,
         };
 
