@@ -49,15 +49,22 @@ namespace Yoakke.Compiler
             var asm = new Assembly("test_app");
             var builder = new Builder(asm);
 
-            var times = builder.DefineExtern(
+            /*var times = builder.DefineExtern(
                 "times",
                 new Type.Proc(CallConv.Cdecl, Type.I32, new ValueList<Type> { Type.I32, Type.I32 }), 
-                "C:/TMP/globals.obj");
+                "C:/TMP/globals.obj");*/
+
+            var yield2 = builder.DefineProc("yield2");
+            yield2.CallConv = CallConv.Cdecl;
+            yield2.Return = Type.I32;
+            yield2.Visibility = Visibility.Private;
+            builder.Ret(Type.I32.NewValue(2));
+
             var main = builder.DefineProc("main");
             main.CallConv = CallConv.Cdecl;
             main.Return = Type.I32;
             main.Visibility = Visibility.Public;
-            builder.Ret(builder.Call(times, new List<Value> { Type.I32.NewValue(2), Type.I32.NewValue(3) }));
+            builder.Ret(builder.Call(new Value.Symbol(yield2), new List<Value> { }));
 
             // Dump IR code
             Console.WriteLine(asm);

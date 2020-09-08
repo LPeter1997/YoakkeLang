@@ -56,6 +56,13 @@ namespace Yoakke.Lir.Runtime
         // a Dictionary from label to address.
         private void CompileAssembly()
         {
+            LoadExternals();
+            FlattenCode();
+        }
+
+        private void LoadExternals()
+        {
+            if (Assembly.Externals.Count == 0) return;
             // We need to compile every external binary to a DLL
             // TODO: We'd need to target what this application _is_
             // If this application is x86, we need x86, ...
@@ -80,7 +87,10 @@ namespace Yoakke.Lir.Runtime
             {
                 externals[ext] = NativeLibrary.GetExport(linkedBinaries, $"{ext.Name}");
             }
-            // Flatten code structure
+        }
+
+        private void FlattenCode()
+        {
             code.Clear();
             addresses.Clear();
             foreach (var proc in Assembly.Procedures)
@@ -123,8 +133,8 @@ namespace Yoakke.Lir.Runtime
                 {
                     if (sym.Value is Proc irProc)
                     {
-                        // TODO
-                        throw new NotImplementedException();
+                        // TODO: Assign arguments?
+                        Call(irProc);
                     }
                     else
                     {
@@ -140,17 +150,16 @@ namespace Yoakke.Lir.Runtime
                     throw new NotImplementedException();
                 }
             }
-#pragma warning disable CS0162 // Unreachable code detected
             break;
-#pragma warning restore CS0162 // Unreachable code detected
 
             default: throw new NotImplementedException();
             }
         }
 
+        // TODO: Arguments?
         private void Call(Proc proc)
         {
-            callStack.Push(new StackFrame(instructionPointer + 1));
+            callStack.Push(new StackFrame(instructionPointer + 1, proc.GetRegisterCount()));
             var address = addresses[proc];
             instructionPointer = address;
         }
@@ -158,10 +167,19 @@ namespace Yoakke.Lir.Runtime
         private void Return(Value value)
         {
             var top = callStack.Pop();
-            // TODO: Only do this when the call stack got emptied
-            // Or can we keep it as return value storage?
-            returnValue = value;
             instructionPointer = top.ReturnAddress;
+            // Return value
+            if (callStack.Count > 0)
+            {
+                // Assign return value, if the call stack still contains elements
+                var callIns = (Instr.Call)code[instructionPointer - 1];
+                callStack.Peek().Registers[callIns.Result.Index] = value;
+            }
+            else
+            {
+                // Store it for the outside
+                returnValue = value;
+            }
         }
 
         // TODO: Differentiate lvalues and rvalues?
@@ -172,8 +190,7 @@ namespace Yoakke.Lir.Runtime
                 Extern ext => ReadValueFromPtr(ext.Type, externals[ext]),
                 _ => value,
             },
-            // TODO
-            Value.Register reg => throw new NotImplementedException(),
+            Value.Register reg => callStack.Peek().Registers[reg.Value.Index],
             _ => value,
         };
 

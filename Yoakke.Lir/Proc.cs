@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Yoakke.DataStructures;
+using Yoakke.Lir.Instructions;
 using Yoakke.Lir.Types;
 
 namespace Yoakke.Lir
@@ -43,6 +44,18 @@ namespace Yoakke.Lir
         {
             Name = name;
         }
+
+        /// <summary>
+        /// Calculates the number of registers allocated by this procedure.
+        /// </summary>
+        /// <returns>The number of procedures needed by this procedure.</returns>
+        public int GetRegisterCount() => BasicBlocks
+            .SelectMany(bb => bb.Instructions)
+            .Where(ins => ins is ValueInstr)
+            .Cast<ValueInstr>()
+            .Select(vi => vi.Result.Index)
+            .DefaultIfEmpty(-1)
+            .Max() + 1;
 
         public override string ToString() => 
             $"{Return} proc[callconv = {CallConv}] {Name}({string.Join(", ", Parameters)}) " +
