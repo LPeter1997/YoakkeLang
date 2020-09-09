@@ -64,7 +64,7 @@ namespace Yoakke.Compiler
             main.CallConv = CallConv.Cdecl;
             main.Return = Type.I32;
             main.Visibility = Visibility.Public;
-            builder.Ret(builder.Call(new Value.Symbol(yield2), new List<Value> { }));
+            builder.Ret(builder.Call(yield2, new List<Value> { }));
 
             // Dump IR code
             Console.WriteLine(asm);
