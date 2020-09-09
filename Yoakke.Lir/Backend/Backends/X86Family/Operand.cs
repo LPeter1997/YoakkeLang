@@ -1,0 +1,94 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data.Common;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Yoakke.Lir.Backend.Backends.X86Family
+{
+    /// <summary>
+    /// Operand description base for X86 instructions.
+    /// </summary>
+    public abstract record Operand : IX86Syntax
+    {
+        public abstract string ToIntelSyntax();
+
+        /// <summary>
+        /// An integer constant.
+        /// </summary>
+        public record Constant(int Value) : Operand
+        {
+            public override string ToIntelSyntax() => Value.ToString();
+        }
+
+        /// <summary>
+        /// A register access.
+        /// </summary>
+        public record Register_(Register Register) : Operand
+        {
+            public override string ToIntelSyntax() => Register.ToString().ToLower();
+        }
+
+        /// <summary>
+        /// Addressing.
+        /// </summary>
+        public record Address : Operand
+        {
+            /// <summary>
+            /// The base address register.
+            /// </summary>
+            public readonly Register? Base;
+            /// <summary>
+            /// A scaled offset.
+            /// </summary>
+            public readonly (Register, int)? ScaledIndex;
+            /// <summary>
+            /// A displacement constant.
+            /// </summary>
+            public readonly int Displacement;
+
+            public Address(Register? @base = null, (Register, int)? scaledIndex = null, int displacement = 0)
+            {
+                Base = @base;
+                ScaledIndex = scaledIndex;
+                Displacement = displacement;
+            }
+
+            public Address(int displacement)
+                : this(null, null, displacement)
+            {
+            }
+
+            public Address(Register @base, int displacement)
+                : this(@base, null, displacement)
+            {
+            }
+
+            public Address((Register, int) scaledIndex, int displacement = 0)
+                : this(null, scaledIndex, displacement)
+            {
+            }
+
+            private static string R(Register r) => r.ToString().ToLower();
+            public override string ToIntelSyntax() => (Base, ScaledIndex, Displacement) switch
+            {
+                (null, null, int d)                      => $"[{d}]",
+                (Register b, null, 0)                    => $"[{R(b)}]",
+                (Register b, null, int d)                => $"[{R(b)} + {d}]",
+                (null, (Register i, int s), 0)           => $"[{R(i)} * {s}]",
+                (null, (Register i, int s), int d)       => $"[{R(i)} * {s} + {d}]",
+                (Register b, (Register i, int s), 0)     => $"[{R(b)} + {R(i)} * {s}]",
+                (Register b, (Register i, int s), int d) => $"[{R(b)} + {R(i)} * {s} + {d}]",
+            };
+        }
+
+        /// <summary>
+        /// Indirect access through a memory address.
+        /// </summary>
+        public record Indirect(DataWidth Width, Address Address_) : Operand
+        {
+            public override string ToIntelSyntax() => $"{Width.ToString().ToUpper()} PTR {Address_}";
+        }
+    }
+}
