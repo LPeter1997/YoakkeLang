@@ -49,11 +49,13 @@ namespace Yoakke.Lir
         /// Calculates the number of registers allocated by this procedure.
         /// </summary>
         /// <returns>The number of procedures needed by this procedure.</returns>
-        public int GetRegisterCount() => BasicBlocks
-            .SelectMany(bb => bb.Instructions)
-            .Where(ins => ins is ValueInstr)
-            .Cast<ValueInstr>()
-            .Select(vi => vi.Result.Index)
+        public int GetRegisterCount() => Parameters
+            .Select(p => p.Index)
+            .Concat(BasicBlocks
+                .SelectMany(bb => bb.Instructions)
+                .Where(ins => ins is ValueInstr)
+                .Cast<ValueInstr>()
+                .Select(vi => vi.Result.Index))
             .DefaultIfEmpty(-1)
             .Max() + 1;
 

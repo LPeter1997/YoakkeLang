@@ -93,6 +93,15 @@ namespace Yoakke.Lir
         }
 
         // TODO: Doc
+        // TODO: Allocate and assign implicitly?
+        public Value DefineParameter(Type type)
+        {
+            var reg = AllocateRegister(type);
+            CurrentProc.Parameters.Add(reg);
+            return new Value.Register(reg);
+        }
+
+        // TODO: Doc
         public BasicBlock DefineBasicBlock(string name)
         {
             var bb = new BasicBlock(name);

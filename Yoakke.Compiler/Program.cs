@@ -58,13 +58,14 @@ namespace Yoakke.Compiler
             yield2.CallConv = CallConv.Cdecl;
             yield2.Return = Type.I32;
             yield2.Visibility = Visibility.Private;
-            builder.Ret(Type.I32.NewValue(2));
+            var p = builder.DefineParameter(Type.I32);
+            builder.Ret(p);
 
             var main = builder.DefineProc("main");
             main.CallConv = CallConv.Cdecl;
             main.Return = Type.I32;
             main.Visibility = Visibility.Public;
-            builder.Ret(builder.Call(yield2, new List<Value> { }));
+            builder.Ret(builder.Call(yield2, new List<Value> { Type.I32.NewValue(5) }));
 
             // Dump IR code
             Console.WriteLine(asm);
@@ -78,7 +79,7 @@ namespace Yoakke.Compiler
             //Console.WriteLine(code);
 
             var vm = new VirtualMachine(asm);
-            var res = vm.Execute("main");
+            var res = vm.Execute("main", new List<Value> { });
             Console.WriteLine($"VM result = {res}");
 
             // Compile it to backend

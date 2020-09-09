@@ -104,16 +104,27 @@ namespace Yoakke.Lir.Runtime
             }
         }
 
-        // TODO: Args?
         /// <summary>
         /// Executes the given procedure by name.
         /// </summary>
         /// <param name="proc">The procedure's name to execute.</param>
+        /// <param name="arguments">The list of argument <see cref="Value"/>s to call the procedure with.</param>
         /// <returns>The resulting <see cref="Value"/> of the call.</returns>
-        public Value Execute(string name)
+        public Value Execute(string name, IEnumerable<Value> arguments)
         {
             var proc = Assembly.Procedures.First(p => p.Name == name);
-            Call(proc);
+            return Execute(proc, arguments);
+        }
+
+        /// <summary>
+        /// Executes the given procedure.
+        /// </summary>
+        /// <param name="proc">The procedure to call.</param>
+        /// <param name="arguments">The list of argument <see cref="Value"/>s to call the procedure with.</param>
+        /// <returns>The resulting <see cref="Value"/> of the call.</returns>
+        public Value Execute(Proc proc, IEnumerable<Value> arguments)
+        {
+            Call(proc, arguments);
             while (callStack.Count > 0) ExecuteCycle();
             return returnValue;
         }
@@ -134,8 +145,8 @@ namespace Yoakke.Lir.Runtime
                 {
                     if (sym.Value is Proc irProc)
                     {
-                        // TODO: Assign arguments?
-                        Call(irProc);
+                        var arguments = call.Arguments.Select(Unwrap);
+                        Call(irProc, arguments);
                     }
                     else
                     {
@@ -157,12 +168,20 @@ namespace Yoakke.Lir.Runtime
             }
         }
 
-        // TODO: Arguments?
-        private void Call(Proc proc)
+        private void Call(Proc proc, IEnumerable<Value> arguments)
         {
+            // TODO: Proper error?
+            Debug.Assert(proc.Parameters.Count == arguments.Count());
+            // Push frame to call stack
             callStack.Push(new StackFrame(instructionPointer + 1, proc.GetRegisterCount()));
+            // Instruction pointer
             var address = addresses[proc];
             instructionPointer = address;
+            // Arguments
+            foreach (var (reg, value) in proc.Parameters.Zip(arguments))
+            {
+                callStack.Peek().Registers[reg.Index] = value;
+            }
         }
 
         private void Return(Value value)
@@ -195,7 +214,7 @@ namespace Yoakke.Lir.Runtime
             _ => value,
         };
 
-        private Value ReadValueFromPtr(Type type, IntPtr intPtr)
+        private static Value ReadValueFromPtr(Type type, IntPtr intPtr)
         {
             unsafe
             {
