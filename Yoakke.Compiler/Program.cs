@@ -75,8 +75,8 @@ namespace Yoakke.Compiler
             var tc = Toolchains.Supporting(tt).First();
 
             // Compile to ASM
-            //var code = tc.Backend.Compile(asm);
-            //Console.WriteLine(code);
+            var code = tc.Backend.Compile(asm);
+            Console.WriteLine(code);
 
             var vm = new VirtualMachine(asm);
             var res = vm.Execute("main", new List<Value> { });

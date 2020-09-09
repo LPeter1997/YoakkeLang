@@ -46,7 +46,7 @@ namespace Yoakke.Lir.Backend.Backends
         private void CompileExtern(Extern ext)
         {
             // TODO: Should calling convention affect name in case of external procedures?
-            globalsCode.AppendLine($"EXTERN {GetExternName(ext)}: {TypeToString(ext.Type)}");
+            globalsCode.AppendLine($"EXTERN {GetSymbolName(ext)}: {TypeToString(ext.Type)}");
         }
 
         private void CompileProc(Proc proc)
@@ -114,11 +114,6 @@ namespace Yoakke.Lir.Backend.Backends
             || !(symbol is Proc)
             ? $"_{symbol.Name}" : symbol.Name;
 
-        private string GetExternName(Extern ext) =>
-            // NOTE: We need a '_' prefix here too
-            TargetTriplet.OperatingSystem == OperatingSystem.Windows
-            ? $"_{ext.Name}" : ext.Name;
-
         private string TypeToString(Type type) => type switch
         {
             Type.Int i => ((i.Bits + 7) / 8) switch
@@ -131,11 +126,19 @@ namespace Yoakke.Lir.Backend.Backends
             _ => throw new NotImplementedException(),
         };
 
-        private int SizeOf(Value value) => SizeOf(value.Type);
-        private int SizeOf(Type type) => type switch
+        private static int SizeOf(Value value) => SizeOf(value.Type);
+        private static int SizeOf(Type type) => type switch
         {
-            Type.Int i => (i.Bits + 7) / 8,
+            // First we round up to bytes, then make sure it's a power of 2
+            Type.Int i => NextPow2((i.Bits + 7) / 8),
             _ => throw new NotImplementedException(),
         };
+
+        private static int NextPow2(int n)
+        {
+            int result = 1;
+            while (result < n) result = result << 1;
+            return result;
+        }
     }
 }
