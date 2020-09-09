@@ -54,10 +54,10 @@ namespace Yoakke.Compiler
                 new Type.Proc(CallConv.Cdecl, Type.I32, new ValueList<Type> { Type.I32, Type.I32 }), 
                 "C:/TMP/globals.obj");*/
 
-            var yield2 = builder.DefineProc("yield2");
-            yield2.CallConv = CallConv.Cdecl;
-            yield2.Return = Type.I32;
-            yield2.Visibility = Visibility.Private;
+            var identity = builder.DefineProc("identity");
+            identity.CallConv = CallConv.Cdecl;
+            identity.Return = Type.I32;
+            identity.Visibility = Visibility.Private;
             var p = builder.DefineParameter(Type.I32);
             builder.Ret(p);
 
@@ -65,7 +65,7 @@ namespace Yoakke.Compiler
             main.CallConv = CallConv.Cdecl;
             main.Return = Type.I32;
             main.Visibility = Visibility.Public;
-            builder.Ret(builder.Call(yield2, new List<Value> { Type.I32.NewValue(5) }));
+            builder.Ret(builder.Call(identity, new List<Value> { Type.I32.NewValue(5) }));
 
             // Dump IR code
             Console.WriteLine(asm);
@@ -75,8 +75,8 @@ namespace Yoakke.Compiler
             var tc = Toolchains.Supporting(tt).First();
 
             // Compile to ASM
-            //var code = tc.Backend.Compile(asm);
-            //Console.WriteLine(code);
+            var code = tc.Backend.Compile(asm);
+            Console.WriteLine(code);
 
             //var vm = new VirtualMachine(asm);
             //var res = vm.Execute("main", new List<Value> { });
