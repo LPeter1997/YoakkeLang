@@ -73,12 +73,12 @@ namespace Yoakke.Lir
         /// <param name="type">The <see cref="Type"/> of the external symbol.</param>
         /// <param name="path">The path to the binary containing the external symbol.</param>
         /// <returns>The <see cref="Value"/> referring to the external symbol.</returns>
-        public Value.Symbol DefineExtern(string name, Type type, string path)
+        public Value DefineExtern(string name, Type type, string path)
         {
             // TODO: Check name uniqueness
             var external = new Extern(name, type, path);
             Assembly.Externals.Add(external);
-            return new Value.Symbol(external);
+            return external;
         }
 
         // TODO: Return value instead
@@ -98,7 +98,7 @@ namespace Yoakke.Lir
         {
             var reg = AllocateRegister(type);
             CurrentProc.Parameters.Add(reg);
-            return new Value.Register(reg);
+            return reg;
         }
 
         // TODO: Doc
@@ -120,10 +120,6 @@ namespace Yoakke.Lir
         public void Ret(Value value) => AddInstruction(new Instr.Ret(value));
 
         // TODO: Doc
-        public Value Call(ISymbol symbol, IList<Value> arguments) =>
-            Call(new Value.Symbol(symbol), arguments);
-
-        // TODO: Doc
         public Value Call(Value procedure, IList<Value> arguments)
         {
             if (!(procedure.Type is Type.Proc procType))
@@ -136,7 +132,7 @@ namespace Yoakke.Lir
             }
             var resultReg = AllocateRegister(procType.Return);
             AddInstruction(new Instr.Call(resultReg, procedure, arguments));
-            return new Value.Register(resultReg);
+            return resultReg;
         }
 
         // Internals

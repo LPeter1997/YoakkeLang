@@ -13,6 +13,12 @@ namespace Yoakke.Lir.Values
         /// </summary>
         public abstract Type Type { get; }
 
-        public abstract override string ToString();
+        /// <summary>
+        /// Converts this <see cref="Value"/> to it's string representation.
+        /// </summary>
+        /// <returns>The string representation of this <see cref="Value"/>.</returns>
+        public abstract string ToValueString();
+
+        public override string ToString() => ToValueString();
     }
 }

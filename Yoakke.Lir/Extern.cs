@@ -3,15 +3,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Yoakke.Lir.Types;
+using Yoakke.Lir.Values;
 
 namespace Yoakke.Lir
 {
     /// <summary>
     /// An external symbol.
     /// </summary>
-    public class Extern : ISymbol
+    public record Extern : Value, ISymbol
     {
-        public Type Type { get; }
+        public override Type Type { get; }
         public string Name { get; }
         public Visibility Visibility { get; set; } = Visibility.Public;
 
@@ -32,6 +33,8 @@ namespace Yoakke.Lir
             Type = type;
             Path = path;
         }
+
+        public override string ToValueString() => Name;
 
         public override string ToString() =>
             $"extern {Type} {Name} [source = \"{Path}\"]";

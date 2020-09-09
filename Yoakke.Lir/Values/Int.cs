@@ -34,7 +34,7 @@ namespace Yoakke.Lir.Values
                 Value = value;
             }
 
-            public override string ToString() => $"{Value} as {Type}";
+            public override string ToValueString() => $"{Value} as {Type}";
         }
     }
 }

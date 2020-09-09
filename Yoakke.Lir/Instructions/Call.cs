@@ -48,7 +48,8 @@ namespace Yoakke.Lir.Instructions
             }
 
             public override string ToString() => 
-                $"{Result} = call {Procedure}({string.Join(", ", Arguments)})";
+                $"{Result} = call {Procedure.ToValueString()}" +
+                $"({string.Join(", ", Arguments.Select(arg => arg.ToValueString()))})";
         }
     }
 }

@@ -141,17 +141,17 @@ namespace Yoakke.Lir.Runtime
             case Instr.Call call:
             {
                 var proc = Unwrap(call.Procedure);
-                if (proc is Value.Symbol sym)
+                if (proc is ISymbol sym)
                 {
-                    if (sym.Value is Proc irProc)
+                    if (sym is Proc irProc)
                     {
                         var arguments = call.Arguments.Select(Unwrap);
                         Call(irProc, arguments);
                     }
                     else
                     {
-                        Debug.Assert(sym.Value is Extern);
-                        var external = (Extern)sym.Value;
+                        Debug.Assert(sym is Extern);
+                        var external = (Extern)sym;
                         // TODO
                         throw new NotImplementedException();
                     }
@@ -205,12 +205,12 @@ namespace Yoakke.Lir.Runtime
         // TODO: Differentiate lvalues and rvalues?
         private Value Unwrap(Value value) => value switch
         {
-            Value.Symbol sym => sym.Value switch
+            ISymbol sym => sym switch
             {
                 Extern ext => ReadValueFromPtr(ext.Type, externals[ext]),
                 _ => value,
             },
-            Value.Register reg => callStack.Peek().Registers[reg.Value.Index],
+            Register reg => callStack.Peek().Registers[reg.Index],
             _ => value,
         };
 

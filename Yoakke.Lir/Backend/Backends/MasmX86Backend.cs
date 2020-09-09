@@ -154,7 +154,7 @@ namespace Yoakke.Lir.Backend.Backends
                     textCode.AppendLine($"    add esp, {espOffset}");
                     // TODO: Only if size is fine
                     // Store value
-                    textCode.AppendLine($"    mov {CompileValue(new Value.Register(call.Result), false)}, eax");
+                    textCode.AppendLine($"    mov {CompileValue(call.Result, false)}, eax");
                 }
                 else
                 {
@@ -176,15 +176,15 @@ namespace Yoakke.Lir.Backend.Backends
                 if (lvalue) throw new InvalidOperationException();
                 return i.Value.ToString();
 
-            case Value.Symbol sym:
+            case ISymbol sym:
             {
-                var symName = GetSymbolName(sym.Value);
+                var symName = GetSymbolName(sym);
                 return lvalue ? symName : $"[{symName}]";
             }
 
-            case Value.Register reg:
+            case Register reg:
             {
-                var offset = registerOffsets[reg.Value];
+                var offset = registerOffsets[reg];
                 var address = offset > 0 ? $"ebp + {offset}" : $"ebp - {-offset}";
                 return lvalue ? address : $"[{address}]";
             }

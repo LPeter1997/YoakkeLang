@@ -3,15 +3,16 @@ using System.Linq;
 using Yoakke.DataStructures;
 using Yoakke.Lir.Instructions;
 using Yoakke.Lir.Types;
+using Yoakke.Lir.Values;
 
 namespace Yoakke.Lir
 {
     /// <summary>
     /// An IR procedure.
     /// </summary>
-    public class Proc : ISymbol
+    public record Proc : Value, ISymbol
     {
-        public Type Type =>
+        public override Type Type =>
             new Type.Proc(CallConv, Return, Parameters.Select(p => p.Type).ToList().AsValueList());
         public string Name { get; }
         public Visibility Visibility { get; set; }
@@ -44,6 +45,8 @@ namespace Yoakke.Lir
         {
             Name = name;
         }
+
+        public override string ToValueString() => Name;
 
         /// <summary>
         /// Calculates the number of registers allocated by this procedure.

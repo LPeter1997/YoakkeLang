@@ -1,16 +1,15 @@
 ﻿using Yoakke.Lir.Types;
+using Yoakke.Lir.Values;
 
 namespace Yoakke.Lir
 {
     /// <summary>
     /// Storage type for the VM.
     /// </summary>
-    public record Register
+    public record Register : Value
     {
-        /// <summary>
-        /// The <see cref="Type"/> this <see cref="Register"/> stores.
-        /// </summary>
-        public Type Type { get; set; }
+        public override Type Type { get; }
+
         /// <summary>
         /// The register index.
         /// </summary>
@@ -27,6 +26,8 @@ namespace Yoakke.Lir
             Index = index;
         }
 
-        public override string ToString() => $"{Type} r{Index}";
+        public override string ToValueString() => $"r{Index}";
+
+        public override string ToString() => $"{Type} {ToValueString()}";
     }
 }

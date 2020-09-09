@@ -32,7 +32,7 @@ namespace Yoakke.Lir.Instructions
                 Value = value;
             }
 
-            public override string ToString() => $"ret {Value}";
+            public override string ToString() => $"ret {Value.ToValueString()}";
         }
     }
 }
