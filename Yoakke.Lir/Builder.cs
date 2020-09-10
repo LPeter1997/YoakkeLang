@@ -135,6 +135,19 @@ namespace Yoakke.Lir
             return resultReg;
         }
 
+        // TODO: Doc
+        public void Jmp(BasicBlock target) => AddInstruction(new Instr.Jmp(target));
+
+        // TODO: Doc
+        public void JmpIf(Value condition, BasicBlock then, BasicBlock els)
+        {
+            if (!(condition.Type is Type.Int))
+            {
+                throw new ArgumentException("The condition must be an integral type!", nameof(condition));
+            }
+            AddInstruction(new Instr.JmpIf(condition, then, els));
+        }
+
         // Internals
 
         private Register AllocateRegister(Type type)

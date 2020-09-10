@@ -9,7 +9,7 @@ namespace Yoakke.Lir
     /// A basic block is a continuous list of instructions that only has a single entry point
     /// being the first instruction, and a single exit point being the last instruction.
     /// </summary>
-    public class BasicBlock
+    public class BasicBlock : IInstrArg
     {
         /// <summary>
         /// The name of the <see cref="BasicBlock"/>.

@@ -54,18 +54,23 @@ namespace Yoakke.Compiler
                 new Type.Proc(CallConv.Cdecl, Type.I32, new ValueList<Type> { Type.I32, Type.I32 }), 
                 "C:/TMP/globals.obj");*/
 
-            var identity = builder.DefineProc("identity");
-            identity.CallConv = CallConv.Cdecl;
-            identity.Return = Type.I32;
-            identity.Visibility = Visibility.Private;
-            var p = builder.DefineParameter(Type.I32);
-            builder.Ret(p);
-
             var main = builder.DefineProc("main");
             main.CallConv = CallConv.Cdecl;
             main.Return = Type.I32;
             main.Visibility = Visibility.Public;
-            builder.Ret(builder.Call(identity, new List<Value> { Type.I32.NewValue(5) }));
+
+            var currentBB = builder.CurrentBasicBlock;
+            var thenBB = builder.DefineBasicBlock("then");
+            var elseBB = builder.DefineBasicBlock("els");
+
+            builder.CurrentBasicBlock = currentBB;
+            builder.JmpIf(Type.I32.NewValue(0), thenBB, elseBB);
+
+            builder.CurrentBasicBlock = thenBB;
+            builder.Ret(Type.I32.NewValue(23));
+
+            builder.CurrentBasicBlock = elseBB;
+            builder.Ret(Type.I32.NewValue(97));
 
             // Dump IR code
             Console.WriteLine(asm);
@@ -75,19 +80,19 @@ namespace Yoakke.Compiler
             var tc = Toolchains.Supporting(tt).First();
 
             // Compile to ASM
-            var code = tc.Backend.Compile(asm);
-            Console.WriteLine(code);
+            //var code = tc.Backend.Compile(asm);
+            //Console.WriteLine(code);
 
-            //var vm = new VirtualMachine(asm);
-            //var res = vm.Execute("main", new List<Value> { });
-            //Console.WriteLine($"VM result = {res}");
+            var vm = new VirtualMachine(asm);
+            var res = vm.Execute("main", new List<Value> { });
+            Console.WriteLine($"VM result = {res}");
 
             // Compile it to backend
             tc.Assemblies.Add(asm);
             tc.BuildDirectory = "C:/TMP/test_app_build";
 
-            var err = tc.Compile("C:/TMP/globals.exe");
-            Console.WriteLine($"Toolchain exit code: {err}");
+            //var err = tc.Compile("C:/TMP/globals.exe");
+            //Console.WriteLine($"Toolchain exit code: {err}");
 #endif
         }
     }

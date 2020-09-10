@@ -164,6 +164,22 @@ namespace Yoakke.Lir.Runtime
             }
             break;
 
+            case Instr.Jmp jmp:
+                instructionPointer = addresses[jmp.Target];
+                break;
+
+            case Instr.JmpIf jmpIf:
+            {
+                var cond = Unwrap(jmpIf.Condition);
+                if (!(cond is Value.Int icond))
+                {
+                    // TODO
+                    throw new NotImplementedException();
+                }
+                instructionPointer = addresses[icond.Value != 0 ? jmpIf.Then : jmpIf.Else];
+            }
+            break;
+
             default: throw new NotImplementedException();
             }
         }
