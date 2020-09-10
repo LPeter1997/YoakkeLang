@@ -40,11 +40,11 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         public abstract string ToIntelSyntax();
 
         /// <summary>
-        /// An integer constant.
+        /// Some literal constant.
         /// </summary>
-        public record Constant(int Value) : Operand
+        public record Literal(object Value) : Operand
         {
-            public override string ToIntelSyntax() => Value.ToString();
+            public override string ToIntelSyntax() => Value.ToString() ?? string.Empty;
         }
 
         /// <summary>
@@ -95,8 +95,9 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             {
             }
 
-            private static string R(Register r) => r.ToString().ToLower();
-            public override string ToIntelSyntax() => (Base, ScaledIndex, Displacement) switch
+            private static string R(Register? r) => 
+                r == null ? string.Empty : r.Value.ToString().ToLower();
+            public override string ToIntelSyntax() => (Base, ScaledIndex, Displacement)switch
             {
                 (null      , null               , int d) => $"[{d}]",
                 (Register b, null               , 0    ) => $"[{R(b)}]",

@@ -50,13 +50,13 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         /// <summary>
         /// The name of this <see cref="X86BasicBlock"/>.
         /// </summary>
-        public readonly string Name;
+        public readonly string? Name;
         /// <summary>
         /// The list of instructions this <see cref="X86BasicBlock"/> consists of.
         /// </summary>
         public readonly IList<X86Instr> Instructions = new List<X86Instr>();
 
-        public X86BasicBlock(string name)
+        public X86BasicBlock(string? name = null)
         {
             Name = name;
         }
