@@ -8,6 +8,31 @@ using System.Threading.Tasks;
 namespace Yoakke.Lir.Backend.Backends.X86Family
 {
     /// <summary>
+    /// Represents a scaled index for X86 addressing.
+    /// </summary>
+    public record ScaledIndex
+    {
+        public readonly Register Index;
+        public readonly int Scale;
+
+        public ScaledIndex(Register index, int scale)
+        {
+            if (scale != 1 && scale != 2 && scale != 4 && scale != 8)
+            {
+                throw new ArgumentOutOfRangeException(nameof(scale), "The scale must be 1, 2, 4 or 8!");
+            }
+            Index = index;
+            Scale = scale;
+        }
+
+        public void Deconstruct(out Register index, out int scale)
+        {
+            index = Index;
+            scale = Scale;
+        }
+    }
+
+    /// <summary>
     /// Operand description base for X86 instructions.
     /// </summary>
     public abstract record Operand : IX86Syntax
@@ -42,13 +67,13 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             /// <summary>
             /// A scaled offset.
             /// </summary>
-            public readonly (Register, int)? ScaledIndex;
+            public readonly ScaledIndex? ScaledIndex;
             /// <summary>
             /// A displacement constant.
             /// </summary>
             public readonly int Displacement;
 
-            public Address(Register? @base = null, (Register, int)? scaledIndex = null, int displacement = 0)
+            public Address(Register? @base = null, ScaledIndex? scaledIndex = null, int displacement = 0)
             {
                 Base = @base;
                 ScaledIndex = scaledIndex;
@@ -65,7 +90,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             {
             }
 
-            public Address((Register, int) scaledIndex, int displacement = 0)
+            public Address(ScaledIndex scaledIndex, int displacement = 0)
                 : this(null, scaledIndex, displacement)
             {
             }
@@ -88,7 +113,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         /// </summary>
         public record Indirect(DataWidth Width, Address Address_) : Operand
         {
-            public override string ToIntelSyntax() => $"{Width.ToString().ToUpper()} PTR {Address_}";
+            public override string ToIntelSyntax() => $"{Width.ToString().ToUpper()} PTR {Address_.ToIntelSyntax()}";
         }
     }
 }
