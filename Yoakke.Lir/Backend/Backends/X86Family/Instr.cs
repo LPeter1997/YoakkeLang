@@ -23,7 +23,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
     /// <summary>
     /// A single X86 instruction.
     /// </summary>
-    public record Instr(Operation Operation, params Operand[] Operands) : IX86Syntax
+    public record X86Instr(Operation Operation, params Operand[] Operands) : IX86Syntax
     {
         public string ToIntelSyntax() =>
             $"{Operation.ToString().ToLower()} {string.Join(", ", Operands.Select(o => o.ToIntelSyntax()))}";
