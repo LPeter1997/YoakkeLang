@@ -170,6 +170,21 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             }
             break;
 
+            case Instr.Jmp jmp:
+                WriteInstr(X86Operation.Jmp, basicBlocks[jmp.Target]);
+                break;
+
+            case Instr.JmpIf jmpIf:
+            {
+                var op = CompileValue(jmpIf.Condition);
+                // TODO: Size should matter! EAX won't always be corrct!
+                WriteInstr(X86Operation.Mov, Register.Eax, op);
+                WriteInstr(X86Operation.Test, Register.Eax, Register.Eax);
+                WriteInstr(X86Operation.Jne, basicBlocks[jmpIf.Then]);
+                WriteInstr(X86Operation.Jmp, basicBlocks[jmpIf.Else]);
+            }
+            break;
+
             default: throw new NotImplementedException();
             }
         }

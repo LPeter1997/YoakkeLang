@@ -64,7 +64,7 @@ namespace Yoakke.Compiler
             var elseBB = builder.DefineBasicBlock("els");
 
             builder.CurrentBasicBlock = currentBB;
-            builder.JmpIf(Type.I32.NewValue(0), thenBB, elseBB);
+            builder.JmpIf(Type.I32.NewValue(34), thenBB, elseBB);
 
             builder.CurrentBasicBlock = thenBB;
             builder.Ret(Type.I32.NewValue(23));
@@ -80,8 +80,8 @@ namespace Yoakke.Compiler
             var tc = Toolchains.Supporting(tt).First();
 
             // Compile to ASM
-            //var code = tc.Backend.Compile(asm);
-            //Console.WriteLine(code);
+            var code = tc.Backend.Compile(asm);
+            Console.WriteLine(code);
 
             var vm = new VirtualMachine(asm);
             var res = vm.Execute("main", new List<Value> { });
@@ -91,8 +91,8 @@ namespace Yoakke.Compiler
             tc.Assemblies.Add(asm);
             tc.BuildDirectory = "C:/TMP/test_app_build";
 
-            //var err = tc.Compile("C:/TMP/globals.exe");
-            //Console.WriteLine($"Toolchain exit code: {err}");
+            var err = tc.Compile("C:/TMP/globals.exe");
+            Console.WriteLine($"Toolchain exit code: {err}");
 #endif
         }
     }

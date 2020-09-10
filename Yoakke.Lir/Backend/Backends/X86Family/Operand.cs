@@ -49,7 +49,8 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 // TODO: For procedures and basic blocks we need to be able to swap out '.' and '@', ...
                 // Depending on the assembler!
                 X86Proc proc => proc.Name,
-                X86BasicBlock bb => bb.Name ?? string.Empty,
+                // TODO: Hardcoded for the MASM assembler
+                X86BasicBlock bb => bb.Name?.Replace('.', '@') ?? string.Empty,
                 _ => Value.ToString() ?? string.Empty,
             };
         }

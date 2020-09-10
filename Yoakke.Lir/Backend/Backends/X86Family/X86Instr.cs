@@ -18,6 +18,9 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         Call,
         Add,
         Sub,
+        Test,
+        Jne,
+        Jmp,
     }
 
     /// <summary>
