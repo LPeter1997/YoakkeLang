@@ -19,6 +19,9 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         private X86Assembly result = new X86Assembly();
         private X86Proc? currentProcedure;
         private X86BasicBlock? currentBasicBlock;
+
+        private IDictionary<BasicBlock, X86BasicBlock> basicBlocks = new Dictionary<BasicBlock, X86BasicBlock>();
+        private IDictionary<Proc, X86Proc> procs = new Dictionary<Proc, X86Proc>();
         private IDictionary<Lir.Register, int> registerOffsets = new Dictionary<Lir.Register, int>();
 
         /// <summary>
@@ -33,14 +36,32 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
 
         private X86Assembly Compile(Assembly assembly)
         {
+            // First we forward declare procedures and basic blocks
+            ForwardDeclare(assembly);
             // TODO: Externals? Globals?
+            // Compile procedures
             foreach (var proc in assembly.Procedures) CompileProc(proc);
             return result;
         }
 
+        private void ForwardDeclare(Assembly assembly)
+        {
+            // Forward declare procedures
+            foreach (var proc in assembly.Procedures)
+            {
+                var x86proc = new X86Proc(GetSymbolName(proc));
+                procs[proc] = x86proc;
+                // Forward declare each basic block inside
+                foreach (var bb in proc.BasicBlocks)
+                {
+                    basicBlocks[bb] = new X86BasicBlock($"{x86proc.Name}.{bb.Name}");
+                }
+            }
+        }
+
         private void CompileProc(Proc proc)
         {
-            currentProcedure = new X86Proc(GetSymbolName(proc));
+            currentProcedure = procs[proc];
             currentProcedure.Visibility = proc.Visibility;
             result.Procedures.Add(currentProcedure);
 
@@ -84,7 +105,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         private void CompileBasicBlock(Proc proc, BasicBlock basicBlock)
         {
             Debug.Assert(currentProcedure != null);
-            currentBasicBlock = new X86BasicBlock($"{currentProcedure.Name}.{basicBlock.Name}");
+            currentBasicBlock = basicBlocks[basicBlock];
             currentProcedure.BasicBlocks.Add(currentBasicBlock);
 
             // Just compile each instruction

@@ -44,7 +44,14 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         /// </summary>
         public record Literal(object Value) : Operand
         {
-            public override string ToIntelSyntax() => Value.ToString() ?? string.Empty;
+            public override string ToIntelSyntax() => Value switch
+            {
+                // TODO: For procedures and basic blocks we need to be able to swap out '.' and '@', ...
+                // Depending on the assembler!
+                X86Proc proc => proc.Name,
+                X86BasicBlock bb => bb.Name ?? string.Empty,
+                _ => Value.ToString() ?? string.Empty,
+            };
         }
 
         /// <summary>
