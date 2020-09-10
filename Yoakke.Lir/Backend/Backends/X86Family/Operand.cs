@@ -98,12 +98,12 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             private static string R(Register r) => r.ToString().ToLower();
             public override string ToIntelSyntax() => (Base, ScaledIndex, Displacement) switch
             {
-                (null, null, int d)                      => $"[{d}]",
-                (Register b, null, 0)                    => $"[{R(b)}]",
-                (Register b, null, int d)                => $"[{R(b)} + {d}]",
-                (null, (Register i, int s), 0)           => $"[{R(i)} * {s}]",
-                (null, (Register i, int s), int d)       => $"[{R(i)} * {s} + {d}]",
-                (Register b, (Register i, int s), 0)     => $"[{R(b)} + {R(i)} * {s}]",
+                (null      , null               , int d) => $"[{d}]",
+                (Register b, null               , 0    ) => $"[{R(b)}]",
+                (Register b, null               , int d) => $"[{R(b)} + {d}]",
+                (null      , (Register i, int s), 0    ) => $"[{R(i)} * {s}]",
+                (null      , (Register i, int s), int d) => $"[{R(i)} * {s} + {d}]",
+                (Register b, (Register i, int s), 0    ) => $"[{R(b)} + {R(i)} * {s}]",
                 (Register b, (Register i, int s), int d) => $"[{R(b)} + {R(i)} * {s} + {d}]",
             };
         }
