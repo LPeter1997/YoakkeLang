@@ -28,6 +28,7 @@ namespace Yoakke.Lir.Instructions
             {
                 get
                 {
+                    yield return Result;
                     yield return Procedure;
                     foreach (var arg in Arguments) yield return arg;
                 }

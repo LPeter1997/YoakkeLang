@@ -1,9 +1,11 @@
-﻿namespace Yoakke.Lir.Types
+﻿using Yoakke.Lir.Instructions;
+
+namespace Yoakke.Lir.Types
 {
     /// <summary>
     /// Base for every type.
     /// </summary>
-    public abstract partial record Type 
+    public abstract partial record Type : IInstrArg
     {
         public static readonly Void Void_ = new Void();
         public static readonly Int U32 = new Int(false, 32);
