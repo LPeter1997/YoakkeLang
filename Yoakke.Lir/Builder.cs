@@ -148,6 +148,15 @@ namespace Yoakke.Lir
             AddInstruction(new Instr.JmpIf(condition, then, els));
         }
 
+        // TODO: Doc
+        public Value Alloc(Type type)
+        {
+            var ptrType = new Type.Ptr(type);
+            var resultReg = AllocateRegister(ptrType);
+            AddInstruction(new Instr.Alloc(resultReg));
+            return resultReg;
+        }
+
         // Internals
 
         private Register AllocateRegister(Type type)

@@ -37,10 +37,6 @@ namespace Yoakke.Lir.Instructions
             public Alloc(Register result)
                 : base(result)
             {
-                if (!(result.Type is Type.Ptr))
-                {
-                    throw new ArgumentException("The result type must be a pointer to the allocated type!", nameof(result));
-                }
             }
 
             public override string ToString() => $"{Result} = alloc {Allocated}";
