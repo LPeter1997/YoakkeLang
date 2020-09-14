@@ -157,6 +157,32 @@ namespace Yoakke.Lir
             return resultReg;
         }
 
+        // TODO: Doc
+        public Value Load(Value source)
+        {
+            if (!(source.Type is Type.Ptr ptrTy))
+            {
+                throw new ArgumentException("The source address must be a pointer type!", nameof(source));
+            }
+            var resultReg = AllocateRegister(ptrTy.Subtype);
+            AddInstruction(new Instr.Load(resultReg, source));
+            return resultReg;
+        }
+
+        // TODO: Doc
+        public void Store(Value target, Value value)
+        {
+            if (!(target.Type is Type.Ptr ptrTy))
+            {
+                throw new ArgumentException("The target address must be a pointer type!", nameof(target));
+            }
+            if (!ptrTy.Subtype.Equals(value.Type))
+            {
+                throw new ArgumentException("The target address must point to the type of the stored value type!");
+            }
+            AddInstruction(new Instr.Store(target, value));
+        }
+
         // Internals
 
         private Register AllocateRegister(Type type)
