@@ -29,8 +29,7 @@ namespace Yoakke.Lir.Runtime
 
         // Runtime
         private Stack<StackFrame> callStack = new Stack<StackFrame>();
-        // TODO: Change this to void constant later
-        private Value returnValue = Type.I32.NewValue(0);
+        private Value returnValue = Value.Void_;
         private int instructionPointer;
 
         private StackFrame StackFrame => callStack.Peek();
