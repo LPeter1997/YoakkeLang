@@ -126,7 +126,8 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                     if (proc.CallConv == CallConv.Cdecl && ret.Value.Type is Type.Int && SizeOf(ret.Value) <= 4)
                     {
                         // We can return integral values with at most 32 bits in EAX
-                        WriteInstr(X86Operation.Mov, Register.Eax, CompileValue(ret.Value));
+                        var retValue = CompileValue(ret.Value);
+                        WriteInstr(X86Operation.Mov, Register.Eax, retValue);
                     }
                     else
                     {
@@ -152,16 +153,19 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                     var espOffset = 0;
                     foreach (var arg in call.Arguments.Reverse())
                     {
-                        WriteInstr(X86Operation.Push, CompileValue(arg));
+                        var argValue = CompileValue(arg);
+                        WriteInstr(X86Operation.Push, argValue);
                         espOffset += SizeOf(arg.Type);
                     }
                     // Do the call
-                    WriteInstr(X86Operation.Call, CompileValue(call.Procedure));
+                    var procedure = CompileValue(call.Procedure);
+                    WriteInstr(X86Operation.Call, procedure);
                     // Restore stack
                     WriteInstr(X86Operation.Add, Register.Esp, espOffset);
                     // TODO: Only if size is fine
                     // Store value
-                    WriteInstr(X86Operation.Mov, CompileValue(call.Result), Register.Eax);
+                    var result = CompileValue(call.Result);
+                    WriteInstr(X86Operation.Mov, result, Register.Eax);
                 }
                 else
                 {
@@ -182,6 +186,34 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 WriteInstr(X86Operation.Test, Register.Eax, Register.Eax);
                 WriteInstr(X86Operation.Jne, basicBlocks[jmpIf.Then]);
                 WriteInstr(X86Operation.Jmp, basicBlocks[jmpIf.Else]);
+            }
+            break;
+
+            case Instr.Store store:
+            {
+                // TODO: What if the operands don't fit in 32 bits?
+                var target = CompileValue(store.Target);
+                var source = CompileValue(store.Value);
+                WriteInstr(X86Operation.Mov, target, source);
+            }
+            break;
+
+            case Instr.Load load:
+            {
+                // TODO: What if the operands don't fit in 32 bits?
+                var target = CompileValue(load.Result);
+                var source = CompileValue(load.Address);
+                WriteInstr(X86Operation.Mov, target, source);
+            }
+            break;
+
+            case Instr.Alloc alloc:
+            {
+                // TODO: What if the operands don't fit in 32 bits?
+                var size = SizeOf(alloc.Allocated);
+                WriteInstr(X86Operation.Sub, Register.Esp, size);
+                var allocResult = CompileValue(alloc.Result);
+                WriteInstr(X86Operation.Mov, allocResult, Register.Esp);
             }
             break;
 
@@ -241,6 +273,8 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         private static int SizeOf(Value value) => SizeOf(value.Type);
         private static int SizeOf(Type type) => type switch
         {
+            Type.Void _ => 0,
+            Type.Ptr _ => 4,
             // First we round up to bytes, then make sure it's a power of 2
             Type.Int i => NextPow2((i.Bits + 7) / 8),
             _ => throw new NotImplementedException(),

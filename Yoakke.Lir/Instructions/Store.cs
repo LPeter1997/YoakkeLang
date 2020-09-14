@@ -43,7 +43,7 @@ namespace Yoakke.Lir.Instructions
                 Value = value;
             }
 
-            public override string ToString() => $"store {Target}, {Value}";
+            public override string ToString() => $"store {Target.ToValueString()}, {Value.ToValueString()}";
         }
     }
 }

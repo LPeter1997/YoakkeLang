@@ -7,7 +7,9 @@ namespace Yoakke.Lir.Values
     /// Base for every value.
     /// </summary>
     public abstract partial record Value : IInstrArg
-    { 
+    {
+        public static readonly Void Void_ = new Void();
+
         /// <summary>
         /// The type of this <see cref="Value"/>.
         /// </summary>

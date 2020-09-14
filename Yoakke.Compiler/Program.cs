@@ -54,23 +54,22 @@ namespace Yoakke.Compiler
                 new Type.Proc(CallConv.Cdecl, Type.I32, new ValueList<Type> { Type.I32, Type.I32 }), 
                 "C:/TMP/globals.obj");*/
 
+            var intPtr = new Type.Ptr(Type.I32);
+
+            var modify = builder.DefineProc("modify");
+            var param = builder.DefineParameter(intPtr);
+            builder.Store(param, Type.I32.NewValue(123));
+            builder.Ret();
+
             var main = builder.DefineProc("main");
             main.CallConv = CallConv.Cdecl;
             main.Return = Type.I32;
             main.Visibility = Visibility.Public;
-
-            var currentBB = builder.CurrentBasicBlock;
-            var thenBB = builder.DefineBasicBlock("then");
-            var elseBB = builder.DefineBasicBlock("els");
-
-            builder.CurrentBasicBlock = currentBB;
-            builder.JmpIf(Type.I32.NewValue(34), thenBB, elseBB);
-
-            builder.CurrentBasicBlock = thenBB;
-            builder.Ret(Type.I32.NewValue(23));
-
-            builder.CurrentBasicBlock = elseBB;
-            builder.Ret(Type.I32.NewValue(97));
+            var intPlace = builder.Alloc(Type.I32);
+            builder.Store(intPlace, Type.I32.NewValue(556));
+            //builder.Call(modify, new List<Value> { intPlace });
+            var retValue = builder.Load(intPlace);
+            builder.Ret(retValue);
 
             // Dump IR code
             Console.WriteLine(asm);
@@ -83,9 +82,9 @@ namespace Yoakke.Compiler
             var code = tc.Backend.Compile(asm);
             Console.WriteLine(code);
 
-            var vm = new VirtualMachine(asm);
-            var res = vm.Execute("main", new List<Value> { });
-            Console.WriteLine($"VM result = {res}");
+            //var vm = new VirtualMachine(asm);
+            //var res = vm.Execute("main", new List<Value> { });
+            //Console.WriteLine($"VM result = {res}");
 
             // Compile it to backend
             tc.Assemblies.Add(asm);

@@ -120,6 +120,9 @@ namespace Yoakke.Lir
         public void Ret(Value value) => AddInstruction(new Instr.Ret(value));
 
         // TODO: Doc
+        public void Ret() => Ret(Value.Void_);
+
+        // TODO: Doc
         public Value Call(Value procedure, IList<Value> arguments)
         {
             if (!(procedure.Type is Type.Proc procType))

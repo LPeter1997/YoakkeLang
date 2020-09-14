@@ -39,7 +39,7 @@ namespace Yoakke.Lir.Instructions
                 Address = address;
             }
 
-            public override string ToString() => $"{Result} = load {Address}";
+            public override string ToString() => $"{Result} = load {Address.ToValueString()}";
         }
     }
 }
