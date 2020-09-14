@@ -33,6 +33,9 @@ namespace Yoakke.Lir.Runtime
         private Value returnValue = Type.I32.NewValue(0);
         private int instructionPointer;
 
+        private StackFrame StackFrame => callStack.Peek();
+        private Value[] Registers => StackFrame.Registers;
+
         /// <summary>
         /// Initializes a new <see cref="VirtualMachine"/>.
         /// </summary>
@@ -52,12 +55,14 @@ namespace Yoakke.Lir.Runtime
         // a Dictionary from label to address.
         private void CompileAssembly()
         {
-            LoadExternals();
+            // TODO: Finish procedure and call it
+            //LoadExternals();
             FlattenCode();
         }
 
         private void LoadExternals()
         {
+            // TODO: Finish this
             if (Assembly.Externals.Count == 0) return;
             // We need to compile every external binary to a DLL
             // TODO: We'd need to target what this application _is_
@@ -127,6 +132,7 @@ namespace Yoakke.Lir.Runtime
 
         private void ExecuteCycle()
         {
+            // TODO: Clone value where appropriate?
             var instr = code[instructionPointer];
             switch (instr)
             {
@@ -179,7 +185,7 @@ namespace Yoakke.Lir.Runtime
             case Instr.Alloc alloc:
             {
                 var ptr = new PtrValue(alloc.Allocated);
-                callStack.Peek().Registers[alloc.Result.Index] = ptr;
+                Registers[alloc.Result.Index] = ptr;
                 ++instructionPointer;
             }
             break;
@@ -187,6 +193,7 @@ namespace Yoakke.Lir.Runtime
             case Instr.Store store:
             {
                 // TODO: This is not very sophisticated, what about native pointers?
+                // TODO: WriteNativePtr and such?
                 var address = Unwrap(store.Target);
                 var value = Unwrap(store.Value);
                 if (!(address is PtrValue ptrVal))
@@ -213,18 +220,8 @@ namespace Yoakke.Lir.Runtime
                     // TODO
                     throw new NotImplementedException();
                 }
-                if (ptrVal.Offset != 0)
-                {
-                    // TODO
-                    throw new NotImplementedException();
-                }
-                var loadedValue = ptrVal.Value;
-                if (loadedValue == null)
-                {
-                    // TODO: Read from uninitialized memory
-                    throw new InvalidOperationException();
-                }
-                callStack.Peek().Registers[load.Result.Index] = loadedValue;
+                var loadedValue = ReadManagedPtr(load.Result.Type, ptrVal);
+                Registers[load.Result.Index] = loadedValue;
                 ++instructionPointer;
             }
             break;
@@ -261,7 +258,7 @@ namespace Yoakke.Lir.Runtime
             {
                 // Assign return value, if the call stack still contains elements
                 var callIns = (Instr.Call)code[instructionPointer - 1];
-                callStack.Peek().Registers[callIns.Result.Index] = value;
+                Registers[callIns.Result.Index] = value;
             }
             else
             {
@@ -275,14 +272,36 @@ namespace Yoakke.Lir.Runtime
         {
             ISymbol sym => sym switch
             {
-                Extern ext => ReadValueFromPtr(ext.Type, externals[ext]),
+                Extern ext => ReadNativePtr(ext.Type, externals[ext]),
                 _ => value,
             },
-            Register reg => callStack.Peek().Registers[reg.Index],
+            // TODO: Clone the value
+            Register reg => Registers[reg.Index],
             _ => value,
         };
 
-        private static Value ReadValueFromPtr(Type type, IntPtr intPtr)
+        private static Value ReadManagedPtr(Type type, PtrValue value)
+        {
+            // TODO: Proper implementation
+            if (value.Offset != 0)
+            {
+                throw new NotImplementedException();
+            }
+            if (value.Value == null)
+            {
+                // Read from uninitialized pointer!
+                throw new InvalidOperationException();
+            }
+            if (!value.Value.Type.Equals(type))
+            {
+                // Can't read that type here
+                throw new InvalidOperationException();
+            }
+            // TODO: Clone the value
+            return value.Value;
+        }
+
+        private static Value ReadNativePtr(Type type, IntPtr intPtr)
         {
             unsafe
             {
