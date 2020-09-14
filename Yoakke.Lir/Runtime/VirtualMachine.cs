@@ -180,6 +180,59 @@ namespace Yoakke.Lir.Runtime
             }
             break;
 
+            case Instr.Alloc alloc:
+            {
+                var ptr = new PtrValue(alloc.Allocated);
+                callStack.Peek().Registers[alloc.Result.Index] = ptr;
+                ++instructionPointer;
+            }
+            break;
+
+            case Instr.Store store:
+            {
+                // TODO: This is not very sophisticated, what about native pointers?
+                var address = Unwrap(store.Target);
+                var value = Unwrap(store.Value);
+                if (!(address is PtrValue ptrVal))
+                {
+                    // TODO
+                    throw new NotImplementedException();
+                }
+                if (ptrVal.Offset != 0)
+                {
+                    // TODO
+                    throw new NotImplementedException();
+                }
+                ptrVal.Value = value;
+                ++instructionPointer;
+            }
+            break;
+
+            case Instr.Load load:
+            {
+                // TODO: This is not very sophisticated, what about native pointers?
+                var address = Unwrap(load.Address);
+                if (!(address is PtrValue ptrVal))
+                {
+                    // TODO
+                    throw new NotImplementedException();
+                }
+                if (ptrVal.Offset != 0)
+                {
+                    // TODO
+                    throw new NotImplementedException();
+                }
+                var loadedValue = ptrVal.Value;
+                if (loadedValue == null)
+                {
+                    // TODO: Read from uninitialized memory
+                    throw new InvalidOperationException();
+                }
+                callStack.Peek().Registers[load.Result.Index] = loadedValue;
+                ++instructionPointer;
+            }
+            break;
+
             default: throw new NotImplementedException();
             }
         }
@@ -188,16 +241,19 @@ namespace Yoakke.Lir.Runtime
         {
             // TODO: Proper error?
             Debug.Assert(proc.Parameters.Count == arguments.Count());
-            // Push frame to call stack
-            callStack.Push(new StackFrame(instructionPointer + 1, proc.GetRegisterCount()));
-            // Instruction pointer
-            var address = addresses[proc];
-            instructionPointer = address;
+            // Create the stack frame
+            var newFrame = new StackFrame(instructionPointer + 1, proc.GetRegisterCount());
+            // NOTE: We evaluate arguments here because we might still need the caller frame's register values!
             // Arguments
             foreach (var (reg, value) in proc.Parameters.Zip(arguments))
             {
-                callStack.Peek().Registers[reg.Index] = value;
+                newFrame.Registers[reg.Index] = value;
             }
+            // Push frame to call stack
+            callStack.Push(newFrame);
+            // Instruction pointer
+            var address = addresses[proc];
+            instructionPointer = address;
         }
 
         private void Return(Value value)

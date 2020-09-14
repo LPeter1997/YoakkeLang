@@ -8,11 +8,6 @@ namespace Yoakke.Lir.Instructions
     public abstract partial class Instr
     {
         /// <summary>
-        /// True, if this instruction performs some kind of (conditional or unconditional)
-        /// jump.
-        /// </summary>
-        public virtual bool IsJump => false;
-        /// <summary>
         /// The <see cref="IEnumerable{IInstrArg}"/> of all of the arguments of this instruction.
         /// </summary>
         public abstract IEnumerable<IInstrArg> InstrArgs { get; }

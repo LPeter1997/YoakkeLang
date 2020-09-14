@@ -75,22 +75,22 @@ namespace Yoakke.Compiler
             Console.WriteLine(asm);
             Console.WriteLine("\n\n");
 
-            var tt = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
-            var tc = Toolchains.Supporting(tt).First();
+            var targetTriplet = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
+            var toolchain = Toolchains.Supporting(targetTriplet).First();
 
             // Compile to ASM
-            var code = tc.Backend.Compile(asm);
+            var code = toolchain.Backend.Compile(asm);
             Console.WriteLine(code);
 
-            //var vm = new VirtualMachine(asm);
-            //var res = vm.Execute("main", new List<Value> { });
-            //Console.WriteLine($"VM result = {res}");
+            var vm = new VirtualMachine(asm);
+            var res = vm.Execute("main", new List<Value> { });
+            Console.WriteLine($"VM result = {res}");
 
             // Compile it to backend
-            tc.Assemblies.Add(asm);
-            tc.BuildDirectory = "C:/TMP/test_app_build";
+            toolchain.Assemblies.Add(asm);
+            toolchain.BuildDirectory = "C:/TMP/test_app_build";
 
-            var err = tc.Compile("C:/TMP/globals.exe");
+            var err = toolchain.Compile("C:/TMP/globals.exe");
             Console.WriteLine($"Toolchain exit code: {err}");
 #endif
         }
