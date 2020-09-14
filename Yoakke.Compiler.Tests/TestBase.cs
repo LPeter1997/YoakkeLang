@@ -1,10 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-
-namespace Yoakke.Compiler.Tests
+﻿namespace Yoakke.Compiler.Tests
 {
     [TestClass]
     public abstract class TestBase

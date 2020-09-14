@@ -1,10 +1,5 @@
-﻿using Microsoft.VisualBasic.CompilerServices;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections;
 using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Yoakke.Compiler.Semantic;
 using Yoakke.Compiler.Syntax;

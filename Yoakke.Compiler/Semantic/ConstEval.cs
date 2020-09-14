@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Dynamic;
 using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Xml.Schema;
 using Yoakke.Compiler.Ast;
 using Yoakke.Compiler.Syntax;
 using Yoakke.Compiler.Utils;

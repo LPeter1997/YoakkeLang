@@ -1,10 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
-using Yoakke.Compiler.Semantic;
-using Type = Yoakke.Compiler.Semantic.Type;
+﻿using Type = Yoakke.Compiler.Semantic.Type;
 
 namespace Yoakke.Compiler.Tests
 {

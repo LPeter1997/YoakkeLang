@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Yoakke.Text
+﻿namespace Yoakke.Text
 {
     /// <summary>
     /// Utility to keep track of the <see cref="Position"/> by feeding in characters from a source.

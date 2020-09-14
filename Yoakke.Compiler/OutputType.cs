@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Yoakke.Compiler
+﻿namespace Yoakke.Compiler
 {
     /// <summary>
     /// The types of output the compiler can produce.

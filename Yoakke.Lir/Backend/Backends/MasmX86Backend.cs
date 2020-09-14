@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Text;
 using Yoakke.Lir.Backend.Backends.X86Family;
-using Yoakke.Lir.Instructions;
-using Yoakke.Lir.Types;
-using Yoakke.Lir.Values;
-using Type = Yoakke.Lir.Types.Type;
 
 namespace Yoakke.Lir.Backend.Backends
 {

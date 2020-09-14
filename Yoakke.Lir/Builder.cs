@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Threading.Tasks;
 using Yoakke.Lir.Instructions;
-using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;
 using Type = Yoakke.Lir.Types.Type;
 

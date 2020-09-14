@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Yoakke.Compiler.IR;
-
-namespace Yoakke.Compiler.IR.Passes
+﻿namespace Yoakke.Compiler.IR.Passes
 {
     /// <summary>
     /// A pass to do constant folding.

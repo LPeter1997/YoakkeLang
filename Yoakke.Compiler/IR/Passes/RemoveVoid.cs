@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Text;
-using Yoakke.Compiler.IR;
-
-namespace Yoakke.Compiler.IR.Passes
+﻿namespace Yoakke.Compiler.IR.Passes
 {
     /// <summary>
     /// A pass to remove IR <see cref="Instruction"/>s that operate on void <see cref="Type"/>s.

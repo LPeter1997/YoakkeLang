@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using Yoakke.Compiler.Ast;
-using Yoakke.Compiler.IR;
 using Yoakke.Compiler.Utils;
 
 namespace Yoakke.Compiler.Semantic

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Yoakke.Compiler.IR;
+﻿using System.Collections.Generic;
 
 namespace Yoakke.Compiler.IR.Passes
 {

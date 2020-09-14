@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Yoakke.Compiler.Utils
+﻿namespace Yoakke.Compiler.Utils
 {
     /// <summary>
     /// Interface for deep-cloning values.

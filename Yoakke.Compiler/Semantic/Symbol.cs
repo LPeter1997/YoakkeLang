@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
-using Yoakke.Compiler.Ast;
+﻿using Yoakke.Compiler.Ast;
 using Yoakke.Compiler.Syntax;
 using Yoakke.Compiler.Utils;
 

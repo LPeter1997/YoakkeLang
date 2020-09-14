@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
-using Yoakke.Compiler.Semantic;
-using Yoakke.Compiler.Utils;
 
 namespace Yoakke.Compiler.IR
 {

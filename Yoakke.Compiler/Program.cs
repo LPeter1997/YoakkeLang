@@ -1,20 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Net.Http.Headers;
-using Yoakke.Compiler.Syntax;
-using Yoakke.DataStructures;
 using Yoakke.Lir;
 using Yoakke.Lir.Backend;
-using Yoakke.Lir.Backend.Backends;
 using Yoakke.Lir.Backend.Toolchain;
-using Yoakke.Lir.Backend.Toolchain.Msvc;
-using Yoakke.Lir.Instructions;
 using Yoakke.Lir.Runtime;
-using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;
-using Yoakke.Text;
 using OperatingSystem = Yoakke.Lir.Backend.OperatingSystem;
 using Type = Yoakke.Lir.Types.Type;
 

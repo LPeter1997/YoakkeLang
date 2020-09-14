@@ -2,14 +2,12 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Text;
 using Yoakke.Compiler.Syntax;
 using Yoakke.Compiler.Utils;
 using Yoakke.Compiler.IR;
 using Yoakke.Compiler.IR.Passes;
 using Yoakke.Compiler.Codegen;
 using Yoakke.Compiler.Semantic;
-using System.Runtime.Serialization;
 using System.IO;
 using System.Diagnostics;
 

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Yoakke.Text
+﻿namespace Yoakke.Text
 {
     /// <summary>
     /// A pair of <see cref="Span"/> and an associated value.

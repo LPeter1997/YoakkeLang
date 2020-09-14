@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Yoakke.Lir.Backend.Backends.X86Family
+﻿namespace Yoakke.Lir.Backend.Backends.X86Family
 {
     /// <summary>
     /// An interface for abstracting away intel and AT&T syntax.
