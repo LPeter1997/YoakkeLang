@@ -100,7 +100,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
 
             private static string R(Register? r) => 
                 r == null ? string.Empty : r.Value.ToString().ToLower();
-            public override string ToIntelSyntax() => (Base, ScaledIndex, Displacement)switch
+            public override string ToIntelSyntax() => (Base, ScaledIndex, Displacement) switch
             {
                 (null      , null               , int d) => $"[{d}]",
                 (Register b, null               , 0    ) => $"[{R(b)}]",
