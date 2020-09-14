@@ -192,9 +192,10 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             case Instr.Store store:
             {
                 // TODO: What if the operands don't fit in 32 bits?
-                var target = CompileValue(store.Target);
+                var target = CompileValue(store.Target, true);
                 var source = CompileValue(store.Value);
-                WriteInstr(X86Operation.Mov, target, source);
+                WriteInstr(X86Operation.Mov, Register.Eax, source);
+                WriteInstr(X86Operation.Mov, target, Register.Eax);
             }
             break;
 
@@ -202,8 +203,9 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             {
                 // TODO: What if the operands don't fit in 32 bits?
                 var target = CompileValue(load.Result);
-                var source = CompileValue(load.Address);
-                WriteInstr(X86Operation.Mov, target, source);
+                var source = CompileValue(load.Address, true);
+                WriteInstr(X86Operation.Mov, Register.Eax, source);
+                WriteInstr(X86Operation.Mov, target, Register.Eax);
             }
             break;
 
@@ -221,7 +223,29 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             }
         }
 
-        private Operand CompileValue(Value value)
+        private Operand CompileValue(Value value, bool asIndirect = false)
+        {
+            var result = CompileValueInternal(value);
+            if (asIndirect && result is Operand.Address addressResult)
+            {
+                if (!(value.Type is Type.Ptr ptrTy))
+                {
+                    // TODO
+                    throw new InvalidOperationException();
+                }
+                var operandSize = SizeOf(ptrTy.Subtype);
+                // TODO: Factor this out?
+                var dataWidth = operandSize switch
+                {
+                    4 => DataWidth.Dword,
+                    _ => throw new NotImplementedException(),
+                };
+                result = new Operand.Indirect(dataWidth, addressResult);
+            }
+            return result;
+        }
+
+        private Operand CompileValueInternal(Value value)
         {
             switch (value)
             {

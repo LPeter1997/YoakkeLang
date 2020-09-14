@@ -67,7 +67,7 @@ namespace Yoakke.Compiler
             main.Visibility = Visibility.Public;
             var intPlace = builder.Alloc(Type.I32);
             builder.Store(intPlace, Type.I32.NewValue(556));
-            //builder.Call(modify, new List<Value> { intPlace });
+            builder.Call(modify, new List<Value> { intPlace });
             var retValue = builder.Load(intPlace);
             builder.Ret(retValue);
 
