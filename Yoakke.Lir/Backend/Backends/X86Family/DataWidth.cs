@@ -13,7 +13,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         Qword,
     }
 
-    public static class DataWidthExtensions
+    public static class DataWidthUtils
     {
         /// <summary>
         /// Gets the size of the given <see cref="DataWidth"/>.
@@ -27,6 +27,20 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             DataWidth.Dword => 4,
             DataWidth.Qword => 8,
             _ => throw new NotImplementedException(),
+        };
+
+        /// <summary>
+        /// Gets the <see cref="DataWidth"/> for the given size.
+        /// </summary>
+        /// <param name="byteSize">The size in bytes.</param>
+        /// <returns>The <see cref="DataWidth"/> for the size.</returns>
+        public static DataWidth FromByteSize(int byteSize) => byteSize switch
+        {
+            1 => DataWidth.Byte ,
+            2 => DataWidth.Word ,
+            4 => DataWidth.Dword,
+            8 => DataWidth.Qword,
+            _ => throw new ArgumentException("Invalid data width size!", nameof(byteSize)),
         };
     }
 }
