@@ -1,12 +1,13 @@
-﻿using Yoakke.Lir.Types;
+﻿using System;
 using Yoakke.Lir.Values;
+using Type = Yoakke.Lir.Types.Type;
 
 namespace Yoakke.Lir
 {
     /// <summary>
     /// An external symbol.
     /// </summary>
-    public record Extern : Value, ISymbol
+    public class Extern : Value, ISymbol
     {
         public override Type Type { get; }
         public string Name { get; }
@@ -31,8 +32,11 @@ namespace Yoakke.Lir
         }
 
         public override string ToValueString() => Name;
-
         public override string ToString() =>
             $"extern {Type} {Name} [source = \"{Path}\"]";
+        public override bool Equals(Value? other) => ReferenceEquals(this, other);
+        public override int GetHashCode() => HashCode.Combine(typeof(Extern), Name);
+        // NOTE: Makes no sense to clone this
+        public override Value Clone() => this;
     }
 }

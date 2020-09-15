@@ -4,12 +4,12 @@ using Type = Yoakke.Lir.Types.Type;
 
 namespace Yoakke.Lir.Values
 {
-    partial record Value
+    partial class Value
     {
         /// <summary>
         /// Integer value.
         /// </summary>
-        public record Int : Value
+        public class Int : Value
         {
             /// <summary>
             /// The integer value.
@@ -35,6 +35,9 @@ namespace Yoakke.Lir.Values
             }
 
             public override string ToValueString() => $"{Value} as {Type}";
+            public override bool Equals(Value? other) => other is Int i && Value == i.Value;
+            public override int GetHashCode() => HashCode.Combine(typeof(Int), Value);
+            public override Value Clone() => new Int((Type.Int)Type, Value);
         }
     }
 }

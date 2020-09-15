@@ -286,7 +286,7 @@ namespace Yoakke.Lir.Runtime
             {
                 throw new NotImplementedException();
             }
-            if (value.Value == null)
+            if (value.Value is null)
             {
                 // Read from uninitialized pointer!
                 throw new InvalidOperationException();

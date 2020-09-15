@@ -1,12 +1,13 @@
-﻿using Yoakke.Lir.Types;
+﻿using System;
 using Yoakke.Lir.Values;
+using Type = Yoakke.Lir.Types.Type;
 
 namespace Yoakke.Lir
 {
     /// <summary>
     /// Storage type for the VM.
     /// </summary>
-    public record Register : Value
+    public class Register : Value
     {
         public override Type Type { get; }
 
@@ -27,7 +28,10 @@ namespace Yoakke.Lir
         }
 
         public override string ToValueString() => $"r{Index}";
-
         public override string ToString() => $"{Type} {ToValueString()}";
+        public override bool Equals(Value? other) => ReferenceEquals(this, other);
+        public override int GetHashCode() => HashCode.Combine(typeof(Register), Index);
+        // NOTE: Makes no sense to clone this
+        public override Value Clone() => this;
     }
 }

@@ -1,16 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Yoakke.DataStructures;
 using Yoakke.Lir.Instructions;
-using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;
+using Type = Yoakke.Lir.Types.Type;
 
 namespace Yoakke.Lir
 {
     /// <summary>
     /// An IR procedure.
     /// </summary>
-    public record Proc : Value, ISymbol
+    public class Proc : Value, ISymbol
     {
         public override Type Type =>
             new Type.Proc(CallConv, Return, Parameters.Select(p => p.Type).ToList().AsValueList());
@@ -66,5 +67,10 @@ namespace Yoakke.Lir
             $"{Return} proc[callconv = {CallConv}] {Name}({string.Join(", ", Parameters)}) " +
             $"[visibility = {Visibility}]:\n" +
             $"{string.Join('\n', BasicBlocks)}";
+
+        public override bool Equals(Value? other) => ReferenceEquals(this, other);
+        public override int GetHashCode() => HashCode.Combine(typeof(Proc), Name);
+        // NOTE: Makes no sense to clone this
+        public override Value Clone() => this;
     }
 }

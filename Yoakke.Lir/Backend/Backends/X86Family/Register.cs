@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
 
 namespace Yoakke.Lir.Backend.Backends.X86Family
 {

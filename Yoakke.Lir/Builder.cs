@@ -30,7 +30,7 @@ namespace Yoakke.Lir
             get
             {
                 // TODO
-                if (currentProc == null) throw new NotImplementedException();
+                if (currentProc is null) throw new NotImplementedException();
                 return currentProc;
             }
             set => currentProc = value;
@@ -43,7 +43,7 @@ namespace Yoakke.Lir
             get
             {
                 // TODO
-                if (currentBasicBlock == null) throw new NotImplementedException();
+                if (currentBasicBlock is null) throw new NotImplementedException();
                 return currentBasicBlock;
             }
             set => currentBasicBlock = value;
