@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Yoakke.Lir.Backend.Backends.X86Family
 {
@@ -22,11 +24,15 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
     /// <summary>
     /// A single X86 instruction.
     /// </summary>
-    public record X86Instr(X86Operation Operation, params Operand[] Operands) : IX86Syntax
+    public class X86Instr : IX86Syntax
     {
+        public X86Operation Operation { get; set; }
+        public IList<Operand> Operands { get; set; }
+
         public X86Instr(X86Operation op, params object[] operands)
-            : this(op, operands.Select(ToOperand).ToArray())
         {
+            Operation = op;
+            Operands = operands.Select(ToOperand).ToList();
         }
 
         public string ToIntelSyntax() =>

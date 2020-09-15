@@ -5,7 +5,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
     /// <summary>
     /// Represents a scaled index for X86 addressing.
     /// </summary>
-    public record ScaledIndex
+    public struct ScaledIndex
     {
         public readonly Register Index;
         public readonly int Scale;
@@ -30,15 +30,23 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
     /// <summary>
     /// Operand description base for X86 instructions.
     /// </summary>
-    public abstract record Operand : IX86Syntax
+    public abstract class Operand : IX86Syntax
     {
         public abstract string ToIntelSyntax();
 
+        // TODO: This is a messy thing because of the proc and basic block, maybe those should be their own type?
         /// <summary>
         /// Some literal constant.
         /// </summary>
-        public record Literal(object Value) : Operand
+        public class Literal : Operand
         {
+            public readonly object Value;
+
+            public Literal(object value)
+            {
+                Value = value;
+            }
+
             public override string ToIntelSyntax() => Value switch
             {
                 // TODO: For procedures and basic blocks we need to be able to swap out '.' and '@', ...
@@ -53,15 +61,22 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         /// <summary>
         /// A register access.
         /// </summary>
-        public record Register_(Register Register) : Operand
+        public class Register_ : Operand
         {
+            public readonly Register Register;
+
+            public Register_(Register register)
+            {
+                Register = register;
+            }
+
             public override string ToIntelSyntax() => Register.ToString().ToLower();
         }
 
         /// <summary>
         /// Addressing.
         /// </summary>
-        public record Address : Operand
+        public class Address : Operand
         {
             /// <summary>
             /// The base address register.
@@ -115,8 +130,17 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         /// <summary>
         /// Indirect access through a memory address.
         /// </summary>
-        public record Indirect(DataWidth Width, Address Address_) : Operand
+        public class Indirect : Operand
         {
+            public readonly DataWidth Width;
+            public readonly Address Address_;
+
+            public Indirect(DataWidth width, Address addr)
+            {
+                Width = width;
+                Address_ = addr;
+            }
+
             public override string ToIntelSyntax() => $"{Width.ToString().ToUpper()} PTR {Address_.ToIntelSyntax()}";
         }
     }
