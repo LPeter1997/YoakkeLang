@@ -1,13 +1,17 @@
-﻿namespace Yoakke.Lir.Types
+﻿using System;
+
+namespace Yoakke.Lir.Types
 {
-    partial record Type
+    partial class Type
     {
         /// <summary>
         /// Void type.
         /// </summary>
-        public record Void : Type
+        public class Void : Type
         {
             public override string ToString() => "void";
+            public override bool Equals(Type? other) => other is Void;
+            public override int GetHashCode() => HashCode.Combine(typeof(Void));
         }
     }
 }

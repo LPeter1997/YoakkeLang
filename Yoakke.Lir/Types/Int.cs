@@ -1,16 +1,24 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
 using Yoakke.Lir.Values;
 
 namespace Yoakke.Lir.Types
 {
-    partial record Type
+    partial class Type
     {
         /// <summary>
         /// Integer type.
         /// </summary>
-        public record Int(bool Signed, int Bits) : Type
+        public class Int : Type
         {
-            public override string ToString() => $"{(Signed ? 'i' : 'u')}{Bits}";
+            public readonly bool Signed;
+            public readonly int Bits;
+
+            public Int(bool signed, int bits)
+            {
+                Signed = signed;
+                Bits = bits;
+            }
 
             /// <summary>
             /// Returns the maximum integer value that this <see cref="Type"/> can store.
@@ -28,6 +36,11 @@ namespace Yoakke.Lir.Types
             /// <param name="value">The integer value.</param>
             /// <returns>The created <see cref="Value.Int"/>.</returns>
             public Value.Int NewValue(BigInteger value) => new Value.Int(this, value);
+
+            public override string ToString() => $"{(Signed ? 'i' : 'u')}{Bits}";
+            public override bool Equals(Type? other) =>
+                other is Int i && Signed == i.Signed && Bits == i.Bits;
+            public override int GetHashCode() => HashCode.Combine(typeof(Int), Signed, Bits);
         }
     }
 }

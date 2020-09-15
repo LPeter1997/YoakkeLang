@@ -1,13 +1,25 @@
-﻿namespace Yoakke.Lir.Types
+﻿using System;
+
+namespace Yoakke.Lir.Types
 {
-    partial record Type
+    partial class Type
     {
         /// <summary>
         /// Pointer type.
         /// </summary>
-        public record Ptr(Type Subtype) : Type
+        public class Ptr : Type
         {
+            public readonly Type Subtype;
+
+            public Ptr(Type subtype)
+            {
+                Subtype = subtype;
+            }
+
             public override string ToString() => $"{Subtype}*";
+            public override bool Equals(Type? other) => 
+                other is Ptr p && Subtype.Equals(p.Subtype);
+            public override int GetHashCode() => HashCode.Combine(typeof(Ptr), Subtype);
         }
     }
 }
