@@ -200,12 +200,7 @@ namespace Yoakke.Lir.Runtime
                     // TODO
                     throw new NotImplementedException();
                 }
-                if (ptrVal.Offset != 0)
-                {
-                    // TODO
-                    throw new NotImplementedException();
-                }
-                ptrVal.Value = value;
+                WriteManagedPtr(ptrVal, value);
                 ++instructionPointer;
             }
             break;
@@ -298,6 +293,18 @@ namespace Yoakke.Lir.Runtime
             }
             // TODO: Clone the value
             return value.Value;
+        }
+
+        private static void WriteManagedPtr(PtrValue ptr, Value value)
+        {
+            // TODO: Proper implementation
+            if (ptr.Offset != 0)
+            {
+                throw new NotImplementedException();
+            }
+            // TODO: Type-check
+            // TODO: Clone?
+            ptr.Value = value;
         }
 
         private static Value ReadNativePtr(Type type, IntPtr intPtr)
