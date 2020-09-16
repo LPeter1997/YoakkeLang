@@ -46,15 +46,21 @@ namespace Yoakke.Lir.Backend.Toolchain
         /// <summary>
         /// The first <see cref="IAssembler"/> in this toolchain.
         /// </summary>
-        public IAssembler Assembler => Tools.Where(t => t is IAssembler).Cast<IAssembler>().First();
+        public IAssembler Assembler => 
+            // NOTE: Cast returned IAssembler? for some reason
+            Tools.Where(t => t is IAssembler).Select(t => (IAssembler)t).First();
         /// <summary>
         /// The first <see cref="ILinker"/> in this toolchain.
         /// </summary>
-        public ILinker Linker => Tools.Where(t => t is ILinker).Cast<ILinker>().First();
+        public ILinker Linker =>
+            // NOTE: Cast returned ILinker? for some reason
+            Tools.Where(t => t is ILinker).Select(t => (ILinker)t).First();
         /// <summary>
         /// The first <see cref="IArchiver"/> in this toolchain.
         /// </summary>
-        public IArchiver Archiver => Tools.Where(t => t is IArchiver).Cast<IArchiver>().First();
+        public IArchiver Archiver =>
+            // NOTE: Cast returned IArchiver? for some reason
+            Tools.Where(t => t is IArchiver).Select(t => (IArchiver)t).First();
 
         /// <summary>
         /// Checks, if the given <see cref="TargetTriplet"/> is supported by this toolchain.

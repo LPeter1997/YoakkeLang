@@ -67,7 +67,8 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             var registers = proc.BasicBlocks
                 .SelectMany(bb => bb.Instructions)
                 .Where(ins => ins is ValueInstr)
-                .Cast<ValueInstr>()
+                // NOTE: Cast returned nullable for some reason
+                .Select(ins => (ValueInstr)ins)
                 .Select(ins => ins.Result);
             // TODO: This is probably only true for Cdecl?
             // Collect parameter offsets, they are the other way in reverse order

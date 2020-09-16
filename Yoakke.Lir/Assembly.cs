@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -34,7 +35,9 @@ namespace Yoakke.Lir
         /// <summary>
         /// All symbols this <see cref="Assembly"/> defines.
         /// </summary>
-        public IEnumerable<ISymbol> Symbols => Externals.Cast<ISymbol>().Concat(Procedures);
+        public IEnumerable<ISymbol> Symbols => 
+            // NOTE: Cast returned an ISymbol? for some reason
+            Externals.Select(sym => (ISymbol)sym).Concat(Procedures);
 
         /// <summary>
         /// Returns all of the distinct external binary references in this <see cref="Assembly"/>.

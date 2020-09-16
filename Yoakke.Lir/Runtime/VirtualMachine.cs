@@ -33,7 +33,6 @@ namespace Yoakke.Lir.Runtime
         private int instructionPointer;
 
         private StackFrame StackFrame => callStack.Peek();
-        private Value[] Registers => StackFrame.Registers;
 
         /// <summary>
         /// Initializes a new <see cref="VirtualMachine"/>.
@@ -131,7 +130,6 @@ namespace Yoakke.Lir.Runtime
 
         private void ExecuteCycle()
         {
-            // TODO: Clone value where appropriate?
             var instr = code[instructionPointer];
             switch (instr)
             {
@@ -141,25 +139,20 @@ namespace Yoakke.Lir.Runtime
 
             case Instr.Call call:
             {
-                var proc = Unwrap(call.Procedure);
-                if (proc is ISymbol sym)
+                var called = Unwrap(call.Procedure);
+                if (called is Proc proc)
                 {
-                    if (sym is Proc irProc)
-                    {
-                        var arguments = call.Arguments.Select(Unwrap);
-                        Call(irProc, arguments);
-                    }
-                    else
-                    {
-                        Debug.Assert(sym is Extern);
-                        var external = (Extern)sym;
-                        // TODO
-                        throw new NotImplementedException();
-                    }
+                    var arguments = call.Arguments.Select(Unwrap);
+                    Call(proc, arguments);
+                }
+                else if (called is Extern external)
+                {
+                    // TODO: Check type, call
+                    throw new NotImplementedException();
                 }
                 else
                 {
-                    // TODO: Like.. function pointers and stuff
+                    // TODO: Check if function type, is function pointer...
                     throw new NotImplementedException();
                 }
             }
@@ -171,28 +164,28 @@ namespace Yoakke.Lir.Runtime
 
             case Instr.JmpIf jmpIf:
             {
-                var cond = Unwrap(jmpIf.Condition);
-                if (!(cond is Value.Int icond))
+                var condValue = Unwrap(jmpIf.Condition);
+                if (!(condValue is Value.Int intCondValue))
                 {
                     // TODO
                     throw new NotImplementedException();
                 }
-                instructionPointer = addresses[icond.Value != 0 ? jmpIf.Then : jmpIf.Else];
+                bool condition = intCondValue.Value != 0;
+                instructionPointer = addresses[condition ? jmpIf.Then : jmpIf.Else];
             }
             break;
 
             case Instr.Alloc alloc:
             {
                 var ptr = new PtrValue(alloc.Allocated);
-                Registers[alloc.Result.Index] = ptr;
+                StackFrame[alloc.Result] = ptr;
                 ++instructionPointer;
             }
             break;
 
             case Instr.Store store:
             {
-                // TODO: This is not very sophisticated, what about native pointers?
-                // TODO: WriteNativePtr and such?
+                // TODO: Native pointers?
                 var address = Unwrap(store.Target);
                 var value = Unwrap(store.Value);
                 if (!(address is PtrValue ptrVal))
@@ -200,14 +193,14 @@ namespace Yoakke.Lir.Runtime
                     // TODO
                     throw new NotImplementedException();
                 }
-                WriteManagedPtr(ptrVal, value);
+                WriteManagedPtr(ptrVal, value.Clone());
                 ++instructionPointer;
             }
             break;
 
             case Instr.Load load:
             {
-                // TODO: This is not very sophisticated, what about native pointers?
+                // TODO: Native pointers?
                 var address = Unwrap(load.Address);
                 if (!(address is PtrValue ptrVal))
                 {
@@ -215,7 +208,7 @@ namespace Yoakke.Lir.Runtime
                     throw new NotImplementedException();
                 }
                 var loadedValue = ReadManagedPtr(load.Result.Type, ptrVal);
-                Registers[load.Result.Index] = loadedValue;
+                StackFrame[load.Result] = loadedValue.Clone();
                 ++instructionPointer;
             }
             break;
@@ -234,7 +227,7 @@ namespace Yoakke.Lir.Runtime
             // Arguments
             foreach (var (reg, value) in proc.Parameters.Zip(arguments))
             {
-                newFrame.Registers[reg.Index] = value;
+                newFrame[reg] = value;
             }
             // Push frame to call stack
             callStack.Push(newFrame);
@@ -252,7 +245,7 @@ namespace Yoakke.Lir.Runtime
             {
                 // Assign return value, if the call stack still contains elements
                 var callIns = (Instr.Call)code[instructionPointer - 1];
-                Registers[callIns.Result.Index] = value;
+                StackFrame[callIns.Result] = value;
             }
             else
             {
@@ -261,7 +254,6 @@ namespace Yoakke.Lir.Runtime
             }
         }
 
-        // TODO: Differentiate lvalues and rvalues?
         private Value Unwrap(Value value) => value switch
         {
             ISymbol sym => sym switch
@@ -269,8 +261,7 @@ namespace Yoakke.Lir.Runtime
                 Extern ext => ReadNativePtr(ext.Type, externals[ext]),
                 _ => value,
             },
-            // TODO: Clone the value
-            Register reg => Registers[reg.Index],
+            Register reg => StackFrame[reg],
             _ => value,
         };
 
@@ -291,7 +282,6 @@ namespace Yoakke.Lir.Runtime
                 // Can't read that type here
                 throw new InvalidOperationException();
             }
-            // TODO: Clone the value
             return value.Value;
         }
 
@@ -303,12 +293,12 @@ namespace Yoakke.Lir.Runtime
                 throw new NotImplementedException();
             }
             // TODO: Type-check
-            // TODO: Clone?
             ptr.Value = value;
         }
 
         private static Value ReadNativePtr(Type type, IntPtr intPtr)
         {
+            // TODO: Proper implementation
             unsafe
             {
                 switch (type)
@@ -327,6 +317,12 @@ namespace Yoakke.Lir.Runtime
                 default: throw new NotImplementedException();
                 }
             }
+        }
+
+        private static void WriteNativePtr(IntPtr intPtr, Value value)
+        {
+            // TODO: Proper implementation
+            throw new NotImplementedException();
         }
     }
 }

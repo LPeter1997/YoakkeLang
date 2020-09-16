@@ -12,5 +12,11 @@ namespace Yoakke.Lir.Runtime
             ReturnAddress = returnAddress;
             Registers = new Value[registerCount];
         }
+
+        public Value this[Register register]
+        {
+            get => Registers[register.Index];
+            set => Registers[register.Index] = value;
+        }
     }
 }
