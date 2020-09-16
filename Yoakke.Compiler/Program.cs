@@ -40,11 +40,23 @@ namespace Yoakke.Compiler
             var asm = new Assembly("test_app");
             var builder = new Builder(asm);
 
+            builder.DefineProc("entry");
+            builder.Ret(Type.I32.NewValue(263));
+
+            var targetTriplet = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
+            var toolchain = Toolchains.Supporting(targetTriplet).First();
+
+            toolchain.OutputKind = OutputKind.DynamicLibrary;
+            toolchain.Assemblies.Add(asm);
+            var err = toolchain.Compile("C:/TMP/globals.dll");
+            Console.WriteLine($"Toolchain exit code: {err}");
+
             /*var times = builder.DefineExtern(
                 "times",
                 new Type.Proc(CallConv.Cdecl, Type.I32, new ValueList<Type> { Type.I32, Type.I32 }), 
                 "C:/TMP/globals.obj");*/
 
+#if false
             var intPtr = new Type.Ptr(Type.I32);
 
             var modify = builder.DefineProc("modify");
@@ -83,6 +95,7 @@ namespace Yoakke.Compiler
 
             var err = toolchain.Compile("C:/TMP/globals.exe");
             Console.WriteLine($"Toolchain exit code: {err}");
+#endif
 #endif
         }
     }
