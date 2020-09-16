@@ -33,7 +33,11 @@ namespace Yoakke.Lir
                 if (currentProc is null) throw new NotImplementedException();
                 return currentProc;
             }
-            set => currentProc = value;
+            set
+            {
+                currentProc = value;
+                currentBasicBlock = currentProc.BasicBlocks.Last();
+            }
         }
         /// <summary>
         /// The currently built <see cref="BasicBlock"/>.
@@ -46,7 +50,11 @@ namespace Yoakke.Lir
                 if (currentBasicBlock is null) throw new NotImplementedException();
                 return currentBasicBlock;
             }
-            set => currentBasicBlock = value;
+            set
+            {
+                currentProc = Assembly.Procedures.First(proc => proc.BasicBlocks.Contains(value));
+                currentBasicBlock = value;
+            }
         }
 
         private Proc? currentProc;
@@ -82,7 +90,7 @@ namespace Yoakke.Lir
         {
             // TODO: Check name uniqueness
             var proc = new Proc(name);
-            CurrentProc = proc;
+            currentProc = proc;
             Assembly.Procedures.Add(proc);
             DefineBasicBlock("begin");
             return proc;
@@ -101,7 +109,7 @@ namespace Yoakke.Lir
         public BasicBlock DefineBasicBlock(string name)
         {
             var bb = new BasicBlock(name);
-            CurrentBasicBlock = bb;
+            currentBasicBlock = bb;
             CurrentProc.BasicBlocks.Add(bb);
             return bb;
         }

@@ -40,15 +40,24 @@ namespace Yoakke.Compiler
             var asm = new Assembly("test_app");
             var builder = new Builder(asm);
 
-            builder.DefineProc("entry");
-            builder.Ret(Type.I32.NewValue(263));
+            builder.DefineProc("main");
+            var entry = builder.CurrentProc;
+
+            var identity = builder.DefineProc("identity");
+            var p = builder.DefineParameter(Type.I32);
+            builder.Ret(p);
+
+            builder.CurrentProc = entry;
+            builder.Ret(builder.Call(identity, new List<Value> { Type.I32.NewValue(524) }));
 
             var targetTriplet = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
             var toolchain = Toolchains.Supporting(targetTriplet).First();
 
-            toolchain.OutputKind = OutputKind.DynamicLibrary;
+            toolchain.OutputKind = OutputKind.Executable;
             toolchain.Assemblies.Add(asm);
-            var err = toolchain.Compile("C:/TMP/globals.dll");
+            Console.WriteLine(asm);
+            Console.WriteLine(toolchain.Backend.Compile(asm));
+            var err = toolchain.Compile("C:/TMP/globals.exe");
             Console.WriteLine($"Toolchain exit code: {err}");
 
             /*var times = builder.DefineExtern(

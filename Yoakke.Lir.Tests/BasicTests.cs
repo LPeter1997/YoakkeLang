@@ -1,5 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Yoakke.Lir.Backend.Toolchain;
@@ -34,9 +35,12 @@ namespace Yoakke.Lir.Tests
             // Compile
             toolchain.BuildDirectory = BuildDirectory;
             toolchain.OutputKind = Backend.OutputKind.DynamicLibrary;
+            // TODO: Toolchain shouldn't build! We should separate this out!
+            toolchain.Assemblies.Clear();
             toolchain.Assemblies.Add(assembly);
             var outputPath = Path.Combine(BuildDirectory, $"{TestContext.TestName}.dll");
             var exitCode = toolchain.Compile(outputPath);
+            string AAA = toolchain.Backend.Compile(assembly);
             Assert.AreEqual(0, exitCode);
             // Load function
             var proc = NativeUtils.LoadNativeProcedure<Func<Int32>>(outputPath, "entry", CallConv.Cdecl);
@@ -81,6 +85,22 @@ namespace Yoakke.Lir.Tests
             var b = GetBuilder();
             b.Ret(Types.Type.I32.NewValue(263));
             TestOnAllBackends(b, Types.Type.I32.NewValue(263));
+        }
+
+        [TestMethod]
+        public void ReturnParameter()
+        {
+            var b = GetBuilder();
+            var entry = b.CurrentProc;
+
+            var identity = b.DefineProc("identity");
+            identity.Return = Types.Type.I32;
+            var p = b.DefineParameter(Types.Type.I32);
+            b.Ret(p);
+
+            b.CurrentProc = entry;
+            b.Ret(b.Call(identity, new List<Value> { Types.Type.I32.NewValue(524) }));
+            TestOnAllBackends(b, Types.Type.I32.NewValue(524));
         }
     }
 }
