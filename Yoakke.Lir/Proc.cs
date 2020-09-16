@@ -28,7 +28,6 @@ namespace Yoakke.Lir
         /// The parameters of this procedure.
         /// </summary>
         public readonly IList<Register> Parameters = new List<Register>();
-        // TODO: Add utility to get type.
         /// <summary>
         /// The calling convention to use when calling this procedure.
         /// </summary>
