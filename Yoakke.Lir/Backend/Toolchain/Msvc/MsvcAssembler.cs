@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 
 namespace Yoakke.Lir.Backend.Toolchain.Msvc
@@ -9,38 +11,37 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
     /// </summary>
     public class MsvcAssembler : MsvcToolBase, IAssembler
     {
-        public override TargetTriplet TargetTriplet { get; set; }
-        public override IList<string> SourceFiles { get; } = new List<string>();
-        public OutputKind OutputKind { get; set; } = OutputKind.Object;
-
-        public MsvcAssembler(string vcVarsAllPath) 
-            : base(vcVarsAllPath)
+        public MsvcAssembler(string version, string vcVarsAllPath) 
+            : base(version, vcVarsAllPath)
         {
         }
 
-        public override int Execute(string outputPath)
+        public override int Execute(Build build)
         {
-            if (OutputKind == OutputKind.Object && SourceFiles.Count > 1)
-            {
-                // TODO: Better error
-                // We can't merge objs on windows
-                throw new NotSupportedException();
-            }
-            // Escape file names
-            var files = string.Join(' ', SourceFiles.Select(f => $"\"{f}\""));
+            // File names
+            var assemblyFiles = (IList<string>)build.Extra["assemblyFiles"];
             // The actual file name to invoke
-            var ml = TargetTriplet.CpuFamily == CpuFamily.X86 ? "ML" : "ML64";
-            // Construct the command
-            var command = $"{ml} /nologo /Fo \"{outputPath}\" {GetOutputKindFlag()} {files}";
-            // Run it
-            return InvokeWithEnvironment(command);
+            var ml = build.TargetTriplet.CpuFamily == CpuFamily.X86 ? "ML" : "ML64";
+            // Command constructor function for each output file
+            Func<string, string, string> makeCommand = (outputPath, assemblyFile) =>
+                $"{ml} /nologo /Fo \"{outputPath}\" /c \"{assemblyFile}\"";
+            // Compile each assembly file
+            var objectFiles = new List<string>();
+            build.Extra["objectFiles"] = objectFiles;
+            foreach (var assemblyFile in assemblyFiles)
+            {
+                string? outputPath = Path.ChangeExtension(assemblyFile, ".o");
+                Debug.Assert(outputPath != null);
+                var command = makeCommand(outputPath, assemblyFile);
+                // Execute
+                var errCode = InvokeWithEnvironment(command, build.TargetTriplet);
+                if (errCode != 0) return errCode;
+                // Append it to object files
+                objectFiles.Add(outputPath);
+            }
+            return 0;
         }
 
-        private string GetOutputKindFlag() => OutputKind switch
-        {
-            OutputKind.Executable => string.Empty,
-            OutputKind.Object => "/c",
-            _ => throw new NotSupportedException($"The output kind {OutputKind} is not supported by ML (MASM)!"),
-        };
+        public override string ToString() => $"ML-{Version}";
     }
 }

@@ -17,31 +17,6 @@ namespace Yoakke.Lir.Backend.Toolchain
         /// The <see cref="ITool"/>s of this <see cref="IToolchain"/>.
         /// </summary>
         public IEnumerable<ITool> Tools { get; }
-        /// <summary>
-        /// The <see cref="TargetTriplet"/> the toolchain targets.
-        /// </summary>
-        public TargetTriplet TargetTriplet 
-        { 
-            get => Tools.First().TargetTriplet; 
-            set 
-            {
-                // TODO: Better error
-                if (!IsSupported(value)) throw new NotSupportedException();
-                foreach (var tool in Tools) tool.TargetTriplet = value; 
-            }
-        }
-        /// <summary>
-        /// The <see cref="Assembly"/>s that need to be compiled.
-        /// </summary>
-        public IList<Assembly> Assemblies { get; }
-        /// <summary>
-        /// The <see cref="OutputKind"/> the needed to produce.
-        /// </summary>
-        public OutputKind OutputKind { get; set; }
-        /// <summary>
-        /// The directory the intermediate files should be stored in.
-        /// </summary>
-        public string BuildDirectory { get; set; }
 
         /// <summary>
         /// The first <see cref="IAssembler"/> in this toolchain.
@@ -63,17 +38,23 @@ namespace Yoakke.Lir.Backend.Toolchain
             Tools.Where(t => t is IArchiver).Select(t => (IArchiver)t).First();
 
         /// <summary>
+        /// A string that represents the version of this toolchain.
+        /// </summary>
+        public string Version { get; }
+
+        /// <summary>
         /// Checks, if the given <see cref="TargetTriplet"/> is supported by this toolchain.
         /// </summary>
         /// <param name="targetTriplet">The <see cref="TargetTriplet"/> to check support for.</param>
         /// <returns>True, if the <see cref="TargetTriplet"/> is supported.</returns>
-        public bool IsSupported(TargetTriplet targetTriplet);
+        public bool IsSupported(TargetTriplet targetTriplet) =>
+            Tools.All(t => t.IsSupported(targetTriplet));
 
         /// <summary>
-        /// Compiles the given <see cref="Files"/>.
+        /// Compiles the given <see cref="Build"/>.
         /// </summary>
-        /// <param name="outputPath">The resulting binary's path.</param>
+        /// <param name="build">The <see cref="Build"/> definition for the compilation.</param>
         /// <returns>The error code. 0 if succeeded.</returns>
-        public int Compile(string outputPath);
+        public int Compile(Build build);
     }
 }

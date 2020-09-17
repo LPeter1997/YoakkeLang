@@ -10,23 +10,24 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
     /// </summary>
     public abstract class MsvcToolBase : ITool
     {
-        public abstract TargetTriplet TargetTriplet { get; set; }
-        public abstract IList<string> SourceFiles { get; }
-
         private string vcVarsAllPath;
+
+        public string Version { get; }
 
         /// <summary>
         /// Initializes a new <see cref="MsvcToolBase"/>.
         /// </summary>
+        /// <param name="version">The version string.</param>
         /// <param name="vcVarsAllPath">The path to the 'vcvarsall' tool.</param>
-        public MsvcToolBase(string vcVarsAllPath)
+        public MsvcToolBase(string version, string vcVarsAllPath)
         {
+            Version = version;
             this.vcVarsAllPath = vcVarsAllPath;
         }
 
-        protected int InvokeWithEnvironment(string command)
+        protected int InvokeWithEnvironment(string command, TargetTriplet targetTriplet)
         {
-            var archId = GetTargetMachineId();
+            var archId = GetTargetMachineId(targetTriplet);
             var proc = new Process
             {
                 StartInfo = new ProcessStartInfo
@@ -53,12 +54,16 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
             return proc.ExitCode;
         }
 
-        protected string GetTargetMachineId() => TargetTriplet.CpuFamily switch
+        protected static string GetTargetMachineId(TargetTriplet targetTriplet) => targetTriplet.CpuFamily switch
         {
             CpuFamily.X86 => "x86",
-            _ => throw new NotSupportedException($"The CPU {TargetTriplet.CpuFamily} is not supported by MSVC tools!"),
+            _ => throw new NotSupportedException($"The CPU {targetTriplet.CpuFamily} is not supported by MSVC tools!"),
         };
 
-        public abstract int Execute(string outputPath);
+        public bool IsSupported(TargetTriplet targetTriplet) =>
+               targetTriplet.CpuFamily == CpuFamily.X86 
+            && targetTriplet.OperatingSystem == OperatingSystem.Windows;
+
+        public abstract int Execute(Build build);
     }
 }

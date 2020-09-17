@@ -8,19 +8,22 @@ namespace Yoakke.Lir.Backend.Toolchain
     public interface ITool
     {
         /// <summary>
-        /// The <see cref="TargetTriplet"/> for the tool.
+        /// A string that represents the version of this tool.
         /// </summary>
-        public TargetTriplet TargetTriplet { get; set; }
+        public string Version { get; }
+
         /// <summary>
-        /// The files that the tool needs.
+        /// Checks, if the given <see cref="TargetTriplet"/> is supported by this tool.
         /// </summary>
-        public IList<string> SourceFiles { get; }
+        /// <param name="targetTriplet">The <see cref="TargetTriplet"/> to check support for.</param>
+        /// <returns>True, if the <see cref="TargetTriplet"/> is supported.</returns>
+        public bool IsSupported(TargetTriplet targetTriplet);
 
         /// <summary>
         /// Executes this tool.
         /// </summary>
-        /// <param name="outputPath">The output file's path.</param>
+        /// <param name="build">The <see cref="Build"/> definition for the compilation.</param>
         /// <returns>The exit code. 0 on success.</returns>
-        public int Execute(string outputPath);
+        public int Execute(Build build);
     }
 }

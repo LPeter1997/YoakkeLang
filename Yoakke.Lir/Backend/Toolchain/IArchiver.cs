@@ -6,15 +6,10 @@
     public interface IArchiver : ITool
     {
         /// <summary>
-        /// The <see cref="OutputKind"/> the archiver needs to produce.
-        /// </summary>
-        public OutputKind OutputKind { get; set; }
-
-        /// <summary>
         /// Archives the given source files.
         /// </summary>
-        /// <param name="outputPath">The output path of the result.</param>
+        /// <param name="build">The <see cref="Build"/> definition for the compilation.</param>
         /// <returns>The error code. 0 if succeeded.</returns>
-        public int Archive(string outputPath) => Execute(outputPath);
+        public int Archive(Build build) => Execute(build);
     }
 }

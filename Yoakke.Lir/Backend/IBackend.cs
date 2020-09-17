@@ -8,9 +8,11 @@ namespace Yoakke.Lir.Backend
     public interface IBackend
     {
         /// <summary>
-        /// The <see cref="TargetTriplet"/> of the backend.
+        /// Checks, if the given <see cref="TargetTriplet"/> is supported by this backend.
         /// </summary>
-        public TargetTriplet TargetTriplet { get; set; }
+        /// <param name="targetTriplet">The <see cref="TargetTriplet"/> to check support for.</param>
+        /// <returns>True, if the <see cref="TargetTriplet"/> is supported.</returns>
+        public bool IsSupported(TargetTriplet targetTriplet);
 
         /// <summary>
         /// Compiles the given <see cref="Assembly"/> to the backend's representation.

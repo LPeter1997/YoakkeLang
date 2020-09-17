@@ -32,12 +32,6 @@ namespace Yoakke.Lir.Backend.Toolchain
         /// <returns>The<see cref="IEnumerable{T}"/> of all of the<see cref="IToolchain"/> s on the platform
         /// that supports the given <see cref="TargetTriplet"/>.</returns>
         public static IEnumerable<IToolchain> Supporting(TargetTriplet targetTriplet) =>
-            All().Where(tc => tc.IsSupported(targetTriplet))
-            // Select the default
-            .Select(tc =>
-            {
-                tc.TargetTriplet = targetTriplet;
-                return tc;
-            });
+            All().Where(tc => tc.IsSupported(targetTriplet));
     }
 }

@@ -13,6 +13,10 @@ namespace Yoakke.Lir.Backend.Backends
 
         private StringBuilder code = new StringBuilder();
 
+        public bool IsSupported(TargetTriplet targetTriplet) =>
+               targetTriplet.CpuFamily == CpuFamily.X86
+            && targetTriplet.OperatingSystem == OperatingSystem.Windows;
+
         public string Compile(Assembly assembly)
         {
             code.Clear();

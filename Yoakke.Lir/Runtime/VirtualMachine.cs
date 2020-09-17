@@ -60,8 +60,9 @@ namespace Yoakke.Lir.Runtime
 
         private void LoadExternals()
         {
-            // TODO: Finish this
+            // TODO: Implement this
             if (Assembly.Externals.Count == 0) return;
+#if false
             // We need to compile every external binary to a DLL
             // TODO: We'd need to target what this application _is_
             // If this application is x86, we need x86, ...
@@ -86,6 +87,7 @@ namespace Yoakke.Lir.Runtime
             {
                 externals[ext] = NativeLibrary.GetExport(linkedBinaries, $"{ext.Name}");
             }
+#endif
         }
 
         private void FlattenCode()

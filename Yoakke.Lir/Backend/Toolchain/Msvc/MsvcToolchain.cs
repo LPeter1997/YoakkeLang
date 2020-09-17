@@ -20,74 +20,73 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
                 yield return Archiver;
             }
         }
-        public IList<Assembly> Assemblies { get; } = new List<Assembly>();
-        public OutputKind OutputKind { get => Linker.OutputKind; set => Linker.OutputKind = value; }
-        public string BuildDirectory { get; set; } = ".";
 
         public readonly IAssembler Assembler;
         public readonly ILinker Linker;
         public readonly IArchiver Archiver;
 
-        private string version;
+        public string Version { get; }
 
         public MsvcToolchain(string version, string vcVarsAllPath)
         {
-            this.version = version;
-            Assembler = new MsvcAssembler(vcVarsAllPath);
-            Linker = new MsvcLinker(vcVarsAllPath);
-            Archiver = new MsvcArchiver(vcVarsAllPath);
+            Version = version;
+            Assembler = new MsvcAssembler(version, vcVarsAllPath);
+            Linker = new MsvcLinker(version, vcVarsAllPath);
+            Archiver = new MsvcArchiver(version, vcVarsAllPath);
         }
 
-        public bool IsSupported(TargetTriplet t) =>
-            t.CpuFamily == CpuFamily.X86 && t.OperatingSystem == OperatingSystem.Windows;
-
-        public int Compile(string outputPath)
+        public int Compile(Build build)
         {
-            Directory.CreateDirectory(BuildDirectory);
-            if (Assemblies.Count == 0) return 0;
+            if (build.Assemblies.Count == 0)
+            {
+                // TODO: Warn user?
+                return -1;
+            }
+
+            Directory.CreateDirectory(build.IntermediatesDirectory);
+
             // We translate the IR assemblies to the given backend
-            var backendFiles = new List<string>();
-            foreach (var asm in Assemblies)
+            var assemblyFiles = new List<string>();
+            build.Extra["assemblyFiles"] = assemblyFiles;
+            foreach (var asm in build.Assemblies)
             {
-                var outFile = Path.Combine(BuildDirectory, $"{asm.Name}.asm");
+                var outFile = Path.Combine(build.IntermediatesDirectory, $"{asm.Name}.asm");
                 Backend.Compile(asm, outFile);
-                backendFiles.Add(outFile);
+                assemblyFiles.Add(outFile);
             }
+
             // Then we assemble each file
-            var assembledFiles = new List<string>();
-            foreach (var file in backendFiles)
-            {
-                var outFile = Path.ChangeExtension(file, ".o");
-                var err = Assembler.Assemble(file, outFile);
-                if (err != 0) return err;
-                assembledFiles.Add(outFile);
-            }
+            var errCode = Assembler.Assemble(build);
+            if (errCode != 0) return errCode;
+
             // We append external binaries here
-            foreach (var externalBinary in Assemblies.SelectMany(asm => asm.BinaryReferences))
-            {
-                assembledFiles.Add(externalBinary);
-            }
+            build.Extra["externalBinaries"] = build.Assemblies
+                .SelectMany(asm => asm.BinaryReferences)
+                .ToList();
+
             // Invoke the linker (LINK) or the archiver (LIB)
-            if (OutputKind == OutputKind.Executable || OutputKind == OutputKind.DynamicLibrary)
+            if (build.OutputKind == OutputKind.Executable || build.OutputKind == OutputKind.DynamicLibrary)
             {
                 // We need to explicitly tell the linker to export everything public
-                foreach (var sym in Assemblies.SelectMany(asm => asm.Symbols).Where(sym => sym.Visibility == Visibility.Public))
-                {
-                    Linker.Exports.Add(sym);
-                }
-                // We use the linker
-                foreach (var f in assembledFiles) Linker.SourceFiles.Add(f);
-                return Linker.Link(outputPath);
+                var publicSymbols = build.Assemblies
+                    .SelectMany(asm => asm.Symbols)
+                    .Where(sym => sym.Visibility == Visibility.Public);
+                foreach (var sym in publicSymbols) build.Exports.Add(sym);
+                // Invoke the linker
+                return Linker.Link(build);
             }
-            else if (OutputKind == OutputKind.StaticLibrary)
+            else if (build.OutputKind == OutputKind.StaticLibrary)
             {
                 // We use the archiver
-                foreach (var f in assembledFiles) Archiver.SourceFiles.Add(f);
-                return Archiver.Archive(outputPath);
+                return Archiver.Archive(build);
             }
-            return 0;
+            else
+            {
+                // Object files
+                return 0;
+            }
         }
 
-        public override string ToString() => $"msvc-{version}";
+        public override string ToString() => $"msvc-{Version}";
     }
 }

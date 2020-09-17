@@ -8,23 +8,26 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
     /// </summary>
     public class MsvcArchiver : MsvcToolBase, IArchiver
     {
-        public override TargetTriplet TargetTriplet { get; set; }
-        public override IList<string> SourceFiles { get; } = new List<string>();
-        public OutputKind OutputKind { get; set; } = OutputKind.StaticLibrary;
-
-        public MsvcArchiver(string vcVarsAllPath) 
-            : base(vcVarsAllPath)
+        public MsvcArchiver(string version, string vcVarsAllPath) 
+            : base(version, vcVarsAllPath)
         {
         }
 
-        public override int Execute(string outputPath)
+        public override int Execute(Build build)
         {
             // Escape file names
-            var files = string.Join(' ', SourceFiles.Select(f => $"\"{f}\""));
+            var unescapedObjectFiles = (IList<string>)build.Extra["objectFiles"];
+            var objectFiles = string.Join(' ', unescapedObjectFiles.Select(f => $"\"{f}\""));
+            // Escape extra binaries
+            var unescapedExtraBinaries = (IList<string>)build.Extra["externalBinaries"];
+            var extraBinaries = string.Join(' ', unescapedExtraBinaries.Select(f => $"\"{f}\""));
             // Construct the command
-            var command = $"LIB /NOLOGO /MACHINE:{GetTargetMachineId()} /OUT:\"{outputPath}\" {files}";
+            var targetMachineId = GetTargetMachineId(build.TargetTriplet);
+            var command = $"LIB /NOLOGO /MACHINE:{targetMachineId} /OUT:\"{build.OutputPath}\" {objectFiles} {extraBinaries}";
             // Run it
-            return InvokeWithEnvironment(command);
+            return InvokeWithEnvironment(command, build.TargetTriplet);
         }
+
+        public override string ToString() => $"LIB-{Version}";
     }
 }

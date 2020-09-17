@@ -53,11 +53,16 @@ namespace Yoakke.Compiler
             var targetTriplet = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
             var toolchain = Toolchains.Supporting(targetTriplet).First();
 
-            toolchain.OutputKind = OutputKind.Executable;
-            toolchain.Assemblies.Add(asm);
+            var build = new Build
+            {
+                OutputKind = OutputKind.Executable,
+                OutputPath = "C:/TMP/globals.exe",
+                IntermediatesDirectory = "C:/TMP/test_app_build",
+            };
+            build.Assemblies.Add(asm);
             Console.WriteLine(asm);
             Console.WriteLine(toolchain.Backend.Compile(asm));
-            var err = toolchain.Compile("C:/TMP/globals.exe");
+            var err = toolchain.Compile(build);
             Console.WriteLine($"Toolchain exit code: {err}");
 
             /*var times = builder.DefineExtern(
