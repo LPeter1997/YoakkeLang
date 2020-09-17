@@ -6,8 +6,10 @@ using System.Linq;
 using Yoakke.Lir.Backend;
 using Yoakke.Lir.Backend.Toolchain;
 using Yoakke.Lir.Runtime;
+using Yoakke.Lir.Types;
 using Yoakke.Lir.Utils;
 using Yoakke.Lir.Values;
+using Type = Yoakke.Lir.Types.Type;
 
 namespace Yoakke.Lir.Tests
 {
@@ -47,7 +49,7 @@ namespace Yoakke.Lir.Tests
             var proc = NativeUtils.LoadNativeProcedure<Func<Int32>>(build.OutputPath, "entry", CallConv.Cdecl);
             // Test
             var result = proc();
-            Assert.AreEqual(expected, Types.Type.I32.NewValue(result));
+            Assert.AreEqual(expected, Type.I32.NewValue(result));
         }
 
         private void TestOnVirtualMachine(Assembly assembly, Value.Int expected)
@@ -74,7 +76,7 @@ namespace Yoakke.Lir.Tests
             var builder = new Builder(asm);
             var entry = builder.DefineProc("entry");
             entry.Visibility = Visibility.Public;
-            entry.Return = Types.Type.I32;
+            entry.Return = Type.I32;
             return builder;
         }
 
@@ -84,8 +86,8 @@ namespace Yoakke.Lir.Tests
         public void ReturnConstant()
         {
             var b = GetBuilder();
-            b.Ret(Types.Type.I32.NewValue(263));
-            TestOnAllBackends(b, Types.Type.I32.NewValue(263));
+            b.Ret(Type.I32.NewValue(263));
+            TestOnAllBackends(b, Type.I32.NewValue(263));
         }
 
         [TestMethod]
@@ -95,13 +97,33 @@ namespace Yoakke.Lir.Tests
             var entry = b.CurrentProc;
 
             var identity = b.DefineProc("identity");
-            identity.Return = Types.Type.I32;
-            var p = b.DefineParameter(Types.Type.I32);
+            identity.Return = Type.I32;
+            var p = b.DefineParameter(Type.I32);
             b.Ret(p);
 
             b.CurrentProc = entry;
-            b.Ret(b.Call(identity, new List<Value> { Types.Type.I32.NewValue(524) }));
-            TestOnAllBackends(b, Types.Type.I32.NewValue(524));
+            b.Ret(b.Call(identity, new List<Value> { Type.I32.NewValue(524) }));
+            TestOnAllBackends(b, Type.I32.NewValue(524));
+        }
+
+        [TestMethod]
+        public void ModifyParameter()
+        {
+            var intPtr = new Type.Ptr(Type.I32);
+            var b = GetBuilder();
+            var entry = b.CurrentProc;
+
+            var modify = b.DefineProc("modify");
+            var p = b.DefineParameter(intPtr);
+            b.Store(p, Type.I32.NewValue(73));
+            b.Ret();
+
+            b.CurrentProc = entry;
+            var storage = b.Alloc(Type.I32);
+            b.Store(storage, Type.I32.NewValue(62));
+            b.Call(modify, new List<Value> { storage });
+            b.Ret(b.Load(storage));
+            TestOnAllBackends(b, Type.I32.NewValue(73));
         }
     }
 }
