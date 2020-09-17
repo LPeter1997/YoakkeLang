@@ -37,8 +37,8 @@ namespace Yoakke.Compiler
             }
 #elif true
 
-            var asm = new Assembly("test_app");
-            var builder = new Builder(asm);
+            var uncheckedAsm = new UncheckedAssembly("test_app");
+            var builder = new Builder(uncheckedAsm);
 
             builder.DefineProc("main");
             var entry = builder.CurrentProc;
@@ -59,6 +59,7 @@ namespace Yoakke.Compiler
                 OutputPath = "C:/TMP/globals.exe",
                 IntermediatesDirectory = "C:/TMP/test_app_build",
             };
+            var asm = uncheckedAsm.Check();
             build.Assemblies.Add(asm);
             Console.WriteLine(asm);
             Console.WriteLine(toolchain.Backend.Compile(asm));

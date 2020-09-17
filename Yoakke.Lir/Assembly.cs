@@ -26,11 +26,11 @@ namespace Yoakke.Lir
         /// <summary>
         /// The <see cref="Extern"/>s the <see cref="Assembly"/> references.
         /// </summary>
-        public readonly IList<Extern> Externals = new List<Extern>();
+        public readonly IReadOnlyList<Extern> Externals;
         /// <summary>
         /// The <see cref="Proc"/>s defined in this <see cref="Assembly"/>.
         /// </summary>
-        public readonly IList<Proc> Procedures = new List<Proc>();
+        public readonly IReadOnlyList<Proc> Procedures;
 
         /// <summary>
         /// All symbols this <see cref="Assembly"/> defines.
@@ -45,13 +45,12 @@ namespace Yoakke.Lir
         public IEnumerable<string> BinaryReferences =>
             Externals.Select(e => Path.GetFullPath(e.Path)).Distinct();
 
-        /// <summary>
-        /// Initializes a new <see cref="Assembly"/>.
-        /// </summary>
-        /// <param name="name">The name of the assembly.</param>
-        public Assembly(string name)
+        internal Assembly(UncheckedAssembly uncheckedAssembly)
         {
-            Name = name;
+            Name = uncheckedAssembly.Name;
+            EntryPoint = uncheckedAssembly.EntryPoint;
+            Externals = uncheckedAssembly.Externals.ToArray();
+            Procedures = uncheckedAssembly.Procedures.ToArray();
         }
 
         public override string ToString() => new StringBuilder()

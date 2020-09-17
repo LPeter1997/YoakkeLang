@@ -15,6 +15,8 @@ namespace Yoakke.Lir.Instructions
             /// </summary>
             public Value Value { get; set; }
 
+            public override bool IsBranch => true;
+
             public override IEnumerable<IInstrArg> InstrArgs
             {
                 get

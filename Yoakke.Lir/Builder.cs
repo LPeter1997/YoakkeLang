@@ -18,9 +18,9 @@ namespace Yoakke.Lir
         }
 
         /// <summary>
-        /// The <see cref="Assembly"/> the <see cref="Builder"/> works with.
+        /// The <see cref="UncheckedAssembly"/> the <see cref="Builder"/> works with.
         /// </summary>
-        public readonly Assembly Assembly;
+        public readonly UncheckedAssembly Assembly;
 
         /// <summary>
         /// The currently built <see cref="Proc"/>.
@@ -64,8 +64,8 @@ namespace Yoakke.Lir
         /// <summary>
         /// Initializes a new <see cref="Builder"/>.
         /// </summary>
-        /// <param name="assembly">The <see cref="Assembly"/> to build IR code in.</param>
-        public Builder(Assembly assembly)
+        /// <param name="assembly">The <see cref="UncheckedAssembly"/> to build IR code in.</param>
+        public Builder(UncheckedAssembly assembly)
         {
             Assembly = assembly;
         }
@@ -133,10 +133,6 @@ namespace Yoakke.Lir
             {
                 throw new ArgumentException("The procedure value must have a procedure type!", nameof(procedure));
             }
-            if (!procType.Parameters.SequenceEqual(arguments.Select(arg => arg.Type)))
-            {
-                throw new ArgumentException("The procedure is not callable with the given arguments!", nameof(arguments));
-            }
             var resultReg = AllocateRegister(procType.Return);
             AddInstruction(new Instr.Call(resultReg, procedure, arguments));
             return resultReg;
@@ -148,10 +144,6 @@ namespace Yoakke.Lir
         // TODO: Doc
         public void JmpIf(Value condition, BasicBlock then, BasicBlock els)
         {
-            if (!(condition.Type is Type.Int))
-            {
-                throw new ArgumentException("The condition must be an integral type!", nameof(condition));
-            }
             AddInstruction(new Instr.JmpIf(condition, then, els));
         }
 
@@ -177,18 +169,7 @@ namespace Yoakke.Lir
         }
 
         // TODO: Doc
-        public void Store(Value target, Value value)
-        {
-            if (!(target.Type is Type.Ptr ptrTy))
-            {
-                throw new ArgumentException("The target address must be a pointer type!", nameof(target));
-            }
-            if (!ptrTy.Subtype.Equals(value.Type))
-            {
-                throw new ArgumentException("The target address must point to the type of the stored value type!");
-            }
-            AddInstruction(new Instr.Store(target, value));
-        }
+        public void Store(Value target, Value value) => AddInstruction(new Instr.Store(target, value));
 
         // Internals
 

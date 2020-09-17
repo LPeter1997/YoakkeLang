@@ -67,12 +67,12 @@ namespace Yoakke.Lir.Tests
 
         private void TestOnAllBackends(Builder builder, Value.Int expected)
         {
-            TestOnAllBackends(builder.Assembly, expected);
+            TestOnAllBackends(builder.Assembly.Check(), expected);
         }
 
         private Builder GetBuilder()
         {
-            var asm = new Assembly(TestContext.TestName);
+            var asm = new UncheckedAssembly(TestContext.TestName);
             var builder = new Builder(asm);
             var entry = builder.DefineProc("entry");
             entry.Visibility = Visibility.Public;

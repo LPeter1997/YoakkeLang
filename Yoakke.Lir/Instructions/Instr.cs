@@ -8,6 +8,11 @@ namespace Yoakke.Lir.Instructions
     public abstract partial class Instr
     {
         /// <summary>
+        /// True, if this instruction affects the control flow by jumping.
+        /// </summary>
+        public virtual bool IsBranch => false;
+
+        /// <summary>
         /// The <see cref="IEnumerable{IInstrArg}"/> of all of the arguments of this instruction.
         /// </summary>
         public abstract IEnumerable<IInstrArg> InstrArgs { get; }

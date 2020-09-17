@@ -23,6 +23,8 @@ namespace Yoakke.Lir.Instructions
             /// </summary>
             public BasicBlock Else { get; set; }
 
+            public override bool IsBranch => true;
+
             public override IEnumerable<IInstrArg> InstrArgs
             {
                 get
