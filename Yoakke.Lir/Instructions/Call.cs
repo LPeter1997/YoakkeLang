@@ -4,7 +4,6 @@ using Yoakke.Lir.Values;
 
 namespace Yoakke.Lir.Instructions
 {
-
     partial class Instr
     {
         /// <summary>

@@ -142,10 +142,8 @@ namespace Yoakke.Lir
         public void Jmp(BasicBlock target) => AddInstruction(new Instr.Jmp(target));
 
         // TODO: Doc
-        public void JmpIf(Value condition, BasicBlock then, BasicBlock els)
-        {
+        public void JmpIf(Value condition, BasicBlock then, BasicBlock els) =>
             AddInstruction(new Instr.JmpIf(condition, then, els));
-        }
 
         // TODO: Doc
         public Value Alloc(Type type)
