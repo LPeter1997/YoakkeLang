@@ -217,41 +217,70 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             }
             break;
 
+            case Instr.Cmp cmp:
+            {
+                // TODO: What if the operands don't fit in 32 bits?
+                var target = CompileValue(cmp.Result, true);
+                var left = CompileValue(cmp.Left);
+                var right = CompileValue(cmp.Right);
+                // First we produce the operands and the flags
+                WriteInstr(X86Operation.Mov, Register.Eax, left);
+                WriteInstr(X86Operation.Cmp, Register.Eax, right);
+                // Based on the comparison we need an x86 operation
+                var op = cmp.Comparison switch
+                {
+                    Comparison.Eq => X86Operation.Je,
+                    Comparison.Ne => X86Operation.Jne,
+                    Comparison.Gr => X86Operation.Jg,
+                    Comparison.Le => X86Operation.Jl,
+                    Comparison.GrEq => X86Operation.Jge,
+                    Comparison.LeEq => X86Operation.Jle,
+                    _ => throw new NotImplementedException(),
+                };
+                // We need to branch to write the result
+                var labelNameBase = GetUniqueName("WriteCmpResult");
+                var trueBB = new X86BasicBlock($"{labelNameBase}_T");
+                var falseBB = new X86BasicBlock($"{labelNameBase}_F");
+                var continueBB = new X86BasicBlock($"{labelNameBase}_C");
+                // Do the branch to the true or false block
+                WriteInstr(op, trueBB);
+                WriteInstr(X86Operation.Jmp, falseBB);
+                // On true block, we write the truthy value then jump to the continuation
+                currentBasicBlock = trueBB;
+                WriteInstr(X86Operation.Mov, target, 1);
+                WriteInstr(X86Operation.Jmp, continueBB);
+                // On false block, we write the falsy value then jump to the continuation
+                currentBasicBlock = falseBB;
+                WriteInstr(X86Operation.Mov, target, 0);
+                WriteInstr(X86Operation.Jmp, continueBB);
+                // We continue writing on the continuation
+                currentBasicBlock = continueBB;
+                // Add all these basic blocks to the vurrent procedure
+                Debug.Assert(currentProcedure != null);
+                currentProcedure.BasicBlocks.Add(trueBB);
+                currentProcedure.BasicBlocks.Add(falseBB);
+                currentProcedure.BasicBlocks.Add(continueBB);
+            }
+            break;
+
             default: throw new NotImplementedException();
             }
         }
 
         private Operand CompileValue(Value value, bool asIndirect = false)
         {
-            var result = CompileValueInternal(value);
-            if (asIndirect && result is Operand.Address addressResult)
-            {
-                if (!(value.Type is Type.Ptr ptrTy))
-                {
-                    // TODO
-                    throw new InvalidOperationException();
-                }
-                var operandSize = SizeOf(ptrTy.Subtype);
-                // TODO: Factor this out?
-                var dataWidth = operandSize switch
-                {
-                    4 => DataWidth.Dword,
-                    _ => throw new NotImplementedException(),
-                };
-                result = new Operand.Indirect(dataWidth, addressResult);
-            }
-            return result;
-        }
-
-        private Operand CompileValueInternal(Value value)
-        {
             switch (value)
             {
             case Value.Int i:
+                // TODO
+                if (asIndirect) throw new NotImplementedException();
                 return new Operand.Literal(i.Value);
 
             case ISymbol sym:
             {
+                // TODO
+                if (asIndirect) throw new NotImplementedException();
+
                 var symName = GetSymbolName(sym);
                 return new Operand.Literal(symName);
             }
@@ -260,7 +289,13 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             {
                 var offset = registerOffsets[reg];
                 // TODO: Maybe we do need lvalue / rvalue here for reads and writes?
-                return new Operand.Address(Register.Ebp, offset);
+                var result = new Operand.Address(Register.Ebp, offset);
+                if (asIndirect)
+                {
+                    var dataWidth = DataWidthUtils.FromByteSize(SizeOf(reg.Type));
+                    return new Operand.Indirect(dataWidth, result);
+                }
+                return result;
             }
 
             default: throw new NotImplementedException();
@@ -284,6 +319,10 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             Debug.Assert(currentBasicBlock != null);
             currentBasicBlock.Instructions.Add(new X86Instr(op, operands));
         }
+
+        // TODO: Not the best solution...
+        private int nameCnt = 0;
+        private string GetUniqueName(string name) => $"{currentProcedure?.Name}_{name}_{nameCnt++}";
 
         private static string GetSymbolName(ISymbol symbol) =>
                // For Cdecl procedures we assume an underscore prefix
