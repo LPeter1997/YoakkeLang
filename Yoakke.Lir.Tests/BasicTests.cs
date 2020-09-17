@@ -125,5 +125,42 @@ namespace Yoakke.Lir.Tests
             b.Ret(b.Load(storage));
             TestOnAllBackends(b, Type.I32.NewValue(73));
         }
+
+        [TestMethod]
+        public void IfElseThenPart()
+        {
+            var b = GetBuilder();
+            var entry = b.CurrentProc;
+
+            var lastBlock = b.CurrentBasicBlock;
+            var thenBlock = b.DefineBasicBlock("then");
+            b.Ret(Type.I32.NewValue(36));
+
+            var elsBlock = b.DefineBasicBlock("els");
+            b.Ret(Type.I32.NewValue(383));
+
+            b.CurrentBasicBlock = lastBlock;
+            b.JmpIf(Type.I32.NewValue(1), thenBlock, elsBlock);
+
+            TestOnAllBackends(b, Type.I32.NewValue(36));
+        }
+
+        [TestMethod]
+        public void IfElseElsePart()
+        {
+            var b = GetBuilder();
+
+            var lastBlock = b.CurrentBasicBlock;
+            var thenBlock = b.DefineBasicBlock("then");
+            b.Ret(Type.I32.NewValue(36));
+
+            var elsBlock = b.DefineBasicBlock("els");
+            b.Ret(Type.I32.NewValue(383));
+
+            b.CurrentBasicBlock = lastBlock;
+            b.JmpIf(Type.I32.NewValue(0), thenBlock, elsBlock);
+
+            TestOnAllBackends(b, Type.I32.NewValue(383));
+        }
     }
 }
