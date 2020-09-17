@@ -39,7 +39,6 @@ namespace Yoakke.Lir.Instructions
             public Call(Register result, Value procedure, IList<Value> arguments) 
                 : base(result)
             {
-                // TODO: Type check?
                 Procedure = procedure;
                 Arguments = arguments;
             }
