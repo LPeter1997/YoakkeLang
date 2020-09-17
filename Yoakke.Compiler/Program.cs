@@ -40,15 +40,9 @@ namespace Yoakke.Compiler
             var uncheckedAsm = new UncheckedAssembly("test_app");
             var builder = new Builder(uncheckedAsm);
 
-            builder.DefineProc("main");
-            var entry = builder.CurrentProc;
-
-            var identity = builder.DefineProc("identity");
-            var p = builder.DefineParameter(Type.I32);
-            builder.Ret(p);
-
-            builder.CurrentProc = entry;
-            builder.Ret(builder.Call(identity, new List<Value> { Type.I32.NewValue(524) }));
+            var main = builder.DefineProc("main");
+            main.Return = Type.I32;
+            builder.Ret(builder.CmpLe(Type.I32.NewValue(2), Type.I32.NewValue(5)));
 
             var targetTriplet = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
             var toolchain = Toolchains.Supporting(targetTriplet).First();

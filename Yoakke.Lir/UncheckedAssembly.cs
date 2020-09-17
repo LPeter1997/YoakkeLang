@@ -116,6 +116,21 @@ namespace Yoakke.Lir
             }
             break;
 
+            case Instr.Cmp cmp:
+            {
+                if (!(cmp.Result.Type is Type.Int))
+                {
+                    // TODO: Result must be an int
+                    throw new InvalidOperationException();
+                }
+                if (!(cmp.Left.Type is Type.Int && cmp.Right.Type is Type.Int))
+                {
+                    // TODO: Unsupported types
+                    throw new InvalidOperationException();
+                }
+            }
+            break;
+
             case Instr.Jmp jmp:
             {
                 if (!proc.BasicBlocks.Contains(jmp.Target))
