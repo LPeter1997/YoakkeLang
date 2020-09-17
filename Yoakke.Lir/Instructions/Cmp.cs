@@ -15,7 +15,7 @@ namespace Yoakke.Lir.Instructions
         // Types
 
         public sealed class Eq : Comparison { protected override string Repr => "eq"; }
-        public sealed class Neq : Comparison { protected override string Repr => "neq"; }
+        public sealed class Ne : Comparison { protected override string Repr => "ne"; }
         public sealed class Gr : Comparison { protected override string Repr => "gr"; }
         public sealed class Le : Comparison { protected override string Repr => "le"; }
         public sealed class GrEq : Comparison { protected override string Repr => "gr_eq"; }
@@ -24,7 +24,7 @@ namespace Yoakke.Lir.Instructions
         // Values
 
         public static readonly Comparison Eq_ = new Eq();
-        public static readonly Comparison Neq_ = new Neq();
+        public static readonly Comparison Ne_ = new Ne();
         public static readonly Comparison Gr_ = new Gr();
         public static readonly Comparison Le_ = new Le();
         public static readonly Comparison GrEq_ = new GrEq();

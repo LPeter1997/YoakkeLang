@@ -25,8 +25,8 @@ namespace Yoakke.Lir
         /// <summary>
         /// The currently built <see cref="Proc"/>.
         /// </summary>
-        public Proc CurrentProc 
-        { 
+        public Proc CurrentProc
+        {
             get
             {
                 // TODO
@@ -168,6 +168,33 @@ namespace Yoakke.Lir
 
         // TODO: Doc
         public void Store(Value target, Value value) => AddInstruction(new Instr.Store(target, value));
+
+        // TODO: Doc
+        public Value Cmp(Comparison comparison, Value left, Value right)
+        {
+            // NOTE: Do we want an i32 here? What about an u1?
+            var resultReg = AllocateRegister(Type.I32);
+            AddInstruction(new Instr.Cmp(resultReg, comparison, left, right));
+            return resultReg;
+        }
+
+        // TODO: Doc
+        public Value CmpEq(Value left, Value right) => Cmp(Comparison.Eq_, left, right);
+
+        // TODO: Doc
+        public Value CmpNe(Value left, Value right) => Cmp(Comparison.Ne_, left, right);
+
+        // TODO: Doc
+        public Value CmpGr(Value left, Value right) => Cmp(Comparison.Gr_, left, right);
+
+        // TODO: Doc
+        public Value CmpLe(Value left, Value right) => Cmp(Comparison.Le_, left, right);
+
+        // TODO: Doc
+        public Value CmpLeEq(Value left, Value right) => Cmp(Comparison.LeEq_, left, right);
+
+        // TODO: Doc
+        public Value CmpGrEq(Value left, Value right) => Cmp(Comparison.GrEq_, left, right);
 
         // Internals
 
