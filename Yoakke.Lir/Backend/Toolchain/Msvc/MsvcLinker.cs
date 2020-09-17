@@ -27,7 +27,8 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
             var exports = string.Join(' ', build.Exports.Select(e => $"/EXPORT:\"{e.Name}\""));
             var outputKindFlag = GetOutputKindFlag(build.OutputKind);
             var targetMachineId = GetTargetMachineId(build.TargetTriplet);
-            var command = $"LINK /NOLOGO {outputKindFlag} {exports} /MACHINE:{targetMachineId} {entry} /OUT:\"{build.OutputPath}\" {objectFiles} {extraBinaries}";
+            var extraFiles = GetExtraFiles(build.OutputKind);
+            var command = $"LINK /NOLOGO {outputKindFlag} {exports} /MACHINE:{targetMachineId} {entry} /OUT:\"{build.OutputPath}\" {objectFiles} {extraFiles} {extraBinaries}";
             // Run it
             return InvokeWithEnvironment(command, build.TargetTriplet);
         }

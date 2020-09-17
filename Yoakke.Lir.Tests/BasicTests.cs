@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Yoakke.Lir.Backend;
 using Yoakke.Lir.Backend.Toolchain;
 using Yoakke.Lir.Runtime;
 using Yoakke.Lir.Utils;
@@ -19,7 +20,7 @@ namespace Yoakke.Lir.Tests
     {
         // Configuration and utilities
 
-        private static readonly string BuildDirectory = "binaries";
+        private static readonly string IntermediatesDirectory = "binaries";
         private static IToolchain NativeToolchain { get; set; }
         public TestContext TestContext { get; set; }
 
@@ -27,23 +28,23 @@ namespace Yoakke.Lir.Tests
         public static void Init(TestContext testContext)
         {
             NativeToolchain = Toolchains.All().First();
-            Directory.CreateDirectory(BuildDirectory);
+            Directory.CreateDirectory(IntermediatesDirectory);
         }
 
         private void TestOnToolchain(IToolchain toolchain, Assembly assembly, Value.Int expected)
         {
             // Compile
-            toolchain.BuildDirectory = BuildDirectory;
-            toolchain.OutputKind = Backend.OutputKind.DynamicLibrary;
-            // TODO: Toolchain shouldn't build! We should separate this out!
-            toolchain.Assemblies.Clear();
-            toolchain.Assemblies.Add(assembly);
-            var outputPath = Path.Combine(BuildDirectory, $"{TestContext.TestName}.dll");
-            var exitCode = toolchain.Compile(outputPath);
-            string AAA = toolchain.Backend.Compile(assembly);
+            var build = new Build
+            {
+                IntermediatesDirectory = IntermediatesDirectory,
+                OutputKind = OutputKind.DynamicLibrary,
+                OutputPath = Path.Combine(IntermediatesDirectory, $"{TestContext.TestName}.dll"),
+            };
+            build.Assemblies.Add(assembly);
+            var exitCode = toolchain.Compile(build);
             Assert.AreEqual(0, exitCode);
             // Load function
-            var proc = NativeUtils.LoadNativeProcedure<Func<Int32>>(outputPath, "entry", CallConv.Cdecl);
+            var proc = NativeUtils.LoadNativeProcedure<Func<Int32>>(build.OutputPath, "entry", CallConv.Cdecl);
             // Test
             var result = proc();
             Assert.AreEqual(expected, Types.Type.I32.NewValue(result));
