@@ -334,6 +334,44 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             }
             break;
 
+            // TODO: Duplications again....
+
+            case Instr.BitAnd bitAnd:
+            {
+                // TODO: What if the operands don't fit in 32 bits?
+                var target = CompileValue(bitAnd.Result);
+                var left = CompileValue(bitAnd.Left);
+                var right = CompileValue(bitAnd.Right);
+                WriteInstr(X86Op.Mov, Register.Eax, left);
+                WriteInstr(X86Op.And, Register.Eax, right);
+                WriteInstr(X86Op.Mov, target, Register.Eax);
+            }
+            break;
+
+            case Instr.BitOr bitOr:
+            {
+                // TODO: What if the operands don't fit in 32 bits?
+                var target = CompileValue(bitOr.Result);
+                var left = CompileValue(bitOr.Left);
+                var right = CompileValue(bitOr.Right);
+                WriteInstr(X86Op.Mov, Register.Eax, left);
+                WriteInstr(X86Op.Or, Register.Eax, right);
+                WriteInstr(X86Op.Mov, target, Register.Eax);
+            }
+            break;
+
+            case Instr.BitXor bitXor:
+            {
+                // TODO: What if the operands don't fit in 32 bits?
+                var target = CompileValue(bitXor.Result);
+                var left = CompileValue(bitXor.Left);
+                var right = CompileValue(bitXor.Right);
+                WriteInstr(X86Op.Mov, Register.Eax, left);
+                WriteInstr(X86Op.Xor, Register.Eax, right);
+                WriteInstr(X86Op.Mov, target, Register.Eax);
+            }
+            break;
+
             default: throw new NotImplementedException();
             }
         }

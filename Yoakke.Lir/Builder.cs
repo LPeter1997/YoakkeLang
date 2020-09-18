@@ -265,6 +265,14 @@ namespace Yoakke.Lir
             return resultReg;
         }
 
+        // TODO: Doc
+        public Value BitNot(Value value)
+        {
+            // NOTE: We do a bit-xor
+            var intType = (Type.Int)value.Type;
+            return BitXor(value, intType.NewValue(intType.MaxValue));
+        }
+
         // Internals
 
         // TODO: We could factor this into validation?

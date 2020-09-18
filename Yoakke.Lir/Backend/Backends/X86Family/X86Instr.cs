@@ -27,6 +27,9 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         Jle,
         Jmp,
         Cmp,
+        And,
+        Or,
+        Xor,
     }
 
     /// <summary>
