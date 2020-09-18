@@ -60,9 +60,9 @@ namespace Yoakke.Compiler
             Console.WriteLine(toolchain.Backend.Compile(asm));
             Console.WriteLine();
 
-            //var vm = new VirtualMachine(asm);
-            //var res = vm.Execute("main", new List<Value> { });
-            //Console.WriteLine($"VM result = {res}");
+            var vm = new VirtualMachine(asm);
+            var res = vm.Execute("main", new List<Value> { });
+            Console.WriteLine($"VM result = {res}");
 
             var err = toolchain.Compile(build);
             Console.WriteLine($"Toolchain exit code: {err}");

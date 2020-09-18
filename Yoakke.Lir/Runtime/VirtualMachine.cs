@@ -282,6 +282,36 @@ namespace Yoakke.Lir.Runtime
             }
             break;
 
+            case BitwiseInstr bitwise:
+            {
+                var left = Unwrap(bitwise.Left);
+                var right = Unwrap(bitwise.Right);
+                Value? result = null;
+                if (left is Value.Int leftInt && right is Value.Int rightInt)
+                {
+                    var leftType = (Type.Int)left.Type;
+                    var rightType = (Type.Int)right.Type;
+                    var resultType = leftType.Bits > rightType.Bits ? leftType : rightType;
+
+                    var intResult = bitwise switch
+                    {
+                        Instr.BitAnd => leftInt.Value & rightInt.Value,
+                        Instr.BitOr => leftInt.Value | rightInt.Value,
+                        Instr.BitXor => leftInt.Value ^ rightInt.Value,
+                        _ => throw new NotImplementedException(),
+                    };
+                    result = new Value.Int(resultType, intResult);
+                }
+                else
+                {
+                    // TODO
+                    throw new NotImplementedException();
+                }
+                StackFrame[bitwise.Result] = result;
+                ++instructionPointer;
+            }
+            break;
+
             default: throw new NotImplementedException();
             }
         }
