@@ -25,6 +25,7 @@ namespace Yoakke.Lir.Tests
         private static readonly string IntermediatesDirectory = "binaries";
         private static IToolchain NativeToolchain { get; set; }
         public TestContext TestContext { get; set; }
+        private int uniqueId;
 
         [ClassInitialize]
         public static void Init(TestContext testContext)
@@ -33,14 +34,14 @@ namespace Yoakke.Lir.Tests
             Directory.CreateDirectory(IntermediatesDirectory);
         }
 
-        private void TestOnToolchain(IToolchain toolchain, Assembly assembly, Value.Int expected, int uid)
+        private void TestOnToolchain(IToolchain toolchain, Assembly assembly, Value.Int expected)
         {
             // Compile
             var build = new Build
             {
                 IntermediatesDirectory = IntermediatesDirectory,
                 OutputKind = OutputKind.DynamicLibrary,
-                OutputPath = Path.Combine(IntermediatesDirectory, $"{TestContext.TestName}_{uid}.dll"),
+                OutputPath = Path.Combine(IntermediatesDirectory, $"{TestContext.TestName}_{uniqueId++}.dll"),
             };
             build.Assemblies.Add(assembly);
             var exitCode = toolchain.Compile(build);
@@ -59,15 +60,15 @@ namespace Yoakke.Lir.Tests
             Assert.AreEqual(expected, result);
         }
 
-        private void TestOnAllBackends(Assembly assembly, Value.Int expected, int uid)
+        private void TestOnAllBackends(Assembly assembly, Value.Int expected)
         {
-            TestOnToolchain(NativeToolchain, assembly, expected, uid);
+            TestOnToolchain(NativeToolchain, assembly, expected);
             TestOnVirtualMachine(assembly, expected);
         }
 
-        private void TestOnAllBackends(Builder builder, Value.Int expected, int uid = 0)
+        private void TestOnAllBackends(Builder builder, Value.Int expected)
         {
-            TestOnAllBackends(builder.Assembly.Check(), expected, uid);
+            TestOnAllBackends(builder.Assembly.Check(), expected);
         }
 
         private Builder GetBuilder()
@@ -211,7 +212,7 @@ namespace Yoakke.Lir.Tests
 
             b = GetBuilder();
             b.Ret(b.CmpGr(Type.I32.NewValue(27), Type.I32.NewValue(27)));
-            TestOnAllBackends(b, Type.I32.NewValue(0), 1);
+            TestOnAllBackends(b, Type.I32.NewValue(0));
         }
 
         [TestMethod]
@@ -231,7 +232,7 @@ namespace Yoakke.Lir.Tests
 
             b = GetBuilder();
             b.Ret(b.CmpLe(Type.I32.NewValue(27), Type.I32.NewValue(27)));
-            TestOnAllBackends(b, Type.I32.NewValue(0), 1);
+            TestOnAllBackends(b, Type.I32.NewValue(0));
         }
 
         [TestMethod]
@@ -243,7 +244,7 @@ namespace Yoakke.Lir.Tests
 
             b = GetBuilder();
             b.Ret(b.CmpGrEq(Type.I32.NewValue(38), Type.I32.NewValue(38)));
-            TestOnAllBackends(b, Type.I32.NewValue(1), 1);
+            TestOnAllBackends(b, Type.I32.NewValue(1));
         }
 
         [TestMethod]
@@ -263,7 +264,7 @@ namespace Yoakke.Lir.Tests
 
             b = GetBuilder();
             b.Ret(b.CmpLeEq(Type.I32.NewValue(38), Type.I32.NewValue(38)));
-            TestOnAllBackends(b, Type.I32.NewValue(1), 1);
+            TestOnAllBackends(b, Type.I32.NewValue(1));
         }
 
         [TestMethod]
@@ -307,7 +308,7 @@ namespace Yoakke.Lir.Tests
 
             b = GetBuilder();
             b.Ret(b.Div(Type.I32.NewValue(33), Type.I32.NewValue(6)));
-            TestOnAllBackends(b, Type.I32.NewValue(5), 1);
+            TestOnAllBackends(b, Type.I32.NewValue(5));
         }
 
         [TestMethod]
@@ -319,7 +320,7 @@ namespace Yoakke.Lir.Tests
 
             b = GetBuilder();
             b.Ret(b.Mod(Type.I32.NewValue(21), Type.I32.NewValue(7)));
-            TestOnAllBackends(b, Type.I32.NewValue(0), 1);
+            TestOnAllBackends(b, Type.I32.NewValue(0));
         }
     }
 }
