@@ -263,6 +263,75 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             }
             break;
 
+            case Instr.Add add:
+            {
+                // TODO: What if the operands don't fit in 32 bits?
+                var target = CompileValue(add.Result);
+                var left = CompileValue(add.Left);
+                var right = CompileValue(add.Right);
+                WriteInstr(X86Op.Mov, Register.Eax, left);
+                WriteInstr(X86Op.Add, Register.Eax, right);
+                WriteInstr(X86Op.Mov, target, Register.Eax);
+            }
+            break;
+
+            case Instr.Sub sub:
+            {
+                // TODO: What if the operands don't fit in 32 bits?
+                var target = CompileValue(sub.Result);
+                var left = CompileValue(sub.Left);
+                var right = CompileValue(sub.Right);
+                WriteInstr(X86Op.Mov, Register.Eax, left);
+                WriteInstr(X86Op.Sub, Register.Eax, right);
+                WriteInstr(X86Op.Mov, target, Register.Eax);
+            }
+            break;
+
+            case Instr.Mul mul:
+            {
+                // TODO: What if the operands don't fit in 32 bits?
+                var target = CompileValue(mul.Result);
+                var left = CompileValue(mul.Left);
+                var right = CompileValue(mul.Right);
+                WriteInstr(X86Op.Mov, Register.Eax, left);
+                // TODO: Signed vs. unsigned?
+                WriteInstr(X86Op.Imul, Register.Eax, right);
+                WriteInstr(X86Op.Mov, target, Register.Eax);
+            }
+            break;
+
+            case Instr.Div div:
+            {
+                // NOTE: This is different!
+                // TODO: What if the operands don't fit in 32 bits?
+                var target = CompileValue(div.Result);
+                var left = CompileValue(div.Left);
+                var right = CompileValue(div.Right);
+                WriteInstr(X86Op.Mov, Register.Edx, 0);
+                WriteInstr(X86Op.Mov, Register.Eax, left);
+                WriteInstr(X86Op.Mov, Register.Ecx, right);
+                // TODO: Signed vs. unsigned?
+                WriteInstr(X86Op.Idiv, Register.Ecx);
+                WriteInstr(X86Op.Mov, target, Register.Eax);
+            }
+            break;
+
+            case Instr.Mod mod:
+            {
+                // NOTE: This is different, almost like the above!
+                // TODO: What if the operands don't fit in 32 bits?
+                var target = CompileValue(mod.Result);
+                var left = CompileValue(mod.Left);
+                var right = CompileValue(mod.Right);
+                WriteInstr(X86Op.Mov, Register.Edx, 0);
+                WriteInstr(X86Op.Mov, Register.Eax, left);
+                WriteInstr(X86Op.Mov, Register.Ecx, right);
+                // TODO: Signed vs. unsigned?
+                WriteInstr(X86Op.Idiv, Register.Ecx);
+                WriteInstr(X86Op.Mov, target, Register.Edx);
+            }
+            break;
+
             default: throw new NotImplementedException();
             }
         }

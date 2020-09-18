@@ -42,7 +42,7 @@ namespace Yoakke.Compiler
 
             var main = builder.DefineProc("main");
             main.Return = Type.I32;
-            builder.Ret(builder.Add(Type.I32.NewValue(9), Type.I32.NewValue(5)));
+            builder.Ret(builder.Mod(Type.I32.NewValue(9), Type.I32.NewValue(5)));
 
             var targetTriplet = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
             var toolchain = Toolchains.Supporting(targetTriplet).First();

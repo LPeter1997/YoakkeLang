@@ -16,6 +16,8 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         Call,
         Add,
         Sub,
+        Imul,
+        Idiv,
         Test,
         Je,
         Jne,
