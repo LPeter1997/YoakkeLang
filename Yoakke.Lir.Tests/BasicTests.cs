@@ -33,14 +33,14 @@ namespace Yoakke.Lir.Tests
             Directory.CreateDirectory(IntermediatesDirectory);
         }
 
-        private void TestOnToolchain(IToolchain toolchain, Assembly assembly, Value.Int expected)
+        private void TestOnToolchain(IToolchain toolchain, Assembly assembly, Value.Int expected, int uid)
         {
             // Compile
             var build = new Build
             {
                 IntermediatesDirectory = IntermediatesDirectory,
                 OutputKind = OutputKind.DynamicLibrary,
-                OutputPath = Path.Combine(IntermediatesDirectory, $"{TestContext.TestName}.dll"),
+                OutputPath = Path.Combine(IntermediatesDirectory, $"{TestContext.TestName}_{uid}.dll"),
             };
             build.Assemblies.Add(assembly);
             var exitCode = toolchain.Compile(build);
@@ -59,15 +59,15 @@ namespace Yoakke.Lir.Tests
             Assert.AreEqual(expected, result);
         }
 
-        private void TestOnAllBackends(Assembly assembly, Value.Int expected)
+        private void TestOnAllBackends(Assembly assembly, Value.Int expected, int uid)
         {
-            TestOnToolchain(NativeToolchain, assembly, expected);
+            TestOnToolchain(NativeToolchain, assembly, expected, uid);
             TestOnVirtualMachine(assembly, expected);
         }
 
-        private void TestOnAllBackends(Builder builder, Value.Int expected)
+        private void TestOnAllBackends(Builder builder, Value.Int expected, int uid = 0)
         {
-            TestOnAllBackends(builder.Assembly.Check(), expected);
+            TestOnAllBackends(builder.Assembly.Check(), expected, uid);
         }
 
         private Builder GetBuilder()
@@ -130,7 +130,6 @@ namespace Yoakke.Lir.Tests
         public void IfElseThenPart()
         {
             var b = GetBuilder();
-            var entry = b.CurrentProc;
 
             var lastBlock = b.CurrentBasicBlock;
             var thenBlock = b.DefineBasicBlock("then");
@@ -161,6 +160,118 @@ namespace Yoakke.Lir.Tests
             b.JmpIf(Type.I32.NewValue(0), thenBlock, elsBlock);
 
             TestOnAllBackends(b, Type.I32.NewValue(383));
+        }
+
+        [TestMethod]
+        public void CmpEqTrue()
+        {
+            var b = GetBuilder();
+            b.Ret(b.CmpEq(Type.I32.NewValue(7), Type.I32.NewValue(7)));
+            TestOnAllBackends(b, Type.I32.NewValue(1));
+        }
+
+        [TestMethod]
+        public void CmpEqFalse()
+        {
+            var b = GetBuilder();
+            b.Ret(b.CmpEq(Type.I32.NewValue(62), Type.I32.NewValue(25)));
+            TestOnAllBackends(b, Type.I32.NewValue(0));
+        }
+
+        [TestMethod]
+        public void CmpNeTrue()
+        {
+            var b = GetBuilder();
+            b.Ret(b.CmpNe(Type.I32.NewValue(15), Type.I32.NewValue(27)));
+            TestOnAllBackends(b, Type.I32.NewValue(1));
+        }
+
+        [TestMethod]
+        public void CmpNeFalse()
+        {
+            var b = GetBuilder();
+            b.Ret(b.CmpNe(Type.I32.NewValue(16), Type.I32.NewValue(16)));
+            TestOnAllBackends(b, Type.I32.NewValue(0));
+        }
+
+        [TestMethod]
+        public void CmpGrTrue()
+        {
+            var b = GetBuilder();
+            b.Ret(b.CmpGr(Type.I32.NewValue(273), Type.I32.NewValue(238)));
+            TestOnAllBackends(b, Type.I32.NewValue(1));
+        }
+
+        [TestMethod]
+        public void CmpGrFalse()
+        {
+            var b = GetBuilder();
+            b.Ret(b.CmpGr(Type.I32.NewValue(27), Type.I32.NewValue(42)));
+            TestOnAllBackends(b, Type.I32.NewValue(0));
+
+            b = GetBuilder();
+            b.Ret(b.CmpGr(Type.I32.NewValue(27), Type.I32.NewValue(27)));
+            TestOnAllBackends(b, Type.I32.NewValue(0), 1);
+        }
+
+        [TestMethod]
+        public void CmpLeTrue()
+        {
+            var b = GetBuilder();
+            b.Ret(b.CmpLe(Type.I32.NewValue(238), Type.I32.NewValue(273)));
+            TestOnAllBackends(b, Type.I32.NewValue(1));
+        }
+
+        [TestMethod]
+        public void CmpLeFalse()
+        {
+            var b = GetBuilder();
+            b.Ret(b.CmpLe(Type.I32.NewValue(42), Type.I32.NewValue(27)));
+            TestOnAllBackends(b, Type.I32.NewValue(0));
+
+            b = GetBuilder();
+            b.Ret(b.CmpLe(Type.I32.NewValue(27), Type.I32.NewValue(27)));
+            TestOnAllBackends(b, Type.I32.NewValue(0), 1);
+        }
+
+        [TestMethod]
+        public void CmpGrEqTrue()
+        {
+            var b = GetBuilder();
+            b.Ret(b.CmpGrEq(Type.I32.NewValue(52), Type.I32.NewValue(38)));
+            TestOnAllBackends(b, Type.I32.NewValue(1));
+
+            b = GetBuilder();
+            b.Ret(b.CmpGrEq(Type.I32.NewValue(38), Type.I32.NewValue(38)));
+            TestOnAllBackends(b, Type.I32.NewValue(1), 1);
+        }
+
+        [TestMethod]
+        public void CmpGrEqFalse()
+        {
+            var b = GetBuilder();
+            b.Ret(b.CmpGrEq(Type.I32.NewValue(15), Type.I32.NewValue(438)));
+            TestOnAllBackends(b, Type.I32.NewValue(0));
+        }
+
+        [TestMethod]
+        public void CmpLeEqTrue()
+        {
+            var b = GetBuilder();
+            b.Ret(b.CmpLeEq(Type.I32.NewValue(38), Type.I32.NewValue(52)));
+            TestOnAllBackends(b, Type.I32.NewValue(1));
+
+            b = GetBuilder();
+            b.Ret(b.CmpLeEq(Type.I32.NewValue(38), Type.I32.NewValue(38)));
+            TestOnAllBackends(b, Type.I32.NewValue(1), 1);
+        }
+
+        [TestMethod]
+        public void CmpLeEqFalse()
+        {
+            var b = GetBuilder();
+            b.Ret(b.CmpLeEq(Type.I32.NewValue(438), Type.I32.NewValue(16)));
+            TestOnAllBackends(b, Type.I32.NewValue(0));
         }
     }
 }

@@ -215,6 +215,40 @@ namespace Yoakke.Lir.Runtime
             }
             break;
 
+            case Instr.Cmp cmp:
+            {
+                var left = Unwrap(cmp.Left);
+                var right = Unwrap(cmp.Right);
+                var boolResult = false;
+                if (cmp.Comparison == Comparison.Eq_)
+                {
+                    boolResult = left.Equals(right);
+                }
+                else if (cmp.Comparison == Comparison.Ne_)
+                {
+                    boolResult = !left.Equals(right);
+                }
+                else if (cmp.Left is Value.Int leftInt && cmp.Right is Value.Int rightInt)
+                {
+                    boolResult = cmp.Comparison switch
+                    {
+                        Comparison.Gr => leftInt.Value > rightInt.Value,
+                        Comparison.Le => leftInt.Value < rightInt.Value,
+                        Comparison.GrEq => leftInt.Value >= rightInt.Value,
+                        Comparison.LeEq => leftInt.Value <= rightInt.Value,
+                        _ => throw new NotImplementedException(),
+                    };
+                }
+                else
+                {
+                    // TODO
+                    throw new NotImplementedException();
+                }
+                StackFrame[cmp.Result] = boolResult ? Type.I32.NewValue(1) : Type.I32.NewValue(0);
+                ++instructionPointer;
+            }
+            break;
+
             default: throw new NotImplementedException();
             }
         }
