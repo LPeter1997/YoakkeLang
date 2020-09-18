@@ -322,5 +322,29 @@ namespace Yoakke.Lir.Tests
             b.Ret(b.Mod(Type.I32.NewValue(21), Type.I32.NewValue(7)));
             TestOnAllBackends(b, Type.I32.NewValue(0));
         }
+
+        [TestMethod]
+        public void And()
+        {
+            var b = GetBuilder();
+            b.Ret(b.BitAnd(Type.I32.NewValue(0b11101101000), Type.I32.NewValue(0b00110101101)));
+            TestOnAllBackends(b, Type.I32.NewValue(0b00100101000));
+        }
+
+        [TestMethod]
+        public void Or()
+        {
+            var b = GetBuilder();
+            b.Ret(b.BitOr(Type.I32.NewValue(0b11101101000), Type.I32.NewValue(0b00110101101)));
+            TestOnAllBackends(b, Type.I32.NewValue(0b11111101101));
+        }
+
+        [TestMethod]
+        public void Xor()
+        {
+            var b = GetBuilder();
+            b.Ret(b.BitXor(Type.I32.NewValue(0b11101101000), Type.I32.NewValue(0b00110101101)));
+            TestOnAllBackends(b, Type.I32.NewValue(0b11011000101));
+        }
     }
 }
