@@ -263,6 +263,8 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             }
             break;
 
+            // TODO: Lot of duplication in arithmetic!
+
             case Instr.Add add:
             {
                 // TODO: What if the operands don't fit in 32 bits?

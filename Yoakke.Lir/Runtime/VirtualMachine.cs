@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using Yoakke.Lir.Backend;
 using Yoakke.Lir.Backend.Toolchain;
@@ -245,6 +246,38 @@ namespace Yoakke.Lir.Runtime
                     throw new NotImplementedException();
                 }
                 StackFrame[cmp.Result] = boolResult ? Type.I32.NewValue(1) : Type.I32.NewValue(0);
+                ++instructionPointer;
+            }
+            break;
+
+            case ArithInstr arith:
+            {
+                var left = Unwrap(arith.Left);
+                var right = Unwrap(arith.Right);
+                Value? result = null;
+                if (left is Value.Int leftInt && right is Value.Int rightInt)
+                {
+                    var leftType = (Type.Int)left.Type;
+                    var rightType = (Type.Int)right.Type;
+                    var resultType = leftType.Bits > rightType.Bits ? leftType : rightType;
+
+                    var intResult = arith switch
+                    {
+                        Instr.Add => leftInt.Value + rightInt.Value,
+                        Instr.Sub => leftInt.Value - rightInt.Value,
+                        Instr.Mul => leftInt.Value * rightInt.Value,
+                        Instr.Div => leftInt.Value / rightInt.Value,
+                        Instr.Mod => leftInt.Value % rightInt.Value,
+                        _ => throw new NotImplementedException(),
+                    };
+                    result = new Value.Int(resultType, intResult);
+                }
+                else
+                {
+                    // TODO
+                    throw new NotImplementedException();
+                }
+                StackFrame[arith.Result] = result;
                 ++instructionPointer;
             }
             break;
