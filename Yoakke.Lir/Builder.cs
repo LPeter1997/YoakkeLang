@@ -129,6 +129,7 @@ namespace Yoakke.Lir
         // TODO: Doc
         public Value Call(Value procedure, IList<Value> arguments)
         {
+            // TODO: We could factor this into validation?
             if (!(procedure.Type is Type.Proc procType))
             {
                 throw new ArgumentException("The procedure value must have a procedure type!", nameof(procedure));
@@ -157,6 +158,7 @@ namespace Yoakke.Lir
         // TODO: Doc
         public Value Load(Value source)
         {
+            // TODO: We could factor this into validation?
             if (!(source.Type is Type.Ptr ptrTy))
             {
                 throw new ArgumentException("The source address must be a pointer type!", nameof(source));
@@ -196,7 +198,66 @@ namespace Yoakke.Lir
         // TODO: Doc
         public Value CmpGrEq(Value left, Value right) => Cmp(Comparison.GrEq_, left, right);
 
+        // TODO: Doc
+        public Value Add(Value left, Value right)
+        {
+            var resultReg = AllocateRegister(CommonArithmeticType(left.Type, right.Type));
+            AddInstruction(new Instr.Add(resultReg, left, right));
+            return resultReg;
+        }
+
+        // TODO: Doc
+        public Value Sub(Value left, Value right)
+        {
+            var resultReg = AllocateRegister(CommonArithmeticType(left.Type, right.Type));
+            AddInstruction(new Instr.Sub(resultReg, left, right));
+            return resultReg;
+        }
+
+        // TODO: Doc
+        public Value Mul(Value left, Value right)
+        {
+            var resultReg = AllocateRegister(CommonArithmeticType(left.Type, right.Type));
+            AddInstruction(new Instr.Mul(resultReg, left, right));
+            return resultReg;
+        }
+
+        // TODO: Doc
+        public Value Div(Value left, Value right)
+        {
+            var resultReg = AllocateRegister(CommonArithmeticType(left.Type, right.Type));
+            AddInstruction(new Instr.Div(resultReg, left, right));
+            return resultReg;
+        }
+
+        // TODO: Doc
+        public Value Mod(Value left, Value right)
+        {
+            var resultReg = AllocateRegister(CommonArithmeticType(left.Type, right.Type));
+            AddInstruction(new Instr.Mod(resultReg, left, right));
+            return resultReg;
+        }
+
         // Internals
+
+        // TODO: We could factor this into validation?
+        private Type CommonArithmeticType(Type left, Type right)
+        {
+            if (left is Type.Int leftInt && right is Type.Int rightInt)
+            {
+                if (leftInt.Signed != rightInt.Signed)
+                {
+                    // TODO
+                    throw new NotImplementedException();
+                }
+                return leftInt.Bits > rightInt.Bits ? leftInt : rightInt;
+            }
+            else
+            {
+                // TODO
+                throw new NotImplementedException();
+            }
+        }
 
         private Register AllocateRegister(Type type)
         {
