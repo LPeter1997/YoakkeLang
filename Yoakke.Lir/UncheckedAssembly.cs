@@ -224,6 +224,35 @@ namespace Yoakke.Lir
             }
             break;
 
+            case BitwiseInstr bitwise:
+            {
+                // TODO: Same as arithmetic, maybe it's not a good fit here?
+                if (bitwise.Left.Type is Type.Int leftInt && bitwise.Right.Type is Type.Int rightInt)
+                {
+                    if (!(bitwise.Result.Type is Type.Int resultInt))
+                    {
+                        // TODO
+                        throw new InvalidOperationException();
+                    }
+                    if (resultInt.Signed != leftInt.Signed || leftInt.Signed != rightInt.Signed)
+                    {
+                        // TODO
+                        throw new InvalidOperationException();
+                    }
+                    if (resultInt.Bits < Math.Max(leftInt.Bits, rightInt.Bits))
+                    {
+                        // TODO
+                        throw new InvalidOperationException();
+                    }
+                }
+                else
+                {
+                    // TODO
+                    throw new InvalidOperationException();
+                }
+            }
+            break;
+
             default: throw new NotImplementedException();
             }
         }        

@@ -238,6 +238,33 @@ namespace Yoakke.Lir
             return resultReg;
         }
 
+        // TODO: Doc
+        public Value BitAnd(Value left, Value right)
+        {
+            // TODO: Not sure this is good here
+            var resultReg = AllocateRegister(CommonArithmeticType(left.Type, right.Type));
+            AddInstruction(new Instr.BitAnd(resultReg, left, right));
+            return resultReg;
+        }
+
+        // TODO: Doc
+        public Value BitOr(Value left, Value right)
+        {
+            // TODO: Not sure this is good here
+            var resultReg = AllocateRegister(CommonArithmeticType(left.Type, right.Type));
+            AddInstruction(new Instr.BitOr(resultReg, left, right));
+            return resultReg;
+        }
+
+        // TODO: Doc
+        public Value BitXor(Value left, Value right)
+        {
+            // TODO: Not sure this is good here
+            var resultReg = AllocateRegister(CommonArithmeticType(left.Type, right.Type));
+            AddInstruction(new Instr.BitXor(resultReg, left, right));
+            return resultReg;
+        }
+
         // Internals
 
         // TODO: We could factor this into validation?

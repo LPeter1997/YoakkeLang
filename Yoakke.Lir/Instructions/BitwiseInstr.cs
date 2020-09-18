@@ -56,7 +56,7 @@ namespace Yoakke.Lir.Instructions
         /// <summary>
         /// Bitwise and instruction.
         /// </summary>
-        public class BitAnd : ArithInstr
+        public class BitAnd : BitwiseInstr
         {
             public BitAnd(Register result, Value left, Value right)
                 : base(result, left, right)
@@ -69,7 +69,7 @@ namespace Yoakke.Lir.Instructions
         /// <summary>
         /// Bitwise or instruction.
         /// </summary>
-        public class BitOr : ArithInstr
+        public class BitOr : BitwiseInstr
         {
             public BitOr(Register result, Value left, Value right)
                 : base(result, left, right)
@@ -82,7 +82,7 @@ namespace Yoakke.Lir.Instructions
         /// <summary>
         /// Bitwise xor instruction.
         /// </summary>
-        public class BitXor : ArithInstr
+        public class BitXor : BitwiseInstr
         {
             public BitXor(Register result, Value left, Value right)
                 : base(result, left, right)
