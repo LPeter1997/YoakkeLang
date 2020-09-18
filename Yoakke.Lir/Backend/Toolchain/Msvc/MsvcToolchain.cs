@@ -43,9 +43,12 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
                 return -1;
             }
 
+            build.Metrics.StartTime("Overall");
+
             Directory.CreateDirectory(build.IntermediatesDirectory);
 
             // We translate the IR assemblies to the given backend
+            build.Metrics.StartTime("Translation to x86 assembly");
             var assemblyFiles = new List<string>();
             build.Extra["assemblyFiles"] = assemblyFiles;
             foreach (var asm in build.Assemblies)
@@ -54,10 +57,17 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
                 Backend.Compile(asm, outFile);
                 assemblyFiles.Add(outFile);
             }
+            build.Metrics.EndTime();
 
             // Then we assemble each file
+            build.Metrics.StartTime("Assembly");
             var errCode = Assembler.Assemble(build);
-            if (errCode != 0) return errCode;
+            build.Metrics.EndTime();
+            if (errCode != 0)
+            {
+                build.Metrics.EndTime();
+                return errCode;
+            }
 
             // We append external binaries here
             build.Extra["externalBinaries"] = build.Assemblies
@@ -67,24 +77,30 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
             // Invoke the linker (LINK) or the archiver (LIB)
             if (build.OutputKind == OutputKind.Executable || build.OutputKind == OutputKind.DynamicLibrary)
             {
+                build.Metrics.StartTime("Linking");
                 // We need to explicitly tell the linker to export everything public
                 var publicSymbols = build.Assemblies
                     .SelectMany(asm => asm.Symbols)
                     .Where(sym => sym.Visibility == Visibility.Public);
                 foreach (var sym in publicSymbols) build.Exports.Add(sym);
                 // Invoke the linker
-                return Linker.Link(build);
+                errCode = Linker.Link(build);
+                build.Metrics.EndTime();
             }
             else if (build.OutputKind == OutputKind.StaticLibrary)
             {
+                build.Metrics.StartTime("Archiving");
                 // We use the archiver
-                return Archiver.Archive(build);
+                errCode = Archiver.Archive(build);
+                build.Metrics.EndTime();
             }
             else
             {
                 // Object files
-                return 0;
+                errCode = 0;
             }
+            build.Metrics.EndTime();
+            return errCode;
         }
 
         public override string ToString() => $"msvc-{Version}";

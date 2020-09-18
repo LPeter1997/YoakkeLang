@@ -56,9 +56,16 @@ namespace Yoakke.Compiler
             var asm = uncheckedAsm.Check();
             build.Assemblies.Add(asm);
             Console.WriteLine(asm);
+            Console.WriteLine();
             Console.WriteLine(toolchain.Backend.Compile(asm));
+            Console.WriteLine();
             var err = toolchain.Compile(build);
             Console.WriteLine($"Toolchain exit code: {err}");
+            Console.WriteLine();
+            foreach (var (name, timeSpan) in build.Metrics.TimeMetrics)
+            {
+                Console.WriteLine($"{name} took: {(int)timeSpan.TotalMilliseconds} ms");
+            }
 
             /*var times = builder.DefineExtern(
                 "times",

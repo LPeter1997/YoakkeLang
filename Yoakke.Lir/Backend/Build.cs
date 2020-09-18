@@ -30,11 +30,11 @@ namespace Yoakke.Lir.Backend
         /// <summary>
         /// The <see cref="Assembly"/>s that need to be compiled.
         /// </summary>
-        public IList<Assembly> Assemblies { get; } = new List<Assembly>();
+        public readonly IList<Assembly> Assemblies = new List<Assembly>();
         /// <summary>
         /// The <see cref="ISymbol"/>s that needs to be exported.
         /// </summary>
-        public ISet<ISymbol> Exports { get; } = new HashSet<ISymbol>();
+        public readonly ISet<ISymbol> Exports = new HashSet<ISymbol>();
         /// <summary>
         /// The entry point's name.
         /// </summary>
@@ -42,6 +42,10 @@ namespace Yoakke.Lir.Backend
         /// <summary>
         /// Any extra information the build needs to carry.
         /// </summary>
-        public IDictionary<string, object> Extra { get; } = new Dictionary<string, object>();
+        public readonly IDictionary<string, object> Extra = new Dictionary<string, object>();
+        /// <summary>
+        /// <see cref="Metrics"/> about the build.
+        /// </summary>
+        public readonly Metrics Metrics = new Metrics();
     }
 }
