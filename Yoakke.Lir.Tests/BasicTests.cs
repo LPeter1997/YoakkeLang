@@ -324,7 +324,7 @@ namespace Yoakke.Lir.Tests
         }
 
         [TestMethod]
-        public void And()
+        public void BitAnd()
         {
             var b = GetBuilder();
             b.Ret(b.BitAnd(Type.I32.NewValue(0b11101101000), Type.I32.NewValue(0b00110101101)));
@@ -332,7 +332,7 @@ namespace Yoakke.Lir.Tests
         }
 
         [TestMethod]
-        public void Or()
+        public void BitOr()
         {
             var b = GetBuilder();
             b.Ret(b.BitOr(Type.I32.NewValue(0b11101101000), Type.I32.NewValue(0b00110101101)));
@@ -340,11 +340,20 @@ namespace Yoakke.Lir.Tests
         }
 
         [TestMethod]
-        public void Xor()
+        public void BitXor()
         {
             var b = GetBuilder();
             b.Ret(b.BitXor(Type.I32.NewValue(0b11101101000), Type.I32.NewValue(0b00110101101)));
             TestOnAllBackends(b, Type.I32.NewValue(0b11011000101));
+        }
+
+        [TestMethod]
+        public void BitNot()
+        {
+            var b = GetBuilder();
+            b.Ret(b.BitNot(Type.I32.NewValue(0b1100010001)));
+            // TODO: Is this correct? Two's complement is confusing
+            TestOnAllBackends(b, Type.I32.NewValue(-0b1111111111111111111110011101111));
         }
     }
 }

@@ -270,7 +270,8 @@ namespace Yoakke.Lir
         {
             // NOTE: We do a bit-xor
             var intType = (Type.Int)value.Type;
-            return BitXor(value, intType.NewValue(intType.MaxValue));
+            var allOnes = intType.NewValue(intType.Signed ? intType.MinValue : intType.MaxValue);
+            return BitXor(value, allOnes);
         }
 
         // Internals
