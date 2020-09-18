@@ -273,5 +273,53 @@ namespace Yoakke.Lir.Tests
             b.Ret(b.CmpLeEq(Type.I32.NewValue(438), Type.I32.NewValue(16)));
             TestOnAllBackends(b, Type.I32.NewValue(0));
         }
+
+        [TestMethod]
+        public void Add()
+        {
+            var b = GetBuilder();
+            b.Ret(b.Add(Type.I32.NewValue(25), Type.I32.NewValue(16)));
+            TestOnAllBackends(b, Type.I32.NewValue(41));
+        }
+
+        [TestMethod]
+        public void Sub()
+        {
+            var b = GetBuilder();
+            b.Ret(b.Sub(Type.I32.NewValue(25), Type.I32.NewValue(16)));
+            TestOnAllBackends(b, Type.I32.NewValue(9));
+        }
+
+        [TestMethod]
+        public void Mul()
+        {
+            var b = GetBuilder();
+            b.Ret(b.Mul(Type.I32.NewValue(7), Type.I32.NewValue(3)));
+            TestOnAllBackends(b, Type.I32.NewValue(21));
+        }
+
+        [TestMethod]
+        public void Div()
+        {
+            var b = GetBuilder();
+            b.Ret(b.Div(Type.I32.NewValue(30), Type.I32.NewValue(6)));
+            TestOnAllBackends(b, Type.I32.NewValue(5));
+
+            b = GetBuilder();
+            b.Ret(b.Div(Type.I32.NewValue(33), Type.I32.NewValue(6)));
+            TestOnAllBackends(b, Type.I32.NewValue(5), 1);
+        }
+
+        [TestMethod]
+        public void Mod()
+        {
+            var b = GetBuilder();
+            b.Ret(b.Mod(Type.I32.NewValue(26), Type.I32.NewValue(7)));
+            TestOnAllBackends(b, Type.I32.NewValue(5));
+
+            b = GetBuilder();
+            b.Ret(b.Mod(Type.I32.NewValue(21), Type.I32.NewValue(7)));
+            TestOnAllBackends(b, Type.I32.NewValue(0), 1);
+        }
     }
 }
