@@ -94,7 +94,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             // Calculate space for locals
             var allocSize = registers.Select(r => SizeOf(r.Type)).Sum();
             // Allocate space for the locals
-            WriteInstr(X86Operation.Sub, Register.Esp, allocSize);
+            WriteInstr(X86Op.Sub, Register.Esp, allocSize);
 
             // Now just compile all basic blocks
             foreach (var bb in proc.BasicBlocks) CompileBasicBlock(proc, bb);
@@ -125,7 +125,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                     {
                         // We can return integral values with at most 32 bits in EAX
                         var retValue = CompileValue(ret.Value);
-                        WriteInstr(X86Operation.Mov, Register.Eax, retValue);
+                        WriteInstr(X86Op.Mov, Register.Eax, retValue);
                     }
                     else
                     {
@@ -134,7 +134,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 }
                 // Write the epilogue, return
                 WriteProcEpilogue(proc);
-                WriteInstr(X86Operation.Ret);
+                WriteInstr(X86Op.Ret);
             }
             break;
 
@@ -152,18 +152,18 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                     foreach (var arg in call.Arguments.Reverse())
                     {
                         var argValue = CompileValue(arg);
-                        WriteInstr(X86Operation.Push, argValue);
+                        WriteInstr(X86Op.Push, argValue);
                         espOffset += SizeOf(arg.Type);
                     }
                     // Do the call
                     var procedure = CompileValue(call.Procedure);
-                    WriteInstr(X86Operation.Call, procedure);
+                    WriteInstr(X86Op.Call, procedure);
                     // Restore stack
-                    WriteInstr(X86Operation.Add, Register.Esp, espOffset);
+                    WriteInstr(X86Op.Add, Register.Esp, espOffset);
                     // TODO: Only if size is fine
                     // Store value
                     var result = CompileValue(call.Result);
-                    WriteInstr(X86Operation.Mov, result, Register.Eax);
+                    WriteInstr(X86Op.Mov, result, Register.Eax);
                 }
                 else
                 {
@@ -173,17 +173,17 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             break;
 
             case Instr.Jmp jmp:
-                WriteInstr(X86Operation.Jmp, basicBlocks[jmp.Target]);
+                WriteInstr(X86Op.Jmp, basicBlocks[jmp.Target]);
                 break;
 
             case Instr.JmpIf jmpIf:
             {
                 var op = CompileValue(jmpIf.Condition);
                 // TODO: Size should matter! EAX won't always be corrct!
-                WriteInstr(X86Operation.Mov, Register.Eax, op);
-                WriteInstr(X86Operation.Test, Register.Eax, Register.Eax);
-                WriteInstr(X86Operation.Jne, basicBlocks[jmpIf.Then]);
-                WriteInstr(X86Operation.Jmp, basicBlocks[jmpIf.Else]);
+                WriteInstr(X86Op.Mov, Register.Eax, op);
+                WriteInstr(X86Op.Test, Register.Eax, Register.Eax);
+                WriteInstr(X86Op.Jne, basicBlocks[jmpIf.Then]);
+                WriteInstr(X86Op.Jmp, basicBlocks[jmpIf.Else]);
             }
             break;
 
@@ -192,8 +192,8 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 // TODO: What if the operands don't fit in 32 bits?
                 var target = CompileValue(store.Target, true);
                 var source = CompileValue(store.Value);
-                WriteInstr(X86Operation.Mov, Register.Eax, source);
-                WriteInstr(X86Operation.Mov, target, Register.Eax);
+                WriteInstr(X86Op.Mov, Register.Eax, source);
+                WriteInstr(X86Op.Mov, target, Register.Eax);
             }
             break;
 
@@ -202,8 +202,8 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 // TODO: What if the operands don't fit in 32 bits?
                 var target = CompileValue(load.Result);
                 var source = CompileValue(load.Address, true);
-                WriteInstr(X86Operation.Mov, Register.Eax, source);
-                WriteInstr(X86Operation.Mov, target, Register.Eax);
+                WriteInstr(X86Op.Mov, Register.Eax, source);
+                WriteInstr(X86Op.Mov, target, Register.Eax);
             }
             break;
 
@@ -211,9 +211,9 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             {
                 // TODO: What if the operands don't fit in 32 bits?
                 var size = SizeOf(alloc.Allocated);
-                WriteInstr(X86Operation.Sub, Register.Esp, size);
+                WriteInstr(X86Op.Sub, Register.Esp, size);
                 var allocResult = CompileValue(alloc.Result);
-                WriteInstr(X86Operation.Mov, allocResult, Register.Esp);
+                WriteInstr(X86Op.Mov, allocResult, Register.Esp);
             }
             break;
 
@@ -224,17 +224,17 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 var left = CompileValue(cmp.Left);
                 var right = CompileValue(cmp.Right);
                 // First we produce the operands and the flags
-                WriteInstr(X86Operation.Mov, Register.Eax, left);
-                WriteInstr(X86Operation.Cmp, Register.Eax, right);
+                WriteInstr(X86Op.Mov, Register.Eax, left);
+                WriteInstr(X86Op.Cmp, Register.Eax, right);
                 // Based on the comparison we need an x86 operation
                 var op = cmp.Comparison switch
                 {
-                    Comparison.Eq => X86Operation.Je,
-                    Comparison.Ne => X86Operation.Jne,
-                    Comparison.Gr => X86Operation.Jg,
-                    Comparison.Le => X86Operation.Jl,
-                    Comparison.GrEq => X86Operation.Jge,
-                    Comparison.LeEq => X86Operation.Jle,
+                    Comparison.Eq => X86Op.Je,
+                    Comparison.Ne => X86Op.Jne,
+                    Comparison.Gr => X86Op.Jg,
+                    Comparison.Le => X86Op.Jl,
+                    Comparison.GrEq => X86Op.Jge,
+                    Comparison.LeEq => X86Op.Jle,
                     _ => throw new NotImplementedException(),
                 };
                 // We need to branch to write the result
@@ -244,15 +244,15 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 var continueBB = new X86BasicBlock($"{labelNameBase}_C");
                 // Do the branch to the true or false block
                 WriteInstr(op, trueBB);
-                WriteInstr(X86Operation.Jmp, falseBB);
+                WriteInstr(X86Op.Jmp, falseBB);
                 // On true block, we write the truthy value then jump to the continuation
                 currentBasicBlock = trueBB;
-                WriteInstr(X86Operation.Mov, target, 1);
-                WriteInstr(X86Operation.Jmp, continueBB);
+                WriteInstr(X86Op.Mov, target, 1);
+                WriteInstr(X86Op.Jmp, continueBB);
                 // On false block, we write the falsy value then jump to the continuation
                 currentBasicBlock = falseBB;
-                WriteInstr(X86Operation.Mov, target, 0);
-                WriteInstr(X86Operation.Jmp, continueBB);
+                WriteInstr(X86Op.Mov, target, 0);
+                WriteInstr(X86Op.Jmp, continueBB);
                 // We continue writing on the continuation
                 currentBasicBlock = continueBB;
                 // Add all these basic blocks to the vurrent procedure
@@ -304,17 +304,17 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
 
         private void WriteProcPrologue(Proc _)
         {
-            WriteInstr(X86Operation.Push, Register.Ebp);
-            WriteInstr(X86Operation.Mov, Register.Ebp, Register.Esp);
+            WriteInstr(X86Op.Push, Register.Ebp);
+            WriteInstr(X86Op.Mov, Register.Ebp, Register.Esp);
         }
 
         private void WriteProcEpilogue(Proc _)
         {
-            WriteInstr(X86Operation.Mov, Register.Esp, Register.Ebp);
-            WriteInstr(X86Operation.Pop, Register.Ebp);
+            WriteInstr(X86Op.Mov, Register.Esp, Register.Ebp);
+            WriteInstr(X86Op.Pop, Register.Ebp);
         }
 
-        private void WriteInstr(X86Operation op, params object[] operands)
+        private void WriteInstr(X86Op op, params object[] operands)
         {
             Debug.Assert(currentBasicBlock != null);
             currentBasicBlock.Instructions.Add(new X86Instr(op, operands));

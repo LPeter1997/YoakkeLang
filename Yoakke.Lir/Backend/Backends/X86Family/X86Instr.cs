@@ -7,7 +7,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
     /// <summary>
     /// The different operations an X86 instruction can perform.
     /// </summary>
-    public enum X86Operation
+    public enum X86Op
     {
         Mov,
         Push,
@@ -32,10 +32,10 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
     /// </summary>
     public class X86Instr : IX86Syntax
     {
-        public X86Operation Operation { get; set; }
+        public X86Op Operation { get; set; }
         public IList<Operand> Operands { get; set; }
 
-        public X86Instr(X86Operation op, params object[] operands)
+        public X86Instr(X86Op op, params object[] operands)
         {
             Operation = op;
             Operands = operands.Select(ToOperand).ToList();
