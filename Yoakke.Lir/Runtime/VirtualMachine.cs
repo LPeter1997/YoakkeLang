@@ -186,7 +186,7 @@ namespace Yoakke.Lir.Runtime
 
             case Instr.Alloc alloc:
             {
-                var ptr = new PtrValue(alloc.Allocated);
+                var ptr = new PtrValue(new Type.Ptr(alloc.Allocated));
                 StackFrame[alloc.Result] = ptr;
                 ++instructionPointer;
             }
