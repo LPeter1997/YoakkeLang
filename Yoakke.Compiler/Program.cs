@@ -40,6 +40,8 @@ namespace Yoakke.Compiler
             var uncheckedAsm = new UncheckedAssembly("test_app");
             var builder = new Builder(uncheckedAsm);
 
+            builder.DefineStruct(new Type[] { Type.I32, Type.I32 });
+
             var main = builder.DefineProc("main");
             main.Return = Type.I32;
             builder.Ret(builder.BitOr(Type.I32.NewValue(9), Type.I32.NewValue(5)));
@@ -60,6 +62,7 @@ namespace Yoakke.Compiler
             Console.WriteLine(toolchain.Backend.Compile(asm));
             Console.WriteLine();
 
+            /*
             var vm = new VirtualMachine(asm);
             var res = vm.Execute("main", new List<Value> { });
             Console.WriteLine($"VM result = {res}");
@@ -71,6 +74,7 @@ namespace Yoakke.Compiler
             {
                 Console.WriteLine($"{name} took: {(int)timeSpan.TotalMilliseconds} ms");
             }
+            */
 
 #if false
             var intPtr = new Type.Ptr(Type.I32);

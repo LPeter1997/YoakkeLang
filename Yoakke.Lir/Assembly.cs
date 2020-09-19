@@ -28,6 +28,10 @@ namespace Yoakke.Lir
         /// </summary>
         public readonly IReadOnlyList<Extern> Externals;
         /// <summary>
+        /// The <see cref="StructDef"/>s in this <see cref="Assembly"/>.
+        /// </summary>
+        public readonly IReadOnlyList<StructDef> Structs;
+        /// <summary>
         /// The <see cref="Proc"/>s defined in this <see cref="Assembly"/>.
         /// </summary>
         public readonly IReadOnlyList<Proc> Procedures;
@@ -50,13 +54,18 @@ namespace Yoakke.Lir
             Name = uncheckedAssembly.Name;
             EntryPoint = uncheckedAssembly.EntryPoint;
             Externals = uncheckedAssembly.Externals.ToArray();
+            Structs = uncheckedAssembly.Structs.ToArray();
             Procedures = uncheckedAssembly.Procedures.ToArray();
         }
 
         public override string ToString() => new StringBuilder()
             .AppendJoin('\n', Externals)
             .Append("\n\n")
+            .AppendJoin('\n', Structs)
+            .Append("\n\n")
             .AppendJoin("\n\n", Procedures)
-            .ToString().Trim();
+            .Replace("\n\n\n", "\n\n")
+            .ToString()
+            .Trim();
     }
 }

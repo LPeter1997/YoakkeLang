@@ -57,6 +57,7 @@ namespace Yoakke.Lir
             }
         }
 
+        private HashSet<StructDef> structDefs = new HashSet<StructDef>();
         private Proc? currentProc;
         private BasicBlock? currentBasicBlock;
         private IDictionary<Proc, ProcContext> procContexts = new Dictionary<Proc, ProcContext>();
@@ -85,7 +86,27 @@ namespace Yoakke.Lir
             return external;
         }
 
-        // TODO: Return value instead
+        // TODO: Docs
+        // TODO: Return the type, not the definition!
+        public StructDef DefineStruct(IEnumerable<Type> types)
+        {
+            // First we construct the type
+            var name = $"type{structDefs.Count}";
+            var structDef = new StructDef(name);
+            foreach (var t in types) structDef.Fields.Add(t);
+            // Check if it matches any existing type
+            if (structDefs.TryGetValue(structDef, out var existingStructDef))
+            {
+                // Just return the existing one
+                return existingStructDef;
+            }
+            // We add it as new
+            structDefs.Add(structDef);
+            Assembly.Structs.Add(structDef);
+            return structDef;
+        }
+
+        // TODO: Docs
         public Proc DefineProc(string name)
         {
             // TODO: Check name uniqueness

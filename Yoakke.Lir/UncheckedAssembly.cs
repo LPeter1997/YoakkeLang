@@ -25,6 +25,10 @@ namespace Yoakke.Lir
         /// </summary>
         public readonly IList<Extern> Externals = new List<Extern>();
         /// <summary>
+        /// The <see cref="StructDef"/>s in this assembly.
+        /// </summary>
+        public readonly IList<StructDef> Structs = new List<StructDef>();
+        /// <summary>
         /// The <see cref="Proc"/>s defined in this assembly.
         /// </summary>
         public readonly IList<Proc> Procedures = new List<Proc>();
@@ -47,6 +51,7 @@ namespace Yoakke.Lir
 
         public Assembly Check()
         {
+            // TODO: Check circularity for struct definitions?
             foreach (var proc in Procedures) Check(proc);
             return new Assembly(this);
         }
