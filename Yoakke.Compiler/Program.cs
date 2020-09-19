@@ -44,7 +44,8 @@ namespace Yoakke.Compiler
 
             var main = builder.DefineProc("main");
             main.Return = Type.I32;
-            builder.Alloc(intPair);
+            var a = builder.Alloc(intPair);
+            var a0 = builder.ElementPtr(a, Type.I32.NewValue(0));
             builder.Ret(builder.BitOr(Type.I32.NewValue(9), Type.I32.NewValue(5)));
 
             var targetTriplet = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);

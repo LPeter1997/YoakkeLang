@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Yoakke.Lir.Instructions;
 using Yoakke.Lir.Types;
+using Yoakke.Lir.Values;
 using Type = Yoakke.Lir.Types.Type;
 
 namespace Yoakke.Lir
@@ -247,6 +248,24 @@ namespace Yoakke.Lir
                     if (resultInt.Bits < Math.Max(leftInt.Bits, rightInt.Bits))
                     {
                         // TODO
+                        throw new InvalidOperationException();
+                    }
+                }
+                else
+                {
+                    // TODO
+                    throw new InvalidOperationException();
+                }
+            }
+            break;
+
+            case Instr.ElementPtr elementPtr:
+            {
+                if (elementPtr.Value.Type is Type.Ptr ptrTy && ptrTy.Subtype is Type.Struct structTy)
+                {
+                    if (!(elementPtr.Index is Value.Int intIdx))
+                    {
+                        // TODO: For structs we only accept constant indices
                         throw new InvalidOperationException();
                     }
                 }
