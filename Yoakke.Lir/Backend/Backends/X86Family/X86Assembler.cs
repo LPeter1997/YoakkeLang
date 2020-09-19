@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Yoakke.Lir.Instructions;
+using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;
 using Type = Yoakke.Lir.Types.Type;
 
@@ -16,6 +17,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         private X86Assembly result = new X86Assembly();
         private X86Proc? currentProcedure;
         private X86BasicBlock? currentBasicBlock;
+        private SizeContext sizeContext = new SizeContext { PointerSize = 4, };
 
         private IDictionary<BasicBlock, X86BasicBlock> basicBlocks = new Dictionary<BasicBlock, X86BasicBlock>();
         private IDictionary<Proc, X86Proc> procs = new Dictionary<Proc, X86Proc>();
@@ -76,14 +78,14 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             int offset = 4;
             foreach (var r in proc.Parameters)
             {
-                offset += SizeOf(r.Type);
+                offset += SizeOf(r);
                 registerOffsets[r] = offset;
             }
             // Let's collect each local offset relative to EBP
             offset = 0;
             foreach (var r in registers)
             {
-                offset -= SizeOf(r.Type);
+                offset -= SizeOf(r);
                 registerOffsets[r] = offset;
             }
 
@@ -92,7 +94,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             currentProcedure.BasicBlocks.Add(currentBasicBlock);
             WriteProcPrologue(proc);
             // Calculate space for locals
-            var allocSize = registers.Select(r => SizeOf(r.Type)).Sum();
+            var allocSize = registers.Sum(SizeOf);
             // Allocate space for the locals
             WriteInstr(X86Op.Sub, Register.Esp, allocSize);
 
@@ -153,7 +155,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                     {
                         var argValue = CompileValue(arg);
                         WriteInstr(X86Op.Push, argValue);
-                        espOffset += SizeOf(arg.Type);
+                        espOffset += SizeOf(arg);
                     }
                     // Do the call
                     var procedure = CompileValue(call.Procedure);
@@ -426,7 +428,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 var result = new Operand.Address(Register.Ebp, offset);
                 if (asIndirect)
                 {
-                    var dataWidth = DataWidthUtils.FromByteSize(SizeOf(reg.Type));
+                    var dataWidth = DataWidthUtils.FromByteSize(SizeOf(reg));
                     return new Operand.Indirect(dataWidth, result);
                 }
                 return result;
@@ -465,25 +467,8 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             || !(symbol is Proc)
             ? $"_{symbol.Name}" : symbol.Name;
 
-        private static int OffsetOf(StructDef structDef, int fieldNo) =>
-            structDef.Fields.Take(fieldNo).Sum(SizeOf);
-
-        private static int SizeOf(Value value) => SizeOf(value.Type);
-        private static int SizeOf(Type type) => type switch
-        {
-            Type.Void _ => 0,
-            Type.Ptr _ => 4,
-            // First we round up to bytes, then make sure it's a power of 2
-            Type.Int i => NextPow2((i.Bits + 7) / 8),
-            Type.Struct s => s.Definition.Fields.Sum(t => SizeOf(t)),
-            _ => throw new NotImplementedException(),
-        };
-
-        private static int NextPow2(int n)
-        {
-            int result = 1;
-            while (result < n) result = result << 1;
-            return result;
-        }
+        private int OffsetOf(StructDef structDef, int fieldNo) => sizeContext.OffsetOf(structDef, fieldNo);
+        private int SizeOf(Value value) => SizeOf(value.Type);
+        private int SizeOf(Type type) => sizeContext.SizeOf(type);
     }
 }
