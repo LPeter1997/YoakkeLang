@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using Yoakke.Lir.Backend;
 using Yoakke.Lir.Backend.Toolchain;
 using Yoakke.Lir.Instructions;
+using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;
 using Type = Yoakke.Lir.Types.Type;
 
@@ -32,6 +33,11 @@ namespace Yoakke.Lir.Runtime
         private Stack<StackFrame> callStack = new Stack<StackFrame>();
         private Value returnValue = Value.Void_;
         private int instructionPointer;
+        private SizeContext sizeContext = new SizeContext
+        {
+            // TODO
+            PointerSize = 4,
+        };
 
         private StackFrame StackFrame => callStack.Peek();
 
@@ -308,6 +314,42 @@ namespace Yoakke.Lir.Runtime
                     throw new NotImplementedException();
                 }
                 StackFrame[bitwise.Result] = result;
+                ++instructionPointer;
+            }
+            break;
+
+            case Instr.ElementPtr elementPtr:
+            {
+                var value = Unwrap(elementPtr.Value);
+
+                Value? result;
+                if (value.Type is Type.Ptr ptrTy && ptrTy.Subtype is Type.Struct structTy)
+                {
+                    if (!(elementPtr.Index is Value.Int index))
+                    {
+                        // TODO
+                        throw new NotImplementedException();
+                    }
+                    var offset = sizeContext.OffsetOf(structTy.Definition, (int)index.Value);
+                    if (value is PtrValue managedPtr)
+                    {
+                        var resultPtr = (PtrValue)managedPtr.Clone();
+                        // TODO: Shouldn't we track managed pointer type or something?
+                        resultPtr.Offset += offset;
+                        result = resultPtr;
+                    }
+                    else
+                    {
+                        // TODO: Managed ptr
+                        throw new NotImplementedException();
+                    }
+                }
+                else
+                {
+                    // TODO
+                    throw new NotImplementedException();
+                }
+                StackFrame[elementPtr.Result] = result;
                 ++instructionPointer;
             }
             break;
