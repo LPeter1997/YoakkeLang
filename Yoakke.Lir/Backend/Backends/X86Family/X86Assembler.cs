@@ -372,6 +372,31 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             }
             break;
 
+            case Instr.ElementPtr elementPtr:
+            {
+                var target = CompileValue(elementPtr.Result);
+                var value = CompileValue(elementPtr.Value);
+                if (elementPtr.Value.Type is Type.Ptr ptrTy && ptrTy.Subtype is Type.Struct structTy)
+                {
+                    if (!(elementPtr.Index is Value.Int intValue))
+                    {
+                        // TODO
+                        throw new NotImplementedException();
+                    }
+                    // Get offset, add it to the base address
+                    var offset = OffsetOf(structTy.Definition, (int)intValue.Value);
+                    WriteInstr(X86Op.Lea, Register.Eax, value);
+                    WriteInstr(X86Op.Add, Register.Eax, offset);
+                    WriteInstr(X86Op.Mov, target, Register.Eax);
+                }
+                else
+                {
+                    // TODO
+                    throw new NotImplementedException();
+                }
+            }
+            break;
+
             default: throw new NotImplementedException();
             }
         }
@@ -439,6 +464,9 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             // For non-procedures too
             || !(symbol is Proc)
             ? $"_{symbol.Name}" : symbol.Name;
+
+        private static int OffsetOf(StructDef structDef, int fieldNo) =>
+            structDef.Fields.Take(fieldNo).Sum(SizeOf);
 
         private static int SizeOf(Value value) => SizeOf(value.Type);
         private static int SizeOf(Type type) => type switch
