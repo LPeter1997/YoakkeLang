@@ -63,7 +63,6 @@ namespace Yoakke.Compiler
             Console.WriteLine(toolchain.Backend.Compile(asm));
             Console.WriteLine();
 
-            /*
             var vm = new VirtualMachine(asm);
             var res = vm.Execute("main", new List<Value> { });
             Console.WriteLine($"VM result = {res}");
@@ -75,7 +74,6 @@ namespace Yoakke.Compiler
             {
                 Console.WriteLine($"{name} took: {(int)timeSpan.TotalMilliseconds} ms");
             }
-            */
 
 #if false
             var intPtr = new Type.Ptr(Type.I32);

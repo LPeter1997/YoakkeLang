@@ -447,6 +447,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             Type.Ptr _ => 4,
             // First we round up to bytes, then make sure it's a power of 2
             Type.Int i => NextPow2((i.Bits + 7) / 8),
+            Type.Struct s => s.Definition.Fields.Sum(t => SizeOf(t)),
             _ => throw new NotImplementedException(),
         };
 
