@@ -40,10 +40,11 @@ namespace Yoakke.Compiler
             var uncheckedAsm = new UncheckedAssembly("test_app");
             var builder = new Builder(uncheckedAsm);
 
-            builder.DefineStruct(new Type[] { Type.I32, Type.I32 });
+            var intPair = builder.DefineStruct(new Type[] { Type.I32, Type.I32 });
 
             var main = builder.DefineProc("main");
             main.Return = Type.I32;
+            builder.Alloc(intPair);
             builder.Ret(builder.BitOr(Type.I32.NewValue(9), Type.I32.NewValue(5)));
 
             var targetTriplet = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
