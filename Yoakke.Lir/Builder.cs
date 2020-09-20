@@ -297,36 +297,18 @@ namespace Yoakke.Lir
         }
 
         // TODO: Doc
-        public Value ElementPtr(Value value, int index) =>
-            ElementPtr(value, Type.I32.NewValue(index));
-
-        // TODO: Doc
-        public Value ElementPtr(Value value, Value index)
+        public Value ElementPtr(Value value, int index)
         {
             // TODO: Factor this into validation?
-            if (value.Type is Type.Ptr ptrTy && ptrTy.Subtype is Type.Struct structTy)
-            {
-                if (!(index is Value.Int intIdx))
-                {
-                    throw new ArgumentException("The index must be an integer for structs!", nameof(index));
-                }
-                var resultElementTy = structTy.Definition.Fields[(int)intIdx.Value];
-                var resultPtrTy = new Type.Ptr(resultElementTy);
-                var resultReg = AllocateRegister(resultPtrTy);
-                AddInstruction(new Instr.ElementPtr(resultReg, value, index));
-                return resultReg;
-            }
-            else if (value.Type is Type.Ptr ptrTy2 && ptrTy2.Subtype is Type.Array arrayTy)
-            {
-                var resultPtrTy = new Type.Ptr(arrayTy.Subtype);
-                var resultReg = AllocateRegister(resultPtrTy);
-                AddInstruction(new Instr.ElementPtr(resultReg, value, index));
-                return resultReg;
-            }
-            else
+            if (!(value.Type is Type.Ptr ptrTy && ptrTy.Subtype is Type.Struct structTy))
             {
                 throw new ArgumentException("The source value must be a pointer to a struct type!", nameof(value));
             }
+            var resultElementTy = structTy.Definition.Fields[index];
+            var resultPtrTy = new Type.Ptr(resultElementTy);
+            var resultReg = AllocateRegister(resultPtrTy);
+            AddInstruction(new Instr.ElementPtr(resultReg, value, index));
+            return resultReg;
         }
 
         // TODO: Doc

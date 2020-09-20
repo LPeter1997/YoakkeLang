@@ -9,6 +9,12 @@ namespace Yoakke.Lir.Instructions
 {
     partial class Instr
     {
+        // Wrapper type to be type safe
+        public class Int : IInstrArg
+        {
+            public int Value { get; set; }
+        }
+
         /// <summary>
         /// Subelement pointer calculation instruction.
         /// </summary>
@@ -18,11 +24,10 @@ namespace Yoakke.Lir.Instructions
             /// The <see cref="Value"/> to get the element pointer of.
             /// </summary>
             public Value Value { get; set; }
-            // TODO: Maybe we should have a (int | Value) type here? Statically more valid.
             /// <summary>
             /// The index of the element.
             /// </summary>
-            public Value Index { get; set; }
+            public Int Index { get; set; }
 
             public override IEnumerable<IInstrArg> InstrArgs
             {
@@ -40,14 +45,14 @@ namespace Yoakke.Lir.Instructions
             /// <param name="result">The <see cref="Register"/> to store the element pointer at.</param>
             /// <param name="value">The value to get the element pointer for.</param>
             /// <param name="index">The index of the element.</param>
-            public ElementPtr(Register result, Value value, Value index)
+            public ElementPtr(Register result, Value value, int index)
                 : base(result)
             {
                 Value = value;
-                Index = index;
+                Index = new Int { Value = index };
             }
 
-            public override string ToString() => $"{Result} = elementptr {Value}, {Index}";
+            public override string ToString() => $"{Result} = elementptr {Value}, {Index.Value}";
         }
     }
 }

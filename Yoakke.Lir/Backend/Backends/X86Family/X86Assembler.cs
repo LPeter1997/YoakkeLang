@@ -375,13 +375,9 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 var value = CompileValue(elementPtr.Value);
                 if (elementPtr.Value.Type is Type.Ptr ptrTy && ptrTy.Subtype is Type.Struct structTy)
                 {
-                    if (!(elementPtr.Index is Value.Int intValue))
-                    {
-                        // TODO
-                        throw new NotImplementedException();
-                    }
+                    var index = elementPtr.Index.Value;
                     // Get offset, add it to the base address
-                    var offset = OffsetOf(structTy.Definition, (int)intValue.Value);
+                    var offset = OffsetOf(structTy.Definition, index);
                     WriteInstr(X86Op.Add, value, offset);
                     WriteInstr(X86Op.Mov, target, value);
                 }

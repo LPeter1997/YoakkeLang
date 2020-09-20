@@ -336,15 +336,11 @@ namespace Yoakke.Lir.Runtime
                 Value? result;
                 if (value.Type is Type.Ptr ptrTy && ptrTy.Subtype is Type.Struct structTy)
                 {
-                    if (!(elementPtr.Index is Value.Int index))
-                    {
-                        // TODO
-                        throw new NotImplementedException();
-                    }
-                    var offset = sizeContext.OffsetOf(structTy.Definition, (int)index.Value);
+                    var index = elementPtr.Index.Value;
+                    var offset = sizeContext.OffsetOf(structTy.Definition, index);
                     if (value is PtrValue managedPtr)
                     {
-                        var resultType = structTy.Definition.Fields[(int)index.Value];
+                        var resultType = structTy.Definition.Fields[index];
                         result = managedPtr.OffsetBy(offset, resultType);
                     }
                     else

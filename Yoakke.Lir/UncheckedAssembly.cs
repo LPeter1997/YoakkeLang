@@ -265,25 +265,13 @@ namespace Yoakke.Lir
 
             case Instr.ElementPtr elementPtr:
             {
-                if (elementPtr.Value.Type is Type.Ptr ptrTy && ptrTy.Subtype is Type.Struct structTy)
+                if (!(elementPtr.Value.Type is Type.Ptr ptrTy && ptrTy.Subtype is Type.Struct structTy))
                 {
-                    if (!(elementPtr.Index is Value.Int intIdx))
-                    {
-                        // TODO: For structs we only accept constant indices
-                        throw new InvalidOperationException();
-                    }
+                    throw new InvalidOperationException();
                 }
-                else if (elementPtr.Value.Type is Type.Ptr ptrTy2 && ptrTy2.Subtype is Type.Array arrTy)
+                if (structTy.Definition.Fields.Count <= elementPtr.Index.Value)
                 {
-                    if (!(elementPtr.Index.Type is Type.Int))
-                    {
-                        // TODO: Only allow integer elements
-                        throw new InvalidOperationException();
-                    }
-                }
-                else
-                {
-                    // TODO
+                    // TODO: Over-indexing
                     throw new InvalidOperationException();
                 }
             }
