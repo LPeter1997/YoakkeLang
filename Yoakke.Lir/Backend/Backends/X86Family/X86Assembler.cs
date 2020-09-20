@@ -487,6 +487,8 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             }
         }
 
+        // TODO: We could have a way to free up single registers too!
+        // TODO: If we return Register type, it's more versitaile
         private Operand OccupyRegister()
         {
             foreach (var reg in allRegs)
