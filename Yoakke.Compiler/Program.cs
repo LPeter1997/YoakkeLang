@@ -43,10 +43,16 @@ namespace Yoakke.Compiler
             var main = builder.DefineProc("main");
             main.Return = Type.I32;
 
-#if false
-            var sPtr = builder.Alloc(Type.I32);
-            builder.Store(sPtr, Type.I32.NewValue(13));
-            builder.Ret(builder.Load(sPtr));
+#if true
+            var entry = builder.CurrentProc;
+
+            var identity = builder.DefineProc("identity");
+            identity.Return = Type.I32;
+            var p = builder.DefineParameter(Type.I32);
+            builder.Ret(p);
+
+            builder.CurrentProc = entry;
+            builder.Ret(builder.Call(identity, new List<Value> { Type.I32.NewValue(524) }));
 #else
             var s = builder.DefineStruct(new Type[] { Type.I32, Type.I32, Type.I32 });
             var sPtr = builder.Alloc(s);

@@ -24,6 +24,9 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         private IDictionary<Proc, X86Proc> procs = new Dictionary<Proc, X86Proc>();
         private IDictionary<Lir.Register, int> registerOffsets = new Dictionary<Lir.Register, int>();
 
+        private ISet<Register> allRegs = new HashSet<Register> { Register.Eax, Register.Ecx, Register.Edx, Register.Ebx };
+        private ISet<Register> occupiedRegs = new HashSet<Register>();
+
         /// <summary>
         /// Compiles an <see cref="X86Assembly"/> from a <see cref="Assembly"/>.
         /// </summary>
@@ -115,6 +118,9 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
 
         private void CompileInstr(Proc proc, Instr instr)
         {
+            // TODO: Erase zero-size operands everywhere
+
+            FreeOccupiedRegs();
             CommentInstr(instr);
             switch (instr)
             {
@@ -128,6 +134,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                     if (proc.CallConv == CallConv.Cdecl && ret.Value.Type is Type.Int && SizeOf(ret.Value) <= 4)
                     {
                         // We can return integral values with at most 32 bits in EAX
+                        OccupyRegister(Register.Eax);
                         var retValue = CompileValue(ret.Value);
                         WriteInstr(X86Op.Mov, Register.Eax, retValue);
                     }
@@ -159,6 +166,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                         var argValue = CompileValue(arg);
                         WriteInstr(X86Op.Push, argValue);
                         espOffset += SizeOf(arg);
+                        FreeOccupiedRegs();
                     }
                     // Do the call
                     var procedure = CompileValue(call.Procedure);
@@ -167,7 +175,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                     WriteInstr(X86Op.Add, Register.Esp, espOffset);
                     // TODO: Only if size is fine
                     // Store value
-                    var result = CompileValue(call.Result);
+                    var result = CompileValue(call.Result, true);
                     WriteInstr(X86Op.Mov, result, Register.Eax);
                 }
                 else
@@ -183,10 +191,10 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
 
             case Instr.JmpIf jmpIf:
             {
-                var op = CompileValue(jmpIf.Condition);
                 // TODO: Size should matter! EAX won't always be corrct!
-                WriteInstr(X86Op.Mov, Register.Eax, op);
-                WriteInstr(X86Op.Test, Register.Eax, Register.Eax);
+                var op = CompileValue(jmpIf.Condition);
+                ToNonImmediate(ref op);
+                WriteInstr(X86Op.Test, op, op);
                 WriteInstr(X86Op.Jne, basicBlocks[jmpIf.Then]);
                 WriteInstr(X86Op.Jmp, basicBlocks[jmpIf.Else]);
             }
@@ -195,20 +203,24 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             case Instr.Store store:
             {
                 // TODO: What if the operands don't fit in 32 bits?
-                var target = CompileValue(store.Target, true);
+                var target = (Operand.Register_)CompileValue(store.Target);
+                var addr = new Operand.Address(target.Register);
+                var indirect = new Operand.Indirect(target.Register.GetWidth(), addr);
                 var source = CompileValue(store.Value);
-                WriteInstr(X86Op.Mov, Register.Eax, source);
-                WriteInstr(X86Op.Mov, target, Register.Eax);
+                WriteInstr(X86Op.Mov, indirect, source);
             }
             break;
 
             case Instr.Load load:
             {
                 // TODO: What if the operands don't fit in 32 bits?
-                var target = CompileValue(load.Result);
-                var source = CompileValue(load.Address, true);
-                WriteInstr(X86Op.Mov, Register.Eax, source);
-                WriteInstr(X86Op.Mov, target, Register.Eax);
+                var target = CompileValue(load.Result, true);
+                var source = (Operand.Register_)CompileValue(load.Address);
+                var addr = new Operand.Address(source.Register);
+                var indirect = new Operand.Indirect(source.Register.GetWidth(), addr);
+                var immediate = OccupyRegister();
+                WriteInstr(X86Op.Mov, immediate, indirect);
+                WriteInstr(X86Op.Mov, target, immediate);
             }
             break;
 
@@ -217,8 +229,8 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 // TODO: What if the operands don't fit in 32 bits?
                 var size = SizeOf(alloc.Allocated);
                 WriteInstr(X86Op.Sub, Register.Esp, size);
-                var allocResult = CompileValue(alloc.Result);
-                WriteInstr(X86Op.Mov, allocResult, Register.Esp);
+                var result = CompileValue(alloc.Result, true);
+                WriteInstr(X86Op.Mov, result, Register.Esp);
             }
             break;
 
@@ -228,9 +240,9 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 var target = CompileValue(cmp.Result, true);
                 var left = CompileValue(cmp.Left);
                 var right = CompileValue(cmp.Right);
+                CleanseImmediates(ref left, ref right);
                 // First we produce the operands and the flags
-                WriteInstr(X86Op.Mov, Register.Eax, left);
-                WriteInstr(X86Op.Cmp, Register.Eax, right);
+                WriteInstr(X86Op.Cmp, left, right);
                 // Based on the comparison we need an x86 operation
                 var op = cmp.Comparison switch
                 {
@@ -268,118 +280,78 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             }
             break;
 
-            // TODO: Lot of duplication in arithmetic!
-
-            case Instr.Add add:
+            case Instr.Add:
+            case Instr.Sub:
             {
+                var arith = (ArithInstr)instr;
                 // TODO: What if the operands don't fit in 32 bits?
-                var target = CompileValue(add.Result);
-                var left = CompileValue(add.Left);
-                var right = CompileValue(add.Right);
-                WriteInstr(X86Op.Mov, Register.Eax, left);
-                WriteInstr(X86Op.Add, Register.Eax, right);
-                WriteInstr(X86Op.Mov, target, Register.Eax);
-            }
-            break;
-
-            case Instr.Sub sub:
-            {
-                // TODO: What if the operands don't fit in 32 bits?
-                var target = CompileValue(sub.Result);
-                var left = CompileValue(sub.Left);
-                var right = CompileValue(sub.Right);
-                WriteInstr(X86Op.Mov, Register.Eax, left);
-                WriteInstr(X86Op.Sub, Register.Eax, right);
-                WriteInstr(X86Op.Mov, target, Register.Eax);
+                var target = CompileValue(arith.Result, true);
+                var left = CompileValue(arith.Left);
+                var right = CompileValue(arith.Right);
+                WriteInstr(X86Op.Mov, target, left);
+                WriteInstr(arith is Instr.Add ? X86Op.Add : X86Op.Sub, target, right);
             }
             break;
 
             case Instr.Mul mul:
             {
                 // TODO: What if the operands don't fit in 32 bits?
-                var target = CompileValue(mul.Result);
+                var target = CompileValue(mul.Result, true);
                 var left = CompileValue(mul.Left);
                 var right = CompileValue(mul.Right);
-                WriteInstr(X86Op.Mov, Register.Eax, left);
+                ToRegister(ref left);
                 // TODO: Signed vs. unsigned?
-                WriteInstr(X86Op.Imul, Register.Eax, right);
-                WriteInstr(X86Op.Mov, target, Register.Eax);
+                WriteInstr(X86Op.Imul, left, right);
+                WriteInstr(X86Op.Mov, target, left);
             }
             break;
 
-            case Instr.Div div:
+            case Instr.Div:
+            case Instr.Mod:
             {
+                var arith = (ArithInstr)instr;
                 // NOTE: This is different!
                 // TODO: What if the operands don't fit in 32 bits?
-                var target = CompileValue(div.Result);
-                var left = CompileValue(div.Left);
-                var right = CompileValue(div.Right);
-                WriteInstr(X86Op.Mov, Register.Edx, 0);
-                WriteInstr(X86Op.Mov, Register.Eax, left);
-                WriteInstr(X86Op.Mov, Register.Ecx, right);
+                var eax = OccupyRegister(Register.Eax);
+                var edx = OccupyRegister(Register.Edx);
+                var target = CompileValue(arith.Result, true);
+                var left = CompileValue(arith.Left);
+                var right = CompileValue(arith.Right);
+                ToNonImmediate(ref right);
+                WriteInstr(X86Op.Mov, edx, 0);
+                WriteInstr(X86Op.Mov, eax, left);
                 // TODO: Signed vs. unsigned?
-                WriteInstr(X86Op.Idiv, Register.Ecx);
-                WriteInstr(X86Op.Mov, target, Register.Eax);
-            }
-            break;
-
-            case Instr.Mod mod:
-            {
-                // NOTE: This is different, almost like the above!
-                // TODO: What if the operands don't fit in 32 bits?
-                var target = CompileValue(mod.Result);
-                var left = CompileValue(mod.Left);
-                var right = CompileValue(mod.Right);
-                WriteInstr(X86Op.Mov, Register.Edx, 0);
-                WriteInstr(X86Op.Mov, Register.Eax, left);
-                WriteInstr(X86Op.Mov, Register.Ecx, right);
-                // TODO: Signed vs. unsigned?
-                WriteInstr(X86Op.Idiv, Register.Ecx);
-                WriteInstr(X86Op.Mov, target, Register.Edx);
+                WriteInstr(X86Op.Idiv, right);
+                WriteInstr(X86Op.Mov, target, arith is Instr.Div ? eax : edx);
             }
             break;
 
             // TODO: Duplications again....
 
-            case Instr.BitAnd bitAnd:
+            case Instr.BitAnd:
+            case Instr.BitOr:
+            case Instr.BitXor:
             {
+                var bitw = (BitwiseInstr)instr;
                 // TODO: What if the operands don't fit in 32 bits?
-                var target = CompileValue(bitAnd.Result);
-                var left = CompileValue(bitAnd.Left);
-                var right = CompileValue(bitAnd.Right);
-                WriteInstr(X86Op.Mov, Register.Eax, left);
-                WriteInstr(X86Op.And, Register.Eax, right);
-                WriteInstr(X86Op.Mov, target, Register.Eax);
-            }
-            break;
-
-            case Instr.BitOr bitOr:
-            {
-                // TODO: What if the operands don't fit in 32 bits?
-                var target = CompileValue(bitOr.Result);
-                var left = CompileValue(bitOr.Left);
-                var right = CompileValue(bitOr.Right);
-                WriteInstr(X86Op.Mov, Register.Eax, left);
-                WriteInstr(X86Op.Or, Register.Eax, right);
-                WriteInstr(X86Op.Mov, target, Register.Eax);
-            }
-            break;
-
-            case Instr.BitXor bitXor:
-            {
-                // TODO: What if the operands don't fit in 32 bits?
-                var target = CompileValue(bitXor.Result);
-                var left = CompileValue(bitXor.Left);
-                var right = CompileValue(bitXor.Right);
-                WriteInstr(X86Op.Mov, Register.Eax, left);
-                WriteInstr(X86Op.Xor, Register.Eax, right);
-                WriteInstr(X86Op.Mov, target, Register.Eax);
+                var target = CompileValue(bitw.Result, true);
+                var left = CompileValue(bitw.Left);
+                var right = CompileValue(bitw.Right);
+                WriteInstr(X86Op.Mov, target, left);
+                var op = bitw switch
+                {
+                    Instr.BitAnd => X86Op.And,
+                    Instr.BitOr => X86Op.Or,
+                    Instr.BitXor => X86Op.Xor,
+                    _ => throw new NotImplementedException(),
+                };
+                WriteInstr(op, target, right);
             }
             break;
 
             case Instr.ElementPtr elementPtr:
             {
-                var target = CompileValue(elementPtr.Result);
+                var target = CompileValue(elementPtr.Result, true);
                 var value = CompileValue(elementPtr.Value);
                 if (elementPtr.Value.Type is Type.Ptr ptrTy && ptrTy.Subtype is Type.Struct structTy)
                 {
@@ -390,9 +362,8 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                     }
                     // Get offset, add it to the base address
                     var offset = OffsetOf(structTy.Definition, (int)intValue.Value);
-                    WriteInstr(X86Op.Lea, Register.Eax, value);
-                    WriteInstr(X86Op.Add, Register.Eax, offset);
-                    WriteInstr(X86Op.Mov, target, Register.Eax);
+                    WriteInstr(X86Op.Add, value, offset);
+                    WriteInstr(X86Op.Mov, target, value);
                 }
                 else
                 {
@@ -406,38 +377,78 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             }
         }
 
-        private Operand CompileValue(Value value, bool asIndirect = false)
+        private static readonly object zeroSizeMarker = new object();
+        private Operand CompileValue(Value value, bool asLvalue = false)
         {
             switch (value)
             {
             case Value.Int i:
                 // TODO
-                if (asIndirect) throw new NotImplementedException();
+                if (asLvalue) throw new NotImplementedException();
                 return new Operand.Literal(i.Value);
 
             case ISymbol sym:
             {
                 // TODO
-                if (asIndirect) throw new NotImplementedException();
-
+                if (asLvalue) throw new NotImplementedException();
                 var symName = GetSymbolName(sym);
                 return new Operand.Literal(symName);
             }
 
             case Lir.Register reg:
             {
+                var regSize = SizeOf(reg);
+                if (regSize == 0) return new Operand.Literal(zeroSizeMarker);
                 var offset = registerOffsets[reg];
-                // TODO: Maybe we do need lvalue / rvalue here for reads and writes?
-                var result = new Operand.Address(Register.Ebp, offset);
-                if (asIndirect)
+                var addr = new Operand.Address(Register.Ebp, offset);
+                var dataWidth = DataWidthUtils.FromByteSize(regSize);
+                var result = new Operand.Indirect(dataWidth, addr);
+                if (asLvalue)
                 {
-                    var dataWidth = DataWidthUtils.FromByteSize(SizeOf(reg));
-                    return new Operand.Indirect(dataWidth, result);
+                    return result;
                 }
-                return result;
+                else
+                {
+                    // TODO: This is stupid for larger elements...
+                    // Else we load it
+                    var targetReg = OccupyRegister();
+                    WriteInstr(X86Op.Mov, targetReg, result);
+                    return targetReg;
+                }
             }
 
             default: throw new NotImplementedException();
+            }
+        }
+
+        private void CleanseImmediates(ref Operand left, ref Operand right)
+        {
+            // TODO: Operand size...
+            if (left is Operand.Literal imm && right is Operand.Literal)
+            {
+                // Can't both be immediates!
+                ToNonImmediate(ref left);
+            }
+        }
+
+        private void ToNonImmediate(ref Operand op)
+        {
+            // TODO: Operand size...
+            if (op is Operand.Literal imm)
+            {
+                op = OccupyRegister();
+                WriteInstr(X86Op.Mov, op, imm);
+            }
+        }
+
+        private void ToRegister(ref Operand op)
+        {
+            // TODO: Operand size...
+            if (!(op is Operand.Register_))
+            {
+                var reg = OccupyRegister();
+                WriteInstr(X86Op.Mov, reg, op);
+                op = reg;
             }
         }
 
@@ -457,7 +468,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
 
         private void CommentInstr(object comment)
         {
-            if (nextComment != null) throw new InvalidOperationException();
+            // if (nextComment != null) throw new InvalidOperationException();
             nextComment = comment.ToString();
         }
 
@@ -470,8 +481,27 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 instr.Comment = nextComment;
                 nextComment = null;
             }
-            currentBasicBlock.Instructions.Add(instr);
+            if (!operands.Any(op => op is Operand.Literal l && l.Value == zeroSizeMarker))
+            {
+                currentBasicBlock.Instructions.Add(instr);
+            }
         }
+
+        private Operand OccupyRegister()
+        {
+            foreach (var reg in allRegs)
+            {
+                if (!occupiedRegs.Contains(reg)) return OccupyRegister(reg);
+            }
+            throw new InvalidOperationException();
+        }
+        private Operand OccupyRegister(Register register)
+        {
+            if (occupiedRegs.Contains(register)) throw new InvalidOperationException();
+            occupiedRegs.Add(register);
+            return new Operand.Register_(register);
+        }
+        private void FreeOccupiedRegs() => occupiedRegs.Clear();
 
         // TODO: Not the best solution...
         private int nameCnt = 0;
