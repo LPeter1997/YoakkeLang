@@ -45,7 +45,7 @@ namespace Yoakke.Compiler
             var main = builder.DefineProc("main");
             main.Return = Type.I32;
 
-#if true
+#if false
             var sPtr = builder.Alloc(Type.I32);
             builder.Store(sPtr, Type.I32.NewValue(13));
             builder.Ret(builder.Load(sPtr));

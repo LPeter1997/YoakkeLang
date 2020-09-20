@@ -40,6 +40,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
     {
         public X86Op Operation { get; set; }
         public IList<Operand> Operands { get; set; }
+        public string? Comment { get; set; }
 
         public X86Instr(X86Op op, params object[] operands)
         {
@@ -48,7 +49,8 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         }
 
         public string ToIntelSyntax() =>
-            $"{Operation.ToString().ToLower()} {string.Join(", ", Operands.Select(o => o.ToIntelSyntax()))}";
+              $"{Operation.ToString().ToLower()} {string.Join(", ", Operands.Select(o => o.ToIntelSyntax()))}"
+            + (Comment == null ? string.Empty : $" ; {Comment}");
 
         private static Operand ToOperand(object obj) => obj switch
         {

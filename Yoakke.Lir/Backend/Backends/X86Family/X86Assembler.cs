@@ -19,6 +19,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         private X86BasicBlock? currentBasicBlock;
         private SizeContext sizeContext = new SizeContext { PointerSize = 4, };
 
+        private Instr? toComment = null;
         private IDictionary<BasicBlock, X86BasicBlock> basicBlocks = new Dictionary<BasicBlock, X86BasicBlock>();
         private IDictionary<Proc, X86Proc> procs = new Dictionary<Proc, X86Proc>();
         private IDictionary<Lir.Register, int> registerOffsets = new Dictionary<Lir.Register, int>();
@@ -114,6 +115,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
 
         private void CompileInstr(Proc proc, Instr instr)
         {
+            CommentInstr(instr);
             switch (instr)
             {
             case Instr.Ret ret:
@@ -450,10 +452,22 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             WriteInstr(X86Op.Pop, Register.Ebp);
         }
 
+        private void CommentInstr(Instr instr)
+        {
+            if (toComment != null) throw new InvalidOperationException();
+            toComment = instr;
+        }
+
         private void WriteInstr(X86Op op, params object[] operands)
         {
             Debug.Assert(currentBasicBlock != null);
-            currentBasicBlock.Instructions.Add(new X86Instr(op, operands));
+            var instr = new X86Instr(op, operands);
+            if (toComment != null)
+            {
+                instr.Comment = toComment.ToString();
+                toComment = null;
+            }
+            currentBasicBlock.Instructions.Add(instr);
         }
 
         // TODO: Not the best solution...
