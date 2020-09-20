@@ -19,7 +19,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         private X86BasicBlock? currentBasicBlock;
         private SizeContext sizeContext = new SizeContext { PointerSize = 4, };
 
-        private Instr? toComment = null;
+        private string? nextComment = null;
         private IDictionary<BasicBlock, X86BasicBlock> basicBlocks = new Dictionary<BasicBlock, X86BasicBlock>();
         private IDictionary<Proc, X86Proc> procs = new Dictionary<Proc, X86Proc>();
         private IDictionary<Lir.Register, int> registerOffsets = new Dictionary<Lir.Register, int>();
@@ -138,6 +138,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 }
                 // Write the epilogue, return
                 WriteProcEpilogue(proc);
+                CommentInstr(instr);
                 WriteInstr(X86Op.Ret);
             }
             break;
@@ -442,30 +443,32 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
 
         private void WriteProcPrologue(Proc _)
         {
+            CommentInstr("prologue");
             WriteInstr(X86Op.Push, Register.Ebp);
             WriteInstr(X86Op.Mov, Register.Ebp, Register.Esp);
         }
 
         private void WriteProcEpilogue(Proc _)
         {
+            CommentInstr("epilogue");
             WriteInstr(X86Op.Mov, Register.Esp, Register.Ebp);
             WriteInstr(X86Op.Pop, Register.Ebp);
         }
 
-        private void CommentInstr(Instr instr)
+        private void CommentInstr(object comment)
         {
-            if (toComment != null) throw new InvalidOperationException();
-            toComment = instr;
+            if (nextComment != null) throw new InvalidOperationException();
+            nextComment = comment.ToString();
         }
 
         private void WriteInstr(X86Op op, params object[] operands)
         {
             Debug.Assert(currentBasicBlock != null);
             var instr = new X86Instr(op, operands);
-            if (toComment != null)
+            if (nextComment != null)
             {
-                instr.Comment = toComment.ToString();
-                toComment = null;
+                instr.Comment = nextComment;
+                nextComment = null;
             }
             currentBasicBlock.Instructions.Add(instr);
         }

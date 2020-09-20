@@ -40,8 +40,6 @@ namespace Yoakke.Compiler
             var uncheckedAsm = new UncheckedAssembly("test_app");
             var builder = new Builder(uncheckedAsm);
 
-            var intPair = builder.DefineStruct(new Type[] { Type.I32, Type.I32 });
-
             var main = builder.DefineProc("main");
             main.Return = Type.I32;
 
@@ -52,9 +50,9 @@ namespace Yoakke.Compiler
 #else
             var s = builder.DefineStruct(new Type[] { Type.I32, Type.I32, Type.I32 });
             var sPtr = builder.Alloc(s);
-            builder.Store(builder.ElementPtr(sPtr, 0), Type.I32.NewValue(13));
-            builder.Store(builder.ElementPtr(sPtr, 1), Type.I32.NewValue(29));
-            builder.Store(builder.ElementPtr(sPtr, 2), Type.I32.NewValue(41));
+            builder.Store(builder.ElementPtr(sPtr, 0), Type.I32.NewValue(1337));
+            //builder.Store(builder.ElementPtr(sPtr, 1), Type.I32.NewValue(29));
+            //builder.Store(builder.ElementPtr(sPtr, 2), Type.I32.NewValue(41));
             builder.Ret(builder.Load(builder.ElementPtr(sPtr, 0)));
 #endif
 

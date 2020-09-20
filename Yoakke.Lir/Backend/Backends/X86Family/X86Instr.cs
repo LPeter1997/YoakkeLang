@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 
 namespace Yoakke.Lir.Backend.Backends.X86Family
 {
@@ -48,9 +49,13 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             Operands = operands.Select(ToOperand).ToList();
         }
 
-        public string ToIntelSyntax() =>
-              $"{Operation.ToString().ToLower()} {string.Join(", ", Operands.Select(o => o.ToIntelSyntax()))}"
-            + (Comment == null ? string.Empty : $" ; {Comment}");
+        private const bool CommentsAbove = true;
+        public string ToIntelSyntax()
+        {
+            var instr = $"{Operation.ToString().ToLower()} {string.Join(", ", Operands.Select(o => o.ToIntelSyntax()))}";
+            if (Comment == null) return instr;
+            return CommentsAbove ? $"; {Comment}\n    {instr}" : $"{instr} ; {Comment}";
+        }
 
         private static Operand ToOperand(object obj) => obj switch
         {
