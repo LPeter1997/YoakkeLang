@@ -355,5 +355,44 @@ namespace Yoakke.Lir.Tests
             // TODO: Is this correct? Two's complement is confusing
             TestOnAllBackends(b, Type.I32.NewValue(-0b1111111111111111111110011101111));
         }
+
+        [TestMethod]
+        public void ElementPtrElement0()
+        {
+            var b = GetBuilder();
+            var s = b.DefineStruct(new Type[] { Type.I32, Type.I32, Type.I32 });
+            var sPtr = b.Alloc(s);
+            b.Store(b.ElementPtr(sPtr, 0), Type.I32.NewValue(13));
+            b.Store(b.ElementPtr(sPtr, 1), Type.I32.NewValue(29));
+            b.Store(b.ElementPtr(sPtr, 2), Type.I32.NewValue(41));
+            b.Ret(b.Load(b.ElementPtr(sPtr, 0)));
+            TestOnAllBackends(b, Type.I32.NewValue(13));
+        }
+
+        [TestMethod]
+        public void ElementPtrElement1()
+        {
+            var b = GetBuilder();
+            var s = b.DefineStruct(new Type[] { Type.I32, Type.I32, Type.I32 });
+            var sPtr = b.Alloc(s);
+            b.Store(b.ElementPtr(sPtr, 0), Type.I32.NewValue(13));
+            b.Store(b.ElementPtr(sPtr, 1), Type.I32.NewValue(29));
+            b.Store(b.ElementPtr(sPtr, 2), Type.I32.NewValue(41));
+            b.Ret(b.Load(b.ElementPtr(sPtr, 1)));
+            TestOnAllBackends(b, Type.I32.NewValue(29));
+        }
+
+        [TestMethod]
+        public void ElementPtrElement2()
+        {
+            var b = GetBuilder();
+            var s = b.DefineStruct(new Type[] { Type.I32, Type.I32, Type.I32 });
+            var sPtr = b.Alloc(s);
+            b.Store(b.ElementPtr(sPtr, 0), Type.I32.NewValue(13));
+            b.Store(b.ElementPtr(sPtr, 1), Type.I32.NewValue(29));
+            b.Store(b.ElementPtr(sPtr, 2), Type.I32.NewValue(41));
+            b.Ret(b.Load(b.ElementPtr(sPtr, 2)));
+            TestOnAllBackends(b, Type.I32.NewValue(41));
+        }
     }
 }

@@ -297,6 +297,10 @@ namespace Yoakke.Lir
         }
 
         // TODO: Doc
+        public Value ElementPtr(Value value, int index) =>
+            ElementPtr(value, Type.I32.NewValue(index));
+
+        // TODO: Doc
         public Value ElementPtr(Value value, Value index)
         {
             // TODO: Factor this into validation?

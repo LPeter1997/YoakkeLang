@@ -44,9 +44,14 @@ namespace Yoakke.Compiler
 
             var main = builder.DefineProc("main");
             main.Return = Type.I32;
-            var a = builder.Alloc(intPair);
-            var a0 = builder.ElementPtr(a, Type.I32.NewValue(0));
-            builder.Ret(builder.BitOr(Type.I32.NewValue(9), Type.I32.NewValue(5)));
+
+            //var s = builder.DefineStruct(new Type[] { Type.I32, Type.I32, Type.I32 });
+            var sPtr = builder.Alloc(Type.I32);
+            builder.Store(sPtr, Type.I32.NewValue(13));
+            //builder.Store(builder.ElementPtr(sPtr, 0), Type.I32.NewValue(13));
+            //builder.Store(builder.ElementPtr(sPtr, 1), Type.I32.NewValue(29));
+            //builder.Store(builder.ElementPtr(sPtr, 2), Type.I32.NewValue(41));
+            builder.Ret(builder.Load(sPtr));
 
             var targetTriplet = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
             var toolchain = Toolchains.Supporting(targetTriplet).First();
@@ -64,9 +69,9 @@ namespace Yoakke.Compiler
             Console.WriteLine(toolchain.Backend.Compile(asm));
             Console.WriteLine();
 
-            var vm = new VirtualMachine(asm);
-            var res = vm.Execute("main", new List<Value> { });
-            Console.WriteLine($"VM result = {res}");
+            //var vm = new VirtualMachine(asm);
+            //var res = vm.Execute("main", new List<Value> { });
+            //Console.WriteLine($"VM result = {res}");
 
             var err = toolchain.Compile(build);
             Console.WriteLine($"Toolchain exit code: {err}");

@@ -186,7 +186,7 @@ namespace Yoakke.Lir.Runtime
 
             case Instr.Alloc alloc:
             {
-                var ptr = new PtrValue(new Type.Ptr(alloc.Allocated));
+                var ptr = new PtrValue(alloc.Allocated);
                 StackFrame[alloc.Result] = ptr;
                 ++instructionPointer;
             }
@@ -333,10 +333,7 @@ namespace Yoakke.Lir.Runtime
                     var offset = sizeContext.OffsetOf(structTy.Definition, (int)index.Value);
                     if (value is PtrValue managedPtr)
                     {
-                        var resultPtr = (PtrValue)managedPtr.Clone();
-                        // TODO: Shouldn't we track managed pointer type or something?
-                        resultPtr.Offset += offset;
-                        result = resultPtr;
+                        result = managedPtr.OffsetBy(offset);
                     }
                     else
                     {
