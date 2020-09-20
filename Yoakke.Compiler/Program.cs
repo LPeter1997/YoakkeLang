@@ -40,13 +40,13 @@ namespace Yoakke.Compiler
             var uncheckedAsm = new UncheckedAssembly("test_app");
             var builder = new Builder(uncheckedAsm);
 
-            var arr = new Type.Array(Type.I32, 5);
+            var arr = new Type.Array(Type.I32, 3);
             var main = builder.DefineProc("main");
             main.Return = Type.I32;
 
             var aptr = builder.Alloc(arr);
             var bptr = builder.Cast(new Type.Ptr(Type.I32), aptr);
-            for (int i = 0; i < 5; ++i)
+            for (int i = 0; i < 3; ++i)
             {
                 var p = builder.Add(bptr, Type.I32.NewValue(i));
                 builder.Store(p, Type.I32.NewValue(i * 2 + 1));
@@ -69,9 +69,9 @@ namespace Yoakke.Compiler
             Console.WriteLine(toolchain.Backend.Compile(asm));
             Console.WriteLine();
 
-            //var vm = new VirtualMachine(asm);
-            //var res = vm.Execute("main", new List<Value> { });
-            //Console.WriteLine($"VM result = {res}");
+            var vm = new VirtualMachine(asm);
+            var res = vm.Execute("main", new List<Value> { });
+            Console.WriteLine($"VM result = {res}");
 
             var err = toolchain.Compile(build);
             Console.WriteLine($"Toolchain exit code: {err}");

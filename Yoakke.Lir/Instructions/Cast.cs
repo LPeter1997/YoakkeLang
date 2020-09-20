@@ -46,7 +46,7 @@ namespace Yoakke.Lir.Instructions
                 Value = value;
             }
 
-            public override string ToString() => $"{Result} = cast {Target}, {Value}";
+            public override string ToString() => $"{Result} = cast {Target}, {Value.ToValueString()}";
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using Yoakke.Lir.Instructions;
 using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;
@@ -288,8 +289,27 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 var target = CompileValue(arith.Result, true);
                 var left = CompileValue(arith.Left);
                 var right = CompileValue(arith.Right);
-                WriteInstr(X86Op.Mov, target, left);
-                WriteInstr(arith is Instr.Add ? X86Op.Add : X86Op.Sub, target, right);
+                // NOTE: We special-case pointer-arithmetic
+                // TODO: Duplication
+                if (arith.Left.Type is Type.Ptr leftPtr)
+                {
+                    ToRegister(ref right);
+                    WriteInstr(X86Op.Mov, target, left);
+                    WriteInstr(X86Op.Imul, right, SizeOf(leftPtr.Subtype));
+                    WriteInstr(arith is Instr.Add ? X86Op.Add : X86Op.Sub, target, right);
+                }
+                else if (arith.Right.Type is Type.Ptr rightPtr)
+                {
+                    ToRegister(ref right);
+                    WriteInstr(X86Op.Mov, target, left);
+                    WriteInstr(X86Op.Imul, right, SizeOf(rightPtr.Subtype));
+                    WriteInstr(arith is Instr.Add ? X86Op.Add : X86Op.Sub, target, right);
+                }
+                else
+                {
+                    WriteInstr(X86Op.Mov, target, left);
+                    WriteInstr(arith is Instr.Add ? X86Op.Add : X86Op.Sub, target, right);
+                }
             }
             break;
 
@@ -364,6 +384,24 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                     var offset = OffsetOf(structTy.Definition, (int)intValue.Value);
                     WriteInstr(X86Op.Add, value, offset);
                     WriteInstr(X86Op.Mov, target, value);
+                }
+                else
+                {
+                    // TODO
+                    throw new NotImplementedException();
+                }
+            }
+            break;
+
+            case Instr.Cast cast:
+            {
+                // TODO: Arg sizes and such?
+                if (cast.Target is Type.Ptr && cast.Value.Type is Type.Ptr)
+                {
+                    // Should be a no-op, simply copy
+                    var target = CompileValue(cast.Result, true);
+                    var src = CompileValue(cast.Value);
+                    WriteInstr(X86Op.Mov, target, src);
                 }
                 else
                 {

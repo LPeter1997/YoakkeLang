@@ -278,6 +278,17 @@ namespace Yoakke.Lir.Runtime
                     };
                     result = new Value.Int(resultType, intResult);
                 }
+                else if (left is PtrValue leftPtr && right is Value.Int rightInt2)
+                {
+                    var typeSize = SizeOf(((Type.Ptr)leftPtr.Type).Subtype);
+                    var offset = arith switch
+                    {
+                        Instr.Add => typeSize * (int)rightInt2.Value,
+                        Instr.Sub => -typeSize * (int)rightInt2.Value,
+                        _ => throw new NotImplementedException(),
+                    };
+                    result = leftPtr.OffsetBy(offset, leftPtr.BaseType);
+                }
                 else
                 {
                     // TODO
@@ -348,6 +359,31 @@ namespace Yoakke.Lir.Runtime
                     throw new NotImplementedException();
                 }
                 StackFrame[elementPtr.Result] = result;
+                ++instructionPointer;
+            }
+            break;
+
+            case Instr.Cast cast:
+            {
+                var value = Unwrap(cast.Value);
+                Value? result = null;
+                if (cast.Target is Type.Ptr toType && value.Type is Type.Ptr)
+                {
+                    if (value is PtrValue managedPtr)
+                    {
+                        result = managedPtr.OffsetBy(0, toType.Subtype);
+                    }
+                    else
+                    {
+                        // TODO: Extern
+                        throw new NotImplementedException();
+                    }
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
+                StackFrame[cast.Result] = result;
                 ++instructionPointer;
             }
             break;
