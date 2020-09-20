@@ -40,27 +40,17 @@ namespace Yoakke.Compiler
             var uncheckedAsm = new UncheckedAssembly("test_app");
             var builder = new Builder(uncheckedAsm);
 
+            var arr = new Type.Array(Type.I32, 5);
             var main = builder.DefineProc("main");
             main.Return = Type.I32;
 
-#if true
-            var entry = builder.CurrentProc;
-
-            var identity = builder.DefineProc("identity");
-            identity.Return = Type.I32;
-            var p = builder.DefineParameter(Type.I32);
-            builder.Ret(p);
-
-            builder.CurrentProc = entry;
-            builder.Ret(builder.Call(identity, new List<Value> { Type.I32.NewValue(524) }));
-#else
-            var s = builder.DefineStruct(new Type[] { Type.I32, Type.I32, Type.I32 });
-            var sPtr = builder.Alloc(s);
-            builder.Store(builder.ElementPtr(sPtr, 0), Type.I32.NewValue(1337));
-            //builder.Store(builder.ElementPtr(sPtr, 1), Type.I32.NewValue(29));
-            //builder.Store(builder.ElementPtr(sPtr, 2), Type.I32.NewValue(41));
-            builder.Ret(builder.Load(builder.ElementPtr(sPtr, 0)));
-#endif
+            var aptr = builder.Alloc(arr);
+            for (int i = 0; i < 5; ++i)
+            {
+                var p = builder.ElementPtr(aptr, i);
+                builder.Store(aptr, Type.I32.NewValue(i * 2 + 1));
+            }
+            builder.Ret(builder.Load(builder.ElementPtr(aptr, 1)));
 
             var targetTriplet = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
             var toolchain = Toolchains.Supporting(targetTriplet).First();
@@ -89,47 +79,6 @@ namespace Yoakke.Compiler
             {
                 Console.WriteLine($"{name} took: {(int)timeSpan.TotalMilliseconds} ms");
             }
-
-#if false
-            var intPtr = new Type.Ptr(Type.I32);
-
-            var modify = builder.DefineProc("modify");
-            var param = builder.DefineParameter(intPtr);
-            builder.Store(param, Type.I32.NewValue(123));
-            builder.Ret();
-
-            var main = builder.DefineProc("main");
-            main.CallConv = CallConv.Cdecl;
-            main.Return = Type.I32;
-            main.Visibility = Visibility.Public;
-            var intPlace = builder.Alloc(Type.I32);
-            builder.Store(intPlace, Type.I32.NewValue(556));
-            builder.Call(modify, new List<Value> { intPlace });
-            var retValue = builder.Load(intPlace);
-            builder.Ret(retValue);
-
-            // Dump IR code
-            Console.WriteLine(asm);
-            Console.WriteLine("\n\n");
-
-            var targetTriplet = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
-            var toolchain = Toolchains.Supporting(targetTriplet).First();
-
-            // Compile to ASM
-            var code = toolchain.Backend.Compile(asm);
-            Console.WriteLine(code);
-
-            var vm = new VirtualMachine(asm);
-            var res = vm.Execute("main", new List<Value> { });
-            Console.WriteLine($"VM result = {res}");
-
-            // Compile it to backend
-            toolchain.Assemblies.Add(asm);
-            toolchain.BuildDirectory = "C:/TMP/test_app_build";
-
-            var err = toolchain.Compile("C:/TMP/globals.exe");
-            Console.WriteLine($"Toolchain exit code: {err}");
-#endif
 #endif
         }
     }

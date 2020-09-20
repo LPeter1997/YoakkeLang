@@ -28,6 +28,7 @@ namespace Yoakke.Lir.Types
             Type.Proc => PointerSize,
             Type.Ptr => PointerSize,
             Type.Struct s => s.Definition.Fields.Sum(SizeOf),
+            Type.Array a => a.Size * SizeOf(a.Subtype),
             _ => throw new NotImplementedException(),
         };
 
