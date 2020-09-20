@@ -394,5 +394,50 @@ namespace Yoakke.Lir.Tests
             b.Ret(b.Load(b.ElementPtr(sPtr, 2)));
             TestOnAllBackends(b, Type.I32.NewValue(41));
         }
+
+        [TestMethod]
+        public void ArrayElement0()
+        {
+            var b = GetBuilder();
+            var arrTy = new Type.Array(Type.I32, 3);
+            var arrPtr = b.Alloc(arrTy);
+            var intPtr = b.Cast(new Type.Ptr(Type.I32), arrPtr);
+            for (int i = 0; i < 3; ++i)
+            {
+                b.Store(b.Add(intPtr, Type.I32.NewValue(i)), Type.I32.NewValue(2 * i + 1));
+            }
+            b.Ret(b.Load(b.Add(intPtr, Type.I32.NewValue(0))));
+            TestOnAllBackends(b, Type.I32.NewValue(1));
+        }
+
+        [TestMethod]
+        public void ArrayElement1()
+        {
+            var b = GetBuilder();
+            var arrTy = new Type.Array(Type.I32, 3);
+            var arrPtr = b.Alloc(arrTy);
+            var intPtr = b.Cast(new Type.Ptr(Type.I32), arrPtr);
+            for (int i = 0; i < 3; ++i)
+            {
+                b.Store(b.Add(intPtr, Type.I32.NewValue(i)), Type.I32.NewValue(2 * i + 1));
+            }
+            b.Ret(b.Load(b.Add(intPtr, Type.I32.NewValue(1))));
+            TestOnAllBackends(b, Type.I32.NewValue(3));
+        }
+
+        [TestMethod]
+        public void ArrayElement2()
+        {
+            var b = GetBuilder();
+            var arrTy = new Type.Array(Type.I32, 3);
+            var arrPtr = b.Alloc(arrTy);
+            var intPtr = b.Cast(new Type.Ptr(Type.I32), arrPtr);
+            for (int i = 0; i < 3; ++i)
+            {
+                b.Store(b.Add(intPtr, Type.I32.NewValue(i)), Type.I32.NewValue(2 * i + 1));
+            }
+            b.Ret(b.Load(b.Add(intPtr, Type.I32.NewValue(2))));
+            TestOnAllBackends(b, Type.I32.NewValue(5));
+        }
     }
 }
