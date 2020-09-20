@@ -45,12 +45,13 @@ namespace Yoakke.Compiler
             main.Return = Type.I32;
 
             var aptr = builder.Alloc(arr);
+            var bptr = builder.Cast(new Type.Ptr(Type.I32), aptr);
             for (int i = 0; i < 5; ++i)
             {
-                var p = builder.Add(aptr, Type.I32.NewValue(i));
+                var p = builder.Add(bptr, Type.I32.NewValue(i));
                 builder.Store(p, Type.I32.NewValue(i * 2 + 1));
             }
-            builder.Ret(builder.Load(builder.ElementPtr(aptr, 1)));
+            builder.Ret(builder.Load(builder.Add(bptr, Type.I32.NewValue(1))));
 
             var targetTriplet = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
             var toolchain = Toolchains.Supporting(targetTriplet).First();

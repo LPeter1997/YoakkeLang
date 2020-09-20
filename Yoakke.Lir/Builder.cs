@@ -329,6 +329,14 @@ namespace Yoakke.Lir
             }
         }
 
+        // TODO: Doc
+        public Value Cast(Type target, Value value)
+        {
+            var resultReg = AllocateRegister(target);
+            AddInstruction(new Instr.Cast(resultReg, target, value));
+            return resultReg;
+        }
+
         // Internals
 
         // TODO: We could factor this into validation?

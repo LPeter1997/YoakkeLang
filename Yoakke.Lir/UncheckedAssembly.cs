@@ -289,6 +289,20 @@ namespace Yoakke.Lir
             }
             break;
 
+            case Instr.Cast cast:
+            {
+                if (cast.Target is Type.Ptr && cast.Value.Type is Type.Ptr)
+                {
+                    // Always allow that
+                }
+                else
+                {
+                    // TODO
+                    throw new NotImplementedException();
+                }
+            }
+            break;
+
             default: throw new NotImplementedException();
             }
         }        
