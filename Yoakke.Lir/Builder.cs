@@ -316,6 +316,13 @@ namespace Yoakke.Lir
                 AddInstruction(new Instr.ElementPtr(resultReg, value, index));
                 return resultReg;
             }
+            else if (value.Type is Type.Ptr ptrTy2 && ptrTy2.Subtype is Type.Array arrayTy)
+            {
+                var resultPtrTy = new Type.Ptr(arrayTy.Subtype);
+                var resultReg = AllocateRegister(resultPtrTy);
+                AddInstruction(new Instr.ElementPtr(resultReg, value, index));
+                return resultReg;
+            }
             else
             {
                 throw new ArgumentException("The source value must be a pointer to a struct type!", nameof(value));

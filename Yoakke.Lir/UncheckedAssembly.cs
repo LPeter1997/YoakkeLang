@@ -269,6 +269,14 @@ namespace Yoakke.Lir
                         throw new InvalidOperationException();
                     }
                 }
+                else if (elementPtr.Value.Type is Type.Ptr ptrTy2 && ptrTy2.Subtype is Type.Array arrTy)
+                {
+                    if (!(elementPtr.Index.Type is Type.Int))
+                    {
+                        // TODO: Only allow integer elements
+                        throw new InvalidOperationException();
+                    }
+                }
                 else
                 {
                     // TODO
