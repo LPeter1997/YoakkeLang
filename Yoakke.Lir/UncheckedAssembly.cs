@@ -222,6 +222,10 @@ namespace Yoakke.Lir
                         throw new InvalidOperationException();
                     }
                 }
+                else if (arith.Left.Type is Type.Int && arith.Right.Type is Type.Ptr
+                      || arith.Left.Type is Type.Ptr && arith.Right.Type is Type.Int)
+                {
+                }
                 else
                 {
                     // TODO

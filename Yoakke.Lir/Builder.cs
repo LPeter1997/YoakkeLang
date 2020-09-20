@@ -343,6 +343,14 @@ namespace Yoakke.Lir
                 }
                 return leftInt.Bits > rightInt.Bits ? leftInt : rightInt;
             }
+            else if (left is Type.Int && right is Type.Ptr p)
+            {
+                return p;
+            }
+            else if (left is Type.Ptr p2 && right is Type.Int)
+            {
+                return p2;
+            }
             else
             {
                 // TODO

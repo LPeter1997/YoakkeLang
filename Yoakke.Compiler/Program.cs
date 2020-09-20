@@ -47,7 +47,7 @@ namespace Yoakke.Compiler
             var aptr = builder.Alloc(arr);
             for (int i = 0; i < 5; ++i)
             {
-                var p = builder.ElementPtr(aptr, i);
+                var p = builder.Add(aptr, Type.I32.NewValue(i));
                 builder.Store(p, Type.I32.NewValue(i * 2 + 1));
             }
             builder.Ret(builder.Load(builder.ElementPtr(aptr, 1)));
