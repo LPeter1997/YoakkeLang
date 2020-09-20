@@ -18,6 +18,7 @@ namespace Yoakke.Lir.Instructions
             /// The <see cref="Value"/> to get the element pointer of.
             /// </summary>
             public Value Value { get; set; }
+            // TODO: Maybe we should have a (int | Value) type here? Statically more valid.
             /// <summary>
             /// The index of the element.
             /// </summary>
