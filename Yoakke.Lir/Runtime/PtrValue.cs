@@ -6,42 +6,29 @@ namespace Yoakke.Lir.Runtime
 {
     internal class PtrValue : Value
     {
-        public Value? Value { get; set; }
+        public readonly byte[] Segment;
         public int Offset { get; set; }
+        public readonly Type BaseType;
+        public override Type Type { get; }
 
-        private Type baseType;
-        public override Type Type => GetTypeForPointer();
-
-        public PtrValue(Type baseType)
+        public PtrValue(byte[] segment, Type baseType)
         {
-            this.baseType = baseType;
+            Segment = segment;
+            BaseType = baseType;
+            Type = new Type.Ptr(baseType);
         }
 
-        private Type GetTypeForPointer()
+        public PtrValue OffsetBy(int amount, Type newType) => new PtrValue(Segment, newType)
         {
-            if (Offset == 0) return new Type.Ptr(baseType);
-            // TODO
-            throw new NotImplementedException();
-        }
+            Offset = Offset + amount,
+        };
 
-        public PtrValue OffsetBy(int amount)
-        {
-            var clone = (PtrValue)Clone();
-            clone.Offset += amount;
-            return clone;
-        }
-
-        // TODO
-        public override string ToValueString() => "<some ptr>";
+        public override string ToValueString() => $"{Offset} as {Type}";
         public override bool Equals(Value? other) =>
-               other is PtrValue p 
-            && ((Value is null && p.Value is null) || (Value is not null && Value.Equals(p.Value)))
-            && Offset == p.Offset;
-        public override int GetHashCode() => HashCode.Combine(typeof(PtrValue), Value, Offset);
-        public override Value Clone() => new PtrValue(baseType)
+            other is PtrValue p && Segment == p.Segment && Offset == p.Offset;
+        public override int GetHashCode() => HashCode.Combine(typeof(PtrValue), Segment, Offset);
+        public override Value Clone() => new PtrValue(Segment, BaseType)
         {
-            // NOTE: We DON'T clone this value, this allows us to act like a pointer!
-            Value = Value,
             Offset = Offset,
         };
     }

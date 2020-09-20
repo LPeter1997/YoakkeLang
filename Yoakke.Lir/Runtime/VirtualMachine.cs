@@ -186,7 +186,7 @@ namespace Yoakke.Lir.Runtime
 
             case Instr.Alloc alloc:
             {
-                var ptr = new PtrValue(alloc.Allocated);
+                var ptr = Allocate(alloc.Allocated);
                 StackFrame[alloc.Result] = ptr;
                 ++instructionPointer;
             }
@@ -216,7 +216,7 @@ namespace Yoakke.Lir.Runtime
                     // TODO
                     throw new NotImplementedException();
                 }
-                var loadedValue = ReadManagedPtr(load.Result.Type, ptrVal);
+                var loadedValue = ReadManagedPtr(ptrVal);
                 StackFrame[load.Result] = loadedValue.Clone();
                 ++instructionPointer;
             }
@@ -333,7 +333,8 @@ namespace Yoakke.Lir.Runtime
                     var offset = sizeContext.OffsetOf(structTy.Definition, (int)index.Value);
                     if (value is PtrValue managedPtr)
                     {
-                        result = managedPtr.OffsetBy(offset);
+                        var resultType = structTy.Definition.Fields[(int)index.Value];
+                        result = managedPtr.OffsetBy(offset, resultType);
                     }
                     else
                     {
@@ -403,35 +404,57 @@ namespace Yoakke.Lir.Runtime
             _ => value,
         };
 
-        private static Value ReadManagedPtr(Type type, PtrValue value)
+        private PtrValue Allocate(Type type)
         {
-            // TODO: Proper implementation
-            if (value.Offset != 0)
-            {
-                throw new NotImplementedException();
-            }
-            if (value.Value is null)
-            {
-                // Read from uninitialized pointer!
-                throw new InvalidOperationException();
-            }
-            if (!value.Value.Type.Equals(type))
-            {
-                // Can't read that type here
-                throw new InvalidOperationException();
-            }
-            return value.Value;
+            var buffer = new byte[SizeOf(type)];
+            return new PtrValue(buffer, type);
         }
 
-        private static void WriteManagedPtr(PtrValue ptr, Value value)
+        private int SizeOf(Value value) => SizeOf(value.Type);
+        private int SizeOf(Type type) => sizeContext.SizeOf(type);
+
+        private Value ReadManagedPtr(PtrValue value)
         {
-            // TODO: Proper implementation
-            if (ptr.Offset != 0)
+            var typeToRead = value.BaseType;
+            var segment = value.Segment.AsSpan().Slice(value.Offset);
+            return ReadFromMemory(ref segment, typeToRead);
+        }
+
+        private Value ReadFromMemory(ref Span<byte> bytes, Type typeToRead)
+        {
+            switch (typeToRead)
             {
-                throw new NotImplementedException();
+            case Type.Int i:
+            {
+                var size = SizeOf(i);
+                var value = new BigInteger(bytes.Slice(0, size));
+                bytes = bytes.Slice(size);
+                return new Value.Int(i, value);
             }
-            // TODO: Type-check
-            ptr.Value = value;
+
+            default: throw new NotImplementedException();
+            }
+        }
+
+        private void WriteManagedPtr(PtrValue ptr, Value value)
+        {
+            var segment = ptr.Segment.AsSpan().Slice(ptr.Offset);
+            WriteToMemory(ref segment, value);
+        }
+
+        private void WriteToMemory(ref Span<byte> bytes, Value value)
+        {
+            switch (value)
+            {
+            case Value.Int i:
+            {
+                i.Value.TryWriteBytes(bytes, out var written);
+                bytes = bytes.Slice(written);
+            }
+            break;
+
+            default: throw new NotImplementedException();
+            }
         }
 
         private static Value ReadNativePtr(Type type, IntPtr intPtr)
