@@ -230,18 +230,15 @@ namespace Yoakke.Lir.Runtime
                 {
                     return ReadManagedPtr(ptrVal);
                 }
-                else
-                {
-                    // TODO: Native pointers?
-                    throw new NotImplementedException();
-                }
+                // TODO: Native pointers?
+                throw new NotImplementedException();
             }
 
             case Instr.Cmp cmp:
             {
                 var left = Unwrap(cmp.Left);
                 var right = Unwrap(cmp.Right);
-                var boolResult = false;
+                bool boolResult;
                 if (cmp.Comparison == Comparison.Eq_)
                 {
                     boolResult = left.Equals(right);
@@ -286,7 +283,7 @@ namespace Yoakke.Lir.Runtime
                     var resultType = (Type.Int)arith.Result.Type;
                     return new Value.Int(resultType, intResult);
                 }
-                else if (left is PtrValue leftPtr && right is Value.Int rightInt2)
+                if (left is PtrValue leftPtr && right is Value.Int rightInt2)
                 {
                     var typeSize = SizeOf(((Type.Ptr)leftPtr.Type).Subtype);
                     var offset = arith switch
@@ -297,10 +294,7 @@ namespace Yoakke.Lir.Runtime
                     };
                     return leftPtr.OffsetBy(offset, leftPtr.BaseType);
                 }
-                else
-                {
-                    throw new InvalidOperationException();
-                }
+                throw new InvalidOperationException();
             }
 
             case BitwiseInstr bitwise:
@@ -319,10 +313,7 @@ namespace Yoakke.Lir.Runtime
                     var resultType = (Type.Int)bitwise.Result.Type;
                     return new Value.Int(resultType, intResult);
                 }
-                else
-                {
-                    throw new InvalidOperationException();
-                }
+                throw new InvalidOperationException();
             }
 
             case BitShiftInstr bitshift:
@@ -340,10 +331,7 @@ namespace Yoakke.Lir.Runtime
                     var resultType = (Type.Int)bitshift.Result.Type;
                     return new Value.Int(resultType, intResult);
                 }
-                else
-                {
-                    throw new InvalidOperationException();
-                }
+                throw new InvalidOperationException();
             }
 
             case Instr.ElementPtr elementPtr:
@@ -357,11 +345,8 @@ namespace Yoakke.Lir.Runtime
                     var resultType = structTy.Definition.Fields[index];
                     return managedPtr.OffsetBy(offset, resultType);
                 }
-                else
-                {
-                    // TODO: Native ptr
-                    throw new NotImplementedException();
-                }
+                // TODO: Native ptr
+                throw new NotImplementedException();
             }
 
             case Instr.Cast cast:
@@ -373,16 +358,10 @@ namespace Yoakke.Lir.Runtime
                     {
                         return managedPtr.OffsetBy(0, toType.Subtype);
                     }
-                    else
-                    {
-                        // TODO: Native ptr
-                        throw new NotImplementedException();
-                    }
+                    // TODO: Native ptr
+                    throw new NotImplementedException();
                 }
-                else
-                {
-                    throw new InvalidOperationException();
-                }
+                throw new InvalidOperationException();
             }
 
             default: throw new NotImplementedException();
