@@ -14,6 +14,13 @@ using Type = Yoakke.Lir.Types.Type;
 
 namespace Yoakke.Lir.Runtime
 {
+    // TODO: The current pointer repr. can't be written to memory!
+    // Reason:
+    //  1. Can't differentiate managed pointers written vs. native pointers written
+    //  2. Managed pointers can't reference their byte buffer once they are dumped
+    // Solution could be to make both pointer types big enough to include a differentiating bit,
+    // and include the section index. For that we need to keep track of sections in the VM!
+
     /// <summary>
     /// A virtual machine to execute IR code directly.
     /// </summary>
@@ -173,13 +180,8 @@ namespace Yoakke.Lir.Runtime
 
             case Instr.JmpIf jmpIf:
             {
-                var condValue = Unwrap(jmpIf.Condition);
-                if (!(condValue is Value.Int intCondValue))
-                {
-                    // TODO
-                    throw new NotImplementedException();
-                }
-                bool condition = intCondValue.Value != 0;
+                var condValue = (Value.Int)Unwrap(jmpIf.Condition);
+                bool condition = condValue.Value != 0;
                 instructionPointer = addresses[condition ? jmpIf.Then : jmpIf.Else];
             }
             break;
@@ -194,30 +196,34 @@ namespace Yoakke.Lir.Runtime
 
             case Instr.Store store:
             {
-                // TODO: Native pointers?
                 var address = Unwrap(store.Target);
                 var value = Unwrap(store.Value);
-                if (!(address is PtrValue ptrVal))
+                if (address is PtrValue ptrVal)
                 {
-                    // TODO
+                    WriteManagedPtr(ptrVal, value.Clone());
+                }
+                else
+                {
+                    // TODO: Native pointers?
                     throw new NotImplementedException();
                 }
-                WriteManagedPtr(ptrVal, value.Clone());
                 ++instructionPointer;
             }
             break;
 
             case Instr.Load load:
             {
-                // TODO: Native pointers?
                 var address = Unwrap(load.Address);
-                if (!(address is PtrValue ptrVal))
+                if (address is PtrValue ptrVal)
                 {
-                    // TODO
+                    var loadedValue = ReadManagedPtr(ptrVal);
+                    StackFrame[load.Result] = loadedValue;
+                }
+                else
+                {
+                    // TODO: Native pointers?
                     throw new NotImplementedException();
                 }
-                var loadedValue = ReadManagedPtr(ptrVal);
-                StackFrame[load.Result] = loadedValue.Clone();
                 ++instructionPointer;
             }
             break;
@@ -243,15 +249,14 @@ namespace Yoakke.Lir.Runtime
                         Comparison.Le => leftInt.Value < rightInt.Value,
                         Comparison.GrEq => leftInt.Value >= rightInt.Value,
                         Comparison.LeEq => leftInt.Value <= rightInt.Value,
-                        _ => throw new NotImplementedException(),
+                        _ => throw new InvalidOperationException(),
                     };
                 }
                 else
                 {
-                    // TODO
-                    throw new NotImplementedException();
+                    throw new InvalidOperationException();
                 }
-                StackFrame[cmp.Result] = boolResult ? Type.I32.NewValue(1) : Type.I32.NewValue(0);
+                StackFrame[cmp.Result] = Type.I32.NewValue(boolResult ? 1 : 0);
                 ++instructionPointer;
             }
             break;
@@ -263,10 +268,6 @@ namespace Yoakke.Lir.Runtime
                 Value? result = null;
                 if (left is Value.Int leftInt && right is Value.Int rightInt)
                 {
-                    var leftType = (Type.Int)left.Type;
-                    var rightType = (Type.Int)right.Type;
-                    var resultType = leftType.Bits > rightType.Bits ? leftType : rightType;
-
                     var intResult = arith switch
                     {
                         Instr.Add => leftInt.Value + rightInt.Value,
@@ -274,8 +275,9 @@ namespace Yoakke.Lir.Runtime
                         Instr.Mul => leftInt.Value * rightInt.Value,
                         Instr.Div => leftInt.Value / rightInt.Value,
                         Instr.Mod => leftInt.Value % rightInt.Value,
-                        _ => throw new NotImplementedException(),
+                        _ => throw new InvalidOperationException(),
                     };
+                    var resultType = (Type.Int)arith.Result.Type;
                     result = new Value.Int(resultType, intResult);
                 }
                 else if (left is PtrValue leftPtr && right is Value.Int rightInt2)
@@ -285,14 +287,13 @@ namespace Yoakke.Lir.Runtime
                     {
                         Instr.Add => typeSize * (int)rightInt2.Value,
                         Instr.Sub => -typeSize * (int)rightInt2.Value,
-                        _ => throw new NotImplementedException(),
+                        _ => throw new InvalidOperationException(),
                     };
                     result = leftPtr.OffsetBy(offset, leftPtr.BaseType);
                 }
                 else
                 {
-                    // TODO
-                    throw new NotImplementedException();
+                    throw new InvalidOperationException();
                 }
                 StackFrame[arith.Result] = result;
                 ++instructionPointer;
@@ -306,23 +307,19 @@ namespace Yoakke.Lir.Runtime
                 Value? result = null;
                 if (left is Value.Int leftInt && right is Value.Int rightInt)
                 {
-                    var leftType = (Type.Int)left.Type;
-                    var rightType = (Type.Int)right.Type;
-                    var resultType = leftType.Bits > rightType.Bits ? leftType : rightType;
-
                     var intResult = bitwise switch
                     {
                         Instr.BitAnd => leftInt.Value & rightInt.Value,
                         Instr.BitOr => leftInt.Value | rightInt.Value,
                         Instr.BitXor => leftInt.Value ^ rightInt.Value,
-                        _ => throw new NotImplementedException(),
+                        _ => throw new InvalidOperationException(),
                     };
+                    var resultType = (Type.Int)bitwise.Result.Type;
                     result = new Value.Int(resultType, intResult);
                 }
                 else
                 {
-                    // TODO
-                    throw new NotImplementedException();
+                    throw new InvalidOperationException();
                 }
                 StackFrame[bitwise.Result] = result;
                 ++instructionPointer;
@@ -340,14 +337,14 @@ namespace Yoakke.Lir.Runtime
                     {
                         Instr.Shl => leftInt.Value << (int)rightInt.Value,
                         Instr.Shr => leftInt.Value >> (int)rightInt.Value,
-                        _ => throw new NotImplementedException(),
+                        _ => throw new InvalidOperationException(),
                     };
+                    var resultType = (Type.Int)bitshift.Result.Type;
                     result = new Value.Int((Type.Int)leftInt.Type, intResult);
                 }
                 else
                 {
-                    // TODO
-                    throw new NotImplementedException();
+                    throw new InvalidOperationException();
                 }
                 StackFrame[bitshift.Result] = result;
                 ++instructionPointer;
@@ -357,26 +354,18 @@ namespace Yoakke.Lir.Runtime
             case Instr.ElementPtr elementPtr:
             {
                 var value = Unwrap(elementPtr.Value);
-
+                var index = elementPtr.Index.Value;
+                var structTy = (Type.Struct)((Type.Ptr)value.Type).Subtype;
+                var offset = sizeContext.OffsetOf(structTy.Definition, index);
                 Value? result;
-                if (value.Type is Type.Ptr ptrTy && ptrTy.Subtype is Type.Struct structTy)
+                if (value is PtrValue managedPtr)
                 {
-                    var index = elementPtr.Index.Value;
-                    var offset = sizeContext.OffsetOf(structTy.Definition, index);
-                    if (value is PtrValue managedPtr)
-                    {
-                        var resultType = structTy.Definition.Fields[index];
-                        result = managedPtr.OffsetBy(offset, resultType);
-                    }
-                    else
-                    {
-                        // TODO: Managed ptr
-                        throw new NotImplementedException();
-                    }
+                    var resultType = structTy.Definition.Fields[index];
+                    result = managedPtr.OffsetBy(offset, resultType);
                 }
                 else
                 {
-                    // TODO
+                    // TODO: Native ptr
                     throw new NotImplementedException();
                 }
                 StackFrame[elementPtr.Result] = result;
@@ -396,13 +385,13 @@ namespace Yoakke.Lir.Runtime
                     }
                     else
                     {
-                        // TODO: Extern
+                        // TODO: Native ptr
                         throw new NotImplementedException();
                     }
                 }
                 else
                 {
-                    throw new NotImplementedException();
+                    throw new InvalidOperationException();
                 }
                 StackFrame[cast.Result] = result;
                 ++instructionPointer;
@@ -415,8 +404,10 @@ namespace Yoakke.Lir.Runtime
 
         private void Call(Proc proc, IEnumerable<Value> arguments)
         {
-            // TODO: Proper error?
-            Debug.Assert(proc.Parameters.Count == arguments.Count());
+            if (proc.Parameters.Count != arguments.Count())
+            {
+                throw new ArgumentOutOfRangeException($"Parameter count mismatch when calling procedure '{proc.Name}'!");
+            }
             // Create the stack frame
             var newFrame = new StackFrame(instructionPointer + 1, proc.GetRegisterCount());
             // NOTE: We evaluate arguments here because we might still need the caller frame's register values!
