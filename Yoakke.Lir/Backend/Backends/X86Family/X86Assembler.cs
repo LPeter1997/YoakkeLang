@@ -369,6 +369,18 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             }
             break;
 
+            case Instr.Shl:
+            case Instr.Shr:
+            {
+                var bitsh = (BitShiftInstr)instr;
+                var target = CompileValue(bitsh.Result, true);
+                var left = CompileValue(bitsh.Shifted);
+                var right = CompileValue(bitsh.Amount);
+                WriteInstr(X86Op.Mov, target, left);
+                WriteInstr(bitsh is Instr.Shl ? X86Op.Shl : X86Op.Shr, target, right);
+            }
+            break;
+
             case Instr.ElementPtr elementPtr:
             {
                 var target = CompileValue(elementPtr.Result, true);

@@ -32,6 +32,8 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         Or,
         Xor,
         Lea,
+        Shl,
+        Shr,
     }
 
     /// <summary>

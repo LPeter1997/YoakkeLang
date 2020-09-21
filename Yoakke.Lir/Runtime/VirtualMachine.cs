@@ -329,6 +329,31 @@ namespace Yoakke.Lir.Runtime
             }
             break;
 
+            case BitShiftInstr bitshift:
+            {
+                var left = Unwrap(bitshift.Shifted);
+                var right = Unwrap(bitshift.Amount);
+                Value? result = null;
+                if (left is Value.Int leftInt && right is Value.Int rightInt)
+                {
+                    var intResult = bitshift switch
+                    {
+                        Instr.Shl => leftInt.Value << (int)rightInt.Value,
+                        Instr.Shr => leftInt.Value >> (int)rightInt.Value,
+                        _ => throw new NotImplementedException(),
+                    };
+                    result = new Value.Int((Type.Int)leftInt.Type, intResult);
+                }
+                else
+                {
+                    // TODO
+                    throw new NotImplementedException();
+                }
+                StackFrame[bitshift.Result] = result;
+                ++instructionPointer;
+            }
+            break;
+
             case Instr.ElementPtr elementPtr:
             {
                 var value = Unwrap(elementPtr.Value);
