@@ -186,14 +186,6 @@ namespace Yoakke.Lir.Runtime
             }
             break;
 
-            case Instr.Alloc alloc:
-            {
-                var ptr = Allocate(alloc.Allocated);
-                StackFrame[alloc.Result] = ptr;
-                ++instructionPointer;
-            }
-            break;
-
             case Instr.Store store:
             {
                 var address = Unwrap(store.Target);
@@ -211,22 +203,39 @@ namespace Yoakke.Lir.Runtime
             }
             break;
 
+            case ValueInstr vinstr:
+            {
+                StackFrame[vinstr.Result] = Evaluate(vinstr);
+                ++instructionPointer;
+            }
+            break;
+
+            default: throw new NotImplementedException();
+            }
+        }
+
+        private Value Evaluate(ValueInstr instr)
+        {
+            switch (instr)
+            {
+            case Instr.Alloc alloc:
+            {
+                return Allocate(alloc.Allocated);
+            }
+
             case Instr.Load load:
             {
                 var address = Unwrap(load.Address);
                 if (address is PtrValue ptrVal)
                 {
-                    var loadedValue = ReadManagedPtr(ptrVal);
-                    StackFrame[load.Result] = loadedValue;
+                    return ReadManagedPtr(ptrVal);
                 }
                 else
                 {
                     // TODO: Native pointers?
                     throw new NotImplementedException();
                 }
-                ++instructionPointer;
             }
-            break;
 
             case Instr.Cmp cmp:
             {
@@ -256,16 +265,13 @@ namespace Yoakke.Lir.Runtime
                 {
                     throw new InvalidOperationException();
                 }
-                StackFrame[cmp.Result] = Type.I32.NewValue(boolResult ? 1 : 0);
-                ++instructionPointer;
+                return Type.I32.NewValue(boolResult ? 1 : 0);
             }
-            break;
 
             case ArithInstr arith:
             {
                 var left = Unwrap(arith.Left);
                 var right = Unwrap(arith.Right);
-                Value? result = null;
                 if (left is Value.Int leftInt && right is Value.Int rightInt)
                 {
                     var intResult = arith switch
@@ -278,7 +284,7 @@ namespace Yoakke.Lir.Runtime
                         _ => throw new InvalidOperationException(),
                     };
                     var resultType = (Type.Int)arith.Result.Type;
-                    result = new Value.Int(resultType, intResult);
+                    return new Value.Int(resultType, intResult);
                 }
                 else if (left is PtrValue leftPtr && right is Value.Int rightInt2)
                 {
@@ -289,22 +295,18 @@ namespace Yoakke.Lir.Runtime
                         Instr.Sub => -typeSize * (int)rightInt2.Value,
                         _ => throw new InvalidOperationException(),
                     };
-                    result = leftPtr.OffsetBy(offset, leftPtr.BaseType);
+                    return leftPtr.OffsetBy(offset, leftPtr.BaseType);
                 }
                 else
                 {
                     throw new InvalidOperationException();
                 }
-                StackFrame[arith.Result] = result;
-                ++instructionPointer;
             }
-            break;
 
             case BitwiseInstr bitwise:
             {
                 var left = Unwrap(bitwise.Left);
                 var right = Unwrap(bitwise.Right);
-                Value? result = null;
                 if (left is Value.Int leftInt && right is Value.Int rightInt)
                 {
                     var intResult = bitwise switch
@@ -315,22 +317,18 @@ namespace Yoakke.Lir.Runtime
                         _ => throw new InvalidOperationException(),
                     };
                     var resultType = (Type.Int)bitwise.Result.Type;
-                    result = new Value.Int(resultType, intResult);
+                    return new Value.Int(resultType, intResult);
                 }
                 else
                 {
                     throw new InvalidOperationException();
                 }
-                StackFrame[bitwise.Result] = result;
-                ++instructionPointer;
             }
-            break;
 
             case BitShiftInstr bitshift:
             {
                 var left = Unwrap(bitshift.Shifted);
                 var right = Unwrap(bitshift.Amount);
-                Value? result = null;
                 if (left is Value.Int leftInt && right is Value.Int rightInt)
                 {
                     var intResult = bitshift switch
@@ -340,16 +338,13 @@ namespace Yoakke.Lir.Runtime
                         _ => throw new InvalidOperationException(),
                     };
                     var resultType = (Type.Int)bitshift.Result.Type;
-                    result = new Value.Int((Type.Int)leftInt.Type, intResult);
+                    return new Value.Int(resultType, intResult);
                 }
                 else
                 {
                     throw new InvalidOperationException();
                 }
-                StackFrame[bitshift.Result] = result;
-                ++instructionPointer;
             }
-            break;
 
             case Instr.ElementPtr elementPtr:
             {
@@ -357,31 +352,26 @@ namespace Yoakke.Lir.Runtime
                 var index = elementPtr.Index.Value;
                 var structTy = (Type.Struct)((Type.Ptr)value.Type).Subtype;
                 var offset = sizeContext.OffsetOf(structTy.Definition, index);
-                Value? result;
                 if (value is PtrValue managedPtr)
                 {
                     var resultType = structTy.Definition.Fields[index];
-                    result = managedPtr.OffsetBy(offset, resultType);
+                    return managedPtr.OffsetBy(offset, resultType);
                 }
                 else
                 {
                     // TODO: Native ptr
                     throw new NotImplementedException();
                 }
-                StackFrame[elementPtr.Result] = result;
-                ++instructionPointer;
             }
-            break;
 
             case Instr.Cast cast:
             {
                 var value = Unwrap(cast.Value);
-                Value? result = null;
                 if (cast.Target is Type.Ptr toType && value.Type is Type.Ptr)
                 {
                     if (value is PtrValue managedPtr)
                     {
-                        result = managedPtr.OffsetBy(0, toType.Subtype);
+                        return managedPtr.OffsetBy(0, toType.Subtype);
                     }
                     else
                     {
@@ -393,10 +383,7 @@ namespace Yoakke.Lir.Runtime
                 {
                     throw new InvalidOperationException();
                 }
-                StackFrame[cast.Result] = result;
-                ++instructionPointer;
             }
-            break;
 
             default: throw new NotImplementedException();
             }
