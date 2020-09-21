@@ -11,15 +11,16 @@ namespace Yoakke.Lir
     /// <summary>
     /// An IR procedure.
     /// </summary>
-    public class Proc : Value, ISymbol
+    public class Proc : Value, ISymbol, IValidate
     {
+        internal static readonly Proc Null = new Proc(" <null> ");
+
         public override Type Type =>
             new Type.Proc(CallConv, Return, Parameters.Select(p => p.Type).ToList().AsValueList());
         public string Name { get; }
         public Visibility Visibility { get; set; }
 
         // TODO: Procedure alignment
-        // TODO: Change this to default to void
         /// <summary>
         /// The return <see cref="Type"/> of the procedure.
         /// </summary>
@@ -72,5 +73,10 @@ namespace Yoakke.Lir
         public override int GetHashCode() => HashCode.Combine(typeof(Proc), Name);
         // NOTE: Makes no sense to clone this
         public override Value Clone() => this;
+
+        public void Validate()
+        {
+            foreach (var bb in BasicBlocks) bb.Validate();
+        }
     }
 }

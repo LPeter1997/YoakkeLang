@@ -148,6 +148,8 @@ namespace Yoakke.Lir
             // TODO: Check name uniqueness and correct it? The name is a suggestion!
             var bb = new BasicBlock(name);
             currentBasicBlock = bb;
+            // Link both ways
+            bb.Proc = CurrentProc;
             CurrentProc.BasicBlocks.Add(bb);
             return bb;
         }
@@ -158,8 +160,12 @@ namespace Yoakke.Lir
         /// Adds a new <see cref="Instr"/> to the current <see cref="BasicBlock"/>.
         /// </summary>
         /// <param name="instr">The <see cref="Instr"/> to add.</param>
-        public void AddInstr(Instr instr) =>
+        public void AddInstr(Instr instr)
+        {
+            // Link both ways
+            instr.BasicBlock = CurrentBasicBlock;
             CurrentBasicBlock.Instructions.Add(instr);
+        }
 
         /// <summary>
         /// Adds a new <see cref="Instr.Ret"/>.

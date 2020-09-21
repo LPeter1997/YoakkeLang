@@ -9,8 +9,14 @@ namespace Yoakke.Lir
     /// A basic block is a continuous list of instructions that only has a single entry point
     /// being the first instruction, and a single exit point being the last instruction.
     /// </summary>
-    public class BasicBlock : IInstrArg
+    public class BasicBlock : IInstrArg, IValidate
     {
+        internal static readonly BasicBlock Null = new BasicBlock(" <null> ");
+
+        /// <summary>
+        /// The <see cref="Proc"/> this <see cref="BasicBlock"/> belongs to.
+        /// </summary>
+        public Proc Proc { get; set; } = Proc.Null;
         /// <summary>
         /// The name of the <see cref="BasicBlock"/>.
         /// </summary>
@@ -31,5 +37,35 @@ namespace Yoakke.Lir
 
         public override string ToString() => 
             $"label {Name}:\n{string.Join('\n', Instructions.Select(i => $"    {i}"))}";
+
+        public void Validate()
+        {
+            // Check two-way link
+            if (!Proc.BasicBlocks.Contains(this))
+            {
+                ThrowValidationException("The basic block's procedure doesn't contain the basic block!");
+            }
+            // Check emptyness
+            if (Instructions.Count == 0)
+            {
+                ThrowValidationException("A basic block cannot be empty!");
+            }
+            // Check basic block assumptions
+            if (Instructions.SkipLast(1).Any(ins => ins.IsBranch))
+            {
+                ThrowValidationException("A basic block can only contain jump or return instructions at the end!");
+            }
+            if (!Instructions.Last().IsBranch)
+            {
+                ThrowValidationException("A basic block must end in a jump or return instruction!");
+            }
+            // Check instructions
+            foreach (var ins in Instructions) ins.Validate();
+        }
+
+        private void ThrowValidationException(string message)
+        {
+            throw new ValidationException(this, message);
+        }
     }
 }

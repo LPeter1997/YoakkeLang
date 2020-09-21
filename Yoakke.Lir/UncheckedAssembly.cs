@@ -14,7 +14,7 @@ namespace Yoakke.Lir
     /// <summary>
     /// An <see cref="Assembly"/> that's mutable and is not in a validated state.
     /// </summary>
-    public class UncheckedAssembly
+    public class UncheckedAssembly : IValidate
     {
         /// <summary>
         /// The name of this <see cref="Assembly"/>.
@@ -52,35 +52,14 @@ namespace Yoakke.Lir
 
         public Assembly Check()
         {
-            // TODO: Check circularity for struct definitions?
-            foreach (var proc in Procedures) Check(proc);
+            Validate();
             return new Assembly(this);
         }
 
-        private void Check(Proc proc)
+        public void Validate()
         {
-            foreach (var bb in proc.BasicBlocks) Check(proc, bb);
-        }
-
-        private void Check(Proc proc, BasicBlock basicBlock)
-        {
-            if (basicBlock.Instructions.Count == 0)
-            {
-                // TODO: A basic block can't be empty!
-                throw new InvalidOperationException();
-            }
-            if (basicBlock.Instructions.SkipLast(1).Any(ins => ins.IsBranch))
-            {
-                // TODO: A basic block can't contain a branch instruction apart from the last instruction
-                throw new InvalidOperationException();
-            }
-            if (!basicBlock.Instructions.Last().IsBranch)
-            {
-                // TODO: A basic block must end in a branch
-                throw new InvalidOperationException();
-            }
-            // Check instructions
-            foreach (var ins in basicBlock.Instructions) Check(proc, ins);
+            // TODO: Check circularity for struct definitions?
+            foreach (var proc in Procedures) proc.Validate();
         }
 
         private void Check(Proc proc, Instr instr)
