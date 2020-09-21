@@ -44,14 +44,7 @@ namespace Yoakke.Compiler
             var main = builder.DefineProc("main");
             main.Return = Type.I32;
 
-            var aptr = builder.Alloc(arr);
-            var bptr = builder.Cast(new Type.Ptr(Type.I32), aptr);
-            for (int i = 0; i < 3; ++i)
-            {
-                var p = builder.Add(bptr, Type.I32.NewValue(i));
-                builder.Store(p, Type.I32.NewValue(i * 2 + 1));
-            }
-            builder.Ret(builder.Load(builder.Add(bptr, Type.I32.NewValue(1))));
+            builder.Ret(builder.Shl(Type.I32.NewValue(1), Type.I32.NewValue(3)));
 
             var targetTriplet = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
             var toolchain = Toolchains.Supporting(targetTriplet).First();

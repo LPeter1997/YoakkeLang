@@ -263,6 +263,16 @@ namespace Yoakke.Lir
             }
             break;
 
+            case BitShiftInstr bitShift:
+            {
+                if (!(bitShift.Shifted.Type is Type.Int && bitShift.Amount.Type is Type.Int))
+                {
+                    // TODO
+                    throw new InvalidOperationException();
+                }
+            }
+            break;
+
             case Instr.ElementPtr elementPtr:
             {
                 if (!(elementPtr.Value.Type is Type.Ptr ptrTy && ptrTy.Subtype is Type.Struct structTy))

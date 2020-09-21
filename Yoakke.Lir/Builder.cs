@@ -297,6 +297,22 @@ namespace Yoakke.Lir
         }
 
         // TODO: Doc
+        public Value Shl(Value shifted, Value amount)
+        {
+            var resultReg = AllocateRegister(shifted.Type);
+            AddInstruction(new Instr.Shl(resultReg, shifted, amount));
+            return resultReg;
+        }
+
+        // TODO: Doc
+        public Value Shr(Value shifted, Value amount)
+        {
+            var resultReg = AllocateRegister(shifted.Type);
+            AddInstruction(new Instr.Shr(resultReg, shifted, amount));
+            return resultReg;
+        }
+
+        // TODO: Doc
         public Value ElementPtr(Value value, int index)
         {
             // TODO: Factor this into validation?
