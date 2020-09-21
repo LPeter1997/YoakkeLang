@@ -40,11 +40,6 @@ namespace Yoakke.Lir
 
         public void Validate()
         {
-            // Check two-way link
-            if (!Proc.BasicBlocks.Contains(this))
-            {
-                ThrowValidationException("The basic block's procedure doesn't contain the basic block!");
-            }
             // Check emptyness
             if (Instructions.Count == 0)
             {
@@ -60,7 +55,14 @@ namespace Yoakke.Lir
                 ThrowValidationException("A basic block must end in a jump or return instruction!");
             }
             // Check instructions
-            foreach (var ins in Instructions) ins.Validate();
+            foreach (var ins in Instructions)
+            {
+                if (ins.BasicBlock != this)
+                {
+                    throw new ValidationException(ins, "The instruction is not linked to it's containing basic block!");
+                }
+                ins.Validate();
+            }
         }
 
         private void ThrowValidationException(string message)

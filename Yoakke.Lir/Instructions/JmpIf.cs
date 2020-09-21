@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;
 
 namespace Yoakke.Lir.Instructions
@@ -50,6 +51,18 @@ namespace Yoakke.Lir.Instructions
 
             public override string ToString() => 
                 $"jmpif {Condition.ToValueString()}, {Then.Name}, {Else.Name}";
+
+            public override void Validate()
+            {
+                if (!(Condition.Type is Type.Int))
+                {
+                    ThrowValidationException("Condition must be of integer type!");
+                }
+                if (!BasicBlock.Proc.BasicBlocks.Contains(Then) || !BasicBlock.Proc.BasicBlocks.Contains(Else))
+                {
+                    ThrowValidationException("Cross-procedure jump is illegal!");
+                }
+            }
         }
     }
 }

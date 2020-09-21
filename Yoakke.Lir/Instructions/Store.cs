@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;
 
 namespace Yoakke.Lir.Instructions
@@ -40,6 +41,19 @@ namespace Yoakke.Lir.Instructions
             }
 
             public override string ToString() => $"store {Target.ToValueString()}, {Value.ToValueString()}";
+
+            public override void Validate()
+            {
+                if (!(Target.Type is Type.Ptr targetPtr))
+                {
+                    ThrowValidationException("Target address must be of a pointer type!");
+                    return; // NOTE: Not needed
+                }
+                if (!Value.Type.Equals(targetPtr.Subtype))
+                {
+                    ThrowValidationException("The stored value must match the source pointer's subtype!");
+                }
+            }
         }
     }
 }

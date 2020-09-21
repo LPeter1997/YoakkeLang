@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;
+using Type = Yoakke.Lir.Types.Type;
 
 namespace Yoakke.Lir.Instructions
 {
@@ -53,6 +55,35 @@ namespace Yoakke.Lir.Instructions
             }
 
             public override string ToString() => $"{Result} = elementptr {Value}, {Index.Value}";
+
+            public override void Validate()
+            {
+                try
+                {
+                    var subtype = AccessedSubtype(Value.Type, Index.Value);
+                    if (!Result.Type.Equals(subtype))
+                    {
+                        ThrowValidationException("The result type does not match the result storage type!");
+                    }
+                }
+                catch (ArgumentException ex)
+                {
+                    throw new ValidationException(this, "See inner exception.", ex);
+                }
+            }
+
+            public static Type AccessedSubtype(Type type, int index)
+            {
+                if (!(type is Type.Ptr ptrTy && ptrTy.Subtype is Type.Struct structTy))
+                {
+                    throw new ArgumentException("The accessed type must be a pointer to a struct type!", nameof(type));
+                }
+                if (structTy.Definition.Fields.Count <= index)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(index));
+                }
+                return new Type.Ptr(structTy.Definition.Fields[index]);
+            }
         }
     }
 }

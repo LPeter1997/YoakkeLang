@@ -47,6 +47,22 @@ namespace Yoakke.Lir.Instructions
             }
 
             public override string ToString() => $"{Result} = cast {Target}, {Value.ToValueString()}";
+
+            public override void Validate()
+            {
+                if (!Result.Type.Equals(Target))
+                {
+                    ThrowValidationException("The cast type must match the result storage type!");
+                }
+                if (Target is Type.Ptr && Value.Type is Type.Ptr)
+                {
+                    // Always allow that
+                }
+                else
+                {
+                    ThrowValidationException("No such cast!");
+                }
+            }
         }
     }
 }

@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;
 
 namespace Yoakke.Lir.Instructions
@@ -51,6 +51,19 @@ namespace Yoakke.Lir.Instructions
         }
 
         public override string ToString() => $"{Result} = {Keyword} {Shifted}, {Amount}";
+
+        public override void Validate()
+        {
+            if (!Result.Type.Equals(Shifted.Type))
+            {
+                ThrowValidationException("The shifted type must match the result storage type!");
+            }
+            if (!(Shifted.Type is Type.Int && Amount.Type is Type.Int))
+            {
+                // TODO: Make sure shift amount is unsigned?
+                ThrowValidationException("The shift operands must be integers!");
+            }
+        }
     }
 
     partial class Instr

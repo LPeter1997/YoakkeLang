@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;
 
 namespace Yoakke.Lir.Instructions
@@ -36,6 +37,19 @@ namespace Yoakke.Lir.Instructions
             }
 
             public override string ToString() => $"{Result} = load {Address.ToValueString()}";
+
+            public override void Validate()
+            {
+                if (!(Address.Type is Type.Ptr ptrTy))
+                {
+                    ThrowValidationException("The source address must be a pointer type!");
+                    return; // NOTE: Not needed
+                }
+                if (!Result.Type.Equals(ptrTy.Subtype))
+                {
+                    ThrowValidationException("The result typemust be equal to the source address subtype!");
+                }
+            }
         }
     }
 }

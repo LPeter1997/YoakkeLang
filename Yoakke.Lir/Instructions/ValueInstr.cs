@@ -1,4 +1,6 @@
-﻿namespace Yoakke.Lir.Instructions
+﻿using Yoakke.Lir.Types;
+
+namespace Yoakke.Lir.Instructions
 {
     /// <summary>
     /// Base for every instruction that yields some value in a <see cref="Register"/>.

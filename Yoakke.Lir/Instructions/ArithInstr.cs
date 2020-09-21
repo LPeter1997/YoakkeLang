@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;
+using Type = Yoakke.Lir.Types.Type;
 
 namespace Yoakke.Lir.Instructions
 {
@@ -49,6 +51,46 @@ namespace Yoakke.Lir.Instructions
         }
 
         public override string ToString() => $"{Result} = {Keyword} {Left}, {Right}";
+
+        public override void Validate()
+        {
+            try
+            {
+                var resultTy = CommonArithmeticType(Left.Type, Right.Type);
+                if (!Result.Type.Equals(resultTy))
+                {
+                    ThrowValidationException("The arithmetic result does not match the result storage type!");
+                }
+            }
+            catch (ArgumentException ex)
+            {
+                throw new ValidationException(this, "See inner exception.", ex);
+            }
+        }
+
+        public static Type CommonArithmeticType(Type left, Type right)
+        {
+            if (left is Type.Int leftInt && right is Type.Int rightInt)
+            {
+                if (leftInt.Signed != rightInt.Signed)
+                {
+                    throw new ArgumentException("Integer signedness mismatch!");
+                }
+                return leftInt.Bits > rightInt.Bits ? leftInt : rightInt;
+            }
+            else if (left is Type.Int && right is Type.Ptr p)
+            {
+                return p;
+            }
+            else if (left is Type.Ptr p2 && right is Type.Int)
+            {
+                return p2;
+            }
+            else
+            {
+                throw new ArgumentException("No common arithmetic type for types!");
+            }
+        }
     }
 
     partial class Instr

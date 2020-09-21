@@ -49,6 +49,23 @@ namespace Yoakke.Lir.Instructions
         }
 
         public override string ToString() => $"{Result} = {Keyword} {Left}, {Right}";
+
+        public override void Validate()
+        {
+            try
+            {
+                // TODO: We might need something else here
+                var resultTy = ArithInstr.CommonArithmeticType(Left.Type, Right.Type);
+                if (!Result.Type.Equals(resultTy))
+                {
+                    ThrowValidationException("The bitwise result does not match the result storage type!");
+                }
+            }
+            catch (ArgumentException ex)
+            {
+                throw new ValidationException(this, "See inner exception.", ex);
+            }
+        }
     }
 
     partial class Instr

@@ -35,6 +35,14 @@ namespace Yoakke.Lir.Instructions
             }
 
             public override string ToString() => $"ret {Value.ToValueString()}";
+
+            public override void Validate()
+            {
+                if (!BasicBlock.Proc.Return.Equals(Value.Type))
+                {
+                    ThrowValidationException("Return type mismatch!");
+                }
+            }
         }
     }
 }

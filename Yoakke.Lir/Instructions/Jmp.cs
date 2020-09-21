@@ -34,6 +34,14 @@ namespace Yoakke.Lir.Instructions
             }
 
             public override string ToString() => $"jmp {Target.Name}";
+
+            public override void Validate()
+            {
+                if (!BasicBlock.Proc.BasicBlocks.Contains(Target))
+                {
+                    ThrowValidationException("Cross-procedure jump is illegal!");
+                }
+            }
         }
     }
 }

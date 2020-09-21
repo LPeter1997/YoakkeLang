@@ -76,7 +76,14 @@ namespace Yoakke.Lir
 
         public void Validate()
         {
-            foreach (var bb in BasicBlocks) bb.Validate();
+            foreach (var bb in BasicBlocks)
+            {
+                if (bb.Proc != this)
+                {
+                    throw new ValidationException(bb, "The basic block is not linked to the containing procedure!");
+                }
+                bb.Validate();
+            }
         }
     }
 }

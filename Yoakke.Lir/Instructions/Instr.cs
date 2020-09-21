@@ -22,13 +22,7 @@ namespace Yoakke.Lir.Instructions
 
         public abstract override string ToString();
 
-        public void Validate()
-        {
-            if (!BasicBlock.Instructions.Contains(this))
-            {
-                ThrowValidationException("The instructions's basic block doesn't contain the instruction!");
-            }
-        }
+        public abstract void Validate();
 
         protected void ThrowValidationException(string message)
         {

@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;
 
 namespace Yoakke.Lir.Instructions
@@ -82,6 +82,18 @@ namespace Yoakke.Lir.Instructions
             }
 
             public override string ToString() => $"{Result} = cmp {Comparison} {Left}, {Right}";
+
+            public override void Validate()
+            {
+                if (!(Result.Type is Type.Int))
+                {
+                    ThrowValidationException("Result type of comparison must be an integer!");
+                }
+                if (!(Left.Type is Type.Int && Right.Type is Type.Int))
+                {
+                    ThrowValidationException("Unsupported comparison types!");
+                }
+            }
         }
     }
 }

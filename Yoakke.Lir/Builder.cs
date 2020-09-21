@@ -186,10 +186,9 @@ namespace Yoakke.Lir
         /// <returns>The return <see cref="Value"/> of the call.</returns>
         public Value Call(Value procedure, IList<Value> arguments)
         {
-            // TODO: We could factor this into validation?
             if (!(procedure.Type is Type.Proc procType))
             {
-                throw new ArgumentException("The procedure value must have a procedure type!", nameof(procedure));
+                throw new ArgumentException("The procedure value must be of a procedure type!", nameof(procedure));
             }
             var resultReg = AllocateRegister(procType.Return);
             AddInstr(new Instr.Call(resultReg, procedure, arguments));
@@ -231,7 +230,6 @@ namespace Yoakke.Lir
         /// <returns>The loaded <see cref="Value"/>.</returns>
         public Value Load(Value source)
         {
-            // TODO: We could factor this into validation?
             if (!(source.Type is Type.Ptr ptrTy))
             {
                 throw new ArgumentException("The source address must be a pointer type!", nameof(source));
@@ -257,7 +255,7 @@ namespace Yoakke.Lir
         /// <returns>The comparison result.</returns>
         public Value Cmp(Comparison comparison, Value left, Value right)
         {
-            // NOTE: Do we want an i32 here? What about an u1?
+            // TODO: Do we want an i32 here? What about an u1? u8? u32?
             var resultReg = AllocateRegister(Type.I32);
             AddInstr(new Instr.Cmp(resultReg, comparison, left, right));
             return resultReg;
@@ -301,8 +299,7 @@ namespace Yoakke.Lir
         /// <returns>The result of the addition.</returns>
         public Value Add(Value left, Value right)
         {
-            // TODO: Factor this into validation?
-            var resultReg = AllocateRegister(CommonArithmeticType(left.Type, right.Type));
+            var resultReg = AllocateRegister(ArithInstr.CommonArithmeticType(left.Type, right.Type));
             AddInstr(new Instr.Add(resultReg, left, right));
             return resultReg;
         }
@@ -315,8 +312,7 @@ namespace Yoakke.Lir
         /// <returns>The result of the subtraction.</returns>
         public Value Sub(Value left, Value right)
         {
-            // TODO: Factor this into validation?
-            var resultReg = AllocateRegister(CommonArithmeticType(left.Type, right.Type));
+            var resultReg = AllocateRegister(ArithInstr.CommonArithmeticType(left.Type, right.Type));
             AddInstr(new Instr.Sub(resultReg, left, right));
             return resultReg;
         }
@@ -329,8 +325,7 @@ namespace Yoakke.Lir
         /// <returns>The result of the multiplication.</returns>
         public Value Mul(Value left, Value right)
         {
-            // TODO: Factor this into validation?
-            var resultReg = AllocateRegister(CommonArithmeticType(left.Type, right.Type));
+            var resultReg = AllocateRegister(ArithInstr.CommonArithmeticType(left.Type, right.Type));
             AddInstr(new Instr.Mul(resultReg, left, right));
             return resultReg;
         }
@@ -343,8 +338,7 @@ namespace Yoakke.Lir
         /// <returns>The result of the division.</returns>
         public Value Div(Value left, Value right)
         {
-            // TODO: Factor this into validation?
-            var resultReg = AllocateRegister(CommonArithmeticType(left.Type, right.Type));
+            var resultReg = AllocateRegister(ArithInstr.CommonArithmeticType(left.Type, right.Type));
             AddInstr(new Instr.Div(resultReg, left, right));
             return resultReg;
         }
@@ -357,8 +351,7 @@ namespace Yoakke.Lir
         /// <returns>The result of the modulo.</returns>
         public Value Mod(Value left, Value right)
         {
-            // TODO: Factor this into validation?
-            var resultReg = AllocateRegister(CommonArithmeticType(left.Type, right.Type));
+            var resultReg = AllocateRegister(ArithInstr.CommonArithmeticType(left.Type, right.Type));
             AddInstr(new Instr.Mod(resultReg, left, right));
             return resultReg;
         }
@@ -371,9 +364,8 @@ namespace Yoakke.Lir
         /// <returns>The result of the bitwise-and.</returns>
         public Value BitAnd(Value left, Value right)
         {
-            // TODO: Factor this into validation?
             // TODO: Not sure this is good here
-            var resultReg = AllocateRegister(CommonArithmeticType(left.Type, right.Type));
+            var resultReg = AllocateRegister(ArithInstr.CommonArithmeticType(left.Type, right.Type));
             AddInstr(new Instr.BitAnd(resultReg, left, right));
             return resultReg;
         }
@@ -386,9 +378,8 @@ namespace Yoakke.Lir
         /// <returns>The result of the bitwise-or.</returns>
         public Value BitOr(Value left, Value right)
         {
-            // TODO: Factor this into validation?
             // TODO: Not sure this is good here
-            var resultReg = AllocateRegister(CommonArithmeticType(left.Type, right.Type));
+            var resultReg = AllocateRegister(ArithInstr.CommonArithmeticType(left.Type, right.Type));
             AddInstr(new Instr.BitOr(resultReg, left, right));
             return resultReg;
         }
@@ -401,9 +392,8 @@ namespace Yoakke.Lir
         /// <returns>The result of the bitwise-xor.</returns>
         public Value BitXor(Value left, Value right)
         {
-            // TODO: Factor this into validation?
             // TODO: Not sure this is good here
-            var resultReg = AllocateRegister(CommonArithmeticType(left.Type, right.Type));
+            var resultReg = AllocateRegister(ArithInstr.CommonArithmeticType(left.Type, right.Type));
             AddInstr(new Instr.BitXor(resultReg, left, right));
             return resultReg;
         }
@@ -456,13 +446,7 @@ namespace Yoakke.Lir
         /// <returns>The pointer to the struct field.</returns>
         public Value ElementPtr(Value value, int index)
         {
-            // TODO: Factor this into validation?
-            if (!(value.Type is Type.Ptr ptrTy && ptrTy.Subtype is Type.Struct structTy))
-            {
-                throw new ArgumentException("The source value must be a pointer to a struct type!", nameof(value));
-            }
-            var resultElementTy = structTy.Definition.Fields[index];
-            var resultPtrTy = new Type.Ptr(resultElementTy);
+            var resultPtrTy = Instr.ElementPtr.AccessedSubtype(value.Type, index);
             var resultReg = AllocateRegister(resultPtrTy);
             AddInstr(new Instr.ElementPtr(resultReg, value, index));
             return resultReg;
@@ -482,33 +466,6 @@ namespace Yoakke.Lir
         }
 
         // Internals
-
-        // TODO: We could factor this into validation?
-        private Type CommonArithmeticType(Type left, Type right)
-        {
-            if (left is Type.Int leftInt && right is Type.Int rightInt)
-            {
-                if (leftInt.Signed != rightInt.Signed)
-                {
-                    // TODO
-                    throw new NotImplementedException();
-                }
-                return leftInt.Bits > rightInt.Bits ? leftInt : rightInt;
-            }
-            else if (left is Type.Int && right is Type.Ptr p)
-            {
-                return p;
-            }
-            else if (left is Type.Ptr p2 && right is Type.Int)
-            {
-                return p2;
-            }
-            else
-            {
-                // TODO
-                throw new NotImplementedException();
-            }
-        }
 
         private Register AllocateRegister(Type type)
         {
