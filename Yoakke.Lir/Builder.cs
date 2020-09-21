@@ -87,7 +87,11 @@ namespace Yoakke.Lir
             return external;
         }
 
-        // TODO: Docs
+        /// <summary>
+        /// Adds a new <see cref="StructDef"/> to the <see cref="Assembly"/>.
+        /// </summary>
+        /// <param name="types">The <see cref="Type"/>s of the struct fields.</param>
+        /// <returns>The <see cref="Type"/> created from the <see cref="StructDef"/>.</returns>
         public Type DefineStruct(IEnumerable<Type> types)
         {
             // First we construct the type
@@ -107,7 +111,11 @@ namespace Yoakke.Lir
             return structTy;
         }
 
-        // TODO: Docs
+        /// <summary>
+        /// Defines a new procedure in the <see cref="Assembly"/>.
+        /// </summary>
+        /// <param name="name">The name of the procedure.</param>
+        /// <returns>The created <see cref="Proc"/>.</returns>
         public Proc DefineProc(string name)
         {
             // TODO: Check name uniqueness
@@ -118,8 +126,11 @@ namespace Yoakke.Lir
             return proc;
         }
 
-        // TODO: Doc
-        // TODO: Allocate and assign implicitly?
+        /// <summary>
+        /// Defines a new parameter in the current procedure.
+        /// </summary>
+        /// <param name="type">The <see cref="Type"/> of the parameter.</param>
+        /// <returns>The read-only <see cref="Value"/> of the new parameter.</returns>
         public Value DefineParameter(Type type)
         {
             var reg = AllocateRegister(type);
@@ -127,9 +138,14 @@ namespace Yoakke.Lir
             return reg;
         }
 
-        // TODO: Doc
+        /// <summary>
+        /// Defines a new <see cref="BasicBlock"/> in the current procedure.
+        /// </summary>
+        /// <param name="name">The suggested name of the basic block.</param>
+        /// <returns>The defined <see cref="BasicBlock"/>.</returns>
         public BasicBlock DefineBasicBlock(string name)
         {
+            // TODO: Check name uniqueness and correct it? The name is a suggestion!
             var bb = new BasicBlock(name);
             currentBasicBlock = bb;
             CurrentProc.BasicBlocks.Add(bb);
@@ -138,17 +154,30 @@ namespace Yoakke.Lir
 
         // Instructions ////////////////////////////////////////////////////////
 
-        // TODO: Doc
-        public void AddInstruction(Instr instr) =>
+        /// <summary>
+        /// Adds a new <see cref="Instr"/> to the current <see cref="BasicBlock"/>.
+        /// </summary>
+        /// <param name="instr">The <see cref="Instr"/> to add.</param>
+        public void AddInstr(Instr instr) =>
             CurrentBasicBlock.Instructions.Add(instr);
 
-        // TODO: Doc
-        public void Ret(Value value) => AddInstruction(new Instr.Ret(value));
+        /// <summary>
+        /// Adds a new <see cref="Instr.Ret"/>.
+        /// </summary>
+        /// <param name="value">The value to return.</param>
+        public void Ret(Value value) => AddInstr(new Instr.Ret(value));
 
-        // TODO: Doc
+        /// <summary>
+        /// Same as <see cref="Ret(Value)"/>, but returns with void.
+        /// </summary>
         public void Ret() => Ret(Value.Void_);
 
-        // TODO: Doc
+        /// <summary>
+        /// Adds a new <see cref="Instr.Call"/>.
+        /// </summary>
+        /// <param name="procedure">The procedure to call.</param>
+        /// <param name="arguments">The arguments to call the procedure with.</param>
+        /// <returns>The return <see cref="Value"/> of the call.</returns>
         public Value Call(Value procedure, IList<Value> arguments)
         {
             // TODO: We could factor this into validation?
@@ -157,27 +186,43 @@ namespace Yoakke.Lir
                 throw new ArgumentException("The procedure value must have a procedure type!", nameof(procedure));
             }
             var resultReg = AllocateRegister(procType.Return);
-            AddInstruction(new Instr.Call(resultReg, procedure, arguments));
+            AddInstr(new Instr.Call(resultReg, procedure, arguments));
             return resultReg;
         }
 
-        // TODO: Doc
-        public void Jmp(BasicBlock target) => AddInstruction(new Instr.Jmp(target));
+        /// <summary>
+        /// Adds a new <see cref="Instr.Jmp"/>.
+        /// </summary>
+        /// <param name="target">The basic block to jump to.</param>
+        public void Jmp(BasicBlock target) => AddInstr(new Instr.Jmp(target));
 
-        // TODO: Doc
+        /// <summary>
+        /// Adds a new <see cref="Instr.JmpIf"/>.
+        /// </summary>
+        /// <param name="condition">The jump condition.</param>
+        /// <param name="then">The basic block to jump to if the condition is truthy.</param>
+        /// <param name="els">The basic block to jump to if the condition is falsy.</param>
         public void JmpIf(Value condition, BasicBlock then, BasicBlock els) =>
-            AddInstruction(new Instr.JmpIf(condition, then, els));
+            AddInstr(new Instr.JmpIf(condition, then, els));
 
-        // TODO: Doc
+        /// <summary>
+        /// Adds a new <see cref="Instr.Alloc"/>.
+        /// </summary>
+        /// <param name="type">The <see cref="Type"/> to allocate space for.</param>
+        /// <returns>The pointer to the allocated space.</returns>
         public Value Alloc(Type type)
         {
             var ptrType = new Type.Ptr(type);
             var resultReg = AllocateRegister(ptrType);
-            AddInstruction(new Instr.Alloc(resultReg));
+            AddInstr(new Instr.Alloc(resultReg));
             return resultReg;
         }
 
-        // TODO: Doc
+        /// <summary>
+        /// Adds a new <see cref="Instr.Load"/>.
+        /// </summary>
+        /// <param name="source">The source pointer to load the value from.</param>
+        /// <returns>The loaded <see cref="Value"/>.</returns>
         public Value Load(Value source)
         {
             // TODO: We could factor this into validation?
@@ -186,108 +231,183 @@ namespace Yoakke.Lir
                 throw new ArgumentException("The source address must be a pointer type!", nameof(source));
             }
             var resultReg = AllocateRegister(ptrTy.Subtype);
-            AddInstruction(new Instr.Load(resultReg, source));
+            AddInstr(new Instr.Load(resultReg, source));
             return resultReg;
         }
 
-        // TODO: Doc
-        public void Store(Value target, Value value) => AddInstruction(new Instr.Store(target, value));
+        /// <summary>
+        /// Adds a new <see cref="Instr.Store"/>.
+        /// </summary>
+        /// <param name="target">The pointer to write the <see cref="Value"/> to.</param>
+        /// <param name="value">The <see cref="Value"/> to write.</param>
+        public void Store(Value target, Value value) => AddInstr(new Instr.Store(target, value));
 
-        // TODO: Doc
+        /// <summary>
+        /// Adds a new <see cref="Instr.Cmp"/>.
+        /// </summary>
+        /// <param name="comparison">The kind of comparison to do.</param>
+        /// <param name="left">The left-hand side <see cref="Value"/> of the comparison.</param>
+        /// <param name="right">The right-hand side <see cref="Value"/> of the comparison.</param>
+        /// <returns>The comparison result.</returns>
         public Value Cmp(Comparison comparison, Value left, Value right)
         {
             // NOTE: Do we want an i32 here? What about an u1?
             var resultReg = AllocateRegister(Type.I32);
-            AddInstruction(new Instr.Cmp(resultReg, comparison, left, right));
+            AddInstr(new Instr.Cmp(resultReg, comparison, left, right));
             return resultReg;
         }
 
-        // TODO: Doc
+        /// <summary>
+        /// Writes an equality <see cref="Cmp(Comparison, Value, Value)"/>.
+        /// </summary>
         public Value CmpEq(Value left, Value right) => Cmp(Comparison.Eq_, left, right);
 
-        // TODO: Doc
+        /// <summary>
+        /// Writes an inequality <see cref="Cmp(Comparison, Value, Value)"/>.
+        /// </summary>
         public Value CmpNe(Value left, Value right) => Cmp(Comparison.Ne_, left, right);
 
-        // TODO: Doc
+        /// <summary>
+        /// Writes a greater-than <see cref="Cmp(Comparison, Value, Value)"/>.
+        /// </summary>
         public Value CmpGr(Value left, Value right) => Cmp(Comparison.Gr_, left, right);
 
-        // TODO: Doc
+        /// <summary>
+        /// Writes a less-than <see cref="Cmp(Comparison, Value, Value)"/>.
+        /// </summary>
         public Value CmpLe(Value left, Value right) => Cmp(Comparison.Le_, left, right);
 
-        // TODO: Doc
+        /// <summary>
+        /// Writes a less-or-equals <see cref="Cmp(Comparison, Value, Value)"/>.
+        /// </summary>
         public Value CmpLeEq(Value left, Value right) => Cmp(Comparison.LeEq_, left, right);
 
-        // TODO: Doc
+        /// <summary>
+        /// Writes a greater-or-equals <see cref="Cmp(Comparison, Value, Value)"/>.
+        /// </summary>
         public Value CmpGrEq(Value left, Value right) => Cmp(Comparison.GrEq_, left, right);
 
-        // TODO: Doc
+        /// <summary>
+        /// Adds a new <see cref="Instr.Add"/>.
+        /// </summary>
+        /// <param name="left">The left-hand side of the addition.</param>
+        /// <param name="right">The right-hand side of the addition.</param>
+        /// <returns>The result of the addition.</returns>
         public Value Add(Value left, Value right)
         {
+            // TODO: Factor this into validation?
             var resultReg = AllocateRegister(CommonArithmeticType(left.Type, right.Type));
-            AddInstruction(new Instr.Add(resultReg, left, right));
+            AddInstr(new Instr.Add(resultReg, left, right));
             return resultReg;
         }
 
-        // TODO: Doc
+        /// <summary>
+        /// Adds a new <see cref="Instr.Sub"/>.
+        /// </summary>
+        /// <param name="left">The left-hand side of the subtraction.</param>
+        /// <param name="right">The right-hand side of the subtraction.</param>
+        /// <returns>The result of the subtraction.</returns>
         public Value Sub(Value left, Value right)
         {
+            // TODO: Factor this into validation?
             var resultReg = AllocateRegister(CommonArithmeticType(left.Type, right.Type));
-            AddInstruction(new Instr.Sub(resultReg, left, right));
+            AddInstr(new Instr.Sub(resultReg, left, right));
             return resultReg;
         }
 
-        // TODO: Doc
+        /// <summary>
+        /// Adds a new <see cref="Instr.Mul"/>.
+        /// </summary>
+        /// <param name="left">The left-hand side of the multiplication.</param>
+        /// <param name="right">The right-hand side of the multiplication.</param>
+        /// <returns>The result of the multiplication.</returns>
         public Value Mul(Value left, Value right)
         {
+            // TODO: Factor this into validation?
             var resultReg = AllocateRegister(CommonArithmeticType(left.Type, right.Type));
-            AddInstruction(new Instr.Mul(resultReg, left, right));
+            AddInstr(new Instr.Mul(resultReg, left, right));
             return resultReg;
         }
 
-        // TODO: Doc
+        /// <summary>
+        /// Adds a new <see cref="Instr.Div"/>.
+        /// </summary>
+        /// <param name="left">The left-hand side of the division.</param>
+        /// <param name="right">The right-hand side of the division.</param>
+        /// <returns>The result of the division.</returns>
         public Value Div(Value left, Value right)
         {
+            // TODO: Factor this into validation?
             var resultReg = AllocateRegister(CommonArithmeticType(left.Type, right.Type));
-            AddInstruction(new Instr.Div(resultReg, left, right));
+            AddInstr(new Instr.Div(resultReg, left, right));
             return resultReg;
         }
 
-        // TODO: Doc
+        /// <summary>
+        /// Adds a new <see cref="Instr.Mod"/>.
+        /// </summary>
+        /// <param name="left">The left-hand side of the modulo.</param>
+        /// <param name="right">The right-hand side of the modulo.</param>
+        /// <returns>The result of the modulo.</returns>
         public Value Mod(Value left, Value right)
         {
+            // TODO: Factor this into validation?
             var resultReg = AllocateRegister(CommonArithmeticType(left.Type, right.Type));
-            AddInstruction(new Instr.Mod(resultReg, left, right));
+            AddInstr(new Instr.Mod(resultReg, left, right));
             return resultReg;
         }
 
-        // TODO: Doc
+        /// <summary>
+        /// Adds a new <see cref="Instr.BitAnd"/>.
+        /// </summary>
+        /// <param name="left">The left-hand side of the bitwise-and.</param>
+        /// <param name="right">The right-hand side of the bitwise-and.</param>
+        /// <returns>The result of the bitwise-and.</returns>
         public Value BitAnd(Value left, Value right)
         {
+            // TODO: Factor this into validation?
             // TODO: Not sure this is good here
             var resultReg = AllocateRegister(CommonArithmeticType(left.Type, right.Type));
-            AddInstruction(new Instr.BitAnd(resultReg, left, right));
+            AddInstr(new Instr.BitAnd(resultReg, left, right));
             return resultReg;
         }
 
-        // TODO: Doc
+        /// <summary>
+        /// Adds a new <see cref="Instr.BitOr"/>.
+        /// </summary>
+        /// <param name="left">The left-hand side of the bitwise-or.</param>
+        /// <param name="right">The right-hand side of the bitwise-or.</param>
+        /// <returns>The result of the bitwise-or.</returns>
         public Value BitOr(Value left, Value right)
         {
+            // TODO: Factor this into validation?
             // TODO: Not sure this is good here
             var resultReg = AllocateRegister(CommonArithmeticType(left.Type, right.Type));
-            AddInstruction(new Instr.BitOr(resultReg, left, right));
+            AddInstr(new Instr.BitOr(resultReg, left, right));
             return resultReg;
         }
 
-        // TODO: Doc
+        /// <summary>
+        /// Adds a new <see cref="Instr.BitXor"/>.
+        /// </summary>
+        /// <param name="left">The left-hand side of the bitwise-xor.</param>
+        /// <param name="right">The right-hand side of the bitwise-xor.</param>
+        /// <returns>The result of the bitwise-xor.</returns>
         public Value BitXor(Value left, Value right)
         {
+            // TODO: Factor this into validation?
             // TODO: Not sure this is good here
             var resultReg = AllocateRegister(CommonArithmeticType(left.Type, right.Type));
-            AddInstruction(new Instr.BitXor(resultReg, left, right));
+            AddInstr(new Instr.BitXor(resultReg, left, right));
             return resultReg;
         }
 
-        // TODO: Doc
+        /// <summary>
+        /// Adds a bitwise negate instruction.
+        /// Implements it as XOR-ing with all 1s.
+        /// </summary>
+        /// <param name="value">The value to bitwise-negate.</param>
+        /// <returns>The result of the bitwise-negation.</returns>
         public Value BitNot(Value value)
         {
             // NOTE: We do a bit-xor
@@ -296,23 +416,38 @@ namespace Yoakke.Lir
             return BitXor(value, allOnes);
         }
 
-        // TODO: Doc
+        /// <summary>
+        /// Adds a new <see cref="Instr.Shl"/>.
+        /// </summary>
+        /// <param name="shifted">The value to shift left.</param>
+        /// <param name="amount">The amount to shift left with.</param>
+        /// <returns>The result of the left-shift</returns>
         public Value Shl(Value shifted, Value amount)
         {
             var resultReg = AllocateRegister(shifted.Type);
-            AddInstruction(new Instr.Shl(resultReg, shifted, amount));
+            AddInstr(new Instr.Shl(resultReg, shifted, amount));
             return resultReg;
         }
 
-        // TODO: Doc
+        /// <summary>
+        /// Adds a new <see cref="Instr.Shr"/>.
+        /// </summary>
+        /// <param name="shifted">The value to shift right.</param>
+        /// <param name="amount">The amount to shift right with.</param>
+        /// <returns>The result of the right-shift</returns>
         public Value Shr(Value shifted, Value amount)
         {
             var resultReg = AllocateRegister(shifted.Type);
-            AddInstruction(new Instr.Shr(resultReg, shifted, amount));
+            AddInstr(new Instr.Shr(resultReg, shifted, amount));
             return resultReg;
         }
 
-        // TODO: Doc
+        /// <summary>
+        /// Adds a new <see cref="Instr.ElementPtr"/>.
+        /// </summary>
+        /// <param name="value">The base pointer to get the result relative to.</param>
+        /// <param name="index">The index of the struct field to calculate the pointer of.</param>
+        /// <returns>The pointer to the struct field.</returns>
         public Value ElementPtr(Value value, int index)
         {
             // TODO: Factor this into validation?
@@ -323,15 +458,20 @@ namespace Yoakke.Lir
             var resultElementTy = structTy.Definition.Fields[index];
             var resultPtrTy = new Type.Ptr(resultElementTy);
             var resultReg = AllocateRegister(resultPtrTy);
-            AddInstruction(new Instr.ElementPtr(resultReg, value, index));
+            AddInstr(new Instr.ElementPtr(resultReg, value, index));
             return resultReg;
         }
 
-        // TODO: Doc
+        /// <summary>
+        /// Adds a new <see cref="Instr.Cast"/>.
+        /// </summary>
+        /// <param name="target">The target <see cref="Type"/> to cast the <see cref="Value"/> to.</param>
+        /// <param name="value">The <see cref="Value"/> to cast.</param>
+        /// <returns>The casted <see cref="Value"/>.</returns>
         public Value Cast(Type target, Value value)
         {
             var resultReg = AllocateRegister(target);
-            AddInstruction(new Instr.Cast(resultReg, target, value));
+            AddInstr(new Instr.Cast(resultReg, target, value));
             return resultReg;
         }
 
