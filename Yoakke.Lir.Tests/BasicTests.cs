@@ -357,6 +357,22 @@ namespace Yoakke.Lir.Tests
         }
 
         [TestMethod]
+        public void Shl()
+        {
+            var b = GetBuilder();
+            b.Ret(b.Shl(Type.I32.NewValue(1), Type.I32.NewValue(3)));
+            TestOnAllBackends(b, Type.I32.NewValue(8));
+        }
+
+        [TestMethod]
+        public void Shr()
+        {
+            var b = GetBuilder();
+            b.Ret(b.Shr(Type.I32.NewValue(11), Type.I32.NewValue(2)));
+            TestOnAllBackends(b, Type.I32.NewValue(2));
+        }
+
+        [TestMethod]
         public void ElementPtrElement0()
         {
             var b = GetBuilder();
