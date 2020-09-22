@@ -42,9 +42,14 @@ namespace Yoakke.Compiler
 
             var arr = new Type.Array(Type.I32, 3);
             var main = builder.DefineProc("main");
-            main.Return = Type.I32;
+            main.Return = Type.I64;
 
-            builder.Ret(builder.CmpEq(Type.I32.NewValue(62), Type.I32.NewValue(25)));
+            var identity = builder.DefineProc("bigboi");
+            identity.Return = Type.I64;
+            builder.Ret(Type.I64.NewValue(5235));
+
+            builder.CurrentProc = main;
+            builder.Ret(builder.Call(identity, new List<Value> { }));
 
             var targetTriplet = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
             var toolchain = Toolchains.Supporting(targetTriplet).First();
@@ -62,6 +67,8 @@ namespace Yoakke.Compiler
             Console.WriteLine(toolchain.Backend.Compile(asm));
             Console.WriteLine();
 
+#if false
+
             var vm = new VirtualMachine(asm);
             var res = vm.Execute("main", new List<Value> { });
             Console.WriteLine($"VM result = {res}");
@@ -73,6 +80,7 @@ namespace Yoakke.Compiler
             {
                 Console.WriteLine($"{name} took: {(int)timeSpan.TotalMilliseconds} ms");
             }
+#endif
 #endif
         }
     }
