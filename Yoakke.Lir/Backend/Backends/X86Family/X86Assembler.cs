@@ -132,12 +132,21 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 if (valueSize > 0)
                 {
                     // Store return value
-                    if (proc.CallConv == CallConv.Cdecl && ret.Value.Type is Type.Int && SizeOf(ret.Value) <= 4)
+                    if (proc.CallConv == CallConv.Cdecl)
                     {
-                        // We can return integral values with at most 32 bits in EAX
-                        OccupyRegister(Register.Eax);
-                        var retValue = CompileValue(ret.Value);
-                        WriteInstr(X86Op.Mov, Register.Eax, retValue);
+                        if (valueSize <= 4)
+                        {
+                            // For cdecl we return in eax for size <= 4
+                            // TODO: Floats are returned in a different register!
+                            OccupyRegister(Register.Eax);
+                            var retValue = CompileValue(ret.Value);
+                            WriteInstr(X86Op.Mov, Register.Eax, retValue);
+                        }
+                        else
+                        {
+                            // For size > 4 we receive a return address
+                            throw new NotImplementedException();
+                        }
                     }
                     else
                     {
