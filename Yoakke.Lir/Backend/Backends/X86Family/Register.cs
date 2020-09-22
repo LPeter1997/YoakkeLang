@@ -27,10 +27,10 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         /// <returns>The <see cref="DataWidth"/> of the <see cref="Register"/>.</returns>
         public static DataWidth GetWidth(this Register register) => (int)register switch
         {
-            int n when n < 12 => DataWidth.Byte ,
-            int n when n < 20 => DataWidth.Word ,
-            int n when n < 28 => DataWidth.Dword,
-            int n when n < 44 => DataWidth.Qword,
+            int n when n < 12 => DataWidth.Byte_ ,
+            int n when n < 20 => DataWidth.Word_ ,
+            int n when n < 28 => DataWidth.Dword_,
+            int n when n < 44 => DataWidth.Qword_,
             _ => throw new NotImplementedException(),
         };
 

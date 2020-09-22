@@ -14,25 +14,27 @@ namespace Yoakke.Lir.Instructions
     {
         // Types
 
-        public sealed class Eq : Comparison { protected override string Repr => "eq"; }
-        public sealed class Ne : Comparison { protected override string Repr => "ne"; }
-        public sealed class Gr : Comparison { protected override string Repr => "gr"; }
-        public sealed class Le : Comparison { protected override string Repr => "le"; }
-        public sealed class GrEq : Comparison { protected override string Repr => "gr_eq"; }
-        public sealed class LeEq : Comparison { protected override string Repr => "le_eq"; }
+        public class Eq : Comparison {}
+        public class Ne : Comparison {}
+        public class Gr : Comparison {}
+        public class Le : Comparison {}
+        public class GrEq : Comparison {}
+        public class LeEq : Comparison {}
 
         // Values
 
-        public static readonly Comparison Eq_ = new Eq();
-        public static readonly Comparison Ne_ = new Ne();
-        public static readonly Comparison Gr_ = new Gr();
-        public static readonly Comparison Le_ = new Le();
-        public static readonly Comparison GrEq_ = new GrEq();
-        public static readonly Comparison LeEq_ = new LeEq();
+        public static readonly Comparison Eq_   = new Eq   { Index = 0, Repr = "eq" };
+        public static readonly Comparison Ne_   = new Ne   { Index = 1, Repr = "ne" };
+        public static readonly Comparison Gr_   = new Gr   { Index = 2, Repr = "gr" };
+        public static readonly Comparison Le_   = new Le   { Index = 3, Repr = "le" };
+        public static readonly Comparison GrEq_ = new GrEq { Index = 4, Repr = "gr_eq" };
+        public static readonly Comparison LeEq_ = new LeEq { Index = 5, Repr = "le_eq" };
 
-        protected abstract string Repr { get; }
+        private int Index { get; set; }
+        private string Repr { get; set; } = string.Empty;
 
         public override string ToString() => Repr;
+        public static explicit operator int(Comparison c) => c.Index;
     }
 
     partial class Instr

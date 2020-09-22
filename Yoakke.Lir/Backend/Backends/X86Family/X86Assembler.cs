@@ -457,7 +457,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 if (regSize == 0) return new Operand.Literal(zeroSizeMarker);
                 var offset = registerOffsets[reg];
                 var addr = new Operand.Address(Register.Ebp, offset);
-                var dataWidth = DataWidthUtils.FromByteSize(regSize);
+                var dataWidth = DataWidth.GetFromSize(regSize);
                 var result = new Operand.Indirect(dataWidth, addr);
                 if (asLvalue)
                 {
