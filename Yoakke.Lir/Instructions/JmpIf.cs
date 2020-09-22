@@ -58,7 +58,7 @@ namespace Yoakke.Lir.Instructions
                 {
                     ThrowValidationException("Condition must be of integer type!");
                 }
-                if (!BasicBlock.Proc.BasicBlocks.Contains(Then) || !BasicBlock.Proc.BasicBlocks.Contains(Else))
+                if (Then.Proc != BasicBlock.Proc || Else.Proc != BasicBlock.Proc)
                 {
                     ThrowValidationException("Cross-procedure jump is illegal!");
                 }

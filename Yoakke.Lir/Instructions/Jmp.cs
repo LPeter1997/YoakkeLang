@@ -37,7 +37,7 @@ namespace Yoakke.Lir.Instructions
 
             public override void Validate()
             {
-                if (!BasicBlock.Proc.BasicBlocks.Contains(Target))
+                if (Target.Proc != BasicBlock.Proc)
                 {
                     ThrowValidationException("Cross-procedure jump is illegal!");
                 }
