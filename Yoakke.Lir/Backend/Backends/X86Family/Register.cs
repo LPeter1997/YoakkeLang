@@ -2,6 +2,7 @@
 
 namespace Yoakke.Lir.Backend.Backends.X86Family
 {
+    // TODO: We could make registers those fake enums too, like Comparison in the Cmp instruction.
     /// <summary>
     /// The different registers on X86.
     /// </summary>

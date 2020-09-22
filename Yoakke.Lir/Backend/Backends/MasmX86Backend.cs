@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Text;
 using Yoakke.Lir.Backend.Backends.X86Family;
 
@@ -12,6 +13,10 @@ namespace Yoakke.Lir.Backend.Backends
         public TargetTriplet TargetTriplet { get; set; }
 
         private StringBuilder code = new StringBuilder();
+        private X86FormatOptions formatOptions = new X86FormatOptions
+        {
+            SpecialSeparator = '@',
+        };
 
         public bool IsSupported(TargetTriplet targetTriplet) =>
                targetTriplet.CpuFamily == CpuFamily.X86
@@ -49,10 +54,12 @@ namespace Yoakke.Lir.Backend.Backends
         {
             if (basicBlock.Name != null)
             {
-                code.Append(basicBlock.Name.Replace('.', '@')).AppendLine(":");
+                code.Append(basicBlock.GetLabelName(formatOptions)).AppendLine(":");
             }
             // Write out instructions
-            code.AppendJoin(string.Empty, basicBlock.Instructions.Select(ins => $"    {ins.ToIntelSyntax()}\n"));
+            code.AppendJoin(
+                string.Empty, 
+                basicBlock.Instructions.Select(ins => $"    {ins.ToIntelSyntax(formatOptions)}\n"));
         }
     }
 }

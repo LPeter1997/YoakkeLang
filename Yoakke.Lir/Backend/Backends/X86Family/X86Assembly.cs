@@ -44,6 +44,10 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
     public class X86BasicBlock
     {
         /// <summary>
+        /// The procedure this <see cref="X86BasicBlock"/> belongs to.
+        /// </summary>
+        public readonly X86Proc Proc;
+        /// <summary>
         /// The name of this <see cref="X86BasicBlock"/>.
         /// </summary>
         public readonly string? Name;
@@ -52,9 +56,16 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         /// </summary>
         public readonly IList<X86Instr> Instructions = new List<X86Instr>();
 
-        public X86BasicBlock(string? name = null)
+        public X86BasicBlock(X86Proc proc, string? name = null)
         {
+            Proc = proc;
             Name = name;
+        }
+
+        public string GetLabelName(X86FormatOptions formatOptions)
+        {
+            if (Name == null) return string.Empty;
+            return $"{Proc.Name}{formatOptions.SpecialSeparator}{Name}";
         }
     }
 }

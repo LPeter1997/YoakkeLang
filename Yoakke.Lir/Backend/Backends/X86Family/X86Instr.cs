@@ -51,16 +51,19 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             Operands = operands.Select(ToOperand).ToList();
         }
 
-        private const bool CommentsAbove = true;
-        public string ToIntelSyntax()
+        public string ToIntelSyntax(X86FormatOptions formatOptions)
         {
-            var instr = $"{Operation.ToString().ToLower()} {string.Join(", ", Operands.Select(o => o.ToIntelSyntax()))}";
+            var instrName = Operation.ToString();
+            instrName = formatOptions.AllUpperCase ? instrName.ToUpper() : instrName.ToLower();
+            var instr = $"{instrName} {string.Join(", ", Operands.Select(o => o.ToIntelSyntax(formatOptions)))}";
             if (Comment == null) return instr;
-            return CommentsAbove ? $"; {Comment}\n    {instr}" : $"{instr} ; {Comment}";
+            return formatOptions.CommentAbove ? $"; {Comment}\n    {instr}" : $"{instr} ; {Comment}";
         }
 
         private static Operand ToOperand(object obj) => obj switch
         {
+            X86Proc p => new Operand.Label(p),
+            X86BasicBlock bb => new Operand.Label(bb),
             Register r => new Operand.Register_(r),
             Operand o => o,
             _ => new Operand.Literal(obj),

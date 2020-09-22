@@ -58,7 +58,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 // Forward declare each basic block inside
                 foreach (var bb in proc.BasicBlocks)
                 {
-                    basicBlocks[bb] = new X86BasicBlock($"{x86proc.Name}.{bb.Name}");
+                    basicBlocks[bb] = new X86BasicBlock(x86proc, bb.Name);
                 }
             }
         }
@@ -95,7 +95,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             }
 
             // We need to write the prologue in an initial basic block
-            currentBasicBlock = new X86BasicBlock();
+            currentBasicBlock = new X86BasicBlock(currentProcedure);
             currentProcedure.BasicBlocks.Add(currentBasicBlock);
             WriteProcPrologue(proc);
             // Calculate space for locals
@@ -257,9 +257,10 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 };
                 // We need to branch to write the result
                 var labelNameBase = GetUniqueName("WriteCmpResult");
-                var trueBB = new X86BasicBlock($"{labelNameBase}_T");
-                var falseBB = new X86BasicBlock($"{labelNameBase}_F");
-                var continueBB = new X86BasicBlock($"{labelNameBase}_C");
+                Debug.Assert(currentProcedure != null);
+                var trueBB = new X86BasicBlock(currentProcedure, $"{labelNameBase}_T");
+                var falseBB = new X86BasicBlock(currentProcedure, $"{labelNameBase}_F");
+                var continueBB = new X86BasicBlock(currentProcedure, $"{labelNameBase}_C");
                 // Do the branch to the true or false block
                 WriteInstr(op, trueBB);
                 WriteInstr(X86Op.Jmp, falseBB);
@@ -553,7 +554,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
 
         // TODO: Not the best solution...
         private int nameCnt = 0;
-        private string GetUniqueName(string name) => $"{currentProcedure?.Name}_{name}_{nameCnt++}";
+        private string GetUniqueName(string name) => $"{name}_{nameCnt++}";
 
         private static string GetSymbolName(ISymbol symbol) =>
                // For Cdecl procedures we assume an underscore prefix

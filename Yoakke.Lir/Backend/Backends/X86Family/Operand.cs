@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Http.Headers;
 
 namespace Yoakke.Lir.Backend.Backends.X86Family
 {
@@ -32,9 +33,36 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
     /// </summary>
     public abstract class Operand : IX86Syntax
     {
-        public abstract string ToIntelSyntax();
+        public abstract string ToIntelSyntax(X86FormatOptions formatOptions);
 
-        // TODO: This is a messy thing because of the proc and basic block, maybe those should be their own type?
+        /// <summary>
+        /// A label to a procedure or basic block.
+        /// </summary>
+        public class Label : Operand
+        {
+            /// <summary>
+            /// The procedure or basic block the label refers to.
+            /// </summary>
+            public readonly object Target;
+
+            public Label(X86Proc proc)
+            {
+                Target = proc;
+            }
+
+            public Label(X86BasicBlock basicBlock)
+            {
+                Target = basicBlock;
+            }
+
+            public override string ToIntelSyntax(X86FormatOptions formatOptions) => Target switch
+            {
+                X86BasicBlock bb => bb.GetLabelName(formatOptions),
+                X86Proc p => p.Name,
+                _ => throw new NotImplementedException(),
+            };
+        }
+
         /// <summary>
         /// Some literal constant.
         /// </summary>
@@ -47,15 +75,8 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 Value = value;
             }
 
-            public override string ToIntelSyntax() => Value switch
-            {
-                // TODO: For procedures and basic blocks we need to be able to swap out '.' and '@', ...
-                // Depending on the assembler!
-                X86Proc proc => proc.Name,
-                // TODO: Hardcoded for the MASM assembler
-                X86BasicBlock bb => bb.Name?.Replace('.', '@') ?? string.Empty,
-                _ => Value.ToString() ?? string.Empty,
-            };
+            public override string ToIntelSyntax(X86FormatOptions formatOptions) => 
+                Value.ToString() ?? string.Empty;
         }
 
         /// <summary>
@@ -70,7 +91,11 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 Register = register;
             }
 
-            public override string ToIntelSyntax() => Register.ToString().ToLower();
+            public override string ToIntelSyntax(X86FormatOptions formatOptions)
+            {
+                var res = Register.ToString();
+                return formatOptions.AllUpperCase ? res.ToUpper() : res.ToLower();
+            }
         }
 
         /// <summary>
@@ -113,18 +138,21 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             {
             }
 
-            private static string R(Register? r) => 
-                r == null ? string.Empty : r.Value.ToString().ToLower();
+            private static string R(X86FormatOptions f, Register r)
+            {
+                var res = r.ToString();
+                return f.AllUpperCase ? res.ToUpper() : res.ToLower();
+            }
             private static string N(int n) => n > 0 ? $"+ {n}" : $"- {-n}";
-            public override string ToIntelSyntax() => (Base, ScaledIndex, Displacement) switch
+            public override string ToIntelSyntax(X86FormatOptions f) => (Base, ScaledIndex, Displacement) switch
             {
                 (null      , null               , int d) => $"[{d}]",
-                (Register b, null               , 0    ) => $"[{R(b)}]",
-                (Register b, null               , int d) => $"[{R(b)} {N(d)}]",
-                (null      , (Register i, int s), 0    ) => $"[{R(i)} * {s}]",
-                (null      , (Register i, int s), int d) => $"[{R(i)} * {s} {N(d)}]",
-                (Register b, (Register i, int s), 0    ) => $"[{R(b)} + {R(i)} * {s}]",
-                (Register b, (Register i, int s), int d) => $"[{R(b)} + {R(i)} * {s} {N(d)}]",
+                (Register b, null               , 0    ) => $"[{R(f, b)}]",
+                (Register b, null               , int d) => $"[{R(f, b)} {N(d)}]",
+                (null      , (Register i, int s), 0    ) => $"[{R(f, i)} * {s}]",
+                (null      , (Register i, int s), int d) => $"[{R(f, i)} * {s} {N(d)}]",
+                (Register b, (Register i, int s), 0    ) => $"[{R(f, b)} + {R(f, i)} * {s}]",
+                (Register b, (Register i, int s), int d) => $"[{R(f, b)} + {R(f, i)} * {s} {N(d)}]",
             };
         }
 
@@ -142,7 +170,9 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 Address_ = addr;
             }
 
-            public override string ToIntelSyntax() => $"{Width.ToString().ToUpper()} PTR {Address_.ToIntelSyntax()}";
+            public override string ToIntelSyntax(X86FormatOptions formatOptions) => 
+                // TODO: The PTR keyword is not necessarily correct!
+                $"{Width.ToString().ToUpper()} PTR {Address_.ToIntelSyntax(formatOptions)}";
         }
     }
 }
