@@ -178,5 +178,17 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             DataWidth.Qword => All64,
             _ => throw new NotImplementedException(),
         };
+
+        /// <summary>
+        /// Checks, if this <see cref="Register"/> is overlapping with another one.
+        /// </summary>
+        /// <param name="other">The <see cref="Register"/> to check the overlap with.</param>
+        /// <returns>True, if the two overlap.</returns>
+        public bool IsOverlapping(Register other)
+        {
+            if (Slot != other.Slot) return false;
+            if (Width == other.Width && IsHighBytes != other.IsHighBytes) return false;
+            return true;
+        }
     }
 }
