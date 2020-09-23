@@ -125,6 +125,8 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         public static readonly Register r14 = new R14 { Index = 42, Slot = 14, Width = DataWidth.qword, Repr = "r14" };
         public static readonly Register r15 = new R15 { Index = 43, Slot = 15, Width = DataWidth.qword, Repr = "r15" };
 
+        public static readonly int SlotCount = 16;
+
         public static readonly IReadOnlyList<Register> All8 = new Register[]
         {
             al, ah, cl, ch, dl, dh, bl, bh, spl, bpl, sil, dil,
@@ -162,5 +164,19 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
 
         public override string ToIntelSyntax(X86FormatOptions formatOptions) =>
             formatOptions.AllUpperCase ? Repr.ToUpper() : Repr.ToLower();
+
+        /// <summary>
+        /// Retrieves a collection of <see cref="Register"/>s with a given <see cref="DataWidth"/>.
+        /// </summary>
+        /// <param name="width">The <see cref="DataWidth"/> of the <see cref="Register"/> wanted.</param>
+        /// <returns>All the <see cref="Register"/>s with the given <see cref="DataWidth"/>.</returns>
+        public static IReadOnlyList<Register> All(DataWidth width) => width switch
+        {
+            DataWidth.Byte => All8,
+            DataWidth.Word => All16,
+            DataWidth.Dword => All32,
+            DataWidth.Qword => All64,
+            _ => throw new NotImplementedException(),
+        };
     }
 }
