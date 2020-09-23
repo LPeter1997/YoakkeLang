@@ -77,70 +77,70 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
 
         // Values
 
-        public static readonly Register Al_  = new Al  { Index = 0 , Slot = 0, Width = DataWidth.Byte_, Repr = "al" };
-        public static readonly Register Ah_  = new Ah  { Index = 1 , Slot = 0, Width = DataWidth.Byte_, Repr = "ah", IsHighBytes = true };
-        public static readonly Register Cl_  = new Cl  { Index = 2 , Slot = 1, Width = DataWidth.Byte_, Repr = "cl" };
-        public static readonly Register Ch_  = new Ch  { Index = 3 , Slot = 1, Width = DataWidth.Byte_, Repr = "ch", IsHighBytes = true };
-        public static readonly Register Dl_  = new Dl  { Index = 4 , Slot = 2, Width = DataWidth.Byte_, Repr = "dl" };
-        public static readonly Register Dh_  = new Dh  { Index = 5 , Slot = 2, Width = DataWidth.Byte_, Repr = "dh", IsHighBytes = true };
-        public static readonly Register Bl_  = new Bl  { Index = 6 , Slot = 3, Width = DataWidth.Byte_, Repr = "bl" };
-        public static readonly Register Bh_  = new Bh  { Index = 7 , Slot = 3, Width = DataWidth.Byte_, Repr = "bh", IsHighBytes = true };
-        public static readonly Register Spl_ = new Spl { Index = 8 , Slot = 4, Width = DataWidth.Byte_, Repr = "spl" };
-        public static readonly Register Bpl_ = new Bpl { Index = 9 , Slot = 5, Width = DataWidth.Byte_, Repr = "bpl" };
-        public static readonly Register Sil_ = new Sil { Index = 10, Slot = 6, Width = DataWidth.Byte_, Repr = "sil" };
-        public static readonly Register Dil_ = new Dil { Index = 11, Slot = 7, Width = DataWidth.Byte_, Repr = "dil" };
+        public static readonly Register al  = new Al  { Index = 0 , Slot = 0, Width = DataWidth.@byte, Repr = "al" };
+        public static readonly Register ah  = new Ah  { Index = 1 , Slot = 0, Width = DataWidth.@byte, Repr = "ah", IsHighBytes = true };
+        public static readonly Register cl  = new Cl  { Index = 2 , Slot = 1, Width = DataWidth.@byte, Repr = "cl" };
+        public static readonly Register ch  = new Ch  { Index = 3 , Slot = 1, Width = DataWidth.@byte, Repr = "ch", IsHighBytes = true };
+        public static readonly Register dl  = new Dl  { Index = 4 , Slot = 2, Width = DataWidth.@byte, Repr = "dl" };
+        public static readonly Register dh  = new Dh  { Index = 5 , Slot = 2, Width = DataWidth.@byte, Repr = "dh", IsHighBytes = true };
+        public static readonly Register bl  = new Bl  { Index = 6 , Slot = 3, Width = DataWidth.@byte, Repr = "bl" };
+        public static readonly Register bh  = new Bh  { Index = 7 , Slot = 3, Width = DataWidth.@byte, Repr = "bh", IsHighBytes = true };
+        public static readonly Register spl = new Spl { Index = 8 , Slot = 4, Width = DataWidth.@byte, Repr = "spl" };
+        public static readonly Register bpl = new Bpl { Index = 9 , Slot = 5, Width = DataWidth.@byte, Repr = "bpl" };
+        public static readonly Register sil = new Sil { Index = 10, Slot = 6, Width = DataWidth.@byte, Repr = "sil" };
+        public static readonly Register dil = new Dil { Index = 11, Slot = 7, Width = DataWidth.@byte, Repr = "dil" };
 
-        public static readonly Register Ax_ = new Ax   { Index = 12, Slot = 0, Width = DataWidth.Word_, Repr = "ax" };
-        public static readonly Register Cx_ = new Cx   { Index = 13, Slot = 1, Width = DataWidth.Word_, Repr = "cx" };
-        public static readonly Register Dx_ = new Dx   { Index = 14, Slot = 2, Width = DataWidth.Word_, Repr = "dx" };
-        public static readonly Register Bx_ = new Bx   { Index = 15, Slot = 3, Width = DataWidth.Word_, Repr = "bx" };
-        public static readonly Register Sp_ = new Sp   { Index = 16, Slot = 4, Width = DataWidth.Word_, Repr = "sp" };
-        public static readonly Register Bp_ = new Bp   { Index = 17, Slot = 5, Width = DataWidth.Word_, Repr = "bp" };
-        public static readonly Register Si_ = new Si   { Index = 18, Slot = 6, Width = DataWidth.Word_, Repr = "si" };
-        public static readonly Register Di_ = new Di   { Index = 19, Slot = 7, Width = DataWidth.Word_, Repr = "di" };
+        public static readonly Register ax = new Ax   { Index = 12, Slot = 0, Width = DataWidth.word, Repr = "ax" };
+        public static readonly Register cx = new Cx   { Index = 13, Slot = 1, Width = DataWidth.word, Repr = "cx" };
+        public static readonly Register dx = new Dx   { Index = 14, Slot = 2, Width = DataWidth.word, Repr = "dx" };
+        public static readonly Register bx = new Bx   { Index = 15, Slot = 3, Width = DataWidth.word, Repr = "bx" };
+        public static readonly Register sp = new Sp   { Index = 16, Slot = 4, Width = DataWidth.word, Repr = "sp" };
+        public static readonly Register bp = new Bp   { Index = 17, Slot = 5, Width = DataWidth.word, Repr = "bp" };
+        public static readonly Register si = new Si   { Index = 18, Slot = 6, Width = DataWidth.word, Repr = "si" };
+        public static readonly Register di = new Di   { Index = 19, Slot = 7, Width = DataWidth.word, Repr = "di" };
 
-        public static readonly Register Eax_ = new Eax { Index = 20, Slot = 0, Width = DataWidth.Dword_, Repr = "eax" };
-        public static readonly Register Ecx_ = new Ecx { Index = 21, Slot = 1, Width = DataWidth.Dword_, Repr = "ecx" };
-        public static readonly Register Edx_ = new Edx { Index = 22, Slot = 2, Width = DataWidth.Dword_, Repr = "edx" };
-        public static readonly Register Ebx_ = new Ebx { Index = 23, Slot = 3, Width = DataWidth.Dword_, Repr = "ebx" };
-        public static readonly Register Esp_ = new Esp { Index = 24, Slot = 4, Width = DataWidth.Dword_, Repr = "esp" };
-        public static readonly Register Ebp_ = new Ebp { Index = 25, Slot = 5, Width = DataWidth.Dword_, Repr = "ebp" };
-        public static readonly Register Esi_ = new Esi { Index = 26, Slot = 6, Width = DataWidth.Dword_, Repr = "esi" };
-        public static readonly Register Edi_ = new Edi { Index = 27, Slot = 7, Width = DataWidth.Dword_, Repr = "edi" };
+        public static readonly Register eax = new Eax { Index = 20, Slot = 0, Width = DataWidth.dword, Repr = "eax" };
+        public static readonly Register ecx = new Ecx { Index = 21, Slot = 1, Width = DataWidth.dword, Repr = "ecx" };
+        public static readonly Register edx = new Edx { Index = 22, Slot = 2, Width = DataWidth.dword, Repr = "edx" };
+        public static readonly Register ebx = new Ebx { Index = 23, Slot = 3, Width = DataWidth.dword, Repr = "ebx" };
+        public static readonly Register esp = new Esp { Index = 24, Slot = 4, Width = DataWidth.dword, Repr = "esp" };
+        public static readonly Register ebp = new Ebp { Index = 25, Slot = 5, Width = DataWidth.dword, Repr = "ebp" };
+        public static readonly Register esi = new Esi { Index = 26, Slot = 6, Width = DataWidth.dword, Repr = "esi" };
+        public static readonly Register edi = new Edi { Index = 27, Slot = 7, Width = DataWidth.dword, Repr = "edi" };
 
-        public static readonly Register Rax_ = new Rax { Index = 28, Slot = 0 , Width = DataWidth.Qword_, Repr = "rax" };
-        public static readonly Register Rcx_ = new Rcx { Index = 29, Slot = 1 , Width = DataWidth.Qword_, Repr = "rcx" };
-        public static readonly Register Rdx_ = new Rdx { Index = 30, Slot = 2 , Width = DataWidth.Qword_, Repr = "rdx" };
-        public static readonly Register Rbx_ = new Rbx { Index = 31, Slot = 3 , Width = DataWidth.Qword_, Repr = "rbx" };
-        public static readonly Register Rsp_ = new Rsp { Index = 32, Slot = 4 , Width = DataWidth.Qword_, Repr = "rsp" };
-        public static readonly Register Rbp_ = new Rbp { Index = 33, Slot = 5 , Width = DataWidth.Qword_, Repr = "rbp" };
-        public static readonly Register Rsi_ = new Rsi { Index = 34, Slot = 6 , Width = DataWidth.Qword_, Repr = "rsi" };
-        public static readonly Register Rdi_ = new Rdi { Index = 35, Slot = 7 , Width = DataWidth.Qword_, Repr = "rdi" };
-        public static readonly Register R8_  = new R8  { Index = 36, Slot = 8 , Width = DataWidth.Qword_, Repr = "r8" };
-        public static readonly Register R9_  = new R9  { Index = 37, Slot = 9 , Width = DataWidth.Qword_, Repr = "r9" };
-        public static readonly Register R10_ = new R10 { Index = 38, Slot = 10, Width = DataWidth.Qword_, Repr = "r10" };
-        public static readonly Register R11_ = new R11 { Index = 39, Slot = 11, Width = DataWidth.Qword_, Repr = "r11" };
-        public static readonly Register R12_ = new R12 { Index = 40, Slot = 12, Width = DataWidth.Qword_, Repr = "r12" };
-        public static readonly Register R13_ = new R13 { Index = 41, Slot = 13, Width = DataWidth.Qword_, Repr = "r13" };
-        public static readonly Register R14_ = new R14 { Index = 42, Slot = 14, Width = DataWidth.Qword_, Repr = "r14" };
-        public static readonly Register R15_ = new R15 { Index = 43, Slot = 15, Width = DataWidth.Qword_, Repr = "r15" };
+        public static readonly Register rax = new Rax { Index = 28, Slot = 0 , Width = DataWidth.qword, Repr = "rax" };
+        public static readonly Register rcx = new Rcx { Index = 29, Slot = 1 , Width = DataWidth.qword, Repr = "rcx" };
+        public static readonly Register rdx = new Rdx { Index = 30, Slot = 2 , Width = DataWidth.qword, Repr = "rdx" };
+        public static readonly Register rbx = new Rbx { Index = 31, Slot = 3 , Width = DataWidth.qword, Repr = "rbx" };
+        public static readonly Register rsp = new Rsp { Index = 32, Slot = 4 , Width = DataWidth.qword, Repr = "rsp" };
+        public static readonly Register rbp = new Rbp { Index = 33, Slot = 5 , Width = DataWidth.qword, Repr = "rbp" };
+        public static readonly Register rsi = new Rsi { Index = 34, Slot = 6 , Width = DataWidth.qword, Repr = "rsi" };
+        public static readonly Register rdi = new Rdi { Index = 35, Slot = 7 , Width = DataWidth.qword, Repr = "rdi" };
+        public static readonly Register r8  = new R8  { Index = 36, Slot = 8 , Width = DataWidth.qword, Repr = "r8"  };
+        public static readonly Register r9  = new R9  { Index = 37, Slot = 9 , Width = DataWidth.qword, Repr = "r9"  };
+        public static readonly Register r10 = new R10 { Index = 38, Slot = 10, Width = DataWidth.qword, Repr = "r10" };
+        public static readonly Register r11 = new R11 { Index = 39, Slot = 11, Width = DataWidth.qword, Repr = "r11" };
+        public static readonly Register r12 = new R12 { Index = 40, Slot = 12, Width = DataWidth.qword, Repr = "r12" };
+        public static readonly Register r13 = new R13 { Index = 41, Slot = 13, Width = DataWidth.qword, Repr = "r13" };
+        public static readonly Register r14 = new R14 { Index = 42, Slot = 14, Width = DataWidth.qword, Repr = "r14" };
+        public static readonly Register r15 = new R15 { Index = 43, Slot = 15, Width = DataWidth.qword, Repr = "r15" };
 
         public static readonly IReadOnlyList<Register> All8 = new Register[]
         {
-            Al_, Ah_, Cl_, Ch_, Dl_, Dh_, Bl_, Bh_, Spl_, Bpl_, Sil_, Dil_,
+            al, ah, cl, ch, dl, dh, bl, bh, spl, bpl, sil, dil,
         };
         public static readonly IReadOnlyList<Register> All16 = new Register[]
         {
-            Ax_, Cx_, Dx_, Bx_, Sp_, Bp_, Si_, Di_,
+            ax, cx, dx, bx, sp, bp, si, di,
         };
         public static readonly IReadOnlyList<Register> All32 = new Register[]
         {
-            Eax_, Ecx_, Edx_, Ebx_, Esp_, Ebp_, Esi_, Edi_,
+            eax, ecx, edx, ebx, esp, ebp, esi, edi,
         };
         public static readonly IReadOnlyList<Register> All64 = new Register[]
         {
-            Rax_, Rcx_, Rdx_, Rbx_, Rsp_, Rbp_, Rsi_, Rdi_, 
-            R8_, R9_, R10_, R11_, R12_, R13_, R14_, R15_,
+            rax, rcx, rdx, rbx, rsp, rbp, rsi, rdi, 
+            r8, r9, r10, r11, r12, r13, r14, r15,
         };
 
         /// <summary>
@@ -150,7 +150,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         /// <summary>
         /// The <see cref="DataWidth"/> of this <see cref="Register"/>.
         /// </summary>
-        public DataWidth Width { get; private set; } = DataWidth.Byte_;
+        public DataWidth Width { get; private set; } = DataWidth.@byte;
         /// <summary>
         /// True, if this <see cref="Register"/> is a high-bytes part of another.
         /// </summary>

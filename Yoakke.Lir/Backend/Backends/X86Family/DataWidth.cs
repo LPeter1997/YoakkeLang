@@ -16,10 +16,10 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
 
         // Values
 
-        public static readonly DataWidth Byte_  = new Byte  { Index = 0, Repr = "byte" , Size = 1 };
-        public static readonly DataWidth Word_  = new Word  { Index = 1, Repr = "word" , Size = 2 };
-        public static readonly DataWidth Dword_ = new Dword { Index = 2, Repr = "dword", Size = 4 };
-        public static readonly DataWidth Qword_ = new Qword { Index = 3, Repr = "qword", Size = 8 };
+        public static readonly DataWidth @byte = new Byte  { Index = 0, Repr = "byte" , Size = 1 };
+        public static readonly DataWidth word  = new Word  { Index = 1, Repr = "word" , Size = 2 };
+        public static readonly DataWidth dword = new Dword { Index = 2, Repr = "dword", Size = 4 };
+        public static readonly DataWidth qword = new Qword { Index = 3, Repr = "qword", Size = 8 };
 
         /// <summary>
         /// The size of this <see cref="DataWidth"/> in bytes.
@@ -38,10 +38,10 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         /// <returns>The <see cref="DataWidth"/> for the size.</returns>
         public static DataWidth GetFromSize(int byteSize) => byteSize switch
         {
-            1 => Byte_,
-            2 => Word_,
-            4 => Dword_,
-            8 => Qword_,
+            1 => @byte,
+            2 => word,
+            4 => dword,
+            8 => qword,
             _ => throw new ArgumentException("Invalid data width size!", nameof(byteSize)),
         };
     }

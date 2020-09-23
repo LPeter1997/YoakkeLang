@@ -264,32 +264,32 @@ namespace Yoakke.Lir
         /// <summary>
         /// Writes an equality <see cref="Cmp(Comparison, Value, Value)"/>.
         /// </summary>
-        public Value CmpEq(Value left, Value right) => Cmp(Comparison.Eq_, left, right);
+        public Value CmpEq(Value left, Value right) => Cmp(Comparison.eq, left, right);
 
         /// <summary>
         /// Writes an inequality <see cref="Cmp(Comparison, Value, Value)"/>.
         /// </summary>
-        public Value CmpNe(Value left, Value right) => Cmp(Comparison.Ne_, left, right);
+        public Value CmpNe(Value left, Value right) => Cmp(Comparison.ne, left, right);
 
         /// <summary>
         /// Writes a greater-than <see cref="Cmp(Comparison, Value, Value)"/>.
         /// </summary>
-        public Value CmpGr(Value left, Value right) => Cmp(Comparison.Gr_, left, right);
+        public Value CmpGr(Value left, Value right) => Cmp(Comparison.gr, left, right);
 
         /// <summary>
         /// Writes a less-than <see cref="Cmp(Comparison, Value, Value)"/>.
         /// </summary>
-        public Value CmpLe(Value left, Value right) => Cmp(Comparison.Le_, left, right);
+        public Value CmpLe(Value left, Value right) => Cmp(Comparison.le, left, right);
 
         /// <summary>
         /// Writes a less-or-equals <see cref="Cmp(Comparison, Value, Value)"/>.
         /// </summary>
-        public Value CmpLeEq(Value left, Value right) => Cmp(Comparison.LeEq_, left, right);
+        public Value CmpLeEq(Value left, Value right) => Cmp(Comparison.le_eq, left, right);
 
         /// <summary>
         /// Writes a greater-or-equals <see cref="Cmp(Comparison, Value, Value)"/>.
         /// </summary>
-        public Value CmpGrEq(Value left, Value right) => Cmp(Comparison.GrEq_, left, right);
+        public Value CmpGrEq(Value left, Value right) => Cmp(Comparison.gr_eq, left, right);
 
         /// <summary>
         /// Adds a new <see cref="Instr.Add"/>.

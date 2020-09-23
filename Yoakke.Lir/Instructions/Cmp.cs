@@ -23,12 +23,12 @@ namespace Yoakke.Lir.Instructions
 
         // Values
 
-        public static readonly Comparison Eq_   = new Eq   { Index = 0, Repr = "eq" };
-        public static readonly Comparison Ne_   = new Ne   { Index = 1, Repr = "ne" };
-        public static readonly Comparison Gr_   = new Gr   { Index = 2, Repr = "gr" };
-        public static readonly Comparison Le_   = new Le   { Index = 3, Repr = "le" };
-        public static readonly Comparison GrEq_ = new GrEq { Index = 4, Repr = "gr_eq" };
-        public static readonly Comparison LeEq_ = new LeEq { Index = 5, Repr = "le_eq" };
+        public static readonly Comparison eq    = new Eq   { Index = 0, Repr = "eq"    };
+        public static readonly Comparison ne    = new Ne   { Index = 1, Repr = "ne"    };
+        public static readonly Comparison gr    = new Gr   { Index = 2, Repr = "gr"    };
+        public static readonly Comparison le    = new Le   { Index = 3, Repr = "le"    };
+        public static readonly Comparison gr_eq = new GrEq { Index = 4, Repr = "gr_eq" };
+        public static readonly Comparison le_eq = new LeEq { Index = 5, Repr = "le_eq" };
 
         private int Index { get; set; }
         private string Repr { get; set; } = string.Empty;

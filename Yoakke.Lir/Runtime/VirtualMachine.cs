@@ -239,11 +239,11 @@ namespace Yoakke.Lir.Runtime
                 var left = Unwrap(cmp.Left);
                 var right = Unwrap(cmp.Right);
                 bool boolResult;
-                if (cmp.Comparison == Comparison.Eq_)
+                if (cmp.Comparison == Comparison.eq)
                 {
                     boolResult = left.Equals(right);
                 }
-                else if (cmp.Comparison == Comparison.Ne_)
+                else if (cmp.Comparison == Comparison.ne)
                 {
                     boolResult = !left.Equals(right);
                 }
