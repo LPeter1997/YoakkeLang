@@ -109,5 +109,149 @@ namespace Yoakke.Lir.Tests
             b.Ret(b.Load(storage));
             TestOnAllBackends<Func<Int64>>(b, Type.I64.NewValue(8_724_105_835));
         }
+
+        [TestMethod]
+        public void BigCmpEqTrue()
+        {
+            var b = GetBuilder(Type.I32);
+            b.Ret(b.CmpEq(Type.I64.NewValue(0x17ab35c7b8893d4e), Type.I64.NewValue(0x17ab35c7b8893d4e)));
+            TestOnAllBackends<Func<Int32>>(b, Type.I32.NewValue(1));
+        }
+
+        [TestMethod]
+        public void BigCmpEqFalseDiffHi()
+        {
+            var b = GetBuilder(Type.I32);
+            b.Ret(b.CmpEq(Type.I64.NewValue(0x17eb35c7b8893d4e), Type.I64.NewValue(0x17ab35c7b8893d4e)));
+            TestOnAllBackends<Func<Int32>>(b, Type.I32.NewValue(0));
+        }
+
+        [TestMethod]
+        public void BigCmpEqFalseDiffLo()
+        {
+            var b = GetBuilder(Type.I32);
+            b.Ret(b.CmpEq(Type.I64.NewValue(0x17ab35c7b889344e), Type.I64.NewValue(0x17ab35c7b8893d4e)));
+            TestOnAllBackends<Func<Int32>>(b, Type.I32.NewValue(0));
+        }
+
+        [TestMethod]
+        public void BigCmpNeTrueDiffHi()
+        {
+            var b = GetBuilder(Type.I32);
+            b.Ret(b.CmpNe(Type.I64.NewValue(0x17eb35c7b8893d4e), Type.I64.NewValue(0x17ab35c7b8893d4e)));
+            TestOnAllBackends<Func<Int32>>(b, Type.I32.NewValue(1));
+        }
+
+        [TestMethod]
+        public void BigCmpNeTrueDiffLo()
+        {
+            var b = GetBuilder(Type.I32);
+            b.Ret(b.CmpNe(Type.I64.NewValue(0x17ab35c7b889344e), Type.I64.NewValue(0x17ab35c7b8893d4e)));
+            TestOnAllBackends<Func<Int32>>(b, Type.I32.NewValue(1));
+        }
+
+        [TestMethod]
+        public void BigCmpNeFalse()
+        {
+            var b = GetBuilder(Type.I32);
+            b.Ret(b.CmpNe(Type.I64.NewValue(0x17ab35c7b8893d4e), Type.I64.NewValue(0x17ab35c7b8893d4e)));
+            TestOnAllBackends<Func<Int32>>(b, Type.I32.NewValue(0));
+        }
+
+        [TestMethod]
+        public void BigCmpGrTrueDiffHi()
+        {
+            var b = GetBuilder(Type.I32);
+            b.Ret(b.CmpGr(Type.I64.NewValue(0x17ac35c7b8893d4e), Type.I64.NewValue(0x17ab35c7b8893d4e)));
+            TestOnAllBackends<Func<Int32>>(b, Type.I32.NewValue(1));
+        }
+
+        [TestMethod]
+        public void BigCmpGrTrueDiffLo()
+        {
+            var b = GetBuilder(Type.I32);
+            b.Ret(b.CmpGr(Type.I64.NewValue(0x17ab35c7b8894d4e), Type.I64.NewValue(0x17ab35c7b8893d4e)));
+            TestOnAllBackends<Func<Int32>>(b, Type.I32.NewValue(1));
+        }
+
+        [TestMethod]
+        public void BigCmpGrFalseDiffHi()
+        {
+            var b = GetBuilder(Type.I32);
+            b.Ret(b.CmpEq(Type.I64.NewValue(0x17ab35c7b8893d4e), Type.I64.NewValue(0x19ab35c7b8893d4e)));
+            TestOnAllBackends<Func<Int32>>(b, Type.I32.NewValue(0));
+        }
+
+        [TestMethod]
+        public void BigCmpGrFalseDiffLo()
+        {
+            var b = GetBuilder(Type.I32);
+            b.Ret(b.CmpEq(Type.I64.NewValue(0x17ab35c7b8893d4e), Type.I64.NewValue(0x17ab35c7b8893d5e)));
+            TestOnAllBackends<Func<Int32>>(b, Type.I32.NewValue(0));
+        }
+
+        [TestMethod]
+        public void BigCmpLeTrueDiffHi()
+        {
+            var b = GetBuilder(Type.I32);
+            b.Ret(b.CmpLe(Type.I64.NewValue(0x17ab35c7b8893d4e), Type.I64.NewValue(0x17ac35c7b8893d4e)));
+            TestOnAllBackends<Func<Int32>>(b, Type.I32.NewValue(1));
+        }
+
+        [TestMethod]
+        public void BigCmpLeTrueDiffLo()
+        {
+            var b = GetBuilder(Type.I32);
+            b.Ret(b.CmpLe(Type.I64.NewValue(0x17ab35c7b8893d4e), Type.I64.NewValue(0x17ab35c7b8894d4e)));
+            TestOnAllBackends<Func<Int32>>(b, Type.I32.NewValue(1));
+        }
+
+        [TestMethod]
+        public void BigCmpLeFalseDiffHi()
+        {
+            var b = GetBuilder(Type.I32);
+            b.Ret(b.CmpLe(Type.I64.NewValue(0x19ab35c7b8893d4e), Type.I64.NewValue(0x17ab35c7b8893d4e)));
+            TestOnAllBackends<Func<Int32>>(b, Type.I32.NewValue(0));
+        }
+
+        [TestMethod]
+        public void BigCmpLeFalseDiffLo()
+        {
+            var b = GetBuilder(Type.I32);
+            b.Ret(b.CmpLe(Type.I64.NewValue(0x17ab35c7b8893d5e), Type.I64.NewValue(0x17ab35c7b8893d4e)));
+            TestOnAllBackends<Func<Int32>>(b, Type.I32.NewValue(0));
+        }
+
+        [TestMethod]
+        public void BigCmpGrTrueAssym()
+        {
+            var b = GetBuilder(Type.I32);
+            b.Ret(b.CmpGr(Type.I64.NewValue(0x18ab35c7b8893a4e), Type.I64.NewValue(0x17ab35c7b8893d4e)));
+            TestOnAllBackends<Func<Int32>>(b, Type.I32.NewValue(1));
+        }
+
+        [TestMethod]
+        public void BigCmpGrFalseAssym()
+        {
+            var b = GetBuilder(Type.I32);
+            b.Ret(b.CmpGr(Type.I64.NewValue(0x16ab35c7b8893dae), Type.I64.NewValue(0x17ab35c7b8893d4e)));
+            TestOnAllBackends<Func<Int32>>(b, Type.I32.NewValue(0));
+        }
+
+        [TestMethod]
+        public void BigCmpLeTrueAssym()
+        {
+            var b = GetBuilder(Type.I32);
+            b.Ret(b.CmpLe(Type.I64.NewValue(0x17ab35c7b8893d4e), Type.I64.NewValue(0x18ab35c7b8893a4e)));
+            TestOnAllBackends<Func<Int32>>(b, Type.I32.NewValue(1));
+        }
+
+        [TestMethod]
+        public void BigCmpLeFalseAssym()
+        {
+            var b = GetBuilder(Type.I32);
+            b.Ret(b.CmpLe(Type.I64.NewValue(0x17ab35c7b8893d4e), Type.I64.NewValue(0x16ab35c7b8893dae)));
+            TestOnAllBackends<Func<Int32>>(b, Type.I32.NewValue(0));
+        }
     }
 }

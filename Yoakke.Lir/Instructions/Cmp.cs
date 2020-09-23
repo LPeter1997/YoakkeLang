@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;
+using Type = Yoakke.Lir.Types.Type;
 
 namespace Yoakke.Lir.Instructions
 {
@@ -35,6 +37,20 @@ namespace Yoakke.Lir.Instructions
 
         public override string ToString() => Repr;
         public static explicit operator int(Comparison c) => c.Index;
+
+        /// <summary>
+        /// The inverse <see cref="Comparison"/> of this one.
+        /// </summary>
+        public Comparison Inverse => this switch
+        {
+            Eq => ne,
+            Ne => eq,
+            Gr => le_eq,
+            Le => gr_eq,
+            GrEq => le,
+            LeEq => gr,
+            _ => throw new NotImplementedException(),
+        };
     }
 
     partial class Instr
@@ -90,6 +106,10 @@ namespace Yoakke.Lir.Instructions
                 if (!(Result.Type is Type.Int))
                 {
                     ThrowValidationException("Result type of comparison must be an integer!");
+                }
+                if (!(Left.Type.Equals(Right.Type)))
+                {
+                    ThrowValidationException("Type mismatch between operands!");
                 }
                 if (!(Left.Type is Type.Int && Right.Type is Type.Int))
                 {

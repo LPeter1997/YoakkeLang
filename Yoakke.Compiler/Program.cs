@@ -43,16 +43,7 @@ namespace Yoakke.Compiler
             var main = b.DefineProc("main");
             main.Return = Type.I32;
 
-            var modify = b.DefineProc("modify");
-            var p = b.DefineParameter(new Type.Ptr(Type.I32));
-            b.Store(p, Type.I32.NewValue(73));
-            b.Ret();
-
-            b.CurrentProc = main;
-            var storage = b.Alloc(Type.I32);
-            b.Store(storage, Type.I32.NewValue(62));
-            b.Call(modify, new List<Value> { storage });
-            b.Ret(b.Load(storage));
+            b.Ret(b.CmpGr(Type.I64.NewValue(0x17ac35c7b8893d4e), Type.I64.NewValue(0x17ab35c7b8893d4e)));
 
             var targetTriplet = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
             var toolchain = Toolchains.Supporting(targetTriplet).First();

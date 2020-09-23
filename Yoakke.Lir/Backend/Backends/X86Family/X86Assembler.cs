@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.ComTypes;
+using System.Xml.Linq;
 using Yoakke.Lir.Instructions;
 using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;
@@ -315,54 +316,97 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             }
             break;
 
-#if false
             case Instr.Cmp cmp:
             {
-                // TODO: What if the operands don't fit in 32 bits?
-                var target = CompileValue(cmp.Result, true);
-                var left = CompileValue(cmp.Left);
-                var right = CompileValue(cmp.Right);
-                CleanseImmediates(ref left, ref right);
-                // First we produce the operands and the flags
-                WriteInstr(X86Op.Cmp, left, right);
-                // Based on the comparison we need an x86 operation
-                var op = cmp.Comparison switch
-                {
-                    Comparison.Eq => X86Op.Je,
-                    Comparison.Ne => X86Op.Jne,
-                    Comparison.Gr => X86Op.Jg,
-                    Comparison.Le => X86Op.Jl,
-                    Comparison.GrEq => X86Op.Jge,
-                    Comparison.LeEq => X86Op.Jle,
-                    _ => throw new NotImplementedException(),
-                };
+                var targetParts = CompileValue(cmp.Result);
+                var leftParts = CompileValue(cmp.Left);
+                var rightParts = CompileValue(cmp.Right);
+                Debug.Assert(leftParts.Length == rightParts.Length);
+                var target = targetParts[0];
+                var targetWidth = target.GetWidth(sizeContext);
+
+                var truthy = new Operand.Literal(targetWidth, 1);
+                var falsy = new Operand.Literal(targetWidth, 0);
+
+                // TODO: We could just make BBs operands, then we would avoid this crud
                 // We need to branch to write the result
-                var labelNameBase = GetUniqueName("WriteCmpResult");
+                var labelNameBase = GetUniqueName("cmp_result");
                 Debug.Assert(currentProcedure != null);
                 var trueBB = new X86BasicBlock(currentProcedure, $"{labelNameBase}_T");
                 var falseBB = new X86BasicBlock(currentProcedure, $"{labelNameBase}_F");
-                var continueBB = new X86BasicBlock(currentProcedure, $"{labelNameBase}_C");
-                // Do the branch to the true or false block
-                WriteInstr(op, trueBB);
-                WriteInstr(X86Op.Jmp, falseBB);
-                // On true block, we write the truthy value then jump to the continuation
-                currentBasicBlock = trueBB;
-                WriteInstr(X86Op.Mov, target, 1);
-                WriteInstr(X86Op.Jmp, continueBB);
-                // On false block, we write the falsy value then jump to the continuation
-                currentBasicBlock = falseBB;
-                WriteInstr(X86Op.Mov, target, 0);
-                WriteInstr(X86Op.Jmp, continueBB);
-                // We continue writing on the continuation
-                currentBasicBlock = continueBB;
-                // Add all these basic blocks to the vurrent procedure
+                var finallyBB = new X86BasicBlock(currentProcedure, $"{labelNameBase}_C");
+                var trueLabel = new Operand.Label(trueBB);
+                var falseLabel = new Operand.Label(falseBB);
+                var finallyLabel = new Operand.Label(finallyBB);
+
+                // Add all these basic blocks to the current procedure
                 Debug.Assert(currentProcedure != null);
                 currentProcedure.BasicBlocks.Add(trueBB);
                 currentProcedure.BasicBlocks.Add(falseBB);
-                currentProcedure.BasicBlocks.Add(continueBB);
+                currentProcedure.BasicBlocks.Add(finallyBB);
+                
+                // Based on the comparison we need an x86 operation
+                var inverseOp = ComparisonToJump(cmp.Comparison.Inverse);
+                // For each part pair we compare
+                // NOTE: It's important that we start from the most significant bytes here for the relational operators
+                int i = 0;
+                foreach (var (l, r) in leftParts.Zip(rightParts).Reverse())
+                {
+                    bool last = i == leftParts.Length - 1;
+                    i += 1;
+
+                    // We need to do the comparison
+                    var tmp = WriteNonImmInstr(X86Op.Cmp, l, r);
+                    if (tmp != null) registerPool.Free(tmp);
+                    if (last)
+                    {
+                        // If this was the last part to compare, we can just branch to the truthy part as the
+                        // condition succeeded (or the falsy one on mismatch)
+                        WriteInstr(inverseOp, falseLabel);
+                        WriteInstr(X86Op.Jmp, trueLabel);
+                    }
+                    else
+                    {
+                        // These are not the last elements we compare
+                        if (cmp.Comparison == Comparison.eq)
+                        {
+                            // We can jump to false on inequality
+                            WriteInstr(X86Op.Jne, falseLabel);
+                        }
+                        else if (cmp.Comparison == Comparison.ne)
+                        {
+                            // We can jump to true on inequality
+                            WriteInstr(X86Op.Jne, trueLabel);
+                        }
+                        else if (cmp.Comparison == Comparison.le || cmp.Comparison == Comparison.le_eq)
+                        {
+                            // If the part less, then we can jump to true, if greater, then to false
+                            WriteInstr(X86Op.Jl, trueLabel);
+                            WriteInstr(X86Op.Jg, falseLabel);
+                        }
+                        else if (cmp.Comparison == Comparison.gr || cmp.Comparison == Comparison.gr_eq)
+                        {
+                            // If the part is greater, then we can jump to true, if less, then to false
+                            WriteInstr(X86Op.Jg, trueLabel);
+                            WriteInstr(X86Op.Jl, falseLabel);
+                        }
+                    }
+                }
+                
+                // On true block, we write the truthy value then jump to the continuation
+                currentBasicBlock = trueBB;
+                WriteInstr(X86Op.Mov, target, truthy);
+                WriteInstr(X86Op.Jmp, finallyLabel);
+                // On false block, we write the falsy value then jump to the continuation
+                currentBasicBlock = falseBB;
+                WriteInstr(X86Op.Mov, target, falsy);
+                WriteInstr(X86Op.Jmp, finallyLabel);
+                // We continue writing on the continuation
+                currentBasicBlock = finallyBB;
             }
             break;
 
+#if false
             case Instr.Add:
             case Instr.Sub:
             {
@@ -554,6 +598,19 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             }
         }
 
+        private Register? WriteNonImmInstr(X86Op op, Operand left, Operand right)
+        {
+            if (left is Operand.Literal && right is Operand.Literal)
+            {
+                // One of the arguments needs to go to a register
+                var tmp = registerPool.Allocate(left.GetWidth(sizeContext));
+                WriteInstr(X86Op.Mov, tmp, left);
+                WriteInstr(op, tmp, right);
+                return tmp;
+            }
+            return null;
+        }
+
         private void WritePush(Operand[] ops)
         {
             foreach (var op in ops) WriteInstr(X86Op.Push, op);
@@ -709,5 +766,16 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         }
 
         private static bool IsPrimitive(Type type) => type is Type.Int;
+
+        private static X86Op ComparisonToJump(Comparison cmp) => cmp switch
+        {
+            Comparison.Eq => X86Op.Je,
+            Comparison.Ne => X86Op.Jne,
+            Comparison.Gr => X86Op.Jg,
+            Comparison.Le => X86Op.Jl,
+            Comparison.GrEq => X86Op.Jge,
+            Comparison.LeEq => X86Op.Jle,
+            _ => throw new NotImplementedException(),
+        };
     }
 }
