@@ -24,9 +24,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         private IDictionary<BasicBlock, X86BasicBlock> basicBlocks = new Dictionary<BasicBlock, X86BasicBlock>();
         private IDictionary<Proc, X86Proc> procs = new Dictionary<Proc, X86Proc>();
         private IDictionary<Lir.Register, int> registerOffsets = new Dictionary<Lir.Register, int>();
-
-        private ISet<Register> allRegs = new HashSet<Register> { Register.eax, Register.ecx, Register.edx, Register.ebx };
-        private ISet<Register> occupiedRegs = new HashSet<Register>();
+        private RegisterPool registerPool = new RegisterPool();
 
         /// <summary>
         /// Compiles an <see cref="X86Assembly"/> from a <see cref="Assembly"/>.
@@ -121,7 +119,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         {
             // TODO: Erase zero-size operands everywhere
 
-            FreeOccupiedRegs();
+            registerPool.FreeAll();
             CommentInstr(instr);
             switch (instr)
             {
@@ -138,7 +136,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                         {
                             // For cdecl we return in eax for size <= 4
                             // TODO: Floats are returned in a different register!
-                            OccupyRegister(Register.eax);
+                            registerPool.Allocate(Register.eax);
                             var retValue = CompileValue(ret.Value);
                             WriteInstr(X86Op.Mov, Register.eax, retValue);
                         }
@@ -176,7 +174,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                         var argValue = CompileValue(arg);
                         WriteInstr(X86Op.Push, argValue);
                         espOffset += SizeOf(arg);
-                        FreeOccupiedRegs();
+                        registerPool.FreeAll();
                     }
                     // Do the call
                     var procedure = CompileValue(call.Procedure);
@@ -228,7 +226,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 var source = (Register)CompileValue(load.Address);
                 var addr = new Operand.Address(source);
                 var indirect = new Operand.Indirect(source.Width, addr);
-                var immediate = OccupyRegister();
+                var immediate = registerPool.Allocate(DataWidth.dword);
                 WriteInstr(X86Op.Mov, immediate, indirect);
                 WriteInstr(X86Op.Mov, target, immediate);
             }
@@ -342,17 +340,16 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 var arith = (ArithInstr)instr;
                 // NOTE: This is different!
                 // TODO: What if the operands don't fit in 32 bits?
-                var eax = OccupyRegister(Register.eax);
-                var edx = OccupyRegister(Register.edx);
+                registerPool.Allocate(Register.eax, Register.edx);
                 var target = CompileValue(arith.Result, true);
                 var left = CompileValue(arith.Left);
                 var right = CompileValue(arith.Right);
                 ToNonImmediate(ref right);
-                WriteInstr(X86Op.Mov, edx, 0);
-                WriteInstr(X86Op.Mov, eax, left);
+                WriteInstr(X86Op.Mov, Register.edx, 0);
+                WriteInstr(X86Op.Mov, Register.eax, left);
                 // TODO: Signed vs. unsigned?
                 WriteInstr(X86Op.Idiv, right);
-                WriteInstr(X86Op.Mov, target, arith is Instr.Div ? eax : edx);
+                WriteInstr(X86Op.Mov, target, arith is Instr.Div ? Register.eax : Register.edx);
             }
             break;
 
@@ -467,7 +464,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 {
                     // TODO: This is stupid for larger elements...
                     // Else we load it
-                    var targetReg = OccupyRegister();
+                    var targetReg = registerPool.Allocate(DataWidth.dword);
                     WriteInstr(X86Op.Mov, targetReg, result);
                     return targetReg;
                 }
@@ -492,7 +489,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             // TODO: Operand size...
             if (op is Operand.Literal imm)
             {
-                op = OccupyRegister();
+                op = registerPool.Allocate(DataWidth.dword);
                 WriteInstr(X86Op.Mov, op, imm);
             }
         }
@@ -502,7 +499,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             // TODO: Operand size...
             if (!(op is Register))
             {
-                var reg = OccupyRegister();
+                var reg = registerPool.Allocate(DataWidth.dword);
                 WriteInstr(X86Op.Mov, reg, op);
                 op = reg;
             }
@@ -542,24 +539,6 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 currentBasicBlock.Instructions.Add(instr);
             }
         }
-
-        // TODO: We could have a way to free up single registers too!
-        // TODO: If we return Register type, it's more versitaile
-        private Operand OccupyRegister()
-        {
-            foreach (var reg in allRegs)
-            {
-                if (!occupiedRegs.Contains(reg)) return OccupyRegister(reg);
-            }
-            throw new InvalidOperationException();
-        }
-        private Operand OccupyRegister(Register register)
-        {
-            if (occupiedRegs.Contains(register)) throw new InvalidOperationException();
-            occupiedRegs.Add(register);
-            return register;
-        }
-        private void FreeOccupiedRegs() => occupiedRegs.Clear();
 
         // TODO: Not the best solution...
         private int nameCnt = 0;

@@ -27,7 +27,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             if (s1reg != null && s2reg != null) return false;
             if (s1reg != null) return !s1reg.IsOverlapping(reg);
             if (s2reg != null) return !s2reg.IsOverlapping(reg);
-            return false;
+            return true;
         }
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         public Register Allocate(DataWidth width)
         {
             // We filter for allowed registers only (not sp, bp, si, di)
-            foreach (var reg in Register.All(width).Where(r => r.Slot >= 4 && r.Slot < 8))
+            foreach (var reg in Register.All(width).Where(r => r.Slot < 4 || r.Slot >= 8))
             {
                 if (IsFree(reg))
                 {

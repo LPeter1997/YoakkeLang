@@ -38,18 +38,19 @@ namespace Yoakke.Compiler
 #elif true
 
             var uncheckedAsm = new UncheckedAssembly("test_app");
-            var builder = new Builder(uncheckedAsm);
+            var b = new Builder(uncheckedAsm);
 
             var arr = new Type.Array(Type.I32, 3);
-            var main = builder.DefineProc("main");
-            main.Return = Type.I64;
-
-            var identity = builder.DefineProc("bigboi");
-            identity.Return = Type.I64;
-            builder.Ret(Type.I64.NewValue(5235));
-
-            builder.CurrentProc = main;
-            builder.Ret(builder.Call(identity, new List<Value> { }));
+            var main = b.DefineProc("main");
+            main.Return = Type.I32;
+            var arrTy = new Type.Array(Type.I32, 3);
+            var arrPtr = b.Alloc(arrTy);
+            var intPtr = b.Cast(new Type.Ptr(Type.I32), arrPtr);
+            for (int i = 0; i < 3; ++i)
+            {
+                b.Store(b.Add(intPtr, Type.I32.NewValue(i)), Type.I32.NewValue(2 * i + 1));
+            }
+            b.Ret(b.Load(b.Add(intPtr, Type.I32.NewValue(0))));
 
             var targetTriplet = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
             var toolchain = Toolchains.Supporting(targetTriplet).First();
