@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Http.Headers;
+using Yoakke.Lir.Types;
 
 namespace Yoakke.Lir.Backend.Backends.X86Family
 {
@@ -33,6 +34,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
     /// </summary>
     public abstract class Operand : IX86Syntax
     {
+        public abstract DataWidth GetWidth(SizeContext sizeContext);
         public abstract string ToIntelSyntax(X86FormatOptions formatOptions);
 
         /// <summary>
@@ -55,6 +57,9 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 Target = basicBlock;
             }
 
+            public override DataWidth GetWidth(SizeContext sizeContext) => 
+                DataWidth.GetFromSize(sizeContext.PointerSize);
+
             public override string ToIntelSyntax(X86FormatOptions formatOptions) => Target switch
             {
                 X86BasicBlock bb => bb.GetLabelName(formatOptions),
@@ -68,12 +73,16 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         /// </summary>
         public class Literal : Operand
         {
+            public readonly DataWidth Width;
             public readonly object Value;
 
-            public Literal(object value)
+            public Literal(DataWidth width, object value)
             {
+                Width = width;
                 Value = value;
             }
+
+            public override DataWidth GetWidth(SizeContext sizeContext) => Width;
 
             public override string ToIntelSyntax(X86FormatOptions formatOptions) => 
                 Value.ToString() ?? string.Empty;
@@ -119,6 +128,9 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             {
             }
 
+            public override DataWidth GetWidth(SizeContext sizeContext) =>
+                DataWidth.GetFromSize(sizeContext.PointerSize);
+
             private static string R(X86FormatOptions f, Register r)
             {
                 var res = r.ToIntelSyntax(f);
@@ -150,6 +162,8 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 Width = width;
                 Address_ = addr;
             }
+
+            public override DataWidth GetWidth(SizeContext sizeContext) => Width;
 
             public override string ToIntelSyntax(X86FormatOptions formatOptions) => 
                 // TODO: The PTR keyword is not necessarily correct!

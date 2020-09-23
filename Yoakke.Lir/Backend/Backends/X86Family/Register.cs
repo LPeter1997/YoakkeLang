@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using Yoakke.Lir.Types;
 
 namespace Yoakke.Lir.Backend.Backends.X86Family
 {
@@ -162,6 +164,8 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
 
         public static explicit operator int(Register r) => r.Index;
 
+        public override DataWidth GetWidth(SizeContext sizeContext) => Width;
+
         public override string ToIntelSyntax(X86FormatOptions formatOptions) =>
             formatOptions.AllUpperCase ? Repr.ToUpper() : Repr.ToLower();
 
@@ -178,6 +182,15 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             DataWidth.Qword => All64,
             _ => throw new NotImplementedException(),
         };
+
+        /// <summary>
+        /// Retrieves the <see cref="Register"/> at the given slot with the given <see cref="DataWidth"/>.
+        /// </summary>
+        /// <param name="slot">The slot index.</param>
+        /// <param name="width">The <see cref="DataWidth"/> of the <see cref="Register"/>.</param>
+        /// <returns>The <see cref="Register"/> at the given slot with the given <see cref="DataWidth"/>.</returns>
+        public static Register AtSlot(int slot, DataWidth width) =>
+            All(width).First(reg => reg.Slot == slot);
 
         /// <summary>
         /// Checks, if this <see cref="Register"/> is overlapping with another one.

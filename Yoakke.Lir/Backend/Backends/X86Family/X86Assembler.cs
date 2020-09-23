@@ -10,6 +10,14 @@ using Type = Yoakke.Lir.Types.Type;
 
 namespace Yoakke.Lir.Backend.Backends.X86Family
 {
+    internal enum ReturnMethod
+    {
+        None,
+        Eax,
+        EaxEdx,
+        Address,
+    }
+
     /// <summary>
     /// For assembling for X86.
     /// </summary>
@@ -76,9 +84,17 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 .Select(ins => (ValueInstr)ins)
                 .Select(ins => ins.Result);
             // TODO: This is probably only true for Cdecl?
-            // Collect parameter offsets, they are the other way in reverse order
             // Start from 4 because of the top one being the return address
-            int offset = 4;
+            int offset = sizeContext.PointerSize;
+            // Get how we return from here
+            var returnMethod = GetReturnMethod(proc.Return);
+            if (returnMethod == ReturnMethod.Address)
+            {
+                // We return by copying to a return address
+                // The return address is on the top of the stack
+                offset += sizeContext.PointerSize;
+            }
+            // Collect parameter offsets, they are the other way in reverse order
             foreach (var r in proc.Parameters)
             {
                 offset += SizeOf(r);
@@ -99,7 +115,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             // Calculate space for locals
             var allocSize = registers.Sum(SizeOf);
             // Allocate space for the locals
-            WriteInstr(X86Op.Sub, Register.esp, allocSize);
+            WriteInstr(X86Op.Sub, Register.esp, new Operand.Literal(DataWidth.dword, allocSize));
 
             // Now just compile all basic blocks
             foreach (var bb in proc.BasicBlocks) CompileBasicBlock(proc, bb);
@@ -117,50 +133,12 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
 
         private void CompileInstr(Proc proc, Instr instr)
         {
-            // TODO: Erase zero-size operands everywhere
-
             registerPool.FreeAll();
             CommentInstr(instr);
             switch (instr)
             {
-            case Instr.Ret ret:
-            {
-                var valueSize = SizeOf(ret.Value);
-                // Return value
-                if (valueSize > 0)
-                {
-                    // Store return value
-                    if (proc.CallConv == CallConv.Cdecl)
-                    {
-                        if (valueSize <= 4)
-                        {
-                            // For cdecl we return in eax for size <= 4
-                            // TODO: Floats are returned in a different register!
-                            registerPool.Allocate(Register.eax);
-                            var retValue = CompileValue(ret.Value);
-                            WriteInstr(X86Op.Mov, Register.eax, retValue);
-                        }
-                        else
-                        {
-                            // For size > 4 we receive a return address
-                            throw new NotImplementedException();
-                        }
-                    }
-                    else
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                // Write the epilogue, return
-                WriteProcEpilogue(proc);
-                CommentInstr(instr);
-                WriteInstr(X86Op.Ret);
-            }
-            break;
-
             case Instr.Call call:
             {
-                // TODO: Proper error
                 if (!(call.Procedure.Type is Type.Proc procTy))
                 {
                     throw new InvalidOperationException();
@@ -169,22 +147,59 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 {
                     // Push arguments backwards, track the offset of esp
                     var espOffset = 0;
+                    int i = 0;
                     foreach (var arg in call.Arguments.Reverse())
                     {
                         var argValue = CompileValue(arg);
-                        WriteInstr(X86Op.Push, argValue);
+                        CommentInstr($"argument {i}");
+                        WritePush(argValue);
                         espOffset += SizeOf(arg);
+                        registerPool.FreeAll();
+                        ++i;
+                    }
+                    // If the return method is by address, we pass the address
+                    var returnMethod = GetReturnMethod(procTy.Return);
+                    if (returnMethod == ReturnMethod.Address)
+                    {
+                        var resultAddr = CompileToAddress(call.Result);
+                        var resultAddrReg = registerPool.Allocate(DataWidth.dword);
+                        CommentInstr("return target address");
+                        WriteInstr(X86Op.Lea, resultAddrReg, resultAddr);
+                        WriteInstr(X86Op.Push, resultAddrReg);
+                        espOffset += DataWidth.dword.Size;
                         registerPool.FreeAll();
                     }
                     // Do the call
-                    var procedure = CompileValue(call.Procedure);
+                    var procedure = CompileSingleValue(call.Procedure);
                     WriteInstr(X86Op.Call, procedure);
                     // Restore stack
-                    WriteInstr(X86Op.Add, Register.esp, espOffset);
-                    // TODO: Only if size is fine
-                    // Store value
-                    var result = CompileValue(call.Result, true);
-                    WriteInstr(X86Op.Mov, result, Register.eax);
+                    WriteInstr(X86Op.Add, Register.esp, new Operand.Literal(DataWidth.dword, espOffset));
+                    // Writing the result back
+                    if (returnMethod == ReturnMethod.None || returnMethod == ReturnMethod.Address)
+                    {
+                        // No-op
+                        // For size == 0 there's nothing to copy, for size > 4 the value is already copied
+                    }
+                    else
+                    {
+                        CommentInstr("copy return value");
+                        // Just store what's written in eax or eax:edx
+                        var resultSize = SizeOf(proc.Return);
+                        var result = CompileValue(call.Result);
+                        if (result.Length == 1)
+                        {
+                            var eax = Register.AtSlot(0, DataWidth.GetFromSize(resultSize));
+                            WriteInstr(X86Op.Mov, result[0], eax);
+                        }
+                        else
+                        {
+                            Debug.Assert(result.Length == 2);
+                            var eax = Register.AtSlot(0, DataWidth.dword);
+                            var edx = Register.AtSlot(2, DataWidth.GetFromSize(resultSize - 4));
+                            WriteInstr(X86Op.Mov, result[0], eax);
+                            WriteInstr(X86Op.Mov, result[1], edx);
+                        }
+                    }
                 }
                 else
                 {
@@ -193,6 +208,60 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             }
             break;
 
+            case Instr.Ret ret:
+            {
+                // Writing the return value
+                if (proc.CallConv == CallConv.Cdecl)
+                {
+                    var returnMethod = GetReturnMethod(ret.Value.Type);
+                    if (returnMethod == ReturnMethod.None)
+                    {
+                        // No-op
+                    }
+                    else if (returnMethod == ReturnMethod.Eax || returnMethod == ReturnMethod.EaxEdx)
+                    {
+                        // We write in eax or the eax:edx pair
+                        // TODO: Floats are returned in a different register!
+                        // NOTE: Might be unnecessary allocation for edx
+                        registerPool.Allocate(Register.eax, Register.edx);
+                        var retValue = CompileValue(ret.Value);
+                        if (retValue.Length == 1)
+                        {
+                            WriteInstr(X86Op.Mov, Register.eax, retValue[0]);
+                        }
+                        else
+                        {
+                            Debug.Assert(retValue.Length == 2);
+                            WriteInstr(X86Op.Mov, Register.eax, retValue[0]);
+                            WriteInstr(X86Op.Mov, Register.edx, retValue[1]);
+                        }
+                    }
+                    else
+                    {
+                        // We receive a return address
+                        // First we load that return address
+                        var retAddrAddr = new Operand.Address(Register.ebp, 8);
+                        var retAddr = registerPool.Allocate(DataWidth.dword);
+                        CommentInstr("copy return value");
+                        WriteInstr(X86Op.Mov, retAddr, retAddrAddr);
+                        // Compile the value
+                        var retValue = CompileValue(ret.Value);
+                        // Copy
+                        WriteCopy(retAddr, retValue);
+                    }
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
+                // Write the epilogue, return
+                WriteProcEpilogue(proc);
+                CommentInstr(instr);
+                WriteInstr(X86Op.Ret);
+            }
+            break;
+
+#if false
             case Instr.Jmp jmp:
                 WriteInstr(X86Op.Jmp, basicBlocks[jmp.Target]);
                 break;
@@ -201,7 +270,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             {
                 // TODO: Size should matter! EAX won't always be corrct!
                 var op = CompileValue(jmpIf.Condition);
-                ToNonImmediate(ref op);
+                //ToNonImmediate(ref op);
                 WriteInstr(X86Op.Test, op, op);
                 WriteInstr(X86Op.Jne, basicBlocks[jmpIf.Then]);
                 WriteInstr(X86Op.Jmp, basicBlocks[jmpIf.Else]);
@@ -425,83 +494,125 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 }
             }
             break;
+#endif
 
             default: throw new NotImplementedException();
             }
         }
 
-        private static readonly object zeroSizeMarker = new object();
-        private Operand CompileValue(Value value, bool asLvalue = false)
+        private void WriteCopy(Register targetBaseAddr, Operand[] values)
         {
+            int offset = 0;
+            foreach (var value in values)
+            {
+                var valueWidth = value.GetWidth(sizeContext);
+                // Construct the current target address
+                var targetAddr = new Operand.Address(targetBaseAddr, offset);
+                var target = new Operand.Indirect(valueWidth, targetAddr);
+                // Do the copy
+                WriteMov(target, value);
+                // Offset to the next target address
+                offset += valueWidth.Size;
+            }
+        }
+
+        private void WriteMov(Operand target, Operand source)
+        {
+            WriteInstr(X86Op.Mov, target, source);
+        }
+
+        private void WritePush(Operand[] ops)
+        {
+            foreach (var op in ops) WriteInstr(X86Op.Push, op);
+        }
+
+        private Operand CompileToAddress(Value value)
+        {
+            var res = CompileSingleValue(value, true);
+            Debug.Assert(res is Operand.Address);
+            return res;
+        }
+
+        private Operand CompileSingleValue(Value value, bool asLvalue = false)
+        {
+            var res = CompileValue(value, asLvalue);
+            Debug.Assert(res.Length == 1);
+            return res[0];
+        }
+
+        private Operand[] CompileValue(Value value, bool asLvalue = false)
+        {
+            Operand Lit(DataWidth dw, object obj) => new Operand.Literal(dw, obj);
+            Operand[] Ops(params Operand[] ops) => ops;
+
             switch (value)
             {
             case Value.Int i:
-                // TODO
-                if (asLvalue) throw new NotImplementedException();
-                return new Operand.Literal(i.Value);
+            {
+                if (asLvalue) throw new InvalidOperationException("An integer can't be an lvalue!");
+
+                int byteCount = SizeOf(i);
+                // This is less or equal to byteCount
+                var origBytes = i.Value.ToByteArray();
+                // We pad it with 0s for simplicity
+                var bytes = origBytes.Concat(Enumerable.Repeat((byte)0, byteCount - origBytes.Length));
+                // Now we collect the resulting operands
+                var result = SplitData(byteCount, dataSize =>
+                {
+                    var bs = bytes.Take(dataSize).ToArray();
+                    bytes = bytes.Skip(dataSize);
+                    return Lit(DataWidth.GetFromSize(dataSize), BitConverter.ToInt32(bs));
+                });
+                return result.ToArray();
+            }
 
             case ISymbol sym:
             {
-                // TODO
-                if (asLvalue) throw new NotImplementedException();
+                if (asLvalue) throw new InvalidOperationException("A symbol can't be an lvalue!");
                 var symName = GetSymbolName(sym);
-                return new Operand.Literal(symName);
+                return Ops(Lit(DataWidth.dword, symName));
             }
 
             case Lir.Register reg:
             {
                 var regSize = SizeOf(reg);
-                if (regSize == 0) return new Operand.Literal(zeroSizeMarker);
-                var offset = registerOffsets[reg];
-                var addr = new Operand.Address(Register.ebp, offset);
-                var dataWidth = DataWidth.GetFromSize(regSize);
-                var result = new Operand.Indirect(dataWidth, addr);
+                if (regSize == 0) return Ops();
+
+                var initialOffset = registerOffsets[reg];
+                // For lvalues, it's enough to just know the address, returning multiple values is not required
                 if (asLvalue)
                 {
-                    return result;
+                    var addr = new Operand.Address(Register.ebp, initialOffset);
+                    return Ops(addr);
                 }
-                else
+                // For non-lvalues we might need to return multiple chunks of indirections
+                int offset = 0;
+                var result = SplitData(regSize, dataSize =>
                 {
-                    // TODO: This is stupid for larger elements...
-                    // Else we load it
-                    var targetReg = registerPool.Allocate(DataWidth.dword);
-                    WriteInstr(X86Op.Mov, targetReg, result);
-                    return targetReg;
-                }
+                    var width = DataWidth.GetFromSize(dataSize);
+                    var newAddr = new Operand.Address(Register.ebp, initialOffset + offset);
+                    offset += dataSize;
+                    return new Operand.Indirect(width, newAddr);
+                });
+                return Ops(result.ToArray());
             }
 
             default: throw new NotImplementedException();
             }
         }
 
-        private void CleanseImmediates(ref Operand left, ref Operand right)
+        private static IEnumerable<T> SplitData<T>(int byteCount, Func<int, T> func)
         {
-            // TODO: Operand size...
-            if (left is Operand.Literal imm && right is Operand.Literal)
+            while (byteCount > 0)
             {
-                // Can't both be immediates!
-                ToNonImmediate(ref left);
-            }
-        }
-
-        private void ToNonImmediate(ref Operand op)
-        {
-            // TODO: Operand size...
-            if (op is Operand.Literal imm)
-            {
-                op = registerPool.Allocate(DataWidth.dword);
-                WriteInstr(X86Op.Mov, op, imm);
-            }
-        }
-
-        private void ToRegister(ref Operand op)
-        {
-            // TODO: Operand size...
-            if (!(op is Register))
-            {
-                var reg = registerPool.Allocate(DataWidth.dword);
-                WriteInstr(X86Op.Mov, reg, op);
-                op = reg;
+                // This basically just splits the number into 4, 2 and 1 byte chunks
+                for (int dataSize = 4; ; dataSize /= 2)
+                {
+                    if (byteCount < dataSize) continue;
+                    yield return func(dataSize);
+                    byteCount -= dataSize;
+                    break;
+                }
             }
         }
 
@@ -519,13 +630,9 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             WriteInstr(X86Op.Pop, Register.ebp);
         }
 
-        private void CommentInstr(object comment)
-        {
-            // if (nextComment != null) throw new InvalidOperationException();
-            nextComment = comment.ToString();
-        }
+        private void CommentInstr(object comment) => nextComment = comment.ToString();
 
-        private void WriteInstr(X86Op op, params object[] operands)
+        private void WriteInstr(X86Op op, params Operand[] operands)
         {
             Debug.Assert(currentBasicBlock != null);
             var instr = new X86Instr(op, operands);
@@ -534,10 +641,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 instr.Comment = nextComment;
                 nextComment = null;
             }
-            if (!operands.Any(op => op is Operand.Literal l && l.Value == zeroSizeMarker))
-            {
-                currentBasicBlock.Instructions.Add(instr);
-            }
+            currentBasicBlock.Instructions.Add(instr);
         }
 
         // TODO: Not the best solution...
@@ -554,5 +658,17 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         private int OffsetOf(StructDef structDef, int fieldNo) => sizeContext.OffsetOf(structDef, fieldNo);
         private int SizeOf(Value value) => SizeOf(value.Type);
         private int SizeOf(Type type) => sizeContext.SizeOf(type);
+
+        private ReturnMethod GetReturnMethod(Type returnType)
+        {
+            var resultSize = SizeOf(returnType);
+            if (resultSize == 0) return ReturnMethod.None;
+            if (resultSize <= 4) return ReturnMethod.Eax;
+            // The size is > 4
+            if (resultSize <= 8 && IsPrimitive(returnType)) return ReturnMethod.EaxEdx;
+            return ReturnMethod.Address;
+        }
+
+        private static bool IsPrimitive(Type type) => type is Type.Int;
     }
 }

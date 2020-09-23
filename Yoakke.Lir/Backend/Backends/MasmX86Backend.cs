@@ -16,6 +16,7 @@ namespace Yoakke.Lir.Backend.Backends
         private X86FormatOptions formatOptions = new X86FormatOptions
         {
             SpecialSeparator = '@',
+            AllUpperCase = false,
         };
 
         public bool IsSupported(TargetTriplet targetTriplet) =>

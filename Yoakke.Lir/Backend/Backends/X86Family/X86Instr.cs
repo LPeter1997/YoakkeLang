@@ -45,10 +45,10 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         public IList<Operand> Operands { get; set; }
         public string? Comment { get; set; }
 
-        public X86Instr(X86Op op, params object[] operands)
+        public X86Instr(X86Op op, params Operand[] operands)
         {
             Operation = op;
-            Operands = operands.Select(ToOperand).ToList();
+            Operands = operands.ToList();
         }
 
         public string ToIntelSyntax(X86FormatOptions formatOptions)
@@ -59,13 +59,5 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             if (Comment == null) return instr;
             return formatOptions.CommentAbove ? $"; {Comment}\n    {instr}" : $"{instr} ; {Comment}";
         }
-
-        private static Operand ToOperand(object obj) => obj switch
-        {
-            X86Proc p => new Operand.Label(p),
-            X86BasicBlock bb => new Operand.Label(bb),
-            Operand o => o,
-            _ => new Operand.Literal(obj),
-        };
     }
 }

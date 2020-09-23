@@ -40,17 +40,15 @@ namespace Yoakke.Compiler
             var uncheckedAsm = new UncheckedAssembly("test_app");
             var b = new Builder(uncheckedAsm);
 
-            var arr = new Type.Array(Type.I32, 3);
             var main = b.DefineProc("main");
-            main.Return = Type.I32;
-            var arrTy = new Type.Array(Type.I32, 3);
-            var arrPtr = b.Alloc(arrTy);
-            var intPtr = b.Cast(new Type.Ptr(Type.I32), arrPtr);
-            for (int i = 0; i < 3; ++i)
-            {
-                b.Store(b.Add(intPtr, Type.I32.NewValue(i)), Type.I32.NewValue(2 * i + 1));
-            }
-            b.Ret(b.Load(b.Add(intPtr, Type.I32.NewValue(0))));
+            main.Return = Type.I64;
+
+            var retbig = b.DefineProc("retbig");
+            retbig.Return = Type.I64;
+            b.Ret(Type.I64.NewValue(9_321_897_264));
+
+            b.CurrentProc = main;
+            b.Ret(b.Call(retbig, new List<Value> { }));
 
             var targetTriplet = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
             var toolchain = Toolchains.Supporting(targetTriplet).First();
@@ -68,7 +66,7 @@ namespace Yoakke.Compiler
             Console.WriteLine(toolchain.Backend.Compile(asm));
             Console.WriteLine();
 
-#if false
+#if true
 
             var vm = new VirtualMachine(asm);
             var res = vm.Execute("main", new List<Value> { });
