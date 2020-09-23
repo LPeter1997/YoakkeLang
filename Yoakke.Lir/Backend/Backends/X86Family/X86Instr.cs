@@ -64,7 +64,6 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         {
             X86Proc p => new Operand.Label(p),
             X86BasicBlock bb => new Operand.Label(bb),
-            Register r => new Operand.Register_(r),
             Operand o => o,
             _ => new Operand.Literal(obj),
         };

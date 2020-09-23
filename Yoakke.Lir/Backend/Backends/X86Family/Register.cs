@@ -1,115 +1,166 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Yoakke.Lir.Backend.Backends.X86Family
 {
-    // TODO: We could make registers those fake enums too, like Comparison in the Cmp instruction.
     /// <summary>
     /// The different registers on X86.
     /// </summary>
-    public enum Register
+    public abstract class Register : Operand
     {
-        // 8 bit
-        Al, Ah, Cl, Ch, Dl, Dh, Bl, Bh, Spl, Bpl, Sil, Dil,
-        // 16 bit
-        Ax, Cx, Dx, Bx, Sp, Bp, Si, Di,
-        // 32 bit
-        Eax, Ecx, Edx, Ebx, Esp, Ebp, Esi, Edi,
-        // 64 bit
-        Rax, Rcx, Rdx, Rbx, Rsp, Rbp, Rsi, Rdi, R8, R9, R10, R11, R12, R13, R14, R15,
-    }
+        // The 4 base registers for 8, 16 and 32 bits
 
-    public static class RegisterUtils
-    {
-        /// <summary>
-        /// Gets the <see cref="DataWidth"/> for the given <see cref="Register"/>.
-        /// </summary>
-        /// <param name="register">The <see cref="Register"/> to get the <see cref="DataWidth"/> for.</param>
-        /// <returns>The <see cref="DataWidth"/> of the <see cref="Register"/>.</returns>
-        public static DataWidth GetWidth(this Register register) => (int)register switch
+        public abstract class Accum : Register { }
+        public abstract class Counter : Register { }
+        public abstract class Data : Register { }
+        public abstract class Base : Register { }
+        public abstract class StackPtr : Register { }
+        public abstract class StackBasePtr : Register { }
+        public abstract class Source : Register { }
+        public abstract class Dest : Register { }
+
+        // 8 bit registers
+
+        public class Al : Accum { }
+        public class Ah : Accum { }
+        public class Cl : Counter { }
+        public class Ch : Counter { }
+        public class Dl : Data { }
+        public class Dh : Data { }
+        public class Bl : Base { }
+        public class Bh : Base { }
+        public class Spl : StackPtr { }
+        public class Bpl : StackBasePtr { }
+        public class Sil : Source { }
+        public class Dil : Dest { }
+
+        // 16 bit registers
+
+        public class Ax : Accum { }
+        public class Cx : Counter { }
+        public class Dx : Data { }
+        public class Bx : Base { }
+        public class Sp : StackPtr { }
+        public class Bp : StackBasePtr { }
+        public class Si : Source { }
+        public class Di : Dest { }
+
+        // 32 bit registers
+
+        public class Eax : Accum { }
+        public class Ecx : Counter { }
+        public class Edx : Data { }
+        public class Ebx : Base { }
+        public class Esp : StackPtr { }
+        public class Ebp : StackBasePtr { }
+        public class Esi : Source { }
+        public class Edi : Dest { }
+
+        // 64 bit registers
+
+        public class Rax : Accum { }
+        public class Rcx : Counter { }
+        public class Rdx : Data { }
+        public class Rbx : Base { }
+        public class Rsp : StackPtr { }
+        public class Rbp : StackBasePtr { }
+        public class Rsi : Source { }
+        public class Rdi : Dest { }
+        public class R8 : Register { }
+        public class R9 : Register { }
+        public class R10 : Register { }
+        public class R11 : Register { }
+        public class R12 : Register { }
+        public class R13 : Register { }
+        public class R14 : Register { }
+        public class R15 : Register { }
+
+        // Values
+
+        public static readonly Register Al_  = new Al  { Index = 0 , Slot = 0, Width = DataWidth.Byte_, Repr = "al" };
+        public static readonly Register Ah_  = new Ah  { Index = 1 , Slot = 0, Width = DataWidth.Byte_, Repr = "ah", IsHighBytes = true };
+        public static readonly Register Cl_  = new Cl  { Index = 2 , Slot = 1, Width = DataWidth.Byte_, Repr = "cl" };
+        public static readonly Register Ch_  = new Ch  { Index = 3 , Slot = 1, Width = DataWidth.Byte_, Repr = "ch", IsHighBytes = true };
+        public static readonly Register Dl_  = new Dl  { Index = 4 , Slot = 2, Width = DataWidth.Byte_, Repr = "dl" };
+        public static readonly Register Dh_  = new Dh  { Index = 5 , Slot = 2, Width = DataWidth.Byte_, Repr = "dh", IsHighBytes = true };
+        public static readonly Register Bl_  = new Bl  { Index = 6 , Slot = 3, Width = DataWidth.Byte_, Repr = "bl" };
+        public static readonly Register Bh_  = new Bh  { Index = 7 , Slot = 3, Width = DataWidth.Byte_, Repr = "bh", IsHighBytes = true };
+        public static readonly Register Spl_ = new Spl { Index = 8 , Slot = 4, Width = DataWidth.Byte_, Repr = "spl" };
+        public static readonly Register Bpl_ = new Bpl { Index = 9 , Slot = 5, Width = DataWidth.Byte_, Repr = "bpl" };
+        public static readonly Register Sil_ = new Sil { Index = 10, Slot = 6, Width = DataWidth.Byte_, Repr = "sil" };
+        public static readonly Register Dil_ = new Dil { Index = 11, Slot = 7, Width = DataWidth.Byte_, Repr = "dil" };
+
+        public static readonly Register Ax_ = new Ax   { Index = 12, Slot = 0, Width = DataWidth.Word_, Repr = "ax" };
+        public static readonly Register Cx_ = new Cx   { Index = 13, Slot = 1, Width = DataWidth.Word_, Repr = "cx" };
+        public static readonly Register Dx_ = new Dx   { Index = 14, Slot = 2, Width = DataWidth.Word_, Repr = "dx" };
+        public static readonly Register Bx_ = new Bx   { Index = 15, Slot = 3, Width = DataWidth.Word_, Repr = "bx" };
+        public static readonly Register Sp_ = new Sp   { Index = 16, Slot = 4, Width = DataWidth.Word_, Repr = "sp" };
+        public static readonly Register Bp_ = new Bp   { Index = 17, Slot = 5, Width = DataWidth.Word_, Repr = "bp" };
+        public static readonly Register Si_ = new Si   { Index = 18, Slot = 6, Width = DataWidth.Word_, Repr = "si" };
+        public static readonly Register Di_ = new Di   { Index = 19, Slot = 7, Width = DataWidth.Word_, Repr = "di" };
+
+        public static readonly Register Eax_ = new Eax { Index = 20, Slot = 0, Width = DataWidth.Dword_, Repr = "eax" };
+        public static readonly Register Ecx_ = new Ecx { Index = 21, Slot = 1, Width = DataWidth.Dword_, Repr = "ecx" };
+        public static readonly Register Edx_ = new Edx { Index = 22, Slot = 2, Width = DataWidth.Dword_, Repr = "edx" };
+        public static readonly Register Ebx_ = new Ebx { Index = 23, Slot = 3, Width = DataWidth.Dword_, Repr = "ebx" };
+        public static readonly Register Esp_ = new Esp { Index = 24, Slot = 4, Width = DataWidth.Dword_, Repr = "esp" };
+        public static readonly Register Ebp_ = new Ebp { Index = 25, Slot = 5, Width = DataWidth.Dword_, Repr = "ebp" };
+        public static readonly Register Esi_ = new Esi { Index = 26, Slot = 6, Width = DataWidth.Dword_, Repr = "esi" };
+        public static readonly Register Edi_ = new Edi { Index = 27, Slot = 7, Width = DataWidth.Dword_, Repr = "edi" };
+
+        public static readonly Register Rax_ = new Rax { Index = 28, Slot = 0 , Width = DataWidth.Qword_, Repr = "rax" };
+        public static readonly Register Rcx_ = new Rcx { Index = 29, Slot = 1 , Width = DataWidth.Qword_, Repr = "rcx" };
+        public static readonly Register Rdx_ = new Rdx { Index = 30, Slot = 2 , Width = DataWidth.Qword_, Repr = "rdx" };
+        public static readonly Register Rbx_ = new Rbx { Index = 31, Slot = 3 , Width = DataWidth.Qword_, Repr = "rbx" };
+        public static readonly Register Rsp_ = new Rsp { Index = 32, Slot = 4 , Width = DataWidth.Qword_, Repr = "rsp" };
+        public static readonly Register Rbp_ = new Rbp { Index = 33, Slot = 5 , Width = DataWidth.Qword_, Repr = "rbp" };
+        public static readonly Register Rsi_ = new Rsi { Index = 34, Slot = 6 , Width = DataWidth.Qword_, Repr = "rsi" };
+        public static readonly Register Rdi_ = new Rdi { Index = 35, Slot = 7 , Width = DataWidth.Qword_, Repr = "rdi" };
+        public static readonly Register R8_  = new R8  { Index = 36, Slot = 8 , Width = DataWidth.Qword_, Repr = "r8" };
+        public static readonly Register R9_  = new R9  { Index = 37, Slot = 9 , Width = DataWidth.Qword_, Repr = "r9" };
+        public static readonly Register R10_ = new R10 { Index = 38, Slot = 10, Width = DataWidth.Qword_, Repr = "r10" };
+        public static readonly Register R11_ = new R11 { Index = 39, Slot = 11, Width = DataWidth.Qword_, Repr = "r11" };
+        public static readonly Register R12_ = new R12 { Index = 40, Slot = 12, Width = DataWidth.Qword_, Repr = "r12" };
+        public static readonly Register R13_ = new R13 { Index = 41, Slot = 13, Width = DataWidth.Qword_, Repr = "r13" };
+        public static readonly Register R14_ = new R14 { Index = 42, Slot = 14, Width = DataWidth.Qword_, Repr = "r14" };
+        public static readonly Register R15_ = new R15 { Index = 43, Slot = 15, Width = DataWidth.Qword_, Repr = "r15" };
+
+        public static readonly IReadOnlyList<Register> All8 = new Register[]
         {
-            int n when n < 12 => DataWidth.Byte_ ,
-            int n when n < 20 => DataWidth.Word_ ,
-            int n when n < 28 => DataWidth.Dword_,
-            int n when n < 44 => DataWidth.Qword_,
-            _ => throw new NotImplementedException(),
+            Al_, Ah_, Cl_, Ch_, Dl_, Dh_, Bl_, Bh_, Spl_, Bpl_, Sil_, Dil_,
+        };
+        public static readonly IReadOnlyList<Register> All16 = new Register[]
+        {
+            Ax_, Cx_, Dx_, Bx_, Sp_, Bp_, Si_, Di_,
+        };
+        public static readonly IReadOnlyList<Register> All32 = new Register[]
+        {
+            Eax_, Ecx_, Edx_, Ebx_, Esp_, Ebp_, Esi_, Edi_,
+        };
+        public static readonly IReadOnlyList<Register> All64 = new Register[]
+        {
+            Rax_, Rcx_, Rdx_, Rbx_, Rsp_, Rbp_, Rsi_, Rdi_, 
+            R8_, R9_, R10_, R11_, R12_, R13_, R14_, R15_,
         };
 
         /// <summary>
-        /// Retrieves a general index for this <see cref="Register"/>.
+        /// A general slot index.
         /// </summary>
-        /// <param name="register">The <see cref="Register"/> to retrieve the index for.</param>
-        /// <param name="isHighBytes">Assigned true, if this <see cref="Register"/> was an iH 8 bit register,
-        /// as that information is lost through the index.</param>
-        /// <returns>The general index for the <see cref="Register"/>.</returns>
-        public static int GetIndex(this Register register, out bool isHighBytes)
-        {
-            isHighBytes = false;
-            int index = (int)register;
-            if (index < 8)
-            {
-                // A, C, D or B low or high
-                isHighBytes = index % 2 != 0;
-                index = index / 2;
-            }
-            else if (index < 12)
-            {
-                // Remaining 8 bit register
-                index = index - 4;
-            }
-            else if (index < 28)
-            {
-                // 16 or 32 bit register
-                index = (index - 12) % 8;
-            }
-            else
-            {
-                // 64 bit
-                index = index - 28;
-            }
-            return index;
-        }
-
+        public int Slot { get; private set; }
         /// <summary>
-        /// <see cref="GetIndex(Register, out bool)"/>.
+        /// The <see cref="DataWidth"/> of this <see cref="Register"/>.
         /// </summary>
-        public static int GetIndex(this Register register) => register.GetIndex(out bool _);
-
-        private static readonly Register?[,] RegisterLUT = new Register?[16, 4]
-            {
-                { Register.Al , Register.Ax, Register.Eax, Register.Rax },
-                { Register.Cl , Register.Cx, Register.Ecx, Register.Rcx },
-                { Register.Dl , Register.Dx, Register.Edx, Register.Rdx },
-                { Register.Bl , Register.Bx, Register.Ebx, Register.Rbx },
-                { Register.Spl, Register.Sp, Register.Esp, Register.Rsp },
-                { Register.Bpl, Register.Bp, Register.Ebp, Register.Rbp },
-                { Register.Sil, Register.Si, Register.Esi, Register.Rsi },
-                { Register.Dil, Register.Di, Register.Edi, Register.Rdi },
-                { null        , null       , null        , Register.R8  },
-                { null        , null       , null        , Register.R9  },
-                { null        , null       , null        , Register.R10 },
-                { null        , null       , null        , Register.R11 },
-                { null        , null       , null        , Register.R12 },
-                { null        , null       , null        , Register.R13 },
-                { null        , null       , null        , Register.R14 },
-                { null        , null       , null        , Register.R15 },
-            };
-
+        public DataWidth Width { get; private set; } = DataWidth.Byte_;
         /// <summary>
-        /// Gets a <see cref="Register"/> from an index and <see cref="DataWidth"/>.
+        /// True, if this <see cref="Register"/> is a high-bytes part of another.
         /// </summary>
-        /// <param name="index">The general index that can be retrieved with <see cref="GetIndex(Register)"/>.</param>
-        /// <param name="width">The desired <see cref="DataWidth"/>.</param>
-        /// <returns>The <see cref="Register"/> at the given general index with the given width.</returns>
-        public static Register FromIndexAndWidth(int index, DataWidth width) =>
-            RegisterLUT[index, (int)width] ?? throw new InvalidOperationException();
+        public bool IsHighBytes { get; private set; }
+        private int Index { get; set; }
+        private string Repr { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Transforms this <see cref="Register"/> to the equivalent one with the given <see cref="DataWidth"/>.
-        /// </summary>
-        /// <param name="register">The <see cref="Register"/> to transform.</param>
-        /// <param name="width">The <see cref="DataWidth"/> to transform to.</param>
-        /// <returns>The transformed eqivalent <see cref="Register"/> with the given <see cref="DataWidth"/>.</returns>
-        public static Register ToWidth(this Register register, DataWidth width) =>
-            FromIndexAndWidth(register.GetIndex(), width);
+        public static explicit operator int(Register r) => r.Index;
+
+        public override string ToIntelSyntax(X86FormatOptions formatOptions) =>
+            formatOptions.AllUpperCase ? Repr.ToUpper() : Repr.ToLower();
     }
 }

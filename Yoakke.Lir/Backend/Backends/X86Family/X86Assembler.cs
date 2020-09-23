@@ -25,7 +25,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         private IDictionary<Proc, X86Proc> procs = new Dictionary<Proc, X86Proc>();
         private IDictionary<Lir.Register, int> registerOffsets = new Dictionary<Lir.Register, int>();
 
-        private ISet<Register> allRegs = new HashSet<Register> { Register.Eax, Register.Ecx, Register.Edx, Register.Ebx };
+        private ISet<Register> allRegs = new HashSet<Register> { Register.Eax_, Register.Ecx_, Register.Edx_, Register.Ebx_ };
         private ISet<Register> occupiedRegs = new HashSet<Register>();
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             // Calculate space for locals
             var allocSize = registers.Sum(SizeOf);
             // Allocate space for the locals
-            WriteInstr(X86Op.Sub, Register.Esp, allocSize);
+            WriteInstr(X86Op.Sub, Register.Esp_, allocSize);
 
             // Now just compile all basic blocks
             foreach (var bb in proc.BasicBlocks) CompileBasicBlock(proc, bb);
@@ -138,9 +138,9 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                         {
                             // For cdecl we return in eax for size <= 4
                             // TODO: Floats are returned in a different register!
-                            OccupyRegister(Register.Eax);
+                            OccupyRegister(Register.Eax_);
                             var retValue = CompileValue(ret.Value);
-                            WriteInstr(X86Op.Mov, Register.Eax, retValue);
+                            WriteInstr(X86Op.Mov, Register.Eax_, retValue);
                         }
                         else
                         {
@@ -182,11 +182,11 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                     var procedure = CompileValue(call.Procedure);
                     WriteInstr(X86Op.Call, procedure);
                     // Restore stack
-                    WriteInstr(X86Op.Add, Register.Esp, espOffset);
+                    WriteInstr(X86Op.Add, Register.Esp_, espOffset);
                     // TODO: Only if size is fine
                     // Store value
                     var result = CompileValue(call.Result, true);
-                    WriteInstr(X86Op.Mov, result, Register.Eax);
+                    WriteInstr(X86Op.Mov, result, Register.Eax_);
                 }
                 else
                 {
@@ -213,9 +213,9 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             case Instr.Store store:
             {
                 // TODO: What if the operands don't fit in 32 bits?
-                var target = (Operand.Register_)CompileValue(store.Target);
-                var addr = new Operand.Address(target.Register);
-                var indirect = new Operand.Indirect(target.Register.GetWidth(), addr);
+                var target = (Register)CompileValue(store.Target);
+                var addr = new Operand.Address(target);
+                var indirect = new Operand.Indirect(target.Width, addr);
                 var source = CompileValue(store.Value);
                 WriteInstr(X86Op.Mov, indirect, source);
             }
@@ -225,9 +225,9 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             {
                 // TODO: What if the operands don't fit in 32 bits?
                 var target = CompileValue(load.Result, true);
-                var source = (Operand.Register_)CompileValue(load.Address);
-                var addr = new Operand.Address(source.Register);
-                var indirect = new Operand.Indirect(source.Register.GetWidth(), addr);
+                var source = (Register)CompileValue(load.Address);
+                var addr = new Operand.Address(source);
+                var indirect = new Operand.Indirect(source.Width, addr);
                 var immediate = OccupyRegister();
                 WriteInstr(X86Op.Mov, immediate, indirect);
                 WriteInstr(X86Op.Mov, target, immediate);
@@ -238,9 +238,9 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             {
                 // TODO: What if the operands don't fit in 32 bits?
                 var size = SizeOf(alloc.Allocated);
-                WriteInstr(X86Op.Sub, Register.Esp, size);
+                WriteInstr(X86Op.Sub, Register.Esp_, size);
                 var result = CompileValue(alloc.Result, true);
-                WriteInstr(X86Op.Mov, result, Register.Esp);
+                WriteInstr(X86Op.Mov, result, Register.Esp_);
             }
             break;
 
@@ -342,8 +342,8 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 var arith = (ArithInstr)instr;
                 // NOTE: This is different!
                 // TODO: What if the operands don't fit in 32 bits?
-                var eax = OccupyRegister(Register.Eax);
-                var edx = OccupyRegister(Register.Edx);
+                var eax = OccupyRegister(Register.Eax_);
+                var edx = OccupyRegister(Register.Edx_);
                 var target = CompileValue(arith.Result, true);
                 var left = CompileValue(arith.Left);
                 var right = CompileValue(arith.Right);
@@ -456,7 +456,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 var regSize = SizeOf(reg);
                 if (regSize == 0) return new Operand.Literal(zeroSizeMarker);
                 var offset = registerOffsets[reg];
-                var addr = new Operand.Address(Register.Ebp, offset);
+                var addr = new Operand.Address(Register.Ebp_, offset);
                 var dataWidth = DataWidth.GetFromSize(regSize);
                 var result = new Operand.Indirect(dataWidth, addr);
                 if (asLvalue)
@@ -500,7 +500,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         private void ToRegister(ref Operand op)
         {
             // TODO: Operand size...
-            if (!(op is Operand.Register_))
+            if (!(op is Register))
             {
                 var reg = OccupyRegister();
                 WriteInstr(X86Op.Mov, reg, op);
@@ -511,15 +511,15 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         private void WriteProcPrologue(Proc _)
         {
             CommentInstr("prologue");
-            WriteInstr(X86Op.Push, Register.Ebp);
-            WriteInstr(X86Op.Mov, Register.Ebp, Register.Esp);
+            WriteInstr(X86Op.Push, Register.Ebp_);
+            WriteInstr(X86Op.Mov, Register.Ebp_, Register.Esp_);
         }
 
         private void WriteProcEpilogue(Proc _)
         {
             CommentInstr("epilogue");
-            WriteInstr(X86Op.Mov, Register.Esp, Register.Ebp);
-            WriteInstr(X86Op.Pop, Register.Ebp);
+            WriteInstr(X86Op.Mov, Register.Esp_, Register.Ebp_);
+            WriteInstr(X86Op.Pop, Register.Ebp_);
         }
 
         private void CommentInstr(object comment)
@@ -557,7 +557,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         {
             if (occupiedRegs.Contains(register)) throw new InvalidOperationException();
             occupiedRegs.Add(register);
-            return new Operand.Register_(register);
+            return register;
         }
         private void FreeOccupiedRegs() => occupiedRegs.Clear();
 

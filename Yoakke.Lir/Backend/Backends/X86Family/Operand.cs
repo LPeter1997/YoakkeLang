@@ -80,25 +80,6 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         }
 
         /// <summary>
-        /// A register access.
-        /// </summary>
-        public class Register_ : Operand
-        {
-            public readonly Register Register;
-
-            public Register_(Register register)
-            {
-                Register = register;
-            }
-
-            public override string ToIntelSyntax(X86FormatOptions formatOptions)
-            {
-                var res = Register.ToString();
-                return formatOptions.AllUpperCase ? res.ToUpper() : res.ToLower();
-            }
-        }
-
-        /// <summary>
         /// Addressing.
         /// </summary>
         public class Address : Operand
@@ -140,7 +121,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
 
             private static string R(X86FormatOptions f, Register r)
             {
-                var res = r.ToString();
+                var res = r.ToIntelSyntax(f);
                 return f.AllUpperCase ? res.ToUpper() : res.ToLower();
             }
             private static string N(int n) => n > 0 ? $"+ {n}" : $"- {-n}";
