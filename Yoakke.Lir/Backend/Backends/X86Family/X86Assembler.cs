@@ -261,22 +261,29 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             }
             break;
 
-#if false
             case Instr.Jmp jmp:
-                WriteInstr(X86Op.Jmp, basicBlocks[jmp.Target]);
+                WriteInstr(X86Op.Jmp, new Operand.Label(basicBlocks[jmp.Target]));
                 break;
 
             case Instr.JmpIf jmpIf:
             {
-                // TODO: Size should matter! EAX won't always be corrct!
-                var op = CompileValue(jmpIf.Condition);
-                //ToNonImmediate(ref op);
-                WriteInstr(X86Op.Test, op, op);
-                WriteInstr(X86Op.Jne, basicBlocks[jmpIf.Then]);
-                WriteInstr(X86Op.Jmp, basicBlocks[jmpIf.Else]);
+                var condParts = CompileValue(jmpIf.Condition);
+                Debug.Assert(condParts.Length > 0);
+                // Initial condition is the first bytes
+                var condHolder = registerPool.Allocate(condParts[0].GetWidth(sizeContext));
+                WriteInstr(X86Op.Mov, condHolder, condParts[0]);
+                // Remaining are or-ed to the result
+                foreach (var item in condParts.Skip(1))
+                {
+                    WriteInstr(X86Op.Or, condHolder, item);
+                }
+                WriteInstr(X86Op.Test, condHolder, condHolder);
+                WriteInstr(X86Op.Jne, new Operand.Label(basicBlocks[jmpIf.Then]));
+                WriteInstr(X86Op.Jmp, new Operand.Label(basicBlocks[jmpIf.Else]));
             }
             break;
 
+#if false
             case Instr.Store store:
             {
                 // TODO: What if the operands don't fit in 32 bits?

@@ -35,5 +35,59 @@ namespace Yoakke.Lir.Tests
             b.Ret(b.Call(retbig, new List<Value> { }));
             TestOnAllBackends<Func<Int64>>(b, Type.I64.NewValue(9_321_897_264));
         }
+
+        [TestMethod]
+        public void BigConditionIfElseThenPartBitsLow()
+        {
+            var b = GetBuilder(Type.I32);
+
+            var lastBlock = b.CurrentBasicBlock;
+            var thenBlock = b.DefineBasicBlock("then");
+            b.Ret(Type.I32.NewValue(36));
+
+            var elsBlock = b.DefineBasicBlock("els");
+            b.Ret(Type.I32.NewValue(383));
+
+            b.CurrentBasicBlock = lastBlock;
+            b.JmpIf(Type.I64.NewValue(0x0000000000000001), thenBlock, elsBlock);
+
+            TestOnAllBackends<Func<Int32>>(b, Type.I32.NewValue(36));
+        }
+
+        [TestMethod]
+        public void BigConditionIfElseThenPartBitsHigh()
+        {
+            var b = GetBuilder(Type.I32);
+
+            var lastBlock = b.CurrentBasicBlock;
+            var thenBlock = b.DefineBasicBlock("then");
+            b.Ret(Type.I32.NewValue(36));
+
+            var elsBlock = b.DefineBasicBlock("els");
+            b.Ret(Type.I32.NewValue(383));
+
+            b.CurrentBasicBlock = lastBlock;
+            b.JmpIf(Type.I64.NewValue(0x0000010000000000), thenBlock, elsBlock);
+
+            TestOnAllBackends<Func<Int32>>(b, Type.I32.NewValue(36));
+        }
+
+        [TestMethod]
+        public void BigConditionIfElseElsePart()
+        {
+            var b = GetBuilder(Type.I32);
+
+            var lastBlock = b.CurrentBasicBlock;
+            var thenBlock = b.DefineBasicBlock("then");
+            b.Ret(Type.I32.NewValue(36));
+
+            var elsBlock = b.DefineBasicBlock("els");
+            b.Ret(Type.I32.NewValue(383));
+
+            b.CurrentBasicBlock = lastBlock;
+            b.JmpIf(Type.I64.NewValue(0), thenBlock, elsBlock);
+
+            TestOnAllBackends<Func<Int32>>(b, Type.I32.NewValue(383));
+        }
     }
 }
