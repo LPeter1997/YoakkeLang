@@ -89,5 +89,25 @@ namespace Yoakke.Lir.Tests
 
             TestOnAllBackends<Func<Int32>>(b, Type.I32.NewValue(383));
         }
+
+        [TestMethod]
+        public void ModifyBigParameter()
+        {
+            var intPtr = new Type.Ptr(Type.I64);
+            var b = GetBuilder(Type.I64);
+            var entry = b.CurrentProc;
+
+            var modify = b.DefineProc("modify");
+            var p = b.DefineParameter(intPtr);
+            b.Store(p, Type.I64.NewValue(8_724_105_835));
+            b.Ret();
+
+            b.CurrentProc = entry;
+            var storage = b.Alloc(Type.I64);
+            b.Store(storage, Type.I64.NewValue(1_176_864_900));
+            b.Call(modify, new List<Value> { storage });
+            b.Ret(b.Load(storage));
+            TestOnAllBackends<Func<Int64>>(b, Type.I64.NewValue(8_724_105_835));
+        }
     }
 }

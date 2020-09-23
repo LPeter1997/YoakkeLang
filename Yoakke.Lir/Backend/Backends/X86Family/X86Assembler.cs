@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices.ComTypes;
 using Yoakke.Lir.Instructions;
 using Yoakke.Lir.Types;
@@ -283,41 +284,38 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             }
             break;
 
-#if false
             case Instr.Store store:
             {
-                // TODO: What if the operands don't fit in 32 bits?
-                var target = (Register)CompileValue(store.Target);
-                var addr = new Operand.Address(target);
-                var indirect = new Operand.Indirect(target.Width, addr);
-                var source = CompileValue(store.Value);
-                WriteInstr(X86Op.Mov, indirect, source);
+                var target = CompileToAddress(store.Target);
+                var value = CompileValue(store.Value);
+                var address = registerPool.Allocate(DataWidth.dword);
+                WriteInstr(X86Op.Mov, address, target);
+                WriteCopy(address, value);
             }
             break;
 
             case Instr.Load load:
             {
-                // TODO: What if the operands don't fit in 32 bits?
-                var target = CompileValue(load.Result, true);
-                var source = (Register)CompileValue(load.Address);
-                var addr = new Operand.Address(source);
-                var indirect = new Operand.Indirect(source.Width, addr);
-                var immediate = registerPool.Allocate(DataWidth.dword);
-                WriteInstr(X86Op.Mov, immediate, indirect);
-                WriteInstr(X86Op.Mov, target, immediate);
+                var target = CompileToAddress(load.Result);
+                var source = CompileSingleValue(load.Address);
+                var targetAddr = registerPool.Allocate(DataWidth.dword);
+                var sourceAddr = registerPool.Allocate(DataWidth.dword);
+                WriteInstr(X86Op.Lea, targetAddr, target);
+                WriteInstr(X86Op.Mov, sourceAddr, source);
+                WriteMemcopy(targetAddr, sourceAddr, SizeOf(load.Result));
             }
             break;
 
             case Instr.Alloc alloc:
             {
-                // TODO: What if the operands don't fit in 32 bits?
                 var size = SizeOf(alloc.Allocated);
-                WriteInstr(X86Op.Sub, Register.esp, size);
-                var result = CompileValue(alloc.Result, true);
+                WriteInstr(X86Op.Sub, Register.esp, new Operand.Literal(DataWidth.dword, size));
+                var result = CompileToAddress(alloc.Result);
                 WriteInstr(X86Op.Mov, result, Register.esp);
             }
             break;
 
+#if false
             case Instr.Cmp cmp:
             {
                 // TODO: What if the operands don't fit in 32 bits?
@@ -523,9 +521,37 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             }
         }
 
+        private void WriteMemcopy(Register targetBaseAddr, Register sourceBaseAddr, int bytes)
+        {
+            int offset = 0;
+            SplitData(bytes, chunkSize =>
+            {
+                var width = DataWidth.GetFromSize(chunkSize);
+                var targetAddr = new Operand.Address(targetBaseAddr, offset);
+                var sourceAddr = new Operand.Address(sourceBaseAddr, offset);
+                var source = new Operand.Indirect(width, sourceAddr);
+                WriteMov(targetAddr, source);
+                offset += chunkSize;
+            });
+        }
+
         private void WriteMov(Operand target, Operand source)
         {
-            WriteInstr(X86Op.Mov, target, source);
+            bool IsIndirect(Operand o) => o is Operand.Address || o is Operand.Indirect;
+
+            if (IsIndirect(target) && IsIndirect(source))
+            {
+                // We can't copy memory to memory on x86
+                var width = source.GetWidth(sizeContext);
+                var tmp = registerPool.Allocate(width);
+                WriteInstr(X86Op.Mov, tmp, source);
+                WriteInstr(X86Op.Mov, target, tmp);
+                registerPool.Free(tmp);
+            }
+            else
+            {
+                WriteInstr(X86Op.Mov, target, source);
+            }
         }
 
         private void WritePush(Operand[] ops)
@@ -621,6 +647,12 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                     break;
                 }
             }
+        }
+
+        private static void SplitData(int byteCount, Action<int> action)
+        {
+            // NOTE: We force evaluation
+            foreach (var _ in SplitData(byteCount, x => { action(x); return 0; })) ;
         }
 
         private void WriteProcPrologue(Proc _)

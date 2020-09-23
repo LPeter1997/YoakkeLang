@@ -41,14 +41,18 @@ namespace Yoakke.Compiler
             var b = new Builder(uncheckedAsm);
 
             var main = b.DefineProc("main");
-            main.Return = Type.I64;
+            main.Return = Type.I32;
 
-            var retbig = b.DefineProc("retbig");
-            retbig.Return = Type.I64;
-            b.Ret(Type.I64.NewValue(9_321_897_264));
+            var modify = b.DefineProc("modify");
+            var p = b.DefineParameter(new Type.Ptr(Type.I32));
+            b.Store(p, Type.I32.NewValue(73));
+            b.Ret();
 
             b.CurrentProc = main;
-            b.Ret(b.Call(retbig, new List<Value> { }));
+            var storage = b.Alloc(Type.I32);
+            b.Store(storage, Type.I32.NewValue(62));
+            b.Call(modify, new List<Value> { storage });
+            b.Ret(b.Load(storage));
 
             var targetTriplet = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
             var toolchain = Toolchains.Supporting(targetTriplet).First();
