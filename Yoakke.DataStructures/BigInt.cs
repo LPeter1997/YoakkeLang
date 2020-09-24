@@ -288,6 +288,7 @@ namespace Yoakke.DataStructures
             Add(lhs, -rhs, out underflow);
 
         // TODO: This overflow detection is incorrect for non-byte-multiple sized numbers!
+        // Maybe it's even incorrect in the general case?
         /// <summary>
         /// Adds two <see cref="BigInt"/>s.
         /// </summary>
