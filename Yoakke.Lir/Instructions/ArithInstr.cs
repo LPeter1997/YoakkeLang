@@ -70,26 +70,18 @@ namespace Yoakke.Lir.Instructions
 
         public static Type CommonArithmeticType(Type left, Type right)
         {
-            if (left is Type.Int leftInt && right is Type.Int rightInt)
+            if (left is Type.Int)
             {
-                if (leftInt.Signed != rightInt.Signed)
+                if (!left.Equals(right))
                 {
-                    throw new ArgumentException("Integer signedness mismatch!");
+                    throw new ArgumentException("Operand type mismatch!");
                 }
-                return leftInt.Bits > rightInt.Bits ? leftInt : rightInt;
+                return left;
             }
-            else if (left is Type.Int && right is Type.Ptr p)
-            {
-                return p;
-            }
-            else if (left is Type.Ptr p2 && right is Type.Int)
-            {
-                return p2;
-            }
-            else
-            {
-                throw new ArgumentException("No common arithmetic type for types!");
-            }
+            // NOTE: We expect pointer to be on the left
+            if (left is Type.Ptr p && right is Type.Int) return p;
+
+            throw new ArgumentException("No common arithmetic type for types!");
         }
     }
 

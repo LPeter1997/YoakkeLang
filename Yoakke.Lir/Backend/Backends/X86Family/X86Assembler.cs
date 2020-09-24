@@ -339,12 +339,11 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                     // Should be a no-op, simply copy
                     var target = CompileToAddress(cast.Result);
                     var src = CompileSingleValue(cast.Value);
-                    WriteInstr(X86Op.Mov, target, src);
+                    WriteMov(target, src);
                 }
                 else
                 {
-                    // TODO
-                    throw new NotImplementedException();
+                    throw new InvalidOperationException();
                 }
             }
             break;
@@ -441,39 +440,40 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             }
             break;
 
-#if false
             case Instr.Add:
             case Instr.Sub:
             {
                 var arith = (ArithInstr)instr;
-                // TODO: What if the operands don't fit in 32 bits?
-                var target = CompileValue(arith.Result, true);
-                var left = CompileValue(arith.Left);
-                var right = CompileValue(arith.Right);
-                // NOTE: We special-case pointer-arithmetic
-                // TODO: Duplication
+                var target = CompileToAddress(arith.Result);
+
                 if (arith.Left.Type is Type.Ptr leftPtr)
                 {
-                    ToRegister(ref right);
-                    WriteInstr(X86Op.Mov, target, left);
-                    WriteInstr(X86Op.Imul, right, SizeOf(leftPtr.Subtype));
+                    // Pointer arithmetic
+                    var left = CompileSingleValue(arith.Left);
+                    var right = CompileSingleValue(arith.Right);
+                    right = LoadToRegister(right);
+
+                    WriteMov(target, left);
+                    // We multiply the offset by the data size to get the expected behavior
+                    WriteInstr(X86Op.Imul, right, new Operand.Literal(DataWidth.dword, SizeOf(leftPtr.Subtype)));
                     WriteInstr(arith is Instr.Add ? X86Op.Add : X86Op.Sub, target, right);
                 }
-                else if (arith.Right.Type is Type.Ptr rightPtr)
+                else if (arith.Left.Type is Type.Int && arith.Right.Type is Type.Int)
                 {
-                    ToRegister(ref right);
-                    WriteInstr(X86Op.Mov, target, left);
-                    WriteInstr(X86Op.Imul, right, SizeOf(rightPtr.Subtype));
-                    WriteInstr(arith is Instr.Add ? X86Op.Add : X86Op.Sub, target, right);
+                    // Integer arithmetic
+                    // TODO
+                    throw new NotImplementedException();
+                    //WriteInstr(X86Op.Mov, target, left);
+                    //WriteInstr(arith is Instr.Add ? X86Op.Add : X86Op.Sub, target, right);
                 }
                 else
                 {
-                    WriteInstr(X86Op.Mov, target, left);
-                    WriteInstr(arith is Instr.Add ? X86Op.Add : X86Op.Sub, target, right);
+                    throw new InvalidOperationException();
                 }
             }
             break;
 
+#if false
             case Instr.Mul mul:
             {
                 // TODO: What if the operands don't fit in 32 bits?
