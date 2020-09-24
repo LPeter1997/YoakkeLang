@@ -13,13 +13,18 @@ using System.Xml.Schema;
 namespace Yoakke.DataStructures
 {
     /// <summary>
-    /// A fixed-size <see cref="System.Numerics.BigInteger"/> reimplementation.
+    /// A fixed-size <see cref="BigInteger"/> reimplementation.
     /// This is to have fixed padding and such. Works with two's complement.
     /// </summary>
     public struct BigInt
     {
         private int width;
         private byte[] bytes;
+
+        /// <summary>
+        /// True, if the number should be handled as signed.
+        /// </summary>
+        public bool IsSigned { get; set; }
 
         /// <summary>
         /// True, if this number is even.
@@ -34,7 +39,7 @@ namespace Yoakke.DataStructures
         /// </summary>
         public bool IsZero => bytes.All(b => b == 0);
         /// <summary>
-        /// The sign bit. True, if negative.
+        /// The sign bit (MSB). True, if negative.
         /// </summary>
         public bool Sign 
         {
@@ -58,37 +63,39 @@ namespace Yoakke.DataStructures
         /// <summary>
         /// Initializes a new <see cref="BigInt"/> to zero.
         /// </summary>
+        /// <param name="signed">True, if the number should be interpreted as signed.</param>
         /// <param name="width">The width of the integer in bits.</param>
-        public BigInt(int width)
+        public BigInt(bool signed, int width)
         {
             int bytesWidth = (width + 7) / 8;
             this.width = width;
             bytes = new byte[bytesWidth];
+            IsSigned = signed;
         }
 
-        private BigInt(int width, byte[] bytes)
-            : this(width)
+        private BigInt(bool signed, int width, byte[] bytes)
+            : this(signed, width)
         {
             Array.Copy(bytes, this.bytes, Math.Min(bytes.Length, this.bytes.Length));
         }
 
         /// <summary>
-        /// Initializes a new <see cref="BigInt"/>.
+        /// Initializes a new signed <see cref="BigInt"/>.
         /// </summary>
         /// <param name="width">The width of the integer in bits.</param>
         /// <param name="value">The initial value.</param>
         public BigInt(int width, Int64 value)
-            : this(width, BitConverter.GetBytes(value))
+            : this(true, width, BitConverter.GetBytes(value))
         {
         }
 
         /// <summary>
-        /// Initializes a new <see cref="BigInt"/>.
+        /// Initializes a new unsigned <see cref="BigInt"/>.
         /// </summary>
         /// <param name="width">The width of the integer in bits.</param>
         /// <param name="value">The initial value.</param>
         public BigInt(int width, UInt64 value)
-            : this(width, BitConverter.GetBytes(value))
+            : this(false, width, BitConverter.GetBytes(value))
         {
         }
 
@@ -122,6 +129,7 @@ namespace Yoakke.DataStructures
         public static BigInt MaxValue(int width, bool signed)
         {
             var result = AllOnes(width);
+            result.IsSigned = signed;
             if (signed) result.Sign = false;
             return result;
         }
@@ -134,7 +142,7 @@ namespace Yoakke.DataStructures
         /// <returns>The smallest <see cref="BigInt"/> possible with the given width and signedness.</returns>
         public static BigInt MinValue(int width, bool signed)
         {
-            var result = new BigInt(width);
+            var result = new BigInt(signed, width);
             if (signed) result.Sign = true;
             return result;
         }
@@ -144,7 +152,7 @@ namespace Yoakke.DataStructures
         /// </summary>
         public static BigInt operator ~(BigInt bigInt)
         {
-            var result = new BigInt(bigInt.width, bigInt.bytes);
+            var result = new BigInt(bigInt.IsSigned, bigInt.width, bigInt.bytes);
             for (int i = 0; i < result.bytes.Length; ++i)
             {
                 result.bytes[i] = (byte)~result.bytes[i];
@@ -155,7 +163,8 @@ namespace Yoakke.DataStructures
         /// <summary>
         /// Returns the two's complement of the <see cref="BigInt"/>.
         /// </summary>
-        public static BigInt operator -(BigInt bigInt) => ~bigInt + new BigInt(bigInt.width, 1);
+        public static BigInt operator -(BigInt bigInt) =>
+            ~bigInt + new BigInt(bigInt.width, 1) { IsSigned = bigInt.IsSigned };
 
         /// <summary>
         /// Adds two <see cref="BigInt"/>s.
@@ -191,8 +200,8 @@ namespace Yoakke.DataStructures
         /// </summary>
         public static BigInt operator &(BigInt lhs, BigInt rhs)
         {
-            EnsureSameWidth(lhs, rhs);
-            var result = new BigInt(lhs.width);
+            AssertSameWidthAndSignedness(lhs, rhs);
+            var result = new BigInt(lhs.IsSigned, lhs.width);
             for (int i = 0; i < result.bytes.Length; ++i)
             {
                 result.bytes[i] = (byte)(lhs.bytes[i] & rhs.bytes[i]);
@@ -205,8 +214,8 @@ namespace Yoakke.DataStructures
         /// </summary>
         public static BigInt operator |(BigInt lhs, BigInt rhs)
         {
-            EnsureSameWidth(lhs, rhs);
-            var result = new BigInt(lhs.width);
+            AssertSameWidthAndSignedness(lhs, rhs);
+            var result = new BigInt(lhs.IsSigned, lhs.width);
             for (int i = 0; i < result.bytes.Length; ++i)
             {
                 result.bytes[i] = (byte)(lhs.bytes[i] | rhs.bytes[i]);
@@ -219,8 +228,8 @@ namespace Yoakke.DataStructures
         /// </summary>
         public static BigInt operator ^(BigInt lhs, BigInt rhs)
         {
-            EnsureSameWidth(lhs, rhs);
-            var result = new BigInt(lhs.width);
+            AssertSameWidthAndSignedness(lhs, rhs);
+            var result = new BigInt(lhs.IsSigned, lhs.width);
             for (int i = 0; i < result.bytes.Length; ++i)
             {
                 result.bytes[i] = (byte)(lhs.bytes[i] ^ rhs.bytes[i]);
@@ -233,7 +242,7 @@ namespace Yoakke.DataStructures
         /// </summary>
         public static BigInt operator <<(BigInt lhs, int amount)
         {
-            var result = new BigInt(lhs.width);
+            var result = new BigInt(lhs.IsSigned, lhs.width);
             int byteShift = amount / 8;
             int bitShift = amount % 8;
             int shiftBack = 8 - bitShift;
@@ -256,7 +265,7 @@ namespace Yoakke.DataStructures
         /// </summary>
         public static BigInt operator >>(BigInt lhs, int amount)
         {
-            var result = new BigInt(lhs.width);
+            var result = new BigInt(lhs.IsSigned, lhs.width);
             int byteShift = amount / 8;
             int bitShift = amount % 8;
             int shiftFront = 8 - bitShift;
@@ -279,7 +288,7 @@ namespace Yoakke.DataStructures
         /// </summary>
         public static bool operator ==(BigInt lhs, BigInt rhs)
         {
-            EnsureSameWidth(lhs, rhs);
+            AssertSameWidthAndSignedness(lhs, rhs);
             return lhs.bytes.SequenceEqual(rhs.bytes);
         }
 
@@ -289,42 +298,38 @@ namespace Yoakke.DataStructures
         public static bool operator !=(BigInt lhs, BigInt rhs) => !(lhs == rhs);
 
         /// <summary>
-        /// Greater-than comparison.
+        /// Less-than comparison.
         /// </summary>
-        public static bool operator >(BigInt lhs, BigInt rhs)
+        public static bool operator <(BigInt lhs, BigInt rhs)
         {
-            EnsureSameWidth(lhs, rhs);
+            AssertSameWidthAndSignedness(lhs, rhs);
+            if (lhs.IsSigned)
+            {
+                if (lhs.Sign && !rhs.Sign) return true;
+                if (!lhs.Sign && rhs.Sign) return false;
+            }
             for (int i = lhs.bytes.Length - 1; i >= 0; --i)
             {
-                if (lhs.bytes[i] > rhs.bytes[i]) return true;
-                if (lhs.bytes[i] < rhs.bytes[i]) return false;
+                if (lhs.bytes[i] < rhs.bytes[i]) return true;
+                if (lhs.bytes[i] > rhs.bytes[i]) return false;
             }
             return false;
         }
 
         /// <summary>
-        /// Greater-than or equals comparison.
+        /// Greater-than comparison.
         /// </summary>
-        public static bool operator >=(BigInt lhs, BigInt rhs)
-        {
-            EnsureSameWidth(lhs, rhs);
-            for (int i = lhs.bytes.Length - 1; i >= 0; --i)
-            {
-                if (lhs.bytes[i] > rhs.bytes[i]) return true;
-                if (lhs.bytes[i] < rhs.bytes[i]) return false;
-            }
-            return true;
-        }
+        public static bool operator >(BigInt lhs, BigInt rhs) => rhs < lhs;
 
         /// <summary>
         /// Less-than or equals comparison.
         /// </summary>
-        public static bool operator <=(BigInt lhs, BigInt rhs) => rhs >= lhs;
+        public static bool operator <=(BigInt lhs, BigInt rhs) => !(lhs > rhs);
 
         /// <summary>
-        /// Less-than comparison.
+        /// Greater-than or equals comparison.
         /// </summary>
-        public static bool operator <(BigInt lhs, BigInt rhs) => rhs > lhs;
+        public static bool operator >=(BigInt lhs, BigInt rhs) => !(lhs < rhs);
 
         /// <summary>
         /// Subtracts two <see cref="BigInt"/>s.
@@ -347,8 +352,8 @@ namespace Yoakke.DataStructures
         /// <returns>The result of the addition.</returns>
         public static BigInt Add(BigInt lhs, BigInt rhs, out bool overflow)
         {
-            EnsureSameWidth(lhs, rhs);
-            var result = new BigInt(lhs.width);
+            AssertSameWidthAndSignedness(lhs, rhs);
+            var result = new BigInt(lhs.IsSigned, lhs.width);
             byte carry = 0;
             for (int i = 0; i < result.bytes.Length; ++i)
             {
@@ -387,9 +392,9 @@ namespace Yoakke.DataStructures
         /// <returns>The result of the multiplication.</returns>
         public static BigInt Multiply(BigInt lhs, BigInt rhs, out bool overflow)
         {
-            EnsureSameWidth(lhs, rhs);
+            AssertSameWidthAndSignedness(lhs, rhs);
             // Russian peasant's method
-            var result = new BigInt(lhs.width);
+            var result = new BigInt(lhs.IsSigned, lhs.width);
             overflow = false;
             while (!rhs.IsZero)
             {
@@ -413,12 +418,19 @@ namespace Yoakke.DataStructures
         /// <returns>The result of the division.</returns>
         public static BigInt Divide(BigInt lhs, BigInt rhs, out BigInt remainder)
         {
-            EnsureSameWidth(lhs, rhs);
+            AssertSameWidthAndSignedness(lhs, rhs);
             // Binary long division
             if (rhs.IsZero) throw new DivideByZeroException();
 
-            var quotient = new BigInt(lhs.width);
-            remainder = new BigInt(lhs.width);
+            bool numSign = lhs.Sign;
+            var sign = lhs.Sign != rhs.Sign;
+            if (lhs.IsSigned)
+            {
+                if (lhs.Sign) lhs = -lhs;
+                if (rhs.Sign) rhs = -rhs;
+            }
+            var quotient = new BigInt(lhs.IsSigned, lhs.width);
+            remainder = new BigInt(lhs.IsSigned, lhs.width);
 
             for (int i = lhs.width - 1; i >= 0; --i)
             {
@@ -430,32 +442,29 @@ namespace Yoakke.DataStructures
                     quotient[i] = true;
                 }
             }
+            if (lhs.IsSigned)
+            {
+                if (sign) quotient = -quotient;
+                if (numSign) remainder = -remainder;
+            }
             return quotient;
         }
 
-        private static void EnsureSameWidth(BigInt lhs, BigInt rhs)
+        private static void AssertSameWidthAndSignedness(BigInt lhs, BigInt rhs)
         {
-            if (lhs.width != rhs.width)
+            if (lhs.width != rhs.width || lhs.IsSigned != rhs.IsSigned)
             {
-                throw new ArgumentException("The widths don't match!");
+                throw new ArgumentException("The widths or signedness don't match!");
             }
         }
 
         /// <summary>
         /// Converts this <see cref="BigInt"/> to a <see cref="BigInteger"/>.
         /// </summary>
-        /// <param name="signed">True, if the result should be a signed integer.</param>
-        /// <returns>The <see cref="BigInteger"/>.</returns>
-        public BigInteger ToBigInteger(bool signed = true) => new BigInteger(bytes, !signed);
+        /// <param name="signed">True, if the result should be interpreted as signed.</param>
+        public BigInteger ToBigInteger(bool signed) => new BigInteger(bytes, !signed);
 
-        public override string ToString() => ToString(true);
-
-        /// <summary>
-        /// Returns the string representation of this <see cref="BigInt"/>.
-        /// </summary>
-        /// <param name="signed">True, if should be interpreted as a signed integer.</param>
-        /// <returns>The string representation.</returns>
-        public string ToString(bool signed) => ToBigInteger(signed).ToString();
+        public override string ToString() => ToBigInteger(IsSigned).ToString();
 
         public override bool Equals(object? obj) => obj is BigInt bi && this == bi;
         public override int GetHashCode()

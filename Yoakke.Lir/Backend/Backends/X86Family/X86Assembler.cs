@@ -350,6 +350,8 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
 
             // Size-dependent operations
 
+            // TODO: Signedness of operands probably matter!
+            // Write a test to expose this, then correct it!
             case Instr.Cmp cmp:
             {
                 var targetParts = CompileValue(cmp.Result);

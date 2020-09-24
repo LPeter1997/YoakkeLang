@@ -11,7 +11,7 @@ namespace Yoakke.DataStructures.Tests
         [TestMethod]
         public void CreateZero()
         {
-            var i = new BigInt(64);
+            var i = new BigInt(false, 64);
             Assert.AreEqual(i.AsMemory().Length, 8);
             Assert.IsTrue(i.IsZero);
             Assert.IsTrue(i.IsEven);
@@ -41,7 +41,7 @@ namespace Yoakke.DataStructures.Tests
         [TestMethod]
         public void ManipulateBytes()
         {
-            var i = new BigInt(8);
+            var i = new BigInt(false, 8);
             i[0] = true;
             i[2] = true;
             Assert.IsTrue(i[0]);
@@ -79,7 +79,7 @@ namespace Yoakke.DataStructures.Tests
         }
 
         [TestMethod]
-        public void Arithmetic()
+        public void SignedArithmetic()
         {
             var ns = new int[] {
                 -758373627, -971429535, -196760301, -308974598, 534580882, 74251856, -698399917, 
@@ -105,7 +105,36 @@ namespace Yoakke.DataStructures.Tests
         }
 
         [TestMethod]
-        public void Relational()
+        public void UnsignedArithmetic()
+        {
+            var ns = new int[] {
+                -758373627, -971429535, -196760301, -308974598, 534580882, 74251856, -698399917,
+                947149041, 548737911, -993708156, 713740392, -993670816, 893512852, 497526774,
+                542371407, -972543078, -106116221, -165481548, 315734702, 396249911, 263831299,
+                -295630055, -685275396, 881986713, -893219011, -989181881, -925563361, 226807330,
+                -74527356, -730197948,
+            };
+            foreach (var n1_ in ns)
+            {
+                foreach (var n2_ in ns)
+                {
+                    var n1 = unchecked((uint)n1_);
+                    var n2 = unchecked((uint)n2_);
+
+                    var b1 = new BigInt(32, n1) { IsSigned = false };
+                    var b2 = new BigInt(32, n2) { IsSigned = false };
+
+                    Assert.AreEqual(unchecked(n1 + n2), (uint)(b1 + b2), $"{n1} + {n2}");
+                    Assert.AreEqual(unchecked(n1 - n2), (uint)(b1 - b2), $"{n1} - {n2}");
+                    Assert.AreEqual(unchecked(n1 * n2), (uint)(b1 * b2), $"{n1} * {n2}");
+                    Assert.AreEqual(unchecked(n1 / n2), (uint)(b1 / b2), $"{n1} / {n2}");
+                    Assert.AreEqual(unchecked(n1 % n2), (uint)(b1 % b2), $"{n1} % {n2}");
+                }
+            }
+        }
+
+        [TestMethod]
+        public void SignedRelational()
         {
             var ns = new int[] {
                 -758373627, -971429535, -196760301, -308974598, 534580882, 74251856, -698399917,
@@ -120,6 +149,36 @@ namespace Yoakke.DataStructures.Tests
                 {
                     var b1 = new BigInt(32, n1);
                     var b2 = new BigInt(32, n2);
+
+                    Assert.AreEqual(n1 == n2, b1 == b2, $"{n1} == {n2}");
+                    Assert.AreEqual(n1 != n2, b1 != b2, $"{n1} != {n2}");
+                    Assert.AreEqual(n1 > n2, b1 > b2, $"{n1} > {n2}");
+                    Assert.AreEqual(n1 < n2, b1 < b2, $"{n1} < {n2}");
+                    Assert.AreEqual(n1 >= n2, b1 >= b2, $"{n1} >= {n2}");
+                    Assert.AreEqual(n1 <= n2, b1 <= b2, $"{n1} <= {n2}");
+                }
+            }
+        }
+
+        [TestMethod]
+        public void UnsignedRelational()
+        {
+            var ns = new int[] {
+                -758373627, -971429535, -196760301, -308974598, 534580882, 74251856, -698399917,
+                947149041, 548737911, -993708156, 713740392, -993670816, 893512852, 497526774,
+                542371407, -972543078, -106116221, -165481548, 315734702, 396249911, 263831299,
+                -295630055, -685275396, 881986713, -893219011, -989181881, -925563361, 226807330,
+                -74527356, -730197948,
+            };
+            foreach (var n1_ in ns)
+            {
+                foreach (var n2_ in ns)
+                {
+                    var n1 = unchecked((uint)n1_);
+                    var n2 = unchecked((uint)n2_);
+
+                    var b1 = new BigInt(32, n1) { IsSigned = false };
+                    var b2 = new BigInt(32, n2) { IsSigned = false };
 
                     Assert.AreEqual(n1 == n2, b1 == b2, $"{n1} == {n2}");
                     Assert.AreEqual(n1 != n2, b1 != b2, $"{n1} != {n2}");
