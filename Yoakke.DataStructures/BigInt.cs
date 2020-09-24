@@ -50,14 +50,8 @@ namespace Yoakke.DataStructures
             get => (bytes[index / 8] >> (index % 8)) % 2 != 0;
             set
             {
-                if (value)
-                {
-                    bytes[index / 8] |= (byte)(1 << (index % 8));
-                }
-                else
-                {
-                    bytes[index / 8] &= (byte)~(1 << (index % 8));
-                }
+                if (value) bytes[index / 8] |= (byte)(1 << (index % 8));
+                else bytes[index / 8] &= (byte)~(1 << (index % 8));
             }
         }
 
@@ -97,6 +91,20 @@ namespace Yoakke.DataStructures
             : this(width, BitConverter.GetBytes(value))
         {
         }
+
+        public ReadOnlyMemory<byte> AsMemory() => bytes;
+        public ReadOnlySpan<byte> AsSpan() => bytes;
+
+        // Conversions
+
+        public static explicit operator sbyte (BigInt i) => (sbyte) i.ToBigInteger(true );
+        public static explicit operator byte  (BigInt i) => (byte)  i.ToBigInteger(false);
+        public static explicit operator short (BigInt i) => (short) i.ToBigInteger(true );
+        public static explicit operator ushort(BigInt i) => (ushort)i.ToBigInteger(false);
+        public static explicit operator int   (BigInt i) => (int)   i.ToBigInteger(true );
+        public static explicit operator uint  (BigInt i) => (uint)  i.ToBigInteger(false);
+        public static explicit operator long  (BigInt i) => (long)  i.ToBigInteger(true );
+        public static explicit operator ulong (BigInt i) => (ulong) i.ToBigInteger(false);
 
         /// <summary>
         /// Returns a <see cref="BigInt"/> with all 1 bytes.
@@ -150,14 +158,14 @@ namespace Yoakke.DataStructures
         public static BigInt operator -(BigInt bigInt) => ~bigInt + new BigInt(bigInt.width, 1);
 
         /// <summary>
-        /// Subtracts one <see cref="BigInt"/> from another.
-        /// </summary>
-        public static BigInt operator -(BigInt lhs, BigInt rhs) => Subtract(lhs, rhs, out var _);
-
-        /// <summary>
         /// Adds two <see cref="BigInt"/>s.
         /// </summary>
         public static BigInt operator +(BigInt lhs, BigInt rhs) => Add(lhs, rhs, out var _);
+
+        /// <summary>
+        /// Subtracts one <see cref="BigInt"/> from another.
+        /// </summary>
+        public static BigInt operator -(BigInt lhs, BigInt rhs) => Subtract(lhs, rhs, out var _);
 
         /// <summary>
         /// Multiplies two <see cref="BigInt"/>s.
