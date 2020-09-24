@@ -576,19 +576,24 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             }
             break;
 
-#if false
             case Instr.Shl:
             case Instr.Shr:
             {
                 var bitsh = (BitShiftInstr)instr;
-                var target = CompileValue(bitsh.Result, true);
-                var left = CompileValue(bitsh.Shifted);
-                var right = CompileValue(bitsh.Amount);
-                WriteInstr(X86Op.Mov, target, left);
-                WriteInstr(bitsh is Instr.Shl ? X86Op.Shl : X86Op.Shr, target, right);
+                if (SizeOf(bitsh.Shifted.Type) > 4 || SizeOf(bitsh.Amount.Type) > 4)
+                {
+                    // For now we skip this
+                    throw new NotSupportedException("Shifting of > 4 byte operands is not supported!");
+                }
+
+                var target = CompileToAddress(bitsh.Result);
+                var left = CompileSingleValue(bitsh.Shifted);
+                var right = CompileSingleValue(bitsh.Amount);
+                left = LoadToRegister(left);
+                WriteInstr(bitsh is Instr.Shl ? X86Op.Shl : X86Op.Shr, left, right);
+                WriteMov(target, left);
             }
             break;
-#endif
 
             default: throw new NotImplementedException();
             }

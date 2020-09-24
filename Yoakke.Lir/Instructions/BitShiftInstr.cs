@@ -60,9 +60,9 @@ namespace Yoakke.Lir.Instructions
             }
             if (!(Shifted.Type is Type.Int && Amount.Type is Type.Int))
             {
-                // TODO: Make sure shift amount is unsigned?
                 ThrowValidationException("The shift operands must be integers!");
             }
+            // TODO: Make sure shift amount is unsigned?
         }
     }
 
