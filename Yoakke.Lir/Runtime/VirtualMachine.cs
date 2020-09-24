@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using Yoakke.DataStructures;
 using Yoakke.Lir.Backend;
 using Yoakke.Lir.Backend.Toolchain;
 using Yoakke.Lir.Instructions;
@@ -181,7 +182,7 @@ namespace Yoakke.Lir.Runtime
             case Instr.JmpIf jmpIf:
             {
                 var condValue = (Value.Int)Unwrap(jmpIf.Condition);
-                bool condition = condValue.Value != 0;
+                bool condition = !condValue.Value.IsZero;
                 instructionPointer = addresses[condition ? jmpIf.Then : jmpIf.Else];
             }
             break;
@@ -262,7 +263,7 @@ namespace Yoakke.Lir.Runtime
                 {
                     throw new InvalidOperationException();
                 }
-                return Type.I32.NewValue(boolResult ? 1 : 0);
+                return Type.I32.NewValue(new BigInt(true, 32, boolResult ? 1 : 0));
             }
 
             case ArithInstr arith:
@@ -441,7 +442,7 @@ namespace Yoakke.Lir.Runtime
             case Type.Int i:
             {
                 var size = SizeOf(i);
-                var value = new BigInteger(bytes.Slice(0, size));
+                var value = new BigInt(i.Signed, i.Bits, bytes.Slice(0, size));
                 bytes = bytes.Slice(size);
                 return new Value.Int(i, value);
             }
@@ -482,7 +483,7 @@ namespace Yoakke.Lir.Runtime
                     if (i.Signed && i.Bits == 32)
                     {
                         Int32 val = *(Int32*)intPtr.ToPointer();
-                        return Type.I32.NewValue(val);
+                        return Type.I32.NewValue(new BigInt(true, 32, val));
                     }
                     else
                     {

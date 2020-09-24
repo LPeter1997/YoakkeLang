@@ -703,7 +703,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
 
                 int byteCount = SizeOf(i);
                 // This is less or equal to byteCount
-                var origBytes = i.Value.ToByteArray();
+                var origBytes = i.Value.AsSpan().ToArray();
                 // We pad it with 0s for simplicity
                 var bytes = origBytes.Concat(Enumerable.Repeat((byte)0, byteCount - origBytes.Length));
                 // Now we collect the resulting operands

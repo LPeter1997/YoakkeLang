@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using Yoakke.DataStructures;
 using Type = Yoakke.Lir.Types.Type;
 
 namespace Yoakke.Lir.Values
@@ -14,7 +15,7 @@ namespace Yoakke.Lir.Values
             /// <summary>
             /// The integer value.
             /// </summary>
-            public readonly BigInteger Value;
+            public readonly BigInt Value;
 
             public override Type Type { get; }
 
@@ -23,7 +24,7 @@ namespace Yoakke.Lir.Values
             /// </summary>
             /// <param name="type">The exact integer <see cref="Type"/>.</param>
             /// <param name="value">The integer value.</param>
-            public Int(Type.Int type, BigInteger value)
+            public Int(Type.Int type, BigInt value)
             {
                 if (value < type.MinValue || value > type.MaxValue)
                 {

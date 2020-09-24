@@ -21,7 +21,7 @@ namespace Yoakke.DataStructures.Tests
         [TestMethod]
         public void CreateAllOnes()
         {
-            var i = BigInt.AllOnes(32);
+            var i = BigInt.AllOnes(false, 32);
             Assert.AreEqual(i.AsMemory().Length, 4);
             Assert.IsTrue(i.IsOdd);
             Assert.IsTrue(MemoryMarshal.ToEnumerable(i.AsMemory()).All(b => b == 255));
@@ -32,10 +32,10 @@ namespace Yoakke.DataStructures.Tests
         [TestMethod]
         public void NegativeOne()
         {
-            var i = new BigInt(32, -1);
+            var i = new BigInt(false, 32, -1);
             Assert.AreEqual(i.AsMemory().Length, 4);
             Assert.IsTrue(MemoryMarshal.ToEnumerable(i.AsMemory()).All(b => b == 255));
-            Assert.AreEqual(BigInt.AllOnes(32), i);
+            Assert.AreEqual(BigInt.AllOnes(false, 32), i);
         }
 
         [TestMethod]
@@ -56,16 +56,16 @@ namespace Yoakke.DataStructures.Tests
         [TestMethod]
         public void Boundlaries()
         {
-            Assert.AreEqual(long.MinValue, (long)BigInt.MinValue(64, true));
-            Assert.AreEqual(long.MaxValue, (long)BigInt.MaxValue(64, true));
-            Assert.AreEqual(ulong.MinValue, (ulong)BigInt.MinValue(64, false));
-            Assert.AreEqual(ulong.MaxValue, (ulong)BigInt.MaxValue(64, false));
+            Assert.AreEqual(long.MinValue, (long)BigInt.MinValue(true, 64));
+            Assert.AreEqual(long.MaxValue, (long)BigInt.MaxValue(true, 64));
+            Assert.AreEqual(ulong.MinValue, (ulong)BigInt.MinValue(false, 64));
+            Assert.AreEqual(ulong.MaxValue, (ulong)BigInt.MaxValue(false, 64));
         }
 
         [TestMethod]
         public void BinaryNot()
         {
-            var i = new BigInt(8, 0b10011010);
+            var i = new BigInt(false, 8, 0b10011010);
             i = ~i;
             Assert.AreEqual((byte)0b01100101, (byte)i);
         }
@@ -73,7 +73,7 @@ namespace Yoakke.DataStructures.Tests
         [TestMethod]
         public void TwosComplement()
         {
-            var i = new BigInt(16, 237);
+            var i = new BigInt(false, 16, 237);
             i = -i;
             Assert.AreEqual((ushort)0b1111111100010011, (ushort)i);
         }
@@ -92,8 +92,8 @@ namespace Yoakke.DataStructures.Tests
             {
                 foreach (var n2 in ns)
                 {
-                    var b1 = new BigInt(32, n1);
-                    var b2 = new BigInt(32, n2);
+                    var b1 = new BigInt(true, 32, n1);
+                    var b2 = new BigInt(true, 32, n2);
 
                     Assert.AreEqual(unchecked(n1 + n2), (int)(b1 + b2), $"{n1} + {n2}");
                     Assert.AreEqual(unchecked(n1 - n2), (int)(b1 - b2), $"{n1} - {n2}");
@@ -121,8 +121,8 @@ namespace Yoakke.DataStructures.Tests
                     var n1 = unchecked((uint)n1_);
                     var n2 = unchecked((uint)n2_);
 
-                    var b1 = new BigInt(32, n1) { IsSigned = false };
-                    var b2 = new BigInt(32, n2) { IsSigned = false };
+                    var b1 = new BigInt(false, 32, n1);
+                    var b2 = new BigInt(false, 32, n2);
 
                     Assert.AreEqual(unchecked(n1 + n2), (uint)(b1 + b2), $"{n1} + {n2}");
                     Assert.AreEqual(unchecked(n1 - n2), (uint)(b1 - b2), $"{n1} - {n2}");
@@ -147,8 +147,8 @@ namespace Yoakke.DataStructures.Tests
             {
                 foreach (var n2 in ns)
                 {
-                    var b1 = new BigInt(32, n1);
-                    var b2 = new BigInt(32, n2);
+                    var b1 = new BigInt(true, 32, n1);
+                    var b2 = new BigInt(true, 32, n2);
 
                     Assert.AreEqual(n1 == n2, b1 == b2, $"{n1} == {n2}");
                     Assert.AreEqual(n1 != n2, b1 != b2, $"{n1} != {n2}");
@@ -177,8 +177,8 @@ namespace Yoakke.DataStructures.Tests
                     var n1 = unchecked((uint)n1_);
                     var n2 = unchecked((uint)n2_);
 
-                    var b1 = new BigInt(32, n1) { IsSigned = false };
-                    var b2 = new BigInt(32, n2) { IsSigned = false };
+                    var b1 = new BigInt(false, 32, n1);
+                    var b2 = new BigInt(false, 32, n2);
 
                     Assert.AreEqual(n1 == n2, b1 == b2, $"{n1} == {n2}");
                     Assert.AreEqual(n1 != n2, b1 != b2, $"{n1} != {n2}");

@@ -75,8 +75,8 @@ namespace Yoakke.Compiler
             }
 #endif
 
-            var b1 = new BigInt(32, -758373627);
-            var b2 = new BigInt(32, -971429535);
+            var b1 = new BigInt(true, 32, -758373627);
+            var b2 = new BigInt(true, 32, -971429535);
             Console.WriteLine(b1 / b2);
         }
     }

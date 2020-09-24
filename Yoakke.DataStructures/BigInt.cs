@@ -73,29 +73,32 @@ namespace Yoakke.DataStructures
             IsSigned = signed;
         }
 
-        private BigInt(bool signed, int width, byte[] bytes)
+        public BigInt(bool signed, int width, ReadOnlySpan<byte> byteSpan)
             : this(signed, width)
         {
+            var bytes = byteSpan.ToArray();
             Array.Copy(bytes, this.bytes, Math.Min(bytes.Length, this.bytes.Length));
         }
 
         /// <summary>
         /// Initializes a new signed <see cref="BigInt"/>.
         /// </summary>
+        /// <param name="signed">True, if the number should be interpreted as signed.</param>
         /// <param name="width">The width of the integer in bits.</param>
         /// <param name="value">The initial value.</param>
-        public BigInt(int width, Int64 value)
-            : this(true, width, BitConverter.GetBytes(value))
+        public BigInt(bool signed, int width, Int64 value)
+            : this(signed, width, BitConverter.GetBytes(value))
         {
         }
 
         /// <summary>
         /// Initializes a new unsigned <see cref="BigInt"/>.
         /// </summary>
+        /// <param name="signed">True, if the number should be interpreted as signed.</param>
         /// <param name="width">The width of the integer in bits.</param>
         /// <param name="value">The initial value.</param>
-        public BigInt(int width, UInt64 value)
-            : this(false, width, BitConverter.GetBytes(value))
+        public BigInt(bool signed, int width, UInt64 value)
+            : this(signed, width, BitConverter.GetBytes(value))
         {
         }
 
@@ -113,23 +116,34 @@ namespace Yoakke.DataStructures
         public static explicit operator long  (BigInt i) => (long)  i.ToBigInteger(true );
         public static explicit operator ulong (BigInt i) => (ulong) i.ToBigInteger(false);
 
+        /*
+        public static implicit operator BigInt(sbyte i)  => new BigInt(true, 8, i);
+        public static implicit operator BigInt(byte i)   => new BigInt(false, 8, i);
+        public static implicit operator BigInt(short i)  => new BigInt(true, 16, i);
+        public static implicit operator BigInt(ushort i) => new BigInt(false, 16, i);
+        public static implicit operator BigInt(int i)    => new BigInt(true, 32, i);
+        public static implicit operator BigInt(uint i)   => new BigInt(false, 32, i);
+        public static implicit operator BigInt(long i)   => new BigInt(true, 64, i);
+        public static implicit operator BigInt(ulong i)  => new BigInt(false, 64, i);
+        */
+
         /// <summary>
         /// Returns a <see cref="BigInt"/> with all 1 bytes.
         /// </summary>
+        /// <param name="signed">True, if should be signed.</param>
         /// <param name="width">The width of the requested <see cref="BigInt"/>.</param>
         /// <returns>A <see cref="BigInt"/> with all 1s.</returns>
-        public static BigInt AllOnes(int width) => new BigInt(width, -1);
+        public static BigInt AllOnes(bool signed, int width) => new BigInt(signed, width, -1);
 
         /// <summary>
         /// Returns the largest <see cref="BigInt"/> possible with the given width.
         /// </summary>
-        /// <param name="width">The width of the requested <see cref="BigInt"/>.</param>
         /// <param name="signed">True, if should be signed.</param>
+        /// <param name="width">The width of the requested <see cref="BigInt"/>.</param>
         /// <returns>The largest <see cref="BigInt"/> possible with the given width and signedness.</returns>
-        public static BigInt MaxValue(int width, bool signed)
+        public static BigInt MaxValue(bool signed, int width)
         {
-            var result = AllOnes(width);
-            result.IsSigned = signed;
+            var result = AllOnes(signed, width);
             if (signed) result.Sign = false;
             return result;
         }
@@ -137,10 +151,10 @@ namespace Yoakke.DataStructures
         /// <summary>
         /// Returns the smallest <see cref="BigInt"/> possible with the given width.
         /// </summary>
-        /// <param name="width">The width of the requested <see cref="BigInt"/>.</param>
         /// <param name="signed">True, if should be signed.</param>
+        /// <param name="width">The width of the requested <see cref="BigInt"/>.</param>
         /// <returns>The smallest <see cref="BigInt"/> possible with the given width and signedness.</returns>
-        public static BigInt MinValue(int width, bool signed)
+        public static BigInt MinValue(bool signed, int width)
         {
             var result = new BigInt(signed, width);
             if (signed) result.Sign = true;
@@ -164,7 +178,7 @@ namespace Yoakke.DataStructures
         /// Returns the two's complement of the <see cref="BigInt"/>.
         /// </summary>
         public static BigInt operator -(BigInt bigInt) =>
-            ~bigInt + new BigInt(bigInt.width, 1) { IsSigned = bigInt.IsSigned };
+            ~bigInt + new BigInt(bigInt.IsSigned, bigInt.width, 1);
 
         /// <summary>
         /// Adds two <see cref="BigInt"/>s.
@@ -472,6 +486,18 @@ namespace Yoakke.DataStructures
             var hash = new HashCode();
             foreach (var b in bytes) hash.Add(b);
             return hash.ToHashCode();
+        }
+
+        public bool TryWriteBytes(Span<byte> destination, out int bytesWritten)
+        {
+            var bytes = AsSpan();
+            var minSize = Math.Min(destination.Length, bytes.Length);
+            for (int i = 0; i < minSize; ++i)
+            {
+                destination[i] = bytes[i];
+            }
+            bytesWritten = minSize;
+            return destination.Length >= bytes.Length;
         }
     }
 }

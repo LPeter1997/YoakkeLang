@@ -5,6 +5,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using Yoakke.DataStructures;
 using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;
 using Type = Yoakke.Lir.Types.Type;
@@ -260,7 +261,7 @@ namespace Yoakke.Lir.Tests
         {
             var b = GetBuilder(Type.I64);
             b.Ret(b.Add(Type.I64.NewValue(0x14ba5cefd35aa361), Type.I64.NewValue(0x0fba5cefb3540361)));
-            var res = new BigInteger(0x14ba5cefd35aa361) + new BigInteger(0x0fba5cefb3540361);
+            var res = new BigInt(true, 64, 0x14ba5cefd35aa361) + new BigInt(true, 64, 0x0fba5cefb3540361);
             TestOnAllBackends<Func<Int64>>(b, Type.I64.NewValue(res));
         }
 
@@ -269,7 +270,7 @@ namespace Yoakke.Lir.Tests
         {
             var b = GetBuilder(Type.I64);
             b.Ret(b.Sub(Type.I64.NewValue(0x14ba5cefd35aa361), Type.I64.NewValue(0x0fba5cefb3540361)));
-            var res = new BigInteger(0x14ba5cefd35aa361) - new BigInteger(0x0fba5cefb3540361);
+            var res = new BigInt(true, 64, 0x14ba5cefd35aa361) - new BigInt(true, 64, 0x0fba5cefb3540361);
             TestOnAllBackends<Func<Int64>>(b, Type.I64.NewValue(res));
         }
 

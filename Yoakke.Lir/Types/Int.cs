@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using Yoakke.DataStructures;
 using Yoakke.Lir.Values;
 
 namespace Yoakke.Lir.Types
@@ -23,19 +24,29 @@ namespace Yoakke.Lir.Types
             /// <summary>
             /// Returns the maximum integer value that this <see cref="Type"/> can store.
             /// </summary>
-            public BigInteger MaxValue => (new BigInteger(1) << Bits) / (Signed ? 2 : 1) - 1;
+            public BigInt MaxValue => BigInt.MaxValue(Signed, Bits);
 
             /// <summary>
             /// Returns the minimum integer value that this <see cref="Type"/> can store.
             /// </summary>
-            public BigInteger MinValue => -(new BigInteger(1) << Bits) / (Signed ? 2 : 1);
+            public BigInt MinValue => BigInt.MinValue(Signed, Bits);
 
             /// <summary>
             /// Creates a new <see cref="Value.Int"/> from an integer value with this <see cref="Type"/>.
             /// </summary>
             /// <param name="value">The integer value.</param>
             /// <returns>The created <see cref="Value.Int"/>.</returns>
-            public Value.Int NewValue(BigInteger value) => new Value.Int(this, value);
+            public Value.Int NewValue(BigInt value) => new Value.Int(this, value);
+
+            /// <summary>
+            /// <see cref="NewValue(BigInt)"/>.
+            /// </summary>
+            public Value.Int NewValue(long value) => NewValue(new BigInt(Signed, Bits, value));
+
+            /// <summary>
+            /// <see cref="NewValue(BigInt)"/>.
+            /// </summary>
+            public Value.Int NewValue(ulong value) => NewValue(new BigInt(Signed, Bits, value));
 
             public override string ToString() => $"{(Signed ? 'i' : 'u')}{Bits}";
             public override bool Equals(Type? other) =>

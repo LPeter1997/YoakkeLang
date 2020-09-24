@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Xml;
+using Yoakke.DataStructures;
 using Yoakke.Lir.Instructions;
 using Yoakke.Lir.Values;
 using Type = Yoakke.Lir.Types.Type;
@@ -406,7 +407,7 @@ namespace Yoakke.Lir
         {
             // NOTE: We do a bit-xor
             var intType = (Type.Int)value.Type;;
-            var allOnes = intType.NewValue(intType.Signed ? -1 : intType.MaxValue);
+            var allOnes = intType.NewValue(intType.Signed ? BigInt.AllOnes(true, intType.Bits) : intType.MaxValue);
             return BitXor(value, allOnes);
         }
 
