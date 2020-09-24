@@ -461,10 +461,37 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 else if (arith.Left.Type is Type.Int && arith.Right.Type is Type.Int)
                 {
                     // Integer arithmetic
-                    // TODO
-                    throw new NotImplementedException();
-                    //WriteInstr(X86Op.Mov, target, left);
-                    //WriteInstr(arith is Instr.Add ? X86Op.Add : X86Op.Sub, target, right);
+                    var targetAddr = registerPool.Allocate(DataWidth.dword);
+                    WriteInstr(X86Op.Lea, targetAddr, target);
+                    var left = CompileValue(arith.Left);
+                    var right = CompileValue(arith.Right);
+                    Debug.Assert(left.Length == right.Length);
+
+                    var firstOp = arith is Instr.Add ? X86Op.Add : X86Op.Sub;
+                    var remOps = arith is Instr.Add ? X86Op.Adc : X86Op.Sbb;
+
+                    int offset = 0;
+                    bool first = true;
+                    foreach (var (l, r) in left.Zip(right))
+                    {
+                        var width = l.GetWidth(sizeContext);
+                        var addr = new Operand.Address(targetAddr, offset);
+                        var displ = new Operand.Indirect(width, addr);
+                        WriteMov(displ, l);
+                        if (first)
+                        {
+                            // We use add or sub
+                            WriteInstr(firstOp, displ, r);
+                        }
+                        else
+                        {
+                            // We use adc or sbb
+                            WriteInstr(remOps, displ, r);
+                        }
+
+                        offset += width.Size;
+                        first = false;
+                    }
                 }
                 else
                 {

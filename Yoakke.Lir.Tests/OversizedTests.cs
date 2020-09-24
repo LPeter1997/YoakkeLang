@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using Yoakke.Lir.Types;
@@ -252,6 +253,24 @@ namespace Yoakke.Lir.Tests
             var b = GetBuilder(Type.I32);
             b.Ret(b.CmpLe(Type.I64.NewValue(0x17ab35c7b8893d4e), Type.I64.NewValue(0x16ab35c7b8893dae)));
             TestOnAllBackends<Func<Int32>>(b, Type.I32.NewValue(0));
+        }
+
+        [TestMethod]
+        public void BigAdd()
+        {
+            var b = GetBuilder(Type.I64);
+            b.Ret(b.Add(Type.I64.NewValue(0x14ba5cefd35aa361), Type.I64.NewValue(0x0fba5cefb3540361)));
+            var res = new BigInteger(0x14ba5cefd35aa361) + new BigInteger(0x0fba5cefb3540361);
+            TestOnAllBackends<Func<Int64>>(b, Type.I64.NewValue(res));
+        }
+
+        [TestMethod]
+        public void BigSub()
+        {
+            var b = GetBuilder(Type.I64);
+            b.Ret(b.Sub(Type.I64.NewValue(0x14ba5cefd35aa361), Type.I64.NewValue(0x0fba5cefb3540361)));
+            var res = new BigInteger(0x14ba5cefd35aa361) - new BigInteger(0x0fba5cefb3540361);
+            TestOnAllBackends<Func<Int64>>(b, Type.I64.NewValue(res));
         }
     }
 }
