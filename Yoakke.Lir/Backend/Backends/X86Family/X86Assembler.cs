@@ -500,17 +500,20 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             }
             break;
 
-#if false
             case Instr.Mul mul:
             {
-                // TODO: What if the operands don't fit in 32 bits?
-                var target = CompileValue(mul.Result, true);
-                var left = CompileValue(mul.Left);
-                var right = CompileValue(mul.Right);
-                ToRegister(ref left);
-                // TODO: Signed vs. unsigned?
-                WriteInstr(X86Op.Imul, left, right);
-                WriteInstr(X86Op.Mov, target, left);
+                if (SizeOf(mul.Left.Type) > 4)
+                {
+                    // For now we skip this
+                    throw new NotSupportedException("Multiplication of > 4 byte operands is not supported!");
+                }
+                var target = CompileToAddress(mul.Result);
+                var left = CompileSingleValue(mul.Left);
+                var right = CompileSingleValue(mul.Right);
+                var tmp = registerPool.Allocate(DataWidth.dword);
+                WriteMov(tmp, left);
+                WriteInstr(X86Op.Imul, tmp, right);
+                WriteMov(target, tmp);
             }
             break;
 
@@ -518,21 +521,27 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             case Instr.Mod:
             {
                 var arith = (ArithInstr)instr;
-                // NOTE: This is different!
-                // TODO: What if the operands don't fit in 32 bits?
+                if (SizeOf(arith.Left.Type) > 4)
+                {
+                    // For now we skip this
+                    throw new NotSupportedException("Division of > 4 byte operands is not supported!");
+                }
+                // NOTE: This is different from multiplication
                 registerPool.Allocate(Register.eax, Register.edx);
-                var target = CompileValue(arith.Result, true);
-                var left = CompileValue(arith.Left);
-                var right = CompileValue(arith.Right);
-                ToNonImmediate(ref right);
-                WriteInstr(X86Op.Mov, Register.edx, 0);
+
+                var target = CompileToAddress(arith.Result);
+                var left = CompileSingleValue(arith.Left);
+                var right = CompileSingleValue(arith.Right);
+                
+                right = LoadToRegister(right);
+                WriteInstr(X86Op.Mov, Register.edx, new Operand.Literal(DataWidth.dword, 0));
                 WriteInstr(X86Op.Mov, Register.eax, left);
-                // TODO: Signed vs. unsigned?
                 WriteInstr(X86Op.Idiv, right);
                 WriteInstr(X86Op.Mov, target, arith is Instr.Div ? Register.eax : Register.edx);
             }
             break;
 
+#if false
             // TODO: Duplications again....
 
             case Instr.BitAnd:
