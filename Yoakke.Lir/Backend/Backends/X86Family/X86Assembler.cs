@@ -316,6 +316,41 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             }
             break;
 
+            case Instr.ElementPtr elementPtr:
+            {
+                var target = CompileToAddress(elementPtr.Result);
+                var value = CompileSingleValue(elementPtr.Value);
+                // We need it in a register
+                value = LoadToRegister(value);
+                var structTy = (Type.Struct)((Type.Ptr)elementPtr.Value.Type).Subtype;
+
+                var index = elementPtr.Index.Value;
+                // Get offset, add it to the base address
+                var offset = OffsetOf(structTy.Definition, index);
+                WriteInstr(X86Op.Add, value, new Operand.Literal(DataWidth.dword, offset));
+                WriteMov(target, value);
+            }
+            break;
+
+            case Instr.Cast cast:
+            {
+                if (cast.Target is Type.Ptr && cast.Value.Type is Type.Ptr)
+                {
+                    // Should be a no-op, simply copy
+                    var target = CompileToAddress(cast.Result);
+                    var src = CompileSingleValue(cast.Value);
+                    WriteInstr(X86Op.Mov, target, src);
+                }
+                else
+                {
+                    // TODO
+                    throw new NotImplementedException();
+                }
+            }
+            break;
+
+            // Size-dependent operations
+
             case Instr.Cmp cmp:
             {
                 var targetParts = CompileValue(cmp.Result);
@@ -505,44 +540,6 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 WriteInstr(bitsh is Instr.Shl ? X86Op.Shl : X86Op.Shr, target, right);
             }
             break;
-
-            case Instr.ElementPtr elementPtr:
-            {
-                var target = CompileValue(elementPtr.Result, true);
-                var value = CompileValue(elementPtr.Value);
-                if (elementPtr.Value.Type is Type.Ptr ptrTy && ptrTy.Subtype is Type.Struct structTy)
-                {
-                    var index = elementPtr.Index.Value;
-                    // Get offset, add it to the base address
-                    var offset = OffsetOf(structTy.Definition, index);
-                    WriteInstr(X86Op.Add, value, offset);
-                    WriteInstr(X86Op.Mov, target, value);
-                }
-                else
-                {
-                    // TODO
-                    throw new NotImplementedException();
-                }
-            }
-            break;
-
-            case Instr.Cast cast:
-            {
-                // TODO: Arg sizes and such?
-                if (cast.Target is Type.Ptr && cast.Value.Type is Type.Ptr)
-                {
-                    // Should be a no-op, simply copy
-                    var target = CompileValue(cast.Result, true);
-                    var src = CompileValue(cast.Value);
-                    WriteInstr(X86Op.Mov, target, src);
-                }
-                else
-                {
-                    // TODO
-                    throw new NotImplementedException();
-                }
-            }
-            break;
 #endif
 
             default: throw new NotImplementedException();
@@ -609,6 +606,14 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 return tmp;
             }
             return null;
+        }
+
+        private Register LoadToRegister(Operand op)
+        {
+            if (op is Register r) return r;
+            var reg = registerPool.Allocate(op.GetWidth(sizeContext));
+            WriteInstr(X86Op.Mov, reg, op);
+            return reg;
         }
 
         private void WritePush(Operand[] ops)
