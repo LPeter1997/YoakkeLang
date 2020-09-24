@@ -33,6 +33,14 @@ namespace Yoakke.DataStructures
         /// True, if this number is 0.
         /// </summary>
         public bool IsZero => bytes.All(b => b == 0);
+        /// <summary>
+        /// The sign bit. True, if negative.
+        /// </summary>
+        public bool Sign 
+        {
+            get => this[width - 1];
+            set => this[width - 1] = value;
+        }
 
         /// <summary>
         /// Bitwise access.
@@ -88,6 +96,39 @@ namespace Yoakke.DataStructures
         public BigInt(int width, UInt64 value)
             : this(width, BitConverter.GetBytes(value))
         {
+        }
+
+        /// <summary>
+        /// Returns a <see cref="BigInt"/> with all 1 bytes.
+        /// </summary>
+        /// <param name="width">The width of the requested <see cref="BigInt"/>.</param>
+        /// <returns>A <see cref="BigInt"/> with all 1s.</returns>
+        public static BigInt AllOnes(int width) => new BigInt(width, -1);
+
+        /// <summary>
+        /// Returns the largest <see cref="BigInt"/> possible with the given width.
+        /// </summary>
+        /// <param name="width">The width of the requested <see cref="BigInt"/>.</param>
+        /// <param name="signed">True, if should be signed.</param>
+        /// <returns>The largest <see cref="BigInt"/> possible with the given width and signedness.</returns>
+        public static BigInt MaxValue(int width, bool signed)
+        {
+            var result = AllOnes(width);
+            if (signed) result.Sign = false;
+            return result;
+        }
+
+        /// <summary>
+        /// Returns the smallest <see cref="BigInt"/> possible with the given width.
+        /// </summary>
+        /// <param name="width">The width of the requested <see cref="BigInt"/>.</param>
+        /// <param name="signed">True, if should be signed.</param>
+        /// <returns>The smallest <see cref="BigInt"/> possible with the given width and signedness.</returns>
+        public static BigInt MinValue(int width, bool signed)
+        {
+            var result = new BigInt(width);
+            if (signed) result.Sign = false;
+            return result;
         }
 
         /// <summary>
