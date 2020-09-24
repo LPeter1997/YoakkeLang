@@ -127,7 +127,7 @@ namespace Yoakke.DataStructures
         public static BigInt MinValue(int width, bool signed)
         {
             var result = new BigInt(width);
-            if (signed) result.Sign = false;
+            if (signed) result.Sign = true;
             return result;
         }
 
