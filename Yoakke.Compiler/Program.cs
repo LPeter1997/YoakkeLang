@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Yoakke.DataStructures;
 using Yoakke.Lir;
 using Yoakke.Lir.Backend;
 using Yoakke.Lir.Backend.Toolchain;
@@ -35,7 +36,7 @@ namespace Yoakke.Compiler
             {
                 CommandLineApplication.Execute<Compiler>(args);
             }
-#elif true
+#elif false
 
             var uncheckedAsm = new UncheckedAssembly("test_app");
             var b = new Builder(uncheckedAsm);
@@ -61,8 +62,6 @@ namespace Yoakke.Compiler
             Console.WriteLine(toolchain.Backend.Compile(asm));
             Console.WriteLine();
 
-#if true
-
             var vm = new VirtualMachine(asm);
             var res = vm.Execute("main", new List<Value> { });
             Console.WriteLine($"VM result = {res}");
@@ -75,7 +74,10 @@ namespace Yoakke.Compiler
                 Console.WriteLine($"{name} took: {(int)timeSpan.TotalMilliseconds} ms");
             }
 #endif
-#endif
+
+            var b1 = new BigInt(32, 7);
+            var b2 = new BigInt(32, 3);
+            Console.WriteLine(b1 / b2);
         }
     }
 }
