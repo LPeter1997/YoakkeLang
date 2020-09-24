@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Xml;
 using Yoakke.Lir.Instructions;
 using Yoakke.Lir.Values;
@@ -364,8 +365,7 @@ namespace Yoakke.Lir
         /// <returns>The result of the bitwise-and.</returns>
         public Value BitAnd(Value left, Value right)
         {
-            // TODO: Not sure this is good here
-            var resultReg = AllocateRegister(ArithInstr.CommonArithmeticType(left.Type, right.Type));
+            var resultReg = AllocateRegister(left.Type);
             AddInstr(new Instr.BitAnd(resultReg, left, right));
             return resultReg;
         }
@@ -378,8 +378,7 @@ namespace Yoakke.Lir
         /// <returns>The result of the bitwise-or.</returns>
         public Value BitOr(Value left, Value right)
         {
-            // TODO: Not sure this is good here
-            var resultReg = AllocateRegister(ArithInstr.CommonArithmeticType(left.Type, right.Type));
+            var resultReg = AllocateRegister(left.Type);
             AddInstr(new Instr.BitOr(resultReg, left, right));
             return resultReg;
         }
@@ -392,8 +391,7 @@ namespace Yoakke.Lir
         /// <returns>The result of the bitwise-xor.</returns>
         public Value BitXor(Value left, Value right)
         {
-            // TODO: Not sure this is good here
-            var resultReg = AllocateRegister(ArithInstr.CommonArithmeticType(left.Type, right.Type));
+            var resultReg = AllocateRegister(left.Type);
             AddInstr(new Instr.BitXor(resultReg, left, right));
             return resultReg;
         }
@@ -407,9 +405,21 @@ namespace Yoakke.Lir
         public Value BitNot(Value value)
         {
             // NOTE: We do a bit-xor
-            var intType = (Type.Int)value.Type;
-            var allOnes = intType.NewValue(intType.Signed ? intType.MinValue : intType.MaxValue);
+            var intType = (Type.Int)value.Type;;
+            var allOnes = intType.NewValue(intType.Signed ? -1 : intType.MaxValue);
             return BitXor(value, allOnes);
+        }
+
+        private static BigInteger twosComplement(BigInteger original)
+        {
+            // for negative BigInteger, top byte is negative  
+            byte[] contents = original.ToByteArray();
+            // prepend byte of opposite sign
+            byte[] result = new byte[contents.Length + 1];
+            Array.Copy(contents, 0, result, 1, contents.Length);
+            result[0] = (contents[0] < 0) ? 0 : 255;
+            // this will be two's complement
+            return new BigInteger(result);
         }
 
         /// <summary>

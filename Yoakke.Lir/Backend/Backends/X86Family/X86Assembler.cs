@@ -541,19 +541,16 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             }
             break;
 
-#if false
-            // TODO: Duplications again....
-
             case Instr.BitAnd:
             case Instr.BitOr:
             case Instr.BitXor:
             {
                 var bitw = (BitwiseInstr)instr;
-                // TODO: What if the operands don't fit in 32 bits?
-                var target = CompileValue(bitw.Result, true);
-                var left = CompileValue(bitw.Left);
-                var right = CompileValue(bitw.Right);
-                WriteInstr(X86Op.Mov, target, left);
+
+                var target = CompileToAddress(bitw.Result);
+                var leftParts = CompileValue(bitw.Left);
+                var rightParts = CompileValue(bitw.Right);
+
                 var op = bitw switch
                 {
                     Instr.BitAnd => X86Op.And,
@@ -561,10 +558,25 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                     Instr.BitXor => X86Op.Xor,
                     _ => throw new NotImplementedException(),
                 };
-                WriteInstr(op, target, right);
+
+                // We can just apply the operation for each part
+                Debug.Assert(leftParts.Length == rightParts.Length);
+                var targetAddr = registerPool.Allocate(DataWidth.dword);
+                WriteInstr(X86Op.Lea, targetAddr, target);
+                int offset = 0;
+                foreach (var (l, r) in leftParts.Zip(rightParts))
+                {
+                    var width = l.GetWidth(sizeContext);
+                    var addr = new Operand.Address(targetAddr, offset);
+                    var displ = new Operand.Indirect(width, addr);
+                    WriteMov(displ, l);
+                    WriteInstr(op, displ, r);
+                    offset += width.Size;
+                }
             }
             break;
 
+#if false
             case Instr.Shl:
             case Instr.Shr:
             {

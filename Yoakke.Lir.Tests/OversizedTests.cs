@@ -272,5 +272,38 @@ namespace Yoakke.Lir.Tests
             var res = new BigInteger(0x14ba5cefd35aa361) - new BigInteger(0x0fba5cefb3540361);
             TestOnAllBackends<Func<Int64>>(b, Type.I64.NewValue(res));
         }
+
+        [TestMethod]
+        public void BigBitAnd()
+        {
+            var b = GetBuilder(Type.I64);
+            b.Ret(b.BitAnd(Type.I64.NewValue(0x04813baa599ef4a0), Type.I64.NewValue(0x13b1b58ac58ade82)));
+            TestOnAllBackends<Func<Int64>>(b, Type.I64.NewValue(0x81318a418ad480));
+        }
+
+        [TestMethod]
+        public void BigBitOr()
+        {
+            var b = GetBuilder(Type.I64);
+            b.Ret(b.BitOr(Type.I64.NewValue(0x04813baa599ef4a0), Type.I64.NewValue(0x13b1b58ac58ade82)));
+            TestOnAllBackends<Func<Int64>>(b, Type.I64.NewValue(0x17b1bfaadd9efea2));
+        }
+
+        [TestMethod]
+        public void BigBitXor()
+        {
+            var b = GetBuilder(Type.I64);
+            b.Ret(b.BitXor(Type.I64.NewValue(0x04813baa599ef4a0), Type.I64.NewValue(0x13b1b58ac58ade82)));
+            TestOnAllBackends<Func<Int64>>(b, Type.I64.NewValue(0x17308e209c142a22));
+        }
+
+        [TestMethod]
+        public void BigBitNot()
+        {
+            var b = GetBuilder(Type.I64);
+            b.Ret(b.BitNot(Type.I64.NewValue(0x04813baa599ef4a0)));
+            // TODO: Is this correct? Two's complement is confusing
+            TestOnAllBackends<Func<Int64>>(b, Type.I64.NewValue(-0x4813baa599ef4a1));
+        }
     }
 }

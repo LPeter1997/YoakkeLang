@@ -288,8 +288,7 @@ namespace Yoakke.Lir.Tests
         {
             var b = GetBuilder();
             b.Ret(b.BitNot(Type.I32.NewValue(0b1100010001)));
-            // TODO: Is this correct? Two's complement is confusing
-            TestOnAllBackends(b, Type.I32.NewValue(-0b1111111111111111111110011101111));
+            TestOnAllBackends(b, Type.I32.NewValue(-786));
         }
 
         [TestMethod]

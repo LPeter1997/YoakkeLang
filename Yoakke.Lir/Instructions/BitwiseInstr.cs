@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;
 
 namespace Yoakke.Lir.Instructions
@@ -52,18 +52,21 @@ namespace Yoakke.Lir.Instructions
 
         public override void Validate()
         {
-            try
+            if (!Left.Type.Equals(Right.Type))
             {
-                // TODO: We might need something else here
-                var resultTy = ArithInstr.CommonArithmeticType(Left.Type, Right.Type);
-                if (!Result.Type.Equals(resultTy))
-                {
-                    ThrowValidationException("The bitwise result does not match the result storage type!");
-                }
+                ThrowValidationException("Operand type mismatch!");
             }
-            catch (ArgumentException ex)
+            if (!Result.Type.Equals(Left.Type))
             {
-                throw new ValidationException(this, "See inner exception.", ex);
+                ThrowValidationException("The bitwise result does not match the result storage type!");
+            }
+            if (Left.Type is Type.Int)
+            {
+                // Good
+            }
+            else
+            {
+                ThrowValidationException("Unsupported operand type!");
             }
         }
     }
