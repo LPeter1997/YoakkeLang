@@ -410,18 +410,6 @@ namespace Yoakke.Lir
             return BitXor(value, allOnes);
         }
 
-        private static BigInteger twosComplement(BigInteger original)
-        {
-            // for negative BigInteger, top byte is negative  
-            byte[] contents = original.ToByteArray();
-            // prepend byte of opposite sign
-            byte[] result = new byte[contents.Length + 1];
-            Array.Copy(contents, 0, result, 1, contents.Length);
-            result[0] = (contents[0] < 0) ? 0 : 255;
-            // this will be two's complement
-            return new BigInteger(result);
-        }
-
         /// <summary>
         /// Adds a new <see cref="Instr.Shl"/>.
         /// </summary>
