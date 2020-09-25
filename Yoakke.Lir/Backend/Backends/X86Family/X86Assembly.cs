@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Yoakke.Lir.Types;
 
 namespace Yoakke.Lir.Backend.Backends.X86Family
 {
@@ -17,7 +18,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
     /// An X86 procedure. Essentially just a label, but some assemblers (like MASM) keep
     /// the concept of procedures.
     /// </summary>
-    public class X86Proc
+    public class X86Proc : Operand
     {
         /// <summary>
         /// The name of this <see cref="X86Proc"/>.
@@ -36,12 +37,19 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         {
             Name = name;
         }
+
+        // We print the name here
+        public override string ToIntelSyntax(X86FormatOptions formatOptions) => Name;
+
+        // NOTE: This is a pointer, requires a pointer size
+        public override DataWidth GetWidth(SizeContext sizeContext) =>
+            DataWidth.GetFromSize(sizeContext.PointerSize);
     }
 
     /// <summary>
     /// An X86 basic block, which is just label and instructions belonging to that label.
     /// </summary>
-    public class X86BasicBlock
+    public class X86BasicBlock : Operand
     {
         /// <summary>
         /// The procedure this <see cref="X86BasicBlock"/> belongs to.
@@ -62,10 +70,15 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             Name = name;
         }
 
-        public string GetLabelName(X86FormatOptions formatOptions)
+        // We print the label name here
+        public override string ToIntelSyntax(X86FormatOptions formatOptions)
         {
             if (Name == null) return string.Empty;
             return $"{Proc.Name}{formatOptions.SpecialSeparator}{Name}";
         }
+
+        // NOTE: This is a pointer, requires a pointer size
+        public override DataWidth GetWidth(SizeContext sizeContext) => 
+            DataWidth.GetFromSize(sizeContext.PointerSize);
     }
 }

@@ -38,37 +38,6 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         public abstract string ToIntelSyntax(X86FormatOptions formatOptions);
 
         /// <summary>
-        /// A label to a procedure or basic block.
-        /// </summary>
-        public class Label : Operand
-        {
-            /// <summary>
-            /// The procedure or basic block the label refers to.
-            /// </summary>
-            public readonly object Target;
-
-            public Label(X86Proc proc)
-            {
-                Target = proc;
-            }
-
-            public Label(X86BasicBlock basicBlock)
-            {
-                Target = basicBlock;
-            }
-
-            public override DataWidth GetWidth(SizeContext sizeContext) => 
-                DataWidth.GetFromSize(sizeContext.PointerSize);
-
-            public override string ToIntelSyntax(X86FormatOptions formatOptions) => Target switch
-            {
-                X86BasicBlock bb => bb.GetLabelName(formatOptions),
-                X86Proc p => p.Name,
-                _ => throw new NotImplementedException(),
-            };
-        }
-
-        /// <summary>
         /// Some literal constant.
         /// </summary>
         public class Literal : Operand

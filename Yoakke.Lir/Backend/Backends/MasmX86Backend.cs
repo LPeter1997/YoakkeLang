@@ -55,7 +55,7 @@ namespace Yoakke.Lir.Backend.Backends
         {
             if (basicBlock.Name != null)
             {
-                code.Append(basicBlock.GetLabelName(formatOptions)).AppendLine(":");
+                code.Append(basicBlock.ToIntelSyntax(formatOptions)).AppendLine(":");
             }
             // Write out instructions
             code.AppendJoin(

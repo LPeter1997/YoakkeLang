@@ -264,7 +264,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             break;
 
             case Instr.Jmp jmp:
-                WriteInstr(X86Op.Jmp, new Operand.Label(basicBlocks[jmp.Target]));
+                WriteInstr(X86Op.Jmp, basicBlocks[jmp.Target]);
                 break;
 
             case Instr.JmpIf jmpIf:
@@ -280,8 +280,8 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                     WriteInstr(X86Op.Or, condHolder, item);
                 }
                 WriteInstr(X86Op.Test, condHolder, condHolder);
-                WriteInstr(X86Op.Jne, new Operand.Label(basicBlocks[jmpIf.Then]));
-                WriteInstr(X86Op.Jmp, new Operand.Label(basicBlocks[jmpIf.Else]));
+                WriteInstr(X86Op.Jne, basicBlocks[jmpIf.Then]);
+                WriteInstr(X86Op.Jmp, basicBlocks[jmpIf.Else]);
             }
             break;
 
@@ -362,16 +362,12 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 var truthy = new Operand.Literal(targetWidth, 1);
                 var falsy = new Operand.Literal(targetWidth, 0);
 
-                // TODO: We could just make BBs operands, then we would avoid this crud
                 // We need to branch to write the result
                 var labelNameBase = GetUniqueName("cmp_result");
                 Debug.Assert(currentProcedure != null);
                 var trueBB = new X86BasicBlock(currentProcedure, $"{labelNameBase}_T");
                 var falseBB = new X86BasicBlock(currentProcedure, $"{labelNameBase}_F");
                 var finallyBB = new X86BasicBlock(currentProcedure, $"{labelNameBase}_C");
-                var trueLabel = new Operand.Label(trueBB);
-                var falseLabel = new Operand.Label(falseBB);
-                var finallyLabel = new Operand.Label(finallyBB);
 
                 // Add all these basic blocks to the current procedure
                 Debug.Assert(currentProcedure != null);
@@ -400,8 +396,8 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                         // If this was the last part to compare, we can just branch to the truthy part as the
                         // condition succeeded (or the falsy one on mismatch)
                         var inverseOp = ComparisonToJump(cmp.Comparison.Inverse, first && signed);
-                        WriteInstr(inverseOp, falseLabel);
-                        WriteInstr(X86Op.Jmp, trueLabel);
+                        WriteInstr(inverseOp, falseBB);
+                        WriteInstr(X86Op.Jmp, trueBB);
                     }
                     else
                     {
@@ -409,28 +405,28 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                         if (cmp.Comparison == Comparison.eq)
                         {
                             // We can jump to false on inequality
-                            WriteInstr(X86Op.Jne, falseLabel);
+                            WriteInstr(X86Op.Jne, falseBB);
                         }
                         else if (cmp.Comparison == Comparison.ne)
                         {
                             // We can jump to true on inequality
-                            WriteInstr(X86Op.Jne, trueLabel);
+                            WriteInstr(X86Op.Jne, trueBB);
                         }
                         else if (cmp.Comparison == Comparison.le || cmp.Comparison == Comparison.le_eq)
                         {
                             // If the part less, then we can jump to true, if greater, then to false
                             var lessOp = ComparisonToJump(Comparison.le, first && signed);
                             var greaterOp = ComparisonToJump(Comparison.gr, first && signed);
-                            WriteInstr(lessOp, trueLabel);
-                            WriteInstr(greaterOp, falseLabel);
+                            WriteInstr(lessOp, trueBB);
+                            WriteInstr(greaterOp, falseBB);
                         }
                         else if (cmp.Comparison == Comparison.gr || cmp.Comparison == Comparison.gr_eq)
                         {
                             // If the part is greater, then we can jump to true, if less, then to false
                             var greaterOp = ComparisonToJump(Comparison.gr, first && signed);
                             var lessOp = ComparisonToJump(Comparison.le, first && signed);
-                            WriteInstr(greaterOp, trueLabel);
-                            WriteInstr(lessOp, falseLabel);
+                            WriteInstr(greaterOp, trueBB);
+                            WriteInstr(lessOp, falseBB);
                         }
                     }
                 }
@@ -438,11 +434,11 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 // On true block, we write the truthy value then jump to the continuation
                 currentBasicBlock = trueBB;
                 WriteInstr(X86Op.Mov, target, truthy);
-                WriteInstr(X86Op.Jmp, finallyLabel);
+                WriteInstr(X86Op.Jmp, finallyBB);
                 // On false block, we write the falsy value then jump to the continuation
                 currentBasicBlock = falseBB;
                 WriteInstr(X86Op.Mov, target, falsy);
-                WriteInstr(X86Op.Jmp, finallyLabel);
+                WriteInstr(X86Op.Jmp, finallyBB);
                 // We continue writing on the continuation
                 currentBasicBlock = finallyBB;
             }
