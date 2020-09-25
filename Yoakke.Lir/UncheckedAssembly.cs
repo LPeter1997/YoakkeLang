@@ -72,6 +72,14 @@ namespace Yoakke.Lir
 
         public void Validate()
         {
+            // We check for user-types in externals
+            foreach (var ext in Externals)
+            {
+                if (ext.Type.Equals(Type.User_))
+                {
+                    throw new ValidationException(ext, "Externals can't be of user types!");
+                }
+            }
             // We check name duplication for symbols
             var symbolNames = new HashSet<string>();
             foreach (var sym in Symbols)

@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Yoakke.Lir.Types;
 
 namespace Yoakke.Lir
 {
@@ -77,5 +77,22 @@ namespace Yoakke.Lir
             .Replace("\n\n\n", "\n\n")
             .ToString()
             .Trim();
+
+        /// <summary>
+        /// Checks, if this <see cref="Assembly"/> contains <see cref="Value.User"/>s or <see cref="Type.User"/>s.
+        /// If so, the <see cref="Assembly"/> is not appropriate for backend compilation and can only be executed in the VM.
+        /// </summary>
+        /// <returns>True, if the <see cref="Assembly"/> contains any <see cref="Value.User"/>s or <see cref="Type.User"/>s.</returns>
+        public bool HasUserValues()
+        {
+            // Globals
+            if (Globals.Any(g => g.Type.Equals(Type.User_))) return true;
+            // Struct fields
+            var structTypes = Structs.SelectMany(s => s.Fields);
+            if (structTypes.Any(t => t.Equals(Type.User_))) return true;
+            // Procedures
+            if (Procedures.Any(p => p.HasUserValues())) return true;
+            return false;
+        }
     }
 }

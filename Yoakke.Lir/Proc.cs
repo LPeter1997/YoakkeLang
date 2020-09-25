@@ -85,5 +85,23 @@ namespace Yoakke.Lir
                 bb.Validate();
             }
         }
+
+        /// <summary>
+        /// Checks, if this procedure contains <see cref="Value.User"/>s or <see cref="Type.User"/>s.
+        /// If so, the procedure is not appropriate for backend compilation and can only be executed in the VM.
+        /// </summary>
+        /// <returns>True, if the procedure contains any <see cref="Value.User"/>s or <see cref="Type.User"/>s.</returns>
+        public bool HasUserValues()
+        {
+            // Parameter and return type
+            if (Parameters.Select(p => p.Type).Any(t => t.Equals(Type.User_))) return true;
+            if (Return.Equals(Type.User_)) return true;
+            // Instruction arguments
+            var instrArgs = BasicBlocks
+                .SelectMany(bb => bb.Instructions)
+                .SelectMany(ins => ins.InstrArgs);
+            if (instrArgs.Any(arg => arg.Equals(Type.User_) || arg is Value.User)) return true;
+            return false;
+        }
     }
 }
