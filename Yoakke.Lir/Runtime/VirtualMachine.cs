@@ -29,10 +29,12 @@ namespace Yoakke.Lir.Runtime
         private IList<Instr> code;
         private IDictionary<object, int> addresses;
         private IDictionary<Extern, IntPtr> externals;
+        private IDictionary<Global, PtrValue> globalsToPointers;
 
         // Runtime
         private Stack<StackFrame> callStack = new Stack<StackFrame>();
         private List<byte[]> memorySegments = new List<byte[]>();
+        private List<byte[]> globalMemorySegments = new List<byte[]>();
         private Value returnValue = Value.Void_;
         private int instructionPointer;
         private SizeContext sizeContext = new SizeContext
@@ -52,6 +54,7 @@ namespace Yoakke.Lir.Runtime
             code = new List<Instr>();
             addresses = new Dictionary<object, int>();
             externals = new Dictionary<Extern, IntPtr>();
+            globalsToPointers = new Dictionary<Global, PtrValue>();
             CompileAssembly();
         }
 
@@ -63,6 +66,7 @@ namespace Yoakke.Lir.Runtime
         {
             // TODO: Finish procedure and call it
             //LoadExternals();
+            AllocateGlobals();
             FlattenCode();
         }
 
@@ -96,6 +100,21 @@ namespace Yoakke.Lir.Runtime
                 externals[ext] = NativeLibrary.GetExport(linkedBinaries, $"{ext.Name}");
             }
 #endif
+        }
+
+        private void AllocateGlobals()
+        {
+            // NOTE: We add a 0th index global that'll never be referred to.
+            // This is so we can use negatives to annotate globals
+            globalMemorySegments.Add(new byte[0]);
+            foreach (var global in Assembly.Globals)
+            {
+                var buffer = new byte[SizeOf(global.UnderlyingType)];
+                var segmentIndex = globalMemorySegments.Count;
+                var ptr = new PtrValue(-segmentIndex, global.UnderlyingType);
+                globalsToPointers.Add(global, ptr);
+                globalMemorySegments.Add(buffer);
+            }
         }
 
         private void FlattenCode()
@@ -184,6 +203,13 @@ namespace Yoakke.Lir.Runtime
             {
                 var address = Unwrap(store.Target);
                 var value = Unwrap(store.Value);
+
+                if (address is Global globalVal)
+                {
+                    // We just make it a PtrVal!
+                    address = globalsToPointers[globalVal];
+                }
+
                 if (address is PtrValue ptrVal)
                 {
                     WriteManagedPtr(ptrVal, value.Clone());
@@ -220,6 +246,11 @@ namespace Yoakke.Lir.Runtime
             case Instr.Load load:
             {
                 var address = Unwrap(load.Address);
+                if (address is Global globalVal)
+                {
+                    // We just make it a pointer!
+                    address = globalsToPointers[globalVal];
+                }
                 if (address is PtrValue ptrVal)
                 {
                     return ReadManagedPtr(ptrVal);
@@ -431,7 +462,9 @@ namespace Yoakke.Lir.Runtime
         private Value ReadManagedPtr(PtrValue value)
         {
             var typeToRead = value.BaseType;
-            var memory = memorySegments[value.Segment];
+            byte[] memory;
+            if (value.Segment >= 0) memory = memorySegments[value.Segment];
+            else memory = globalMemorySegments[-value.Segment];
             var segment = memory.AsSpan().Slice(value.Offset);
             return ReadFromManagedMemory(ref segment, typeToRead);
         }
@@ -464,7 +497,9 @@ namespace Yoakke.Lir.Runtime
 
         private void WriteManagedPtr(PtrValue ptr, Value value)
         {
-            var memory = memorySegments[ptr.Segment];
+            byte[] memory;
+            if (ptr.Segment >= 0) memory = memorySegments[ptr.Segment];
+            else memory = globalMemorySegments[-ptr.Segment];
             var segment = memory.AsSpan().Slice(ptr.Offset);
             WriteToManagedMemory(ref segment, value);
         }

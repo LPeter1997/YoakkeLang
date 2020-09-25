@@ -45,30 +45,34 @@ namespace Yoakke.Compiler
             var main = b.DefineProc("main");
             main.Return = Type.I32;
 
-            b.DefineGlobal("foo", Type.I32);
+            var g = b.DefineGlobal("foo", Type.I32);
 
-            b.Ret(Type.I32.NewValue(0));
+            b.Store(g, Type.I32.NewValue(3476));
+            b.Ret(b.Load(g));
 
             var targetTriplet = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
             var toolchain = Toolchains.Supporting(targetTriplet).First();
+            var asm = uncheckedAsm.Check();
 
+            /*
             var build = new Build
             {
                 OutputKind = OutputKind.Executable,
                 OutputPath = "C:/TMP/globals.exe",
                 IntermediatesDirectory = "C:/TMP/test_app_build",
             };
-            var asm = uncheckedAsm.Check();
             build.Assemblies.Add(asm);
             Console.WriteLine(asm);
             Console.WriteLine();
             Console.WriteLine(toolchain.Backend.Compile(asm));
             Console.WriteLine();
+            */
 
             var vm = new VirtualMachine(asm);
             var res = vm.Execute("main", new List<Value> { });
             Console.WriteLine($"VM result = {res}");
 
+            /*
             var err = toolchain.Compile(build);
             Console.WriteLine($"Toolchain exit code: {err}");
             Console.WriteLine();
@@ -76,6 +80,7 @@ namespace Yoakke.Compiler
             {
                 Console.WriteLine($"{name} took: {(int)timeSpan.TotalMilliseconds} ms");
             }
+            */
 #endif
         }
     }

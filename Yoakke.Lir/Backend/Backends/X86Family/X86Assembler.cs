@@ -731,6 +731,12 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 return result.ToArray();
             }
 
+            case Global glob:
+            {
+                // TODO
+                throw new NotImplementedException();
+            }
+
             case ISymbol sym:
             {
                 if (asLvalue) throw new InvalidOperationException("A symbol can't be an lvalue!");
