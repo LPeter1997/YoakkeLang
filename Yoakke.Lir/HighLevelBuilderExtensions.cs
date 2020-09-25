@@ -35,16 +35,13 @@ namespace Yoakke.Lir
             // Populate then
             builder.CurrentBasicBlock = thenBB;
             then(builder);
-            if (builder.CurrentBasicBlock.EndsInBranch)
-            {
-                builder.RemoveBasicBlock(continueBB);
-            }
-            else
+            // NOTE: continueBB should always exist
+            if (!builder.CurrentBasicBlock.EndsInBranch)
             {
                 builder.Jmp(continueBB);
-                // Continue at the continuation block
-                builder.CurrentBasicBlock = continueBB;
             }
+            // Continue at the continuation block
+            builder.CurrentBasicBlock = continueBB;
         }
 
         /// <summary>
@@ -73,24 +70,27 @@ namespace Yoakke.Lir
             // Populate then
             builder.CurrentBasicBlock = thenBB;
             then(builder);
-            if (builder.CurrentBasicBlock.EndsInBranch)
-            {
-                builder.RemoveBasicBlock(continueBB);
-            }
-            else
+            var thenEndsInBranch = builder.CurrentBasicBlock.EndsInBranch;
+            if (!thenEndsInBranch)
             {
                 builder.Jmp(continueBB);
             }
             // Populate else
             builder.CurrentBasicBlock = elseBB;
             @else(builder);
-            if (builder.CurrentBasicBlock.EndsInBranch)
+            var elseEndsInBranch = builder.CurrentBasicBlock.EndsInBranch;
+            if (!elseEndsInBranch)
             {
+                builder.Jmp(continueBB);
+            }
+            // Delete continueBB if necessary
+            if (thenEndsInBranch && elseEndsInBranch)
+            {
+                // We don't need continueBB
                 builder.RemoveBasicBlock(continueBB);
             }
             else
             {
-                builder.Jmp(continueBB);
                 // Continue at the continuation block
                 builder.CurrentBasicBlock = continueBB;
             }
@@ -127,9 +127,9 @@ namespace Yoakke.Lir
             if (!builder.CurrentBasicBlock.EndsInBranch)
             {
                 builder.Jmp(conditionBB);
-                // Continue at the continuation block
-                builder.CurrentBasicBlock = continueBB;
             }
+            // Continue at the continuation block
+            builder.CurrentBasicBlock = continueBB;
         }
     }
 }
