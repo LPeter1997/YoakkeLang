@@ -32,8 +32,7 @@ namespace Yoakke.Lir
         {
             get
             {
-                // TODO
-                if (currentProc is null) throw new NotImplementedException();
+                if (currentProc is null) throw new InvalidOperationException("There's no procedure defined yet!");
                 return currentProc;
             }
             set
@@ -49,8 +48,7 @@ namespace Yoakke.Lir
         {
             get
             {
-                // TODO
-                if (currentBasicBlock is null) throw new NotImplementedException();
+                if (currentBasicBlock is null) throw new InvalidOperationException("There's no procedure defined yet!");
                 return currentBasicBlock;
             }
             set
@@ -59,6 +57,10 @@ namespace Yoakke.Lir
                 currentBasicBlock = value;
             }
         }
+        /// <summary>
+        /// The integer <see cref="Type"/> used for boolean results.
+        /// </summary>
+        public Type.Int BoolResult { get; set; } = Type.I32;
 
         private IDictionary<StructDef, Type.Struct> structDefs = new Dictionary<StructDef, Type.Struct>();
         private Proc? currentProc;
@@ -257,8 +259,7 @@ namespace Yoakke.Lir
         /// <returns>The comparison result.</returns>
         public Value Cmp(Comparison comparison, Value left, Value right)
         {
-            // TODO: Do we want an i32 here? What about an u1? u8? u32?
-            var resultReg = AllocateRegister(Type.I32);
+            var resultReg = AllocateRegister(BoolResult);
             AddInstr(new Instr.Cmp(resultReg, comparison, left, right));
             return resultReg;
         }
