@@ -41,9 +41,16 @@ namespace Yoakke.Lir.Backend.Backends
             code.AppendLine("_BSS SEGMENT");
             foreach (var g in assembly.Globals) DeclareGlobal(g);
             code.AppendLine("_BSS ENDS");
-            // Compile procedures
+            // Compile externals
+            foreach (var e in assembly.Externals) DeclareExtern(e);
             code.AppendLine(".CODE");
+            // Compile procedures
             foreach (var p in assembly.Procedures) CompileProc(p);
+        }
+
+        private void DeclareExtern(string name)
+        {
+            code.AppendLine($"EXTERN {name} : PTR");
         }
 
         private void DeclareGlobal(X86Global global)

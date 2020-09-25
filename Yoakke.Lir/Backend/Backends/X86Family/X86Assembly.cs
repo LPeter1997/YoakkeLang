@@ -9,6 +9,10 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
     public class X86Assembly
     {
         /// <summary>
+        /// The list of externals this <see cref="X86Assembly"/> contains.
+        /// </summary>
+        public readonly IList<string> Externals = new List<string>();
+        /// <summary>
         /// The list of globals this <see cref="X86Assembly"/> contains.
         /// </summary>
         public readonly IList<X86Global> Globals = new List<X86Global>();

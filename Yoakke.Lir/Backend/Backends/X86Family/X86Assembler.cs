@@ -50,12 +50,19 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         {
             // First we forward declare procedures and basic blocks
             ForwardDeclare(assembly);
-            // TODO: Externals?
+            // Compile externals
+            foreach (var ext in assembly.Externals) CompileExternal(ext);
             // Compile globals
             foreach (var glob in assembly.Globals) CompileGlobal(glob);
             // Compile procedures
             foreach (var proc in assembly.Procedures) CompileProc(proc);
             return result;
+        }
+
+        private void CompileExternal(Extern external)
+        {
+            var symName = GetSymbolName(external);
+            result.Externals.Add(symName);
         }
 
         private void CompileGlobal(Global global)
