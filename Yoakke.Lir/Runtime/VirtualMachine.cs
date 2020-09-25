@@ -245,7 +245,7 @@ namespace Yoakke.Lir.Runtime
 
             case Instr.Load load:
             {
-                var address = Unwrap(load.Address);
+                var address = Unwrap(load.Source);
                 if (address is Global globalVal)
                 {
                     // We just make it a pointer!

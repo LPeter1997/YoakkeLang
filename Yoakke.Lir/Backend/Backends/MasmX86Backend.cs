@@ -37,9 +37,19 @@ namespace Yoakke.Lir.Backend.Backends
 
         private void CompileAssembly(X86Assembly assembly)
         {
-            // TODO: externals, globals, ...
+            // TODO: externals
+            // Compile global declarations
+            foreach (var g in assembly.Globals) DeclareGlobal(g);
             // Compile procedures
             foreach (var p in assembly.Procedures) CompileProc(p);
+        }
+
+        private void DeclareGlobal(X86Global global)
+        {
+            code
+                .Append($"{global.Name} DB ")
+                .AppendJoin(", ", Enumerable.Repeat("0", global.Size))
+                .AppendLine(" DUP (?)");
         }
 
         private void CompileProc(X86Proc proc)

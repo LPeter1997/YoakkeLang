@@ -50,10 +50,18 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         {
             // First we forward declare procedures and basic blocks
             ForwardDeclare(assembly);
-            // TODO: Externals? Globals?
+            // TODO: Externals?
+            // Compile globals
+            foreach (var glob in assembly.Globals) CompileGlobal(glob);
             // Compile procedures
             foreach (var proc in assembly.Procedures) CompileProc(proc);
             return result;
+        }
+
+        private void CompileGlobal(Global global)
+        {
+            var symName = GetSymbolName(global);
+            result.Globals.Add(new X86Global(symName, SizeOf(global.UnderlyingType)));
         }
 
         private void ForwardDeclare(Assembly assembly)
@@ -290,7 +298,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 var target = CompileToAddress(store.Target);
                 var value = CompileValue(store.Value);
                 var address = registerPool.Allocate(DataWidth.dword);
-                WriteInstr(X86Op.Mov, address, target);
+                WriteInstr(store.Target is Global ? X86Op.Lea : X86Op.Mov, address, target);
                 WriteCopy(address, value);
             }
             break;
@@ -298,11 +306,11 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             case Instr.Load load:
             {
                 var target = CompileToAddress(load.Result);
-                var source = CompileSingleValue(load.Address);
+                var source = CompileSingleValue(load.Source);
                 var targetAddr = registerPool.Allocate(DataWidth.dword);
                 var sourceAddr = registerPool.Allocate(DataWidth.dword);
                 WriteInstr(X86Op.Lea, targetAddr, target);
-                WriteInstr(X86Op.Mov, sourceAddr, source);
+                WriteInstr(load.Source is Global ? X86Op.Lea : X86Op.Mov, sourceAddr, source);
                 WriteMemcopy(targetAddr, sourceAddr, SizeOf(load.Result));
             }
             break;
@@ -694,7 +702,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         private Operand CompileToAddress(Value value)
         {
             var res = CompileSingleValue(value, true);
-            Debug.Assert(res is Operand.Address);
+            Debug.Assert(res is Operand.Address || res is Operand.Symbol);
             return res;
         }
 
@@ -733,8 +741,23 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
 
             case Global glob:
             {
-                // TODO
-                throw new NotImplementedException();
+                var symName = GetSymbolName(glob);
+                if (asLvalue)
+                {
+                    var addr = new Operand.Symbol(symName, 0);
+                    return Ops(addr);
+                }
+                // Non-lvalue
+                var fullSize = SizeOf(glob.UnderlyingType);
+                int offset = 0;
+                var result = SplitData(fullSize, dataSize =>
+                {
+                    var width = DataWidth.GetFromSize(dataSize);
+                    var newAddr = new Operand.Symbol(symName, offset);
+                    offset += dataSize;
+                    return new Operand.Indirect(width, newAddr);
+                });
+                return Ops(result.ToArray());
             }
 
             case ISymbol sym:

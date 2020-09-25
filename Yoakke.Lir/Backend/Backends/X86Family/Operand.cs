@@ -124,9 +124,9 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         public class Indirect : Operand
         {
             public readonly DataWidth Width;
-            public readonly Address Address_;
+            public readonly Operand Address_;
 
-            public Indirect(DataWidth width, Address addr)
+            public Indirect(DataWidth width, Operand addr)
             {
                 Width = width;
                 Address_ = addr;
@@ -137,6 +137,27 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             public override string ToIntelSyntax(X86FormatOptions formatOptions) => 
                 // TODO: The PTR keyword is not necessarily correct!
                 $"{Width.ToString().ToUpper()} PTR {Address_.ToIntelSyntax(formatOptions)}";
+        }
+
+        /// <summary>
+        /// Some symbol memory address.
+        /// </summary>
+        public class Symbol : Operand
+        {
+            public readonly string Name;
+            public readonly int Offset;
+
+            public Symbol(string name, int offset)
+            {
+                Name = name;
+                Offset = offset;
+            }
+
+            public override DataWidth GetWidth(SizeContext sizeContext) =>
+                DataWidth.GetFromSize(sizeContext.PointerSize);
+
+            public override string ToIntelSyntax(X86FormatOptions formatOptions) =>
+                $"DWORD PTR {Name} + {Offset}";
         }
     }
 }

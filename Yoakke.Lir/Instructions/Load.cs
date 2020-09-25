@@ -14,14 +14,14 @@ namespace Yoakke.Lir.Instructions
             /// <summary>
             /// The address to load the <see cref="Value"/> from.
             /// </summary>
-            public Value Address { get; set; }
+            public Value Source { get; set; }
 
             public override IEnumerable<IInstrArg> InstrArgs
             {
                 get
                 {
                     yield return Result;
-                    yield return Address;
+                    yield return Source;
                 }
             }
 
@@ -33,14 +33,14 @@ namespace Yoakke.Lir.Instructions
             public Load(Register result, Value address)
                 : base(result)
             {
-                Address = address;
+                Source = address;
             }
 
-            public override string ToString() => $"{Result} = load {Address.ToValueString()}";
+            public override string ToString() => $"{Result} = load {Source.ToValueString()}";
 
             public override void Validate()
             {
-                if (!(Address.Type is Type.Ptr ptrTy))
+                if (!(Source.Type is Type.Ptr ptrTy))
                 {
                     ThrowValidationException("The source address must be a pointer type!");
                     return; // NOTE: Not needed

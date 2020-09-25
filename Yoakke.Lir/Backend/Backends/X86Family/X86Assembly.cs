@@ -9,9 +9,38 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
     public class X86Assembly
     {
         /// <summary>
+        /// The list of globals this <see cref="X86Assembly"/> contains.
+        /// </summary>
+        public readonly IList<X86Global> Globals = new List<X86Global>();
+        /// <summary>
         /// The list of procedures this <see cref="X86Assembly"/> contains.
         /// </summary>
         public readonly IList<X86Proc> Procedures = new List<X86Proc>();
+    }
+
+    /// <summary>
+    /// An X86 global mutable.
+    /// </summary>
+    public class X86Global
+    {
+        /// <summary>
+        /// The name of this <see cref="X86Global"/>.
+        /// </summary>
+        public readonly string Name;
+        /// <summary>
+        /// The size of this <see cref="X86Global"/> in bytes.
+        /// </summary>
+        public int Size { get; set; }
+        /// <summary>
+        /// The <see cref="Visibility"/> of this <see cref="X86Global"/>.
+        /// </summary>
+        public Visibility Visibility { get; set; }
+
+        public X86Global(string name, int size)
+        {
+            Name = name;
+            Size = size;
+        }
     }
 
     /// <summary>
