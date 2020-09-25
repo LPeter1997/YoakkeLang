@@ -23,7 +23,7 @@ namespace Yoakke.Lir
         /// </summary>
         /// <param name="name">The name of the external symbol.</param>
         /// <param name="type">The <see cref="Type"/> of the external symbol.</param>
-        public Global(string name, Type type, string path)
+        public Global(string name, Type type)
         {
             Name = name;
             Type = type;

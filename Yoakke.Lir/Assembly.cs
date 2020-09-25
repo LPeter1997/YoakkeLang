@@ -28,6 +28,10 @@ namespace Yoakke.Lir
         /// </summary>
         public readonly IReadOnlyList<Extern> Externals;
         /// <summary>
+        /// The <see cref="Global"/>s the <see cref="Assembly"/> references.
+        /// </summary>
+        public readonly IReadOnlyList<Global> Globals;
+        /// <summary>
         /// The <see cref="StructDef"/>s in this <see cref="Assembly"/>.
         /// </summary>
         public readonly IReadOnlyList<StructDef> Structs;
@@ -41,7 +45,10 @@ namespace Yoakke.Lir
         /// </summary>
         public IEnumerable<ISymbol> Symbols => 
             // NOTE: Cast returned an ISymbol? for some reason
-            Externals.Select(sym => (ISymbol)sym).Concat(Procedures);
+            Externals
+                .Select(sym => (ISymbol)sym)
+                .Concat(Globals)
+                .Concat(Procedures);
 
         /// <summary>
         /// Returns all of the distinct external binary references in this <see cref="Assembly"/>.
@@ -54,12 +61,15 @@ namespace Yoakke.Lir
             Name = uncheckedAssembly.Name;
             EntryPoint = uncheckedAssembly.EntryPoint;
             Externals = uncheckedAssembly.Externals.ToArray();
+            Globals = uncheckedAssembly.Globals.ToArray();
             Structs = uncheckedAssembly.Structs.ToArray();
             Procedures = uncheckedAssembly.Procedures.ToArray();
         }
 
         public override string ToString() => new StringBuilder()
             .AppendJoin('\n', Externals)
+            .Append("\n\n")
+            .AppendJoin('\n', Globals)
             .Append("\n\n")
             .AppendJoin('\n', Structs)
             .Append("\n\n")

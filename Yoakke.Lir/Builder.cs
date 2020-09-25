@@ -92,6 +92,19 @@ namespace Yoakke.Lir
         }
 
         /// <summary>
+        /// Adds a new <see cref="Global"/> symbol definition to the <see cref="Assembly"/>.
+        /// </summary>
+        /// <param name="name">The name of the global symbol.</param>
+        /// <param name="type">The <see cref="Type"/> of the global symbol.</param>
+        /// <returns>The <see cref="Value"/> referring to the global symbol.</returns>
+        public Value DefineGlobal(string name, Type type)
+        {
+            var global = new Global(name, type);
+            Assembly.Globals.Add(global);
+            return global;
+        }
+
+        /// <summary>
         /// Adds a new <see cref="StructDef"/> to the <see cref="Assembly"/>.
         /// </summary>
         /// <param name="types">The <see cref="Type"/>s of the struct fields.</param>

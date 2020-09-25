@@ -33,6 +33,10 @@ namespace Yoakke.Lir
         /// </summary>
         public readonly IList<Extern> Externals = new List<Extern>();
         /// <summary>
+        /// The <see cref="Global"/>s this assembly references.
+        /// </summary>
+        public readonly IList<Global> Globals = new List<Global>();
+        /// <summary>
         /// The <see cref="StructDef"/>s in this assembly.
         /// </summary>
         public readonly IList<StructDef> Structs = new List<StructDef>();
@@ -46,7 +50,10 @@ namespace Yoakke.Lir
         /// </summary>
         public IEnumerable<ISymbol> Symbols =>
             // NOTE: Cast returned an ISymbol? for some reason
-            Externals.Select(sym => (ISymbol)sym).Concat(Procedures);
+            Externals
+                .Select(sym => (ISymbol)sym)
+                .Concat(Globals)
+                .Concat(Procedures);
 
         /// <summary>
         /// Initializes a new <see cref="UncheckedAssembly"/>.
