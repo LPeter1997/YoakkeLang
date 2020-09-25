@@ -380,13 +380,15 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 currentProcedure.BasicBlocks.Add(finallyBB);
 
                 bool signed = ((Type.Int)cmp.Left.Type).Signed;
-                // Based on the comparison we need an x86 operation
-                var inverseOp = ComparisonToJump(cmp.Comparison.Inverse, signed);
                 // For each part pair we compare
                 // NOTE: It's important that we start from the most significant bytes here for the relational operators
                 int i = 0;
                 foreach (var (l, r) in leftParts.Zip(rightParts).Reverse())
                 {
+                    // NOTE: first && signed means that we are looking at the MSB, so in case of a signed
+                    // comparison, we need to use the signed compare jumps, unsigned in any other case
+                    // TL;DR: fisrt && signed means we need signed jump operation
+                    bool first = i == 0;
                     bool last = i == leftParts.Length - 1;
                     i += 1;
 
@@ -397,6 +399,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                     {
                         // If this was the last part to compare, we can just branch to the truthy part as the
                         // condition succeeded (or the falsy one on mismatch)
+                        var inverseOp = ComparisonToJump(cmp.Comparison.Inverse, first && signed);
                         WriteInstr(inverseOp, falseLabel);
                         WriteInstr(X86Op.Jmp, trueLabel);
                     }
@@ -416,14 +419,18 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                         else if (cmp.Comparison == Comparison.le || cmp.Comparison == Comparison.le_eq)
                         {
                             // If the part less, then we can jump to true, if greater, then to false
-                            WriteInstr(X86Op.Jl, trueLabel);
-                            WriteInstr(X86Op.Jg, falseLabel);
+                            var lessOp = ComparisonToJump(Comparison.le, first && signed);
+                            var greaterOp = ComparisonToJump(Comparison.gr, first && signed);
+                            WriteInstr(lessOp, trueLabel);
+                            WriteInstr(greaterOp, falseLabel);
                         }
                         else if (cmp.Comparison == Comparison.gr || cmp.Comparison == Comparison.gr_eq)
                         {
                             // If the part is greater, then we can jump to true, if less, then to false
-                            WriteInstr(X86Op.Jg, trueLabel);
-                            WriteInstr(X86Op.Jl, falseLabel);
+                            var greaterOp = ComparisonToJump(Comparison.gr, first && signed);
+                            var lessOp = ComparisonToJump(Comparison.le, first && signed);
+                            WriteInstr(greaterOp, trueLabel);
+                            WriteInstr(lessOp, falseLabel);
                         }
                     }
                 }

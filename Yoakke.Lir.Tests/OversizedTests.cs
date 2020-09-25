@@ -257,6 +257,20 @@ namespace Yoakke.Lir.Tests
         }
 
         [TestMethod]
+        public void BigCmpUnsigned()
+        {
+            // Less-than, high byte is less
+            var b = GetBuilder(Type.I32);
+            b.Ret(b.CmpLe(Type.U64.NewValue(0x0a00ff00_ff00ff00), Type.U64.NewValue(0xff00ff00_ff00ff00)));
+            TestOnAllBackends<Func<Int32>>(b, Type.I32.NewValue(1));
+
+            // Less-than, low byte is less
+            b = GetBuilder(Type.I32);
+            b.Ret(b.CmpLe(Type.U64.NewValue(0xff00ff00_0a00ff00), Type.U64.NewValue(0xff00ff00_ff00ff00)));
+            TestOnAllBackends<Func<Int32>>(b, Type.I32.NewValue(1));
+        }
+
+        [TestMethod]
         public void BigAdd()
         {
             var b = GetBuilder(Type.I64);
