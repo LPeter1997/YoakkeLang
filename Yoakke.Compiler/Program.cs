@@ -44,38 +44,21 @@ namespace Yoakke.Compiler
 
             var main = b.DefineProc("main");
             main.Return = Type.I32;
+            var lastBb = b.CurrentBasicBlock;
 
-            var factorial = b.DefineProc("factorial");
-            factorial.Return = Type.I32;
+            var b1 = b.DefineBasicBlock("b1");
+            var b3 = b.DefineBasicBlock("b3");
+            b.CurrentBasicBlock = b1;
+            var b2 = b.DefineBasicBlock("b2");
 
-            var p = b.DefineParameter(Type.I32);
+            b.Jmp(b3);
+            b.CurrentBasicBlock = b3;
+            b.Ret(Type.I32.NewValue(0));
+            b.CurrentBasicBlock = b1;
+            b.Jmp(b2);
 
-            var begin = b.CurrentBasicBlock;
-            var i = b.Alloc(Type.I32);
-            var ret = b.Alloc(Type.I32);
-            b.Store(i, Type.I32.NewValue(1));
-            b.Store(ret, Type.I32.NewValue(1));
-
-            var loopConditionBlock = b.DefineBasicBlock("loop_condition");
-            var loopBlock = b.DefineBasicBlock("loop");
-            var endLoopBlock = b.DefineBasicBlock("end_loop");
-            
-            b.CurrentBasicBlock = begin;
-            b.Jmp(loopConditionBlock);
-
-            b.CurrentBasicBlock = loopConditionBlock;
-            b.JmpIf(b.CmpLeEq(b.Load(i), p), loopBlock, endLoopBlock);
-
-            b.CurrentBasicBlock = loopBlock;
-            b.Store(ret, b.Mul(b.Load(ret), b.Load(i)));
-            b.Store(i, b.Add(b.Load(i), Type.I32.NewValue(1)));
-            b.Jmp(loopConditionBlock);
-
-            b.CurrentBasicBlock = endLoopBlock;
-            b.Ret(b.Load(ret));
-
-            b.CurrentProc = main;
-            b.Ret(b.Call(factorial, new List<Value> { Type.I32.NewValue(5) }));
+            b.CurrentBasicBlock = lastBb;
+            b.Jmp(b1);
 
             var targetTriplet = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
             var toolchain = Toolchains.Supporting(targetTriplet).First();

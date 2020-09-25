@@ -151,10 +151,14 @@ namespace Yoakke.Lir
         {
             // TODO: Check name uniqueness and correct it? The name is a suggestion!
             var bb = new BasicBlock(name);
+            // We want to insert it after the current basic block to keep the natural flow of generated code
+            var insertIndex = 0;
+            if (currentBasicBlock != null) insertIndex = CurrentProc.BasicBlocks.IndexOf(currentBasicBlock) + 1;
+
             currentBasicBlock = bb;
             // Link both ways
             bb.Proc = CurrentProc;
-            CurrentProc.BasicBlocks.Add(bb);
+            CurrentProc.BasicBlocks.Insert(insertIndex, bb);
             return bb;
         }
 
