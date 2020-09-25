@@ -662,6 +662,10 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 WriteInstr(op, tmp, right);
                 return tmp;
             }
+            else
+            {
+                WriteInstr(op, left, right);
+            }
             return null;
         }
 
