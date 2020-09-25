@@ -38,5 +38,10 @@ namespace Yoakke.Lir
         public override int GetHashCode() => HashCode.Combine(typeof(Extern), Name);
         // NOTE: Makes no sense to clone this
         public override Value Clone() => this;
+
+        public void Validate()
+        {
+            // No-op
+        }
     }
 }

@@ -65,6 +65,15 @@ namespace Yoakke.Lir
 
         public void Validate()
         {
+            // We check name duplication for symbols
+            var symbolNames = new HashSet<string>();
+            foreach (var sym in Symbols)
+            {
+                if (!symbolNames.Add(sym.Name))
+                {
+                    throw new ValidationException(sym, "Symbol name already present in the assembly!");
+                }
+            }
             // TODO: Check circularity for struct definitions?
             foreach (var proc in Procedures) proc.Validate();
         } 

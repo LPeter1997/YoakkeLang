@@ -86,7 +86,6 @@ namespace Yoakke.Lir
         /// <returns>The <see cref="Value"/> referring to the external symbol.</returns>
         public Value DefineExtern(string name, Type type, string path)
         {
-            CheckSymbolNameUniqueness(name);
             var external = new Extern(name, type, path);
             Assembly.Externals.Add(external);
             return external;
@@ -123,7 +122,6 @@ namespace Yoakke.Lir
         /// <returns>The created <see cref="Proc"/>.</returns>
         public Proc DefineProc(string name)
         {
-            CheckSymbolNameUniqueness(name);
             var proc = new Proc(name);
             currentProc = proc;
             Assembly.Procedures.Add(proc);
@@ -482,14 +480,6 @@ namespace Yoakke.Lir
         }
 
         // Internals
-
-        private void CheckSymbolNameUniqueness(string name)
-        {
-            if (Assembly.Symbols.Select(s => s.Name).Contains(name))
-            {
-                throw new ArgumentException("A symbol with the given name is already defined!", nameof(name));
-            }
-        }
 
         private string GetUniqueBasicBlockName(string name)
         {

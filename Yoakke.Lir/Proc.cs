@@ -11,7 +11,7 @@ namespace Yoakke.Lir
     /// <summary>
     /// An IR procedure.
     /// </summary>
-    public class Proc : Value, ISymbol, IValidate
+    public class Proc : Value, ISymbol
     {
         internal static readonly Proc Null = new Proc(" <null> ");
 
