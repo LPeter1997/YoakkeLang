@@ -6,16 +6,15 @@ namespace Yoakke.Lir.Runtime
 {
     internal class PtrValue : Value
     {
-        public readonly byte[] Segment;
+        public int Segment;
         public int Offset { get; set; }
         public readonly Type BaseType;
-        public override Type Type { get; }
+        public override Type Type => new Type.Ptr(BaseType);
 
-        public PtrValue(byte[] segment, Type baseType)
+        public PtrValue(int segment, Type baseType)
         {
             Segment = segment;
             BaseType = baseType;
-            Type = new Type.Ptr(baseType);
         }
 
         public PtrValue OffsetBy(int amount, Type newType) => new PtrValue(Segment, newType)

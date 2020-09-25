@@ -6,11 +6,13 @@ namespace Yoakke.Lir.Runtime
     {
         public readonly int ReturnAddress;
         public readonly Value[] Registers;
+        public readonly int AllocationIndex;
 
-        public StackFrame(int returnAddress, int registerCount)
+        public StackFrame(int returnAddress, int registerCount, int allocationIndex)
         {
             ReturnAddress = returnAddress;
             Registers = new Value[registerCount];
+            AllocationIndex = allocationIndex;
         }
 
         public Value this[Register register]

@@ -15,13 +15,6 @@ using Type = Yoakke.Lir.Types.Type;
 
 namespace Yoakke.Lir.Runtime
 {
-    // TODO: The current pointer repr. can't be written to memory!
-    // Reason:
-    //  1. Can't differentiate managed pointers written vs. native pointers written
-    //  2. Managed pointers can't reference their byte buffer once they are dumped
-    // Solution could be to make both pointer types big enough to include a differentiating bit,
-    // and include the section index. For that we need to keep track of sections in the VM!
-
     /// <summary>
     /// A virtual machine to execute IR code directly.
     /// </summary>
@@ -39,12 +32,12 @@ namespace Yoakke.Lir.Runtime
 
         // Runtime
         private Stack<StackFrame> callStack = new Stack<StackFrame>();
+        private List<byte[]> memorySegments = new List<byte[]>();
         private Value returnValue = Value.Void_;
         private int instructionPointer;
         private SizeContext sizeContext = new SizeContext
         {
-            // TODO
-            PointerSize = 4,
+            PointerSize = 8,
         };
 
         private StackFrame StackFrame => callStack.Peek();
@@ -376,7 +369,10 @@ namespace Yoakke.Lir.Runtime
                 throw new ArgumentOutOfRangeException($"Parameter count mismatch when calling procedure '{proc.Name}'!");
             }
             // Create the stack frame
-            var newFrame = new StackFrame(instructionPointer + 1, proc.GetRegisterCount());
+            var newFrame = new StackFrame(
+                returnAddress: instructionPointer + 1,
+                registerCount: proc.GetRegisterCount(), 
+                allocationIndex: memorySegments.Count);
             // NOTE: We evaluate arguments here because we might still need the caller frame's register values!
             // Arguments
             foreach (var (reg, value) in proc.Parameters.Zip(arguments))
@@ -393,6 +389,8 @@ namespace Yoakke.Lir.Runtime
         private void Return(Value value)
         {
             var top = callStack.Pop();
+            // Free memory
+            memorySegments.RemoveRange(top.AllocationIndex, memorySegments.Count - top.AllocationIndex);
             instructionPointer = top.ReturnAddress;
             // Return value
             if (callStack.Count > 0)
@@ -422,7 +420,9 @@ namespace Yoakke.Lir.Runtime
         private PtrValue Allocate(Type type)
         {
             var buffer = new byte[SizeOf(type)];
-            return new PtrValue(buffer, type);
+            var segmentIndex = memorySegments.Count;
+            memorySegments.Add(buffer);
+            return new PtrValue(segmentIndex, type);
         }
 
         private int SizeOf(Value value) => SizeOf(value.Type);
@@ -431,11 +431,12 @@ namespace Yoakke.Lir.Runtime
         private Value ReadManagedPtr(PtrValue value)
         {
             var typeToRead = value.BaseType;
-            var segment = value.Segment.AsSpan().Slice(value.Offset);
-            return ReadFromMemory(ref segment, typeToRead);
+            var memory = memorySegments[value.Segment];
+            var segment = memory.AsSpan().Slice(value.Offset);
+            return ReadFromManagedMemory(ref segment, typeToRead);
         }
 
-        private Value ReadFromMemory(ref Span<byte> bytes, Type typeToRead)
+        private Value ReadFromManagedMemory(ref Span<byte> bytes, Type typeToRead)
         {
             switch (typeToRead)
             {
@@ -447,17 +448,28 @@ namespace Yoakke.Lir.Runtime
                 return new Value.Int(i, value);
             }
 
+            case Type.Ptr p:
+            {
+                // TODO: We can't differentiate between native and managed pointers!
+                // This could very well be some native pointer
+                var segment = BitConverter.ToInt32(bytes.Slice(0, 4));
+                var offset = BitConverter.ToInt32(bytes.Slice(4, 4));
+                bytes = bytes.Slice(8);
+                return new PtrValue(segment, p.Subtype) { Offset = offset };
+            }
+
             default: throw new NotImplementedException();
             }
         }
 
         private void WriteManagedPtr(PtrValue ptr, Value value)
         {
-            var segment = ptr.Segment.AsSpan().Slice(ptr.Offset);
-            WriteToMemory(ref segment, value);
+            var memory = memorySegments[ptr.Segment];
+            var segment = memory.AsSpan().Slice(ptr.Offset);
+            WriteToManagedMemory(ref segment, value);
         }
 
-        private void WriteToMemory(ref Span<byte> bytes, Value value)
+        private void WriteToManagedMemory(ref Span<byte> bytes, Value value)
         {
             switch (value)
             {
@@ -465,6 +477,16 @@ namespace Yoakke.Lir.Runtime
             {
                 i.Value.TryWriteBytes(bytes, out var written);
                 bytes = bytes.Slice(written);
+            }
+            break;
+
+            case PtrValue p:
+            {
+                var segment = BitConverter.GetBytes(p.Segment);
+                var offset = BitConverter.GetBytes(p.Offset);
+                segment.CopyTo(bytes);
+                offset.CopyTo(bytes.Slice(4));
+                bytes = bytes.Slice(8);
             }
             break;
 
