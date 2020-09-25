@@ -414,5 +414,19 @@ namespace Yoakke.Lir.Tests
             b.Ret(b.Load(b.Add(intPtr, Type.I32.NewValue(2))));
             TestOnAllBackends(b, Type.I32.NewValue(5));
         }
+
+        [TestMethod]
+        public void PointerPointer()
+        {
+            var b = GetBuilder();
+            var intPtr = new Type.Ptr(Type.I32);
+            var ip = b.Alloc(intPtr);
+            var i = b.Alloc(Type.I32);
+            b.Store(ip, i);
+            b.Store(b.Load(ip), Type.I32.NewValue(123));
+            b.Ret(b.Load(i));
+
+            TestOnAllBackends(b, Type.I32.NewValue(123));
+        }
     }
 }
