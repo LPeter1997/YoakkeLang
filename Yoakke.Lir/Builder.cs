@@ -18,6 +18,7 @@ namespace Yoakke.Lir
         private class ProcContext
         {
             public int RegisterCount { get; set; }
+            public int BasicBlockCount { get; set; }
         }
 
         /// <summary>
@@ -85,7 +86,7 @@ namespace Yoakke.Lir
         /// <returns>The <see cref="Value"/> referring to the external symbol.</returns>
         public Value DefineExtern(string name, Type type, string path)
         {
-            // TODO: Check name uniqueness
+            CheckSymbolNameUniqueness(name);
             var external = new Extern(name, type, path);
             Assembly.Externals.Add(external);
             return external;
@@ -122,7 +123,7 @@ namespace Yoakke.Lir
         /// <returns>The created <see cref="Proc"/>.</returns>
         public Proc DefineProc(string name)
         {
-            // TODO: Check name uniqueness
+            CheckSymbolNameUniqueness(name);
             var proc = new Proc(name);
             currentProc = proc;
             Assembly.Procedures.Add(proc);
@@ -149,7 +150,7 @@ namespace Yoakke.Lir
         /// <returns>The defined <see cref="BasicBlock"/>.</returns>
         public BasicBlock DefineBasicBlock(string name)
         {
-            // TODO: Check name uniqueness and correct it? The name is a suggestion!
+            name = GetUniqueBasicBlockName(name);
             var bb = new BasicBlock(name);
             // We want to insert it after the current basic block to keep the natural flow of generated code
             var insertIndex = 0;
@@ -482,14 +483,34 @@ namespace Yoakke.Lir
 
         // Internals
 
+        private void CheckSymbolNameUniqueness(string name)
+        {
+            if (Assembly.Symbols.Select(s => s.Name).Contains(name))
+            {
+                throw new ArgumentException("A symbol with the given name is already defined!", nameof(name));
+            }
+        }
+
+        private string GetUniqueBasicBlockName(string name)
+        {
+            var ctx = GetCurrentProcContext();
+            return $"bb{ctx.BasicBlockCount++}_{name}";
+        }
+
         private Register AllocateRegister(Type type)
+        {
+            var ctx = GetCurrentProcContext();
+            return new Register(type, ctx.RegisterCount++);
+        }
+
+        private ProcContext GetCurrentProcContext()
         {
             if (!procContexts.TryGetValue(CurrentProc, out var ctx))
             {
                 ctx = new ProcContext();
                 procContexts.Add(CurrentProc, ctx);
             }
-            return new Register(type, ctx.RegisterCount++);
+            return ctx;
         }
     }
 }

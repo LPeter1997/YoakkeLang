@@ -22,6 +22,13 @@ namespace Yoakke.Lir
         public readonly string Name;
 
         /// <summary>
+        /// The entry point of the assembly.
+        /// If null, the procedure named "main" will be chosen, or the singleton, if there's 
+        /// only one procedure defined.
+        /// </summary>
+        public Proc? EntryPoint { get; set; }
+
+        /// <summary>
         /// The <see cref="Extern"/>s this assembly references.
         /// </summary>
         public readonly IList<Extern> Externals = new List<Extern>();
@@ -35,11 +42,11 @@ namespace Yoakke.Lir
         public readonly IList<Proc> Procedures = new List<Proc>();
 
         /// <summary>
-        /// The entry point of the assembly.
-        /// If null, the procedure named "main" will be chosen, or the singleton, if there's 
-        /// only one procedure defined.
+        /// All symbols this <see cref="Assembly"/> defines.
         /// </summary>
-        public Proc? EntryPoint { get; set; }
+        public IEnumerable<ISymbol> Symbols =>
+            // NOTE: Cast returned an ISymbol? for some reason
+            Externals.Select(sym => (ISymbol)sym).Concat(Procedures);
 
         /// <summary>
         /// Initializes a new <see cref="UncheckedAssembly"/>.
