@@ -320,5 +320,15 @@ namespace Yoakke.Lir.Tests
             // TODO: Is this correct? Two's complement is confusing
             TestOnAllBackends<Func<Int64>>(b, Type.I64.NewValue(-0x4813baa599ef4a1));
         }
+
+        [TestMethod]
+        public void BigGlobalStorage()
+        {
+            var b = GetBuilder(Type.I64);
+            var g = b.DefineGlobal("foo", Type.I64);
+            b.Store(g, Type.I64.NewValue(32_264_764_109));
+            b.Ret(b.Load(g));
+            TestOnAllBackends<Func<Int64>>(b, Type.I64.NewValue(32_264_764_109));
+        }
     }
 }

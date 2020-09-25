@@ -306,7 +306,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             case Instr.Load load:
             {
                 var target = CompileToAddress(load.Result);
-                var source = CompileSingleValue(load.Source);
+                var source = CompileToAddress(load.Source);
                 var targetAddr = registerPool.Allocate(DataWidth.dword);
                 var sourceAddr = registerPool.Allocate(DataWidth.dword);
                 WriteInstr(X86Op.Lea, targetAddr, target);

@@ -428,5 +428,15 @@ namespace Yoakke.Lir.Tests
 
             TestOnAllBackends(b, Type.I32.NewValue(123));
         }
+
+        [TestMethod]
+        public void GlobalStorage()
+        {
+            var b = GetBuilder();
+            var g = b.DefineGlobal("foo", Type.I32);
+            b.Store(g, Type.I32.NewValue(3745));
+            b.Ret(b.Load(g));
+            TestOnAllBackends(b, Type.I32.NewValue(3745));
+        }
     }
 }
