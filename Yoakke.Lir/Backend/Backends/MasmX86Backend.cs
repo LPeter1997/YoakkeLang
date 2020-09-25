@@ -36,7 +36,6 @@ namespace Yoakke.Lir.Backend.Backends
 
         private void CompileAssembly(X86Assembly assembly)
         {
-            // TODO: externals
             // Compile global declarations
             code.AppendLine("_BSS SEGMENT");
             foreach (var g in assembly.Globals) DeclareGlobal(g);

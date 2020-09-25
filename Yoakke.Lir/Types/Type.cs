@@ -10,6 +10,7 @@ namespace Yoakke.Lir.Types
     public abstract partial class Type : IInstrArg, IEquatable<Type>
     {
         public static readonly Void Void_ = new Void();
+        public static readonly User User_ = new User();
         public static readonly Int U32 = new Int(false, 32);
         public static readonly Int U64 = new Int(false, 64);
         public static readonly Int I32 = new Int(true, 32);

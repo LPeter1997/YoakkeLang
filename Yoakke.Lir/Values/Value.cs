@@ -29,9 +29,11 @@ namespace Yoakke.Lir.Values
         public abstract bool Equals(Value? other);
         public abstract override int GetHashCode();
         // ICloneable
+        object ICloneable.Clone() => Clone();
         public abstract Value Clone();
 
         public override bool Equals(object? obj) => obj is Value v && Equals(v);
+
         public static bool operator ==(Value v1, Value v2) => v1.Equals(v2);
         public static bool operator !=(Value v1, Value v2) => !(v1 == v2);
     }
