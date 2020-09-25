@@ -350,8 +350,6 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
 
             // Size-dependent operations
 
-            // TODO: Signedness of operands probably matter!
-            // Write a test to expose this, then correct it!
             case Instr.Cmp cmp:
             {
                 var targetParts = CompileValue(cmp.Result);
@@ -380,9 +378,10 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 currentProcedure.BasicBlocks.Add(trueBB);
                 currentProcedure.BasicBlocks.Add(falseBB);
                 currentProcedure.BasicBlocks.Add(finallyBB);
-                
+
+                bool signed = ((Type.Int)cmp.Left.Type).Signed;
                 // Based on the comparison we need an x86 operation
-                var inverseOp = ComparisonToJump(cmp.Comparison.Inverse);
+                var inverseOp = ComparisonToJump(cmp.Comparison.Inverse, signed);
                 // For each part pair we compare
                 // NOTE: It's important that we start from the most significant bytes here for the relational operators
                 int i = 0;
@@ -827,14 +826,14 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
 
         private static bool IsPrimitive(Type type) => type is Type.Int;
 
-        private static X86Op ComparisonToJump(Comparison cmp) => cmp switch
+        private static X86Op ComparisonToJump(Comparison cmp, bool signed) => cmp switch
         {
             Comparison.Eq => X86Op.Je,
             Comparison.Ne => X86Op.Jne,
-            Comparison.Gr => X86Op.Jg,
-            Comparison.Le => X86Op.Jl,
-            Comparison.GrEq => X86Op.Jge,
-            Comparison.LeEq => X86Op.Jle,
+            Comparison.Gr => signed ? X86Op.Jg : X86Op.Ja,
+            Comparison.Le => signed ? X86Op.Jl : X86Op.Jb,
+            Comparison.GrEq => signed ? X86Op.Jge : X86Op.Jae,
+            Comparison.LeEq => signed ? X86Op.Jle : X86Op.Jbe,
             _ => throw new NotImplementedException(),
         };
     }
