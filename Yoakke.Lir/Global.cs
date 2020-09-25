@@ -19,19 +19,24 @@ namespace Yoakke.Lir
         public Visibility Visibility { get; set; } = Visibility.Private;
 
         /// <summary>
+        /// The actual value <see cref="Type"/> of this <see cref="Global"/>.
+        /// </summary>
+        public Type UnderlyingType => ((Type.Ptr)Type).Subtype;
+
+        /// <summary>
         /// Initializes a new <see cref="Global"/>.
         /// </summary>
-        /// <param name="name">The name of the external symbol.</param>
-        /// <param name="type">The <see cref="Type"/> of the external symbol.</param>
+        /// <param name="name">The name of the global symbol.</param>
+        /// <param name="type">The <see cref="Type"/> of the global symbol.</param>
         public Global(string name, Type type)
         {
             Name = name;
-            Type = type;
+            Type = new Type.Ptr(type);
         }
 
         public override string ToValueString() => Name;
         public override string ToString() =>
-            $"global {Type} {Name} [visibility = {Visibility}]";
+            $"global {UnderlyingType} {Name} [visibility = {Visibility}]";
         public override bool Equals(Value? other) => ReferenceEquals(this, other);
         public override int GetHashCode() => HashCode.Combine(typeof(Global), Name);
         // NOTE: Makes no sense to clone this
