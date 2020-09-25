@@ -99,7 +99,8 @@ namespace Yoakke.Lir.Instructions
                 Right = right;
             }
 
-            public override string ToString() => $"{Result} = cmp {Comparison} {Left}, {Right}";
+            public override string ToString() => 
+                $"{Result} = cmp {Comparison} {Left.ToValueString()}, {Right.ToValueString()}";
 
             public override void Validate()
             {

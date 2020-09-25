@@ -50,7 +50,8 @@ namespace Yoakke.Lir.Instructions
             Amount = amount;
         }
 
-        public override string ToString() => $"{Result} = {Keyword} {Shifted}, {Amount}";
+        public override string ToString() => 
+            $"{Result} = {Keyword} {Shifted.ToValueString()}, {Amount.ToValueString()}";
 
         public override void Validate()
         {

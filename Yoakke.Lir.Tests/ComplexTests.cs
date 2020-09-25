@@ -39,5 +39,42 @@ namespace Yoakke.Lir.Tests
             TestOnAllBackends<Func<Int32, Int32>>(b, Type.I32.NewValue(24), Type.I32.NewValue(4));
             TestOnAllBackends<Func<Int32, Int32>>(b, Type.I32.NewValue(120), Type.I32.NewValue(5));
         }
+
+        [TestMethod]
+        public void IterativeFactorial()
+        {
+            var b = GetBuilder(Type.I32);
+            var p = b.DefineParameter(Type.I32);
+
+            var begin = b.CurrentBasicBlock;
+            var i = b.Alloc(Type.I32);
+            var ret = b.Alloc(Type.I32);
+            b.Store(i, Type.I32.NewValue(1));
+            b.Store(ret, Type.I32.NewValue(1));
+
+            var loopConditionBlock = b.DefineBasicBlock("loop_condition");
+            var loopBlock = b.DefineBasicBlock("loop");
+            var endLoopBlock = b.DefineBasicBlock("end_loop");
+
+            b.CurrentBasicBlock = begin;
+            b.Jmp(loopConditionBlock);
+
+            b.CurrentBasicBlock = loopConditionBlock;
+            b.JmpIf(b.CmpLeEq(b.Load(i), p), loopBlock, endLoopBlock);
+
+            b.CurrentBasicBlock = loopBlock;
+            b.Store(ret, b.Mul(b.Load(ret), b.Load(i)));
+            b.Store(i, b.Add(b.Load(i), Type.I32.NewValue(1)));
+            b.Jmp(loopConditionBlock);
+
+            b.CurrentBasicBlock = endLoopBlock;
+            b.Ret(b.Load(ret));
+
+            TestOnAllBackends<Func<Int32, Int32>>(b, Type.I32.NewValue(1), Type.I32.NewValue(1));
+            TestOnAllBackends<Func<Int32, Int32>>(b, Type.I32.NewValue(2), Type.I32.NewValue(2));
+            TestOnAllBackends<Func<Int32, Int32>>(b, Type.I32.NewValue(6), Type.I32.NewValue(3));
+            TestOnAllBackends<Func<Int32, Int32>>(b, Type.I32.NewValue(24), Type.I32.NewValue(4));
+            TestOnAllBackends<Func<Int32, Int32>>(b, Type.I32.NewValue(120), Type.I32.NewValue(5));
+        }
     }
 }

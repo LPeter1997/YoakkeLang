@@ -50,7 +50,8 @@ namespace Yoakke.Lir.Instructions
             Right = right;
         }
 
-        public override string ToString() => $"{Result} = {Keyword} {Left}, {Right}";
+        public override string ToString() => 
+            $"{Result} = {Keyword} {Left.ToValueString()}, {Right.ToValueString()}";
 
         public override void Validate()
         {

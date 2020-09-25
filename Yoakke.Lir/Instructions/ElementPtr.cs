@@ -54,7 +54,8 @@ namespace Yoakke.Lir.Instructions
                 Index = new Int { Value = index };
             }
 
-            public override string ToString() => $"{Result} = elementptr {Value}, {Index.Value}";
+            public override string ToString() => 
+                $"{Result} = elementptr {Value.ToValueString()}, {Index.Value}";
 
             public override void Validate()
             {

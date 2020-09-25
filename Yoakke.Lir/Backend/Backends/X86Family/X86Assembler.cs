@@ -389,7 +389,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                     i += 1;
 
                     // We need to do the comparison
-                    var tmp = WriteNonImmInstr(X86Op.Cmp, l, r);
+                    var tmp = WriteNonImmOrMemoryInstr(X86Op.Cmp, l, r);
                     if (tmp != null) registerPool.Free(tmp);
                     if (last)
                     {
@@ -633,10 +633,11 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             });
         }
 
+        private bool IsIndirect(Operand o) => 
+            o is Operand.Address || o is Operand.Indirect;
+
         private void WriteMov(Operand target, Operand source)
         {
-            bool IsIndirect(Operand o) => o is Operand.Address || o is Operand.Indirect;
-
             if (IsIndirect(target) && IsIndirect(source))
             {
                 // We can't copy memory to memory on x86
@@ -652,7 +653,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             }
         }
 
-        private Register? WriteNonImmInstr(X86Op op, Operand left, Operand right)
+        private Register? WriteNonImmOrMemoryInstr(X86Op op, Operand left, Operand right)
         {
             if (left is Operand.Literal && right is Operand.Literal)
             {
@@ -661,6 +662,14 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 WriteInstr(X86Op.Mov, tmp, left);
                 WriteInstr(op, tmp, right);
                 return tmp;
+            }
+            else if (IsIndirect(left) && IsIndirect(right))
+            {
+                // Both can't be memory
+                var tmp = registerPool.Allocate(right.GetWidth(sizeContext));
+                WriteInstr(X86Op.Mov, tmp, right);
+                WriteInstr(op, left, tmp);
+                registerPool.Free(tmp);
             }
             else
             {

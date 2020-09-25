@@ -45,24 +45,37 @@ namespace Yoakke.Compiler
             var main = b.DefineProc("main");
             main.Return = Type.I32;
 
-            var func = b.DefineProc("factorial");
-            func.Return = Type.I32;
+            var factorial = b.DefineProc("factorial");
+            factorial.Return = Type.I32;
+
             var p = b.DefineParameter(Type.I32);
-            var lastBlock = b.CurrentBasicBlock;
-            var lessThan3Block = b.DefineBasicBlock("less_than_3");
-            var elseBlock = b.DefineBasicBlock("els");
 
-            b.CurrentBasicBlock = lastBlock;
-            b.JmpIf(b.Cmp(Comparison.le, p, Type.I32.NewValue(3)), lessThan3Block, elseBlock);
+            var begin = b.CurrentBasicBlock;
+            var i = b.Alloc(Type.I32);
+            var ret = b.Alloc(Type.I32);
+            b.Store(i, Type.I32.NewValue(1));
+            b.Store(ret, Type.I32.NewValue(1));
 
-            b.CurrentBasicBlock = lessThan3Block;
-            b.Ret(p);
+            var loopConditionBlock = b.DefineBasicBlock("loop_condition");
+            var loopBlock = b.DefineBasicBlock("loop");
+            var endLoopBlock = b.DefineBasicBlock("end_loop");
+            
+            b.CurrentBasicBlock = begin;
+            b.Jmp(loopConditionBlock);
 
-            b.CurrentBasicBlock = elseBlock;
-            b.Ret(b.Mul(p, b.Call(func, new List<Value> { b.Sub(p, Type.I32.NewValue(1)) })));
+            b.CurrentBasicBlock = loopConditionBlock;
+            b.JmpIf(b.CmpLeEq(b.Load(i), p), loopBlock, endLoopBlock);
+
+            b.CurrentBasicBlock = loopBlock;
+            b.Store(ret, b.Mul(b.Load(ret), b.Load(i)));
+            b.Store(i, b.Add(b.Load(i), Type.I32.NewValue(1)));
+            b.Jmp(loopConditionBlock);
+
+            b.CurrentBasicBlock = endLoopBlock;
+            b.Ret(b.Load(ret));
 
             b.CurrentProc = main;
-            b.Ret(b.Call(func, new List<Value> { Type.I32.NewValue(5) }));
+            b.Ret(b.Call(factorial, new List<Value> { Type.I32.NewValue(5) }));
 
             var targetTriplet = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
             var toolchain = Toolchains.Supporting(targetTriplet).First();
