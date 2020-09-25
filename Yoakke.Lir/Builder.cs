@@ -162,6 +162,17 @@ namespace Yoakke.Lir
             return bb;
         }
 
+        /// <summary>
+        /// Removes the given <see cref="BasicBlock"/>.
+        /// </summary>
+        /// <param name="bb">The <see cref="BasicBlock"/> to remove.</param>
+        public void RemoveBasicBlock(BasicBlock bb)
+        {
+            bb.Proc.BasicBlocks.Remove(bb);
+            // We need to find another current basic block
+            if (ReferenceEquals(bb, currentBasicBlock)) currentBasicBlock = CurrentProc.BasicBlocks.Last();
+        }
+
         // Instructions ////////////////////////////////////////////////////////
 
         /// <summary>

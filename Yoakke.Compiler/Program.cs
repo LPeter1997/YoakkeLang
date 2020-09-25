@@ -44,21 +44,12 @@ namespace Yoakke.Compiler
 
             var main = b.DefineProc("main");
             main.Return = Type.I32;
-            var lastBb = b.CurrentBasicBlock;
 
-            var b1 = b.DefineBasicBlock("b1");
-            var b3 = b.DefineBasicBlock("b3");
-            b.CurrentBasicBlock = b1;
-            var b2 = b.DefineBasicBlock("b2");
-
-            b.Jmp(b3);
-            b.CurrentBasicBlock = b3;
-            b.Ret(Type.I32.NewValue(0));
-            b.CurrentBasicBlock = b1;
-            b.Jmp(b2);
-
-            b.CurrentBasicBlock = lastBb;
-            b.Jmp(b1);
+            b.IfThenElse(
+                condition: b => b.CmpLe(Type.I32.NewValue(9), Type.I32.NewValue(2)),
+                then: b => b.Ret(Type.I32.NewValue(56)),
+                @else: b => b.Ret(Type.I32.NewValue(84))
+            );
 
             var targetTriplet = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
             var toolchain = Toolchains.Supporting(targetTriplet).First();

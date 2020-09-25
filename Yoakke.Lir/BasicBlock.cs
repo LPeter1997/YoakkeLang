@@ -27,6 +27,11 @@ namespace Yoakke.Lir
         public readonly IList<Instr> Instructions = new List<Instr>();
 
         /// <summary>
+        /// True, if this <see cref="BasicBlock"/> ends in a branch instruction.
+        /// </summary>
+        public bool EndsInBranch => Instructions.Count > 0 && Instructions.Last().IsBranch;
+
+        /// <summary>
         /// Initializes a new <see cref="BasicBlock>.
         /// </summary>
         /// <param name="name">The name of the basic block.</param>
@@ -50,7 +55,7 @@ namespace Yoakke.Lir
             {
                 ThrowValidationException("A basic block can only contain jump or return instructions at the end!");
             }
-            if (!Instructions.Last().IsBranch)
+            if (!EndsInBranch)
             {
                 ThrowValidationException("A basic block must end in a jump or return instruction!");
             }
