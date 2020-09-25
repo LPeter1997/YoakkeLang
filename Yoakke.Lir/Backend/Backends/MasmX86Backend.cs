@@ -27,8 +27,7 @@ namespace Yoakke.Lir.Backend.Backends
         {
             code.Clear();
             code.AppendLine(".386")
-                .AppendLine(".MODEL flat")
-                .AppendLine(".CODE");
+                .AppendLine(".MODEL flat");
             var x86asm = X86Assembler.Assemble(assembly);
             CompileAssembly(x86asm);
             code.AppendLine("END");
@@ -39,8 +38,11 @@ namespace Yoakke.Lir.Backend.Backends
         {
             // TODO: externals
             // Compile global declarations
+            code.AppendLine("_BSS SEGMENT");
             foreach (var g in assembly.Globals) DeclareGlobal(g);
+            code.AppendLine("_BSS ENDS");
             // Compile procedures
+            code.AppendLine(".CODE");
             foreach (var p in assembly.Procedures) CompileProc(p);
         }
 

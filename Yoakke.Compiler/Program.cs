@@ -48,8 +48,8 @@ namespace Yoakke.Compiler
             var g = b.DefineGlobal("foo", Type.I32);
 
             b.Store(g, Type.I32.NewValue(3476));
-            //b.Ret(b.Load(g));
-            b.Ret(Type.I32.NewValue(0));
+            b.Ret(b.Load(g));
+            //b.Ret(Type.I32.NewValue(0));
 
             var targetTriplet = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
             var toolchain = Toolchains.Supporting(targetTriplet).First();

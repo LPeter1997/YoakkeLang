@@ -157,7 +157,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 DataWidth.GetFromSize(sizeContext.PointerSize);
 
             public override string ToIntelSyntax(X86FormatOptions formatOptions) =>
-                $"DWORD PTR {Name} + {Offset}";
+                $"{Name} + {Offset}";
         }
     }
 }
