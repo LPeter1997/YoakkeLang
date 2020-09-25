@@ -5,6 +5,7 @@ using Yoakke.DataStructures;
 using Yoakke.Lir;
 using Yoakke.Lir.Backend;
 using Yoakke.Lir.Backend.Toolchain;
+using Yoakke.Lir.Instructions;
 using Yoakke.Lir.Runtime;
 using Yoakke.Lir.Values;
 using OperatingSystem = Yoakke.Lir.Backend.OperatingSystem;
@@ -36,7 +37,7 @@ namespace Yoakke.Compiler
             {
                 CommandLineApplication.Execute<Compiler>(args);
             }
-#elif false
+#elif true
 
             var uncheckedAsm = new UncheckedAssembly("test_app");
             var b = new Builder(uncheckedAsm);
@@ -44,7 +45,24 @@ namespace Yoakke.Compiler
             var main = b.DefineProc("main");
             main.Return = Type.I32;
 
-            b.Ret(b.BitNot(Type.I32.NewValue(0b1100010001)));
+            var func = b.DefineProc("factorial");
+            func.Return = Type.I32;
+            var p = b.DefineParameter(Type.I32);
+            var lastBlock = b.CurrentBasicBlock;
+            var lessThan3Block = b.DefineBasicBlock("less_than_3");
+            var elseBlock = b.DefineBasicBlock("els");
+
+            b.CurrentBasicBlock = lastBlock;
+            b.JmpIf(b.Cmp(Comparison.le, p, Type.I32.NewValue(3)), lessThan3Block, elseBlock);
+
+            b.CurrentBasicBlock = lessThan3Block;
+            b.Ret(p);
+
+            b.CurrentBasicBlock = elseBlock;
+            b.Ret(b.Mul(p, b.Call(func, new List<Value> { b.Sub(p, Type.I32.NewValue(1)) })));
+
+            b.CurrentProc = main;
+            b.Ret(b.Call(func, new List<Value> { Type.I32.NewValue(5) }));
 
             var targetTriplet = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
             var toolchain = Toolchains.Supporting(targetTriplet).First();
@@ -74,10 +92,6 @@ namespace Yoakke.Compiler
                 Console.WriteLine($"{name} took: {(int)timeSpan.TotalMilliseconds} ms");
             }
 #endif
-
-            var b1 = new BigInt(true, 32, -758373627);
-            var b2 = new BigInt(true, 32, -971429535);
-            Console.WriteLine(b1 / b2);
         }
     }
 }

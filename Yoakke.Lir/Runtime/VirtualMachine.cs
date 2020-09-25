@@ -241,7 +241,7 @@ namespace Yoakke.Lir.Runtime
                 {
                     boolResult = !left.Equals(right);
                 }
-                else if (cmp.Left is Value.Int leftInt && cmp.Right is Value.Int rightInt)
+                else if (left is Value.Int leftInt && right is Value.Int rightInt)
                 {
                     boolResult = cmp.Comparison switch
                     {

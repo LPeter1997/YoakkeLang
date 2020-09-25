@@ -103,7 +103,7 @@ namespace Yoakke.Lir.Tests
         protected void TestOnAllBackends<TFunc>(Builder builder, Value expected, params Value[] args)
             where TFunc : Delegate
         {
-            TestOnAllBackends<TFunc>(builder.Assembly.Check(), expected);
+            TestOnAllBackends<TFunc>(builder.Assembly.Check(), expected, args);
         }
 
         protected Builder GetBuilder(Type type)
