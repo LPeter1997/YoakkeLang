@@ -212,6 +212,30 @@ namespace Yoakke.Lir.Tests
         }
 
         [TestMethod]
+        public void CmpGrUnsigned()
+        {
+            var b = GetBuilder();
+            b.Ret(b.CmpGr(Type.U32.NewValue(Type.U32.MaxValue), Type.U32.NewValue(1)));
+            TestOnAllBackends(b, Type.I32.NewValue(1));
+
+            b = GetBuilder();
+            b.Ret(b.CmpGr(Type.U32.NewValue(1), Type.U32.NewValue(Type.U32.MaxValue)));
+            TestOnAllBackends(b, Type.I32.NewValue(0));
+        }
+
+        [TestMethod]
+        public void CmpLeUnsigned()
+        {
+            var b = GetBuilder();
+            b.Ret(b.CmpLe(Type.U32.NewValue(Type.U32.MaxValue), Type.U32.NewValue(1)));
+            TestOnAllBackends(b, Type.I32.NewValue(0));
+
+            b = GetBuilder();
+            b.Ret(b.CmpLe(Type.U32.NewValue(1), Type.U32.NewValue(Type.U32.MaxValue)));
+            TestOnAllBackends(b, Type.I32.NewValue(1));
+        }
+
+        [TestMethod]
         public void Add()
         {
             var b = GetBuilder();
