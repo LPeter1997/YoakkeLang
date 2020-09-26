@@ -49,7 +49,11 @@ namespace Yoakke.Lir
         /// </summary>
         public readonly IReadOnlyList<Extern> Externals;
         /// <summary>
-        /// The <see cref="Global"/>s the <see cref="Assembly"/> references.
+        /// The <see cref="Const"/>s the <see cref="Assembly"/> defines.
+        /// </summary>
+        public readonly IReadOnlyList<Const> Constants;
+        /// <summary>
+        /// The <see cref="Global"/>s the <see cref="Assembly"/> defines.
         /// </summary>
         public readonly IReadOnlyList<Global> Globals;
         /// <summary>
@@ -68,6 +72,7 @@ namespace Yoakke.Lir
             // NOTE: Cast returned an ISymbol? for some reason
             Externals
                 .Select(sym => (ISymbol)sym)
+                .Concat(Constants)
                 .Concat(Globals)
                 .Concat(Procedures);
 
@@ -82,6 +87,7 @@ namespace Yoakke.Lir
             Name = uncheckedAssembly.Name;
             entryPoint = uncheckedAssembly.EntryPoint;
             Externals = uncheckedAssembly.Externals.ToArray();
+            Constants = uncheckedAssembly.Constants.ToArray();
             Globals = uncheckedAssembly.Globals.ToArray();
             Structs = uncheckedAssembly.Structs.ToArray();
             Procedures = uncheckedAssembly.Procedures.ToArray();

@@ -27,7 +27,11 @@ namespace Yoakke.Lir
         /// </summary>
         public readonly IList<Extern> Externals = new List<Extern>();
         /// <summary>
-        /// The <see cref="Global"/>s this assembly references.
+        /// The <see cref="Const"/>s this assembly defines.
+        /// </summary>
+        public readonly IList<Const> Constants = new List<Const>();
+        /// <summary>
+        /// The <see cref="Global"/>s this assembly defines.
         /// </summary>
         public readonly IList<Global> Globals = new List<Global>();
         /// <summary>
@@ -46,6 +50,7 @@ namespace Yoakke.Lir
             // NOTE: Cast returned an ISymbol? for some reason
             Externals
                 .Select(sym => (ISymbol)sym)
+                .Concat(Constants)
                 .Concat(Globals)
                 .Concat(Procedures);
 
