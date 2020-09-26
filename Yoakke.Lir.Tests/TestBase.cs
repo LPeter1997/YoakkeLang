@@ -93,11 +93,16 @@ namespace Yoakke.Lir.Tests
             Assert.AreEqual(expected, result);
         }
 
-        protected void TestOnAllBackends<TFunc>(Assembly assembly, Value expected, params Value[] args) 
+        private void TestOnAllBackends<TFunc>(Assembly assembly, Value expected, params Value[] args) 
             where TFunc : Delegate
         {
             TestOnToolchain<TFunc>(NativeToolchain, assembly, expected, args);
             TestOnVirtualMachine(assembly, expected, args);
+        }
+
+        protected void TestOnVirtualMachine(Builder builder, Value expected, params Value[] args)
+        {
+            TestOnVirtualMachine(builder.Assembly.Check(), expected, args);
         }
 
         protected void TestOnAllBackends<TFunc>(Builder builder, Value expected, params Value[] args)

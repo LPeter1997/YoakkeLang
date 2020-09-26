@@ -20,27 +20,23 @@ namespace Yoakke.Lir.Values
             /// <summary>
             /// The payload value.
             /// </summary>
-            public object? Payload { get; set; }
+            public ICloneable? Payload { get; set; }
 
             /// <summary>
             /// Initializes a new <see cref="User"/>.
             /// </summary>
             /// <param name="payload">The payload of the value.</param>
-            public User(object? payload)
+            public User(ICloneable? payload)
             {
+                Payload = payload;
             }
 
-            public override string ToValueString() => "void";
+            public override string ToValueString() => $"user<{Payload}>";
             public override bool Equals(Value? other) => 
                    other is User u 
                 && (ReferenceEquals(Payload, u.Payload) || (Payload != null && Payload.Equals(u.Payload)));
             public override int GetHashCode() => HashCode.Combine(typeof(User), Payload);
-            public override Value Clone()
-            {
-                if (Payload == null) return new User(null);
-                if (Payload is ICloneable cloneable) return new User(cloneable.Clone());
-                throw new InvalidOperationException("Can't clone a non-cloneable user payload!");
-            }
+            public override Value Clone() => new User((ICloneable?)Payload?.Clone());
         }
     }
 }

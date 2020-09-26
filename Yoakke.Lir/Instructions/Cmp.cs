@@ -112,7 +112,19 @@ namespace Yoakke.Lir.Instructions
                 {
                     ThrowValidationException("Type mismatch between operands!");
                 }
-                if (!(Left.Type is Type.Int && Right.Type is Type.Int))
+                if (Left.Type is Type.Int && Right.Type is Type.Int)
+                {
+                    // Allowed
+                }
+                else if (Left.Type is Type.User && Right.Type is Type.User)
+                {
+                    // Allowed, if comparison is equality
+                    if (Comparison != Comparison.eq && Comparison != Comparison.ne)
+                    {
+                        ThrowValidationException("User types can only be equality compared!");
+                    }
+                }
+                else
                 {
                     ThrowValidationException("Unsupported comparison types!");
                 }
