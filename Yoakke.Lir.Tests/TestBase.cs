@@ -5,6 +5,7 @@ using System.Linq;
 using Yoakke.Lir.Backend;
 using Yoakke.Lir.Backend.Toolchain;
 using Yoakke.Lir.Runtime;
+using Yoakke.Lir.Status;
 using Yoakke.Lir.Utils;
 using Yoakke.Lir.Values;
 using Type = Yoakke.Lir.Types.Type;
@@ -70,10 +71,10 @@ namespace Yoakke.Lir.Tests
                 IntermediatesDirectory = IntermediatesDirectory,
                 OutputKind = OutputKind.DynamicLibrary,
                 OutputPath = Path.Combine(IntermediatesDirectory, $"{TestContext.TestName}_{uniqueId++}.dll"),
+                CheckedAssembly = assembly,
             };
-            build.Assemblies.Add(assembly);
-            var exitCode = toolchain.Compile(build);
-            Assert.AreEqual(0, exitCode);
+            toolchain.Compile(build);
+            Assert.IsFalse(build.HasErrors);
             // Load function
             var nativeArgs = args.Select(FromValue).ToArray();
             var proc = NativeUtils.LoadNativeProcedure<TFunc>(build.OutputPath, "entry", CallConv.Cdecl);
@@ -96,15 +97,23 @@ namespace Yoakke.Lir.Tests
             TestOnVirtualMachine(assembly, expected, args);
         }
 
+        private Assembly Check(UncheckedAssembly assembly)
+        {
+            var status = new BuildStatus();
+            var asm = assembly.Check(status);
+            Assert.AreEqual(0, status.Errors.Count);
+            return asm;
+        }
+
         protected void TestOnVirtualMachine(Builder builder, Value expected, params Value[] args)
         {
-            TestOnVirtualMachine(builder.Assembly.Check(), expected, args);
+            TestOnVirtualMachine(Check(builder.Assembly), expected, args);
         }
 
         protected void TestOnAllBackends<TFunc>(Builder builder, Value expected, params Value[] args)
             where TFunc : Delegate
         {
-            TestOnAllBackends<TFunc>(builder.Assembly.Check(), expected, args);
+            TestOnAllBackends<TFunc>(Check(builder.Assembly), expected, args);
         }
 
         protected Builder GetBuilder(Type type)
