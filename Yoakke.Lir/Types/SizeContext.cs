@@ -14,6 +14,11 @@ namespace Yoakke.Lir.Types
         public int PointerSize { get; set; }
 
         /// <summary>
+        /// The size of user values in bytes.
+        /// </summary>
+        public int UserSize { get; set; }
+
+        /// <summary>
         /// Calculates the size of a <see cref="Type"/>.
         /// </summary>
         /// <param name="type">The <see cref="Type"/> to calculate the size of.</param>
@@ -26,6 +31,7 @@ namespace Yoakke.Lir.Types
             Type.Ptr => PointerSize,
             Type.Struct s => s.Definition.Fields.Sum(SizeOf),
             Type.Array a => a.Size * SizeOf(a.Subtype),
+            Type.User => UserSize,
             _ => throw new NotImplementedException(),
         };
 

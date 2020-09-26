@@ -34,7 +34,11 @@ namespace Yoakke.Lir.Runtime
         private SizeContext sizeContext = new SizeContext
         {
             PointerSize = 8,
+            UserSize = 4,
         };
+        // Runtime for user data
+        private Dictionary<object, int> userToIndex = new Dictionary<object, int>();
+        private List<object> indexToUser = new List<object>();
 
         private StackFrame StackFrame => callStack.Peek();
 
@@ -485,6 +489,13 @@ namespace Yoakke.Lir.Runtime
                 return new PtrValue(segment, p.Subtype) { Offset = offset };
             }
 
+            case Type.User:
+            {
+                var index = BitConverter.ToInt32(bytes.Slice(0, 4));
+                bytes = bytes.Slice(4);
+                return new Value.User(indexToUser[index]);
+            }
+
             default: throw new NotImplementedException();
             }
         }
@@ -516,6 +527,23 @@ namespace Yoakke.Lir.Runtime
                 segment.CopyTo(bytes);
                 offset.CopyTo(bytes.Slice(4));
                 bytes = bytes.Slice(8);
+            }
+            break;
+
+            case Value.User u:
+            {
+                // Cache the user payload
+                int idx;
+                if (!userToIndex.TryGetValue(u.Payload, out idx))
+                {
+                    idx = userToIndex.Count;
+                    userToIndex.Add(u.Payload, idx);
+                    indexToUser.Add(u.Payload);
+                }
+                // Write the index
+                var idxBytes = BitConverter.GetBytes(idx);
+                idxBytes.CopyTo(bytes);
+                bytes = bytes.Slice(4);
             }
             break;
 

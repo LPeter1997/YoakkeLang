@@ -57,5 +57,18 @@ namespace Yoakke.Lir.Tests
 
             TestOnVirtualMachine(b, Type.I32.NewValue(0));
         }
+
+        [TestMethod]
+        public void StoreInMemory()
+        {
+            var b = GetBuilder(Type.User_);
+            var p1 = new Person { Name = "Jon", Age = 24 };
+
+            var pPtr = b.Alloc(Type.User_);
+            b.Store(pPtr, new Value.User(p1));
+            b.Ret(b.Load(pPtr));
+
+            TestOnVirtualMachine(b, new Value.User(p1));
+        }
     }
 }
