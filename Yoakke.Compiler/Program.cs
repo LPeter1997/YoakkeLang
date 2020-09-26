@@ -6,6 +6,7 @@ using Yoakke.Lir;
 using Yoakke.Lir.Backend;
 using Yoakke.Lir.Backend.Toolchain;
 using Yoakke.Lir.Instructions;
+using Yoakke.Lir.Passes;
 using Yoakke.Lir.Runtime;
 using Yoakke.Lir.Values;
 using OperatingSystem = Yoakke.Lir.Backend.OperatingSystem;
@@ -45,15 +46,28 @@ namespace Yoakke.Compiler
             var main = b.DefineProc("main");
             main.Return = Type.I32;
 
-            var g = b.DefineGlobal("foo", Type.I32);
-
-            b.Store(g, Type.I32.NewValue(3476));
-            b.Ret(b.Load(g));
-            //b.Ret(Type.I32.NewValue(0));
+            var a = b.Alloc(Type.I32);
+            b.Store(a, Type.I32.NewValue(123));
+            b.IfThenElse(
+                condition: b => b.CmpLe(b.Load(a), Type.I32.NewValue(50)),
+                then: b =>
+                {
+                    var e = b.Alloc(Type.I32);
+                    b.Store(e, Type.I32.NewValue(73));
+                    b.Ret(b.Load(e));
+                },
+                @else: b =>
+                {
+                    var e = b.Alloc(Type.I32);
+                    b.Store(e, Type.I32.NewValue(247));
+                    b.Ret(b.Load(e));
+                }
+            );
 
             var targetTriplet = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
             var toolchain = Toolchains.Supporting(targetTriplet).First();
             var asm = uncheckedAsm.Check();
+            new CodePassSet().Pass(asm);
 
             var build = new Build
             {
