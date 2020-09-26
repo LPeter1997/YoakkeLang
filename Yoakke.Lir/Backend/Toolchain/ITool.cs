@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Yoakke.Lir.Backend.Toolchain
+﻿namespace Yoakke.Lir.Backend.Toolchain
 {
     /// <summary>
     /// An interface for tools in the <see cref="IToolchain"/>.

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Net.Http.Headers;
 using Yoakke.Lir.Types;
 
 namespace Yoakke.Lir.Backend.Backends.X86Family

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Numerics;
 using Yoakke.DataStructures;
 using Yoakke.Lir.Values;
 

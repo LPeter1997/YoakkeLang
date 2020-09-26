@@ -2,9 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices.ComTypes;
-using System.Xml.Linq;
 using Yoakke.Lir.Instructions;
 using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;

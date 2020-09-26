@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Yoakke.Lir
+﻿namespace Yoakke.Lir
 {
     // TODO: We could consider writing errors into an array and present that
     // That way we don't have to fix exceptions one-by-one

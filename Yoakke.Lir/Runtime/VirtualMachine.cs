@@ -1,13 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Numerics;
-using System.Runtime.InteropServices;
 using Yoakke.DataStructures;
-using Yoakke.Lir.Backend;
-using Yoakke.Lir.Backend.Toolchain;
 using Yoakke.Lir.Instructions;
 using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using Yoakke.Lir.Instructions;
 
 namespace Yoakke.Lir.Types
