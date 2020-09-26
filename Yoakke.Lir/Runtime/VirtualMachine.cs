@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Yoakke.DataStructures;
 using Yoakke.Lir.Instructions;
@@ -22,13 +23,13 @@ namespace Yoakke.Lir.Runtime
         // Code
         private IList<Instr> code;
         private IDictionary<object, int> addresses;
-        private IDictionary<Extern, IntPtr> externals;
-        private IDictionary<Global, PtrValue> globalsToPointers;
-        private IDictionary<Const, PtrValue> constantsToPointers;
+        private IDictionary<Extern, NativePtrValue> externalsToPointers;
+        private IDictionary<Global, ManagedPtrValue> globalsToPointers;
+        private IDictionary<Const, ManagedPtrValue> constantsToPointers;
 
         // Runtime
         private Stack<StackFrame> callStack = new Stack<StackFrame>();
-        private List<byte[]> memorySegments = new List<byte[]>();
+        private List<byte[]> localMemorySegments = new List<byte[]>();
         private List<byte[]> globalMemorySegments = new List<byte[]>();
         private List<byte[]> constantMemorySegments = new List<byte[]>();
         private Value returnValue = Value.Void_;
@@ -53,9 +54,9 @@ namespace Yoakke.Lir.Runtime
             Assembly = assembly;
             code = new List<Instr>();
             addresses = new Dictionary<object, int>();
-            externals = new Dictionary<Extern, IntPtr>();
-            globalsToPointers = new Dictionary<Global, PtrValue>();
-            constantsToPointers = new Dictionary<Const, PtrValue>();
+            externalsToPointers = new Dictionary<Extern, NativePtrValue>();
+            globalsToPointers = new Dictionary<Global, ManagedPtrValue>();
+            constantsToPointers = new Dictionary<Const, ManagedPtrValue>();
             CompileAssembly();
         }
 
@@ -109,9 +110,9 @@ namespace Yoakke.Lir.Runtime
             {
                 var buffer = new byte[SizeOf(constant.UnderlyingType)];
                 var span = buffer.AsSpan();
-                WriteToManagedMemory(ref span, constant.Value);
+                WriteMemory(ref span, constant.Value);
                 var segmentIndex = constantMemorySegments.Count;
-                var ptr = new PtrValue(PtrPlacement.Constants, segmentIndex, constant.UnderlyingType);
+                var ptr = new ManagedPtrValue(PtrPlacement.Constants, segmentIndex, 0, constant.UnderlyingType);
                 constantsToPointers.Add(constant, ptr);
                 constantMemorySegments.Add(buffer);
             }
@@ -119,7 +120,7 @@ namespace Yoakke.Lir.Runtime
             {
                 var buffer = new byte[SizeOf(global.UnderlyingType)];
                 var segmentIndex = globalMemorySegments.Count;
-                var ptr = new PtrValue(PtrPlacement.Globals, segmentIndex, global.UnderlyingType);
+                var ptr = new ManagedPtrValue(PtrPlacement.Globals, segmentIndex, 0, global.UnderlyingType);
                 globalsToPointers.Add(global, ptr);
                 globalMemorySegments.Add(buffer);
             }
@@ -182,11 +183,6 @@ namespace Yoakke.Lir.Runtime
                     var arguments = call.Arguments.Select(Unwrap);
                     Call(proc, arguments);
                 }
-                else if (called is Extern external)
-                {
-                    // TODO: Check type, call
-                    throw new NotImplementedException();
-                }
                 else
                 {
                     // TODO: Check if function type, is function pointer...
@@ -209,24 +205,10 @@ namespace Yoakke.Lir.Runtime
 
             case Instr.Store store:
             {
-                var address = Unwrap(store.Target);
+                var address = (PtrValue)Unwrap(store.Target);
                 var value = Unwrap(store.Value);
 
-                if (address is Global globalVal)
-                {
-                    // We just make it a PtrVal!
-                    address = globalsToPointers[globalVal];
-                }
-
-                if (address is PtrValue ptrVal)
-                {
-                    WriteManagedPtr(ptrVal, value.Clone());
-                }
-                else
-                {
-                    // TODO: Native pointers?
-                    throw new NotImplementedException();
-                }
+                WritePtr(address, value);
                 ++instructionPointer;
             }
             break;
@@ -253,23 +235,8 @@ namespace Yoakke.Lir.Runtime
 
             case Instr.Load load:
             {
-                var address = Unwrap(load.Source);
-                if (address is Global globalVal)
-                {
-                    // We just make it a pointer!
-                    address = globalsToPointers[globalVal];
-                }
-                else if (address is Const constVal)
-                {
-                    // We just make it a pointer!
-                    address = constantsToPointers[constVal];
-                }
-                if (address is PtrValue ptrVal)
-                {
-                    return ReadManagedPtr(ptrVal);
-                }
-                // TODO: Native pointers?
-                throw new NotImplementedException();
+                var address = (PtrValue)Unwrap(load.Source);
+                return ReadPtr(address);
             }
 
             case Instr.Cmp cmp:
@@ -378,7 +345,7 @@ namespace Yoakke.Lir.Runtime
                 var index = elementPtr.Index.Value;
                 var structTy = (Struct)((Type.Ptr)value.Type).Subtype;
                 var offset = sizeContext.OffsetOf(structTy, index);
-                if (value is PtrValue managedPtr)
+                if (value is ManagedPtrValue managedPtr)
                 {
                     var resultType = structTy.Fields[index];
                     return managedPtr.OffsetBy(offset, resultType);
@@ -392,7 +359,7 @@ namespace Yoakke.Lir.Runtime
                 var value = Unwrap(cast.Value);
                 if (cast.Target is Type.Ptr toType && value.Type is Type.Ptr)
                 {
-                    if (value is PtrValue managedPtr)
+                    if (value is ManagedPtrValue managedPtr)
                     {
                         return managedPtr.OffsetBy(0, toType.Subtype);
                     }
@@ -416,7 +383,7 @@ namespace Yoakke.Lir.Runtime
             var newFrame = new StackFrame(
                 returnAddress: instructionPointer + 1,
                 registerCount: proc.GetRegisterCount(), 
-                allocationIndex: memorySegments.Count);
+                allocationIndex: localMemorySegments.Count);
             // NOTE: We evaluate arguments here because we might still need the caller frame's register values!
             // Arguments
             foreach (var (reg, value) in proc.Parameters.Zip(arguments))
@@ -434,7 +401,7 @@ namespace Yoakke.Lir.Runtime
         {
             var top = callStack.Pop();
             // Free memory
-            memorySegments.RemoveRange(top.AllocationIndex, memorySegments.Count - top.AllocationIndex);
+            localMemorySegments.RemoveRange(top.AllocationIndex, localMemorySegments.Count - top.AllocationIndex);
             instructionPointer = top.ReturnAddress;
             // Return value
             if (callStack.Count > 0)
@@ -454,39 +421,58 @@ namespace Yoakke.Lir.Runtime
         {
             ISymbol sym => sym switch
             {
-                Extern ext => ReadNativePtr(ext.Type, externals[ext]),
+                Extern ext => externalsToPointers[ext],
+                Global global => globalsToPointers[global],
+                Const constant => constantsToPointers[constant],
                 _ => value,
             },
             Register reg => StackFrame[reg],
             _ => value,
         };
 
-        private PtrValue Allocate(Type type)
+        private ManagedPtrValue Allocate(Type type)
         {
             var buffer = new byte[SizeOf(type)];
-            var segmentIndex = memorySegments.Count;
-            memorySegments.Add(buffer);
-            return new PtrValue(PtrPlacement.StackFrame, segmentIndex, type);
+            var segmentIndex = localMemorySegments.Count;
+            localMemorySegments.Add(buffer);
+            return new ManagedPtrValue(PtrPlacement.StackFrame, segmentIndex, 0, type);
         }
 
         private int SizeOf(Value value) => SizeOf(value.Type);
         private int SizeOf(Type type) => sizeContext.SizeOf(type);
 
-        private Value ReadManagedPtr(PtrValue value)
+        // Memory IO
+
+        private Span<byte> PtrToSpan(PtrValue ptr)
         {
-            var typeToRead = value.BaseType;
-            byte[] memory = value.Placement switch
+            unsafe
             {
-                PtrPlacement.StackFrame => memorySegments[value.Segment],
-                PtrPlacement.Globals => globalMemorySegments[value.Segment],
-                PtrPlacement.Constants => constantMemorySegments[value.Segment],
-                _ => throw new NotImplementedException(),
-            };
-            var segment = memory.AsSpan().Slice(value.Offset);
-            return ReadFromManagedMemory(ref segment, typeToRead);
+                var typeToRead = ptr.BaseType;
+                // Non-managed pointer
+                if (ptr.Placement == PtrPlacement.NonManaged)
+                {
+                    return new Span<byte>(((NativePtrValue)ptr).Pointer.ToPointer(), SizeOf(typeToRead));
+                }
+
+                var mptr = (ManagedPtrValue)ptr;
+                Span<byte> span = ptr.Placement switch
+                {
+                    PtrPlacement.StackFrame => localMemorySegments[mptr.Segment],
+                    PtrPlacement.Globals => globalMemorySegments[mptr.Segment],
+                    PtrPlacement.Constants => constantMemorySegments[mptr.Segment],
+                    _ => throw new NotImplementedException(),
+                };
+                return span.Slice(mptr.Offset);
+            }
         }
 
-        private Value ReadFromManagedMemory(ref Span<byte> bytes, Type typeToRead)
+        private Value ReadPtr(PtrValue ptr)
+        {
+            var span = PtrToSpan(ptr);
+            return ReadMemory(ref span, ptr.BaseType);
+        }
+
+        private Value ReadMemory(ref Span<byte> bytes, Type typeToRead)
         {
             switch (typeToRead)
             {
@@ -500,13 +486,21 @@ namespace Yoakke.Lir.Runtime
 
             case Type.Ptr p:
             {
-                // TODO: We can't differentiate between native and managed pointers!
-                // This could very well be some native pointer
                 var placement = (PtrPlacement)bytes[0];
-                var segment = BitConverter.ToInt32(bytes.Slice(1, 4));
-                var offset = BitConverter.ToInt32(bytes.Slice(5, 4));
+                PtrValue? value;
+                if (placement == PtrPlacement.NonManaged)
+                {
+                    var pointer = BitConverter.ToInt64(bytes.Slice(1, 8));
+                    value = new NativePtrValue(new IntPtr(pointer), p.Subtype);
+                }
+                else
+                {
+                    var segment = BitConverter.ToInt32(bytes.Slice(1, 4));
+                    var offset = BitConverter.ToInt32(bytes.Slice(5, 4));
+                    value = new ManagedPtrValue(placement, segment, offset, p.Subtype);
+                }
                 bytes = bytes.Slice(9);
-                return new PtrValue(placement, segment, p.Subtype) { Offset = offset };
+                return value;
             }
 
             case Type.User:
@@ -520,22 +514,15 @@ namespace Yoakke.Lir.Runtime
             }
         }
 
-        private void WriteManagedPtr(PtrValue ptr, Value value)
+        private void WritePtr(PtrValue ptr, Value value)
         {
-            byte[] memory = ptr.Placement switch
-            {
-                PtrPlacement.StackFrame => memorySegments[ptr.Segment],
-                PtrPlacement.Globals => globalMemorySegments[ptr.Segment],
-                PtrPlacement.Constants => constantMemorySegments[ptr.Segment],
-                _ => throw new NotImplementedException(),
-            };
-            var segment = memory.AsSpan().Slice(ptr.Offset);
-            WriteToManagedMemory(ref segment, value);
+            var span = PtrToSpan(ptr);
+            WriteMemory(ref span, value);
         }
 
-        private void WriteToManagedMemory(ref Span<byte> bytes, Value value)
+        private void WriteMemory(ref Span<byte> bytes, Value valueToWrite)
         {
-            switch (value)
+            switch (valueToWrite)
             {
             case Value.Int i:
             {
@@ -544,7 +531,7 @@ namespace Yoakke.Lir.Runtime
             }
             break;
 
-            case PtrValue p:
+            case ManagedPtrValue p:
             {
                 var placement = (byte)p.Placement;
                 var segment = BitConverter.GetBytes(p.Segment);
@@ -552,6 +539,16 @@ namespace Yoakke.Lir.Runtime
                 bytes[0] = placement;
                 segment.CopyTo(bytes.Slice(1));
                 offset.CopyTo(bytes.Slice(5));
+                bytes = bytes.Slice(9);
+            }
+            break;
+
+            case NativePtrValue p:
+            {
+                var placement = (byte)p.Placement;
+                var pointer = BitConverter.GetBytes(p.Pointer.ToInt64());
+                bytes[0] = placement;
+                pointer.CopyTo(bytes.Slice(1));
                 bytes = bytes.Slice(9);
             }
             break;
@@ -575,35 +572,6 @@ namespace Yoakke.Lir.Runtime
 
             default: throw new NotImplementedException();
             }
-        }
-
-        private static Value ReadNativePtr(Type type, IntPtr intPtr)
-        {
-            // TODO: Proper implementation
-            unsafe
-            {
-                switch (type)
-                {
-                case Type.Int i:
-                    if (i.Signed && i.Bits == 32)
-                    {
-                        Int32 val = *(Int32*)intPtr.ToPointer();
-                        return Type.I32.NewValue(new BigInt(true, 32, val));
-                    }
-                    else
-                    {
-                        throw new NotImplementedException();
-                    }
-
-                default: throw new NotImplementedException();
-                }
-            }
-        }
-
-        private static void WriteNativePtr(IntPtr intPtr, Value value)
-        {
-            // TODO: Proper implementation
-            throw new NotImplementedException();
         }
     }
 }
