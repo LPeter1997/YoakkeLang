@@ -1,13 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Yoakke.Lir.Backend;
-using Yoakke.Lir.Backend.Toolchain;
-using Yoakke.Lir.Runtime;
-using Yoakke.Lir.Types;
-using Yoakke.Lir.Utils;
 using Yoakke.Lir.Values;
 using Type = Yoakke.Lir.Types.Type;
 
