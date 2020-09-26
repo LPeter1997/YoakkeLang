@@ -27,10 +27,22 @@ namespace Yoakke.Lir.Status
     /// <summary>
     /// Interface for warnings.
     /// </summary>
-    public interface IBuildWarning { }
+    public interface IBuildWarning 
+    {
+        /// <summary>
+        /// Retrieves the message for this warning.
+        /// </summary>
+        public string GetWarningMessage();
+    }
 
     /// <summary>
     /// Interface for errors.
     /// </summary>
-    public interface IBuildError { }
+    public interface IBuildError 
+    {
+        /// <summary>
+        /// Retrieves the message for this error.
+        /// </summary>
+        public string GetErrorMessage();
+    }
 }

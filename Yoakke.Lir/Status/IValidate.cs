@@ -31,5 +31,8 @@
             Subject = subject;
             Message = message;
         }
+
+        public string GetErrorMessage() => 
+            $"Validation error: {Message}\nWhile validating:\n{Subject}";
     }
 }

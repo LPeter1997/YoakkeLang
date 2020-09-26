@@ -11,5 +11,6 @@ namespace Yoakke.Lir.Status
     /// </summary>
     public class EmptyBuild : IBuildWarning
     {
+        public string GetWarningMessage() => "Empty build!";
     }
 }

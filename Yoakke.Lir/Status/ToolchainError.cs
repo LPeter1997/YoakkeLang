@@ -22,5 +22,9 @@ namespace Yoakke.Lir.Status
             Command = command;
             Message = message;
         }
+
+        public string GetErrorMessage() =>
+            $"Toolchain error while executing {Tool} using the command '{Command}':\n" +
+            Message;
     }
 }
