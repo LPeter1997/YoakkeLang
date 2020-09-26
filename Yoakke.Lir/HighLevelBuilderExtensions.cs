@@ -142,7 +142,7 @@ namespace Yoakke.Lir
         /// <returns>The pointer <see cref="Value"/> to the allocated and initialized struct.</returns>
         public static Value InitStruct(this Builder builder, Type structType, IEnumerable<KeyValuePair<int, Value>> fieldValues)
         {
-            if (!(structType is Type.Struct))
+            if (!(structType is Struct))
             {
                 throw new ArgumentException("The type of a struct initialization must be a struct type!", nameof(structType));
             }

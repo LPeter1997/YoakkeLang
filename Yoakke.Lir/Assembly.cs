@@ -53,9 +53,9 @@ namespace Yoakke.Lir
         /// </summary>
         public readonly IReadOnlyList<Global> Globals;
         /// <summary>
-        /// The <see cref="StructDef"/>s in this <see cref="Assembly"/>.
+        /// The <see cref="Struct"/>s in this <see cref="Assembly"/>.
         /// </summary>
-        public readonly IReadOnlyList<StructDef> Structs;
+        public readonly IReadOnlyList<Struct> Structs;
         /// <summary>
         /// The <see cref="Proc"/>s defined in this <see cref="Assembly"/>.
         /// </summary>

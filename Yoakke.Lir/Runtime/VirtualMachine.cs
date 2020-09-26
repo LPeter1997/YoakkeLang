@@ -361,11 +361,11 @@ namespace Yoakke.Lir.Runtime
             {
                 var value = Unwrap(elementPtr.Value);
                 var index = elementPtr.Index.Value;
-                var structTy = (Type.Struct)((Type.Ptr)value.Type).Subtype;
-                var offset = sizeContext.OffsetOf(structTy.Definition, index);
+                var structTy = (Struct)((Type.Ptr)value.Type).Subtype;
+                var offset = sizeContext.OffsetOf(structTy, index);
                 if (value is PtrValue managedPtr)
                 {
-                    var resultType = structTy.Definition.Fields[index];
+                    var resultType = structTy.Fields[index];
                     return managedPtr.OffsetBy(offset, resultType);
                 }
                 // TODO: Native ptr

@@ -72,15 +72,15 @@ namespace Yoakke.Lir.Instructions
 
             public static Type AccessedSubtype(Type type, int index)
             {
-                if (!(type is Type.Ptr ptrTy && ptrTy.Subtype is Type.Struct structTy))
+                if (!(type is Type.Ptr ptrTy && ptrTy.Subtype is Struct structTy))
                 {
                     throw new ArgumentException("The accessed type must be a pointer to a struct type!", nameof(type));
                 }
-                if (structTy.Definition.Fields.Count <= index)
+                if (structTy.Fields.Count <= index)
                 {
                     throw new ArgumentOutOfRangeException(nameof(index));
                 }
-                return new Type.Ptr(structTy.Definition.Fields[index]);
+                return new Type.Ptr(structTy.Fields[index]);
             }
         }
     }

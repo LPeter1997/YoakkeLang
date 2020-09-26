@@ -47,7 +47,7 @@ namespace Yoakke.Lir.Types
             /// </summary>
             public Value.Int NewValue(ulong value) => NewValue(new BigInt(Signed, Bits, value));
 
-            public override string ToString() => $"{(Signed ? 'i' : 'u')}{Bits}";
+            public override string ToTypeString() => $"{(Signed ? 'i' : 'u')}{Bits}";
             public override bool Equals(Type? other) =>
                 other is Int i && Signed == i.Signed && Bits == i.Bits;
             public override int GetHashCode() => HashCode.Combine(typeof(Int), Signed, Bits);

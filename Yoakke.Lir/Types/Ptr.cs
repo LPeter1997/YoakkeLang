@@ -16,7 +16,7 @@ namespace Yoakke.Lir.Types
                 Subtype = subtype;
             }
 
-            public override string ToString() => $"{Subtype}*";
+            public override string ToTypeString() => $"{Subtype.ToTypeString()}*";
             public override bool Equals(Type? other) => 
                 other is Ptr p && Subtype.Equals(p.Subtype);
             public override int GetHashCode() => HashCode.Combine(typeof(Ptr), Subtype);

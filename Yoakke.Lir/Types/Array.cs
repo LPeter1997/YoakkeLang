@@ -18,7 +18,7 @@ namespace Yoakke.Lir.Types
                 Size = size;
             }
 
-            public override string ToString() => $"{Subtype}[{Size}]";
+            public override string ToTypeString() => $"{Subtype.ToTypeString()}[{Size}]";
             public override bool Equals(Type? other) =>
                 other is Array a && Subtype.Equals(a.Subtype) && Size == a.Size;
             public override int GetHashCode() => HashCode.Combine(typeof(Array), Subtype, Size);

@@ -61,7 +61,7 @@ namespace Yoakke.Lir
         /// </summary>
         public Type.Int BoolResult { get; set; } = Type.I32;
 
-        private IDictionary<StructDef, Type.Struct> structDefs = new Dictionary<StructDef, Type.Struct>();
+        private HashSet<Struct> structDefs = new HashSet<Struct>();
         private Proc? currentProc;
         private BasicBlock? currentBasicBlock;
         private IDictionary<Proc, ProcContext> procContexts = new Dictionary<Proc, ProcContext>();
@@ -103,15 +103,15 @@ namespace Yoakke.Lir
         }
 
         /// <summary>
-        /// Adds a new <see cref="StructDef"/> to the <see cref="Assembly"/>.
+        /// Adds a new <see cref="Struct"/> to the <see cref="Assembly"/>.
         /// </summary>
         /// <param name="types">The <see cref="Type"/>s of the struct fields.</param>
-        /// <returns>The <see cref="Type"/> created from the <see cref="StructDef"/>.</returns>
+        /// <returns>The <see cref="Type"/> created from the <see cref="Struct"/>.</returns>
         public Type DefineStruct(IEnumerable<Type> types)
         {
             // First we construct the type
             var name = $"type{structDefs.Count}";
-            var structDef = new StructDef(name);
+            var structDef = new Struct(name);
             foreach (var t in types) structDef.Fields.Add(t);
             // Check if it matches any existing type
             if (structDefs.TryGetValue(structDef, out var existingStructTy))
@@ -120,10 +120,9 @@ namespace Yoakke.Lir
                 return existingStructTy;
             }
             // We add it as new
-            var structTy = new Type.Struct(structDef);
-            structDefs.Add(structDef, structTy);
+            structDefs.Add(structDef);
             Assembly.Structs.Add(structDef);
-            return structTy;
+            return structDef;
         }
 
         /// <summary>

@@ -9,7 +9,7 @@ namespace Yoakke.Lir.Types
         /// </summary>
         public class User : Type
         {
-            public override string ToString() => "user";
+            public override string ToTypeString() => "user";
             public override bool Equals(Type? other) => other is User;
             public override int GetHashCode() => HashCode.Combine(typeof(User));
         }

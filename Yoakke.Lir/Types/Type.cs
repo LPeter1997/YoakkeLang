@@ -18,6 +18,6 @@ namespace Yoakke.Lir.Types
         public override bool Equals(object? obj) => obj is Type t && Equals(t);
         public abstract bool Equals(Type? other);
         public abstract override int GetHashCode();
-        public abstract override string ToString();
+        public abstract string ToTypeString();
     }
 }

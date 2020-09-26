@@ -334,11 +334,11 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 var value = CompileSingleValue(elementPtr.Value);
                 // We need it in a register
                 value = LoadToRegister(value);
-                var structTy = (Type.Struct)((Type.Ptr)elementPtr.Value.Type).Subtype;
+                var structTy = (Struct)((Type.Ptr)elementPtr.Value.Type).Subtype;
 
                 var index = elementPtr.Index.Value;
                 // Get offset, add it to the base address
-                var offset = OffsetOf(structTy.Definition, index);
+                var offset = OffsetOf(structTy, index);
                 WriteInstr(X86Op.Add, value, new Operand.Literal(DataWidth.dword, offset));
                 WriteMov(target, value);
             }
@@ -859,7 +859,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             || !(symbol is Proc)
             ? $"_{symbol.Name}" : symbol.Name;
 
-        private int OffsetOf(StructDef structDef, int fieldNo) => sizeContext.OffsetOf(structDef, fieldNo);
+        private int OffsetOf(Struct structDef, int fieldNo) => sizeContext.OffsetOf(structDef, fieldNo);
         private int SizeOf(Value value) => SizeOf(value.Type);
         private int SizeOf(Type type) => sizeContext.SizeOf(type);
 

@@ -29,7 +29,7 @@ namespace Yoakke.Lir.Types
             Type.Int i => NextPow2((i.Bits + 7) / 8),
             Type.Proc => PointerSize,
             Type.Ptr => PointerSize,
-            Type.Struct s => s.Definition.Fields.Sum(SizeOf),
+            Struct s => s.Fields.Sum(SizeOf),
             Type.Array a => a.Size * SizeOf(a.Subtype),
             Type.User => UserSize,
             _ => throw new NotImplementedException(),
@@ -38,10 +38,10 @@ namespace Yoakke.Lir.Types
         /// <summary>
         /// Calculates the offset of a field in the given struct.
         /// </summary>
-        /// <param name="structDef">The <see cref="StructDef"/> to calculate the offset in.</param>
+        /// <param name="structDef">The <see cref="Struct"/> to calculate the offset in.</param>
         /// <param name="fieldIndex">The index of the field.</param>
         /// <returns>The offset in bytes.</returns>
-        public int OffsetOf(StructDef structDef, int fieldIndex) =>
+        public int OffsetOf(Struct structDef, int fieldIndex) =>
             structDef.Fields.Take(fieldIndex).Sum(SizeOf);
 
         private static int NextPow2(int n)

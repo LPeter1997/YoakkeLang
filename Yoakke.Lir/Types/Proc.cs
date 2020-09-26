@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Yoakke.DataStructures;
 
 namespace Yoakke.Lir.Types
@@ -21,8 +22,8 @@ namespace Yoakke.Lir.Types
                 Parameters = parameters;
             }
 
-            public override string ToString() => 
-                $"{Return} proc[callconv = {CallConv}]({string.Join(", ", Parameters)})";
+            public override string ToTypeString() => 
+                $"{Return} proc[callconv = {CallConv}]({string.Join(", ", Parameters.Select(p => p.ToTypeString()))})";
             public override bool Equals(Type? other) =>
                    other is Proc p 
                 && CallConv == p.CallConv && Return.Equals(p.Return) && Parameters.Equals(p.Parameters);
