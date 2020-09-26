@@ -28,7 +28,7 @@ namespace Yoakke.Lir
         }
 
         public override string ToValueString() => $"r{Index}";
-        public override string ToString() => $"{Type} {ToValueString()}";
+        public override string ToString() => $"{Type.ToTypeString()} {ToValueString()}";
         public override bool Equals(Value? other) => ReferenceEquals(this, other);
         public override int GetHashCode() => HashCode.Combine(typeof(Register), Index);
         // NOTE: Makes no sense to clone this

@@ -34,7 +34,7 @@ namespace Yoakke.Lir.Instructions
             {
             }
 
-            public override string ToString() => $"{Result} = alloc {Allocated}";
+            public override string ToString() => $"{Result} = alloc {Allocated.ToTypeString()}";
 
             public override void Validate(BuildStatus status)
             {

@@ -34,7 +34,7 @@ namespace Yoakke.Lir.Values
                 Value = value;
             }
 
-            public override string ToValueString() => $"{Value} as {Type}";
+            public override string ToValueString() => $"{Value} as {Type.ToTypeString()}";
             public override bool Equals(Value? other) => other is Int i && Value == i.Value;
             public override int GetHashCode() => HashCode.Combine(typeof(Int), Value);
             public override Value Clone() => new Int((Type.Int)Type, Value);

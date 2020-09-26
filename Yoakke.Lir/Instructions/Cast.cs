@@ -44,7 +44,7 @@ namespace Yoakke.Lir.Instructions
                 Value = value;
             }
 
-            public override string ToString() => $"{Result} = cast {Target}, {Value.ToValueString()}";
+            public override string ToString() => $"{Result} = cast {Target.ToTypeString()}, {Value.ToValueString()}";
 
             public override void Validate(BuildStatus status)
             {

@@ -41,7 +41,7 @@ namespace Yoakke.Lir
 
         public override string ToValueString() => Name;
         public override string ToString() => 
-            $"const {UnderlyingType} {Name} = {Value} [visibility = {Visibility}]";
+            $"const {UnderlyingType.ToTypeString()} {Name} = {Value} [visibility = {Visibility}]";
         public override bool Equals(Value? other) => ReferenceEquals(this, other);
         public override int GetHashCode() => HashCode.Combine(typeof(Const), Name);
         // NOTE: Makes no sense to clone this
@@ -49,7 +49,10 @@ namespace Yoakke.Lir
 
         public void Validate(BuildStatus status)
         {
-            // No-op
+            if (Value is Register)
+            {
+                status.Report(new ValidationError(this, "A constant can't reference a register!"));
+            }
         }
     }
 }

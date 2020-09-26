@@ -48,6 +48,8 @@ namespace Yoakke.Compiler
             main.Return = Type.I32;
             main.Visibility = Visibility.Public;
 
+            b.DefineConst("hello", Type.I32.NewValue(62));
+
             var a = b.Alloc(Type.I32);
             b.Store(a, Type.I32.NewValue(123));
             b.IfThenElse(

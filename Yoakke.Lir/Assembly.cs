@@ -96,6 +96,8 @@ namespace Yoakke.Lir
         public override string ToString() => new StringBuilder()
             .AppendJoin('\n', Externals)
             .Append("\n\n")
+            .AppendJoin('\n', Constants)
+            .Append("\n\n")
             .AppendJoin('\n', Globals)
             .Append("\n\n")
             .AppendJoin('\n', Structs)

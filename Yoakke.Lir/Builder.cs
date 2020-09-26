@@ -90,6 +90,19 @@ namespace Yoakke.Lir
         }
 
         /// <summary>
+        /// Adds a new <see cref="Const"/> symbol definition to the <see cref="Assembly"/>.
+        /// </summary>
+        /// <param name="name">The name of the constant symbol.</param>
+        /// <param name="value">The <see cref="Value"/> of the constant..</param>
+        /// <returns>The <see cref="Value"/> referring to the constant.</returns>
+        public Value DefineConst(string name, Value value)
+        {
+            var constant = new Const(name, value);
+            Assembly.Constants.Add(constant);
+            return constant;
+        }
+
+        /// <summary>
         /// Adds a new <see cref="Global"/> symbol definition to the <see cref="Assembly"/>.
         /// </summary>
         /// <param name="name">The name of the global symbol.</param>
