@@ -13,6 +13,10 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         /// </summary>
         public readonly IList<string> Externals = new List<string>();
         /// <summary>
+        /// The list of constants this <see cref="X86Assembly"/> contains.
+        /// </summary>
+        public readonly IList<X86Const> Constants = new List<X86Const>();
+        /// <summary>
         /// The list of globals this <see cref="X86Assembly"/> contains.
         /// </summary>
         public readonly IList<X86Global> Globals = new List<X86Global>();
@@ -20,6 +24,31 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         /// The list of procedures this <see cref="X86Assembly"/> contains.
         /// </summary>
         public readonly IList<X86Proc> Procedures = new List<X86Proc>();
+    }
+
+    /// <summary>
+    /// An X86 constant.
+    /// </summary>
+    public class X86Const
+    {
+        /// <summary>
+        /// The name of this <see cref="X86Const"/>.
+        /// </summary>
+        public readonly string Name;
+        /// <summary>
+        /// The value of this constant in bytes.
+        /// </summary>
+        public readonly byte[] Bytes;
+        /// <summary>
+        /// The <see cref="Visibility"/> of this <see cref="X86Const"/>.
+        /// </summary>
+        public Visibility Visibility { get; set; }
+
+        public X86Const(string name, byte[] bytes)
+        {
+            Name = name;
+            Bytes = bytes;
+        }
     }
 
     /// <summary>
@@ -34,7 +63,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         /// <summary>
         /// The size of this <see cref="X86Global"/> in bytes.
         /// </summary>
-        public int Size { get; set; }
+        public readonly int Size;
         /// <summary>
         /// The <see cref="Visibility"/> of this <see cref="X86Global"/>.
         /// </summary>

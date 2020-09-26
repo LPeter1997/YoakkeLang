@@ -48,25 +48,8 @@ namespace Yoakke.Compiler
             main.Return = Type.I32;
             main.Visibility = Visibility.Public;
 
-            b.DefineConst("hello", Type.I32.NewValue(62));
-
-            var a = b.Alloc(Type.I32);
-            b.Store(a, Type.I32.NewValue(123));
-            b.IfThenElse(
-                condition: b => b.CmpLe(b.Load(a), Type.I32.NewValue(50)),
-                then: b =>
-                {
-                    var e = b.Alloc(Type.I32);
-                    b.Store(e, Type.I32.NewValue(73));
-                    b.Ret(b.Load(e));
-                },
-                @else: b =>
-                {
-                    var e = b.Alloc(Type.I32);
-                    b.Store(e, Type.I32.NewValue(247));
-                    b.Ret(b.Load(e));
-                }
-            );
+            var c = b.DefineConst("hello", Type.I32.NewValue(62));
+            b.Ret(b.Load(c));
 
             var targetTriplet = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
             var toolchain = Toolchains.Supporting(targetTriplet).First();
@@ -83,6 +66,10 @@ namespace Yoakke.Compiler
             toolchain.Compile(build);
             
             Console.WriteLine($"Errors: {build.HasErrors}");
+            foreach (var err in build.Status.Errors)
+            {
+                Console.WriteLine(err.GetErrorMessage());
+            }
             Console.WriteLine("\n");
             Console.WriteLine(build.GetIrCode());
             Console.WriteLine("\n");
@@ -90,9 +77,9 @@ namespace Yoakke.Compiler
             Console.WriteLine("\n");
 
             Debug.Assert(build.CheckedAssembly != null);
-            var vm = new VirtualMachine(build.CheckedAssembly);
-            var res = vm.Execute("main", new List<Value> { });
-            Console.WriteLine($"VM result = {res}");
+            //var vm = new VirtualMachine(build.CheckedAssembly);
+            //var res = vm.Execute("main", new List<Value> { });
+            //Console.WriteLine($"VM result = {res}");
 
             Console.WriteLine();
             foreach (var (name, timeSpan) in build.Metrics.TimeMetrics)

@@ -49,6 +49,8 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             ForwardDeclare(assembly);
             // Compile externals
             foreach (var ext in assembly.Externals) CompileExternal(ext);
+            // Compile constants
+            foreach (var c in assembly.Constants) CompileConstant(c);
             // Compile globals
             foreach (var glob in assembly.Globals) CompileGlobal(glob);
             // Compile procedures
@@ -60,6 +62,13 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         {
             var symName = GetSymbolName(external);
             result.Externals.Add(symName);
+        }
+
+        private void CompileConstant(Const constant)
+        {
+            var symName = GetSymbolName(constant);
+            var bytes = ToByteArray(constant.Value);
+            result.Constants.Add(new X86Const(symName, bytes));
         }
 
         private void CompileGlobal(Global global)
@@ -314,7 +323,8 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 var targetAddr = registerPool.Allocate(DataWidth.dword);
                 var sourceAddr = registerPool.Allocate(DataWidth.dword);
                 WriteInstr(X86Op.Lea, targetAddr, target);
-                WriteInstr(load.Source is Global ? X86Op.Lea : X86Op.Mov, sourceAddr, source);
+                var op = (load.Source is Global || load.Source is Const) ? X86Op.Lea : X86Op.Mov;
+                WriteInstr(op, sourceAddr, source);
                 WriteMemcopy(targetAddr, sourceAddr, SizeOf(load.Result));
             }
             break;
@@ -743,6 +753,28 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 return result.ToArray();
             }
 
+            // NOTE: Global and symbol are the same
+            case Const constant:
+            {
+                var symName = GetSymbolName(constant);
+                if (asLvalue)
+                {
+                    var addr = new Operand.Symbol(symName, 0);
+                    return Ops(addr);
+                }
+                // Non-lvalue
+                var fullSize = SizeOf(constant.UnderlyingType);
+                int offset = 0;
+                var result = SplitData(fullSize, dataSize =>
+                {
+                    var width = DataWidth.GetFromSize(dataSize);
+                    var newAddr = new Operand.Symbol(symName, offset);
+                    offset += dataSize;
+                    return new Operand.Indirect(width, newAddr);
+                });
+                return Ops(result.ToArray());
+            }
+
             case Global glob:
             {
                 var symName = GetSymbolName(glob);
@@ -872,6 +904,12 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             if (resultSize <= 8 && IsPrimitive(returnType)) return ReturnMethod.EaxEdx;
             return ReturnMethod.Address;
         }
+
+        private byte[] ToByteArray(Value value) => value switch
+        {
+            Value.Int i => i.Value.AsSpan().ToArray(),
+            _ => throw new NotImplementedException(),
+        };
 
         private static bool IsPrimitive(Type type) => type is Type.Int;
 

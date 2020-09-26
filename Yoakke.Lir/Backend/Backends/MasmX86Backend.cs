@@ -42,6 +42,10 @@ namespace Yoakke.Lir.Backend.Backends
 
         private void CompileAssembly(X86Assembly assembly)
         {
+            // Compile constants
+            code.AppendLine("_DATA SEGMENT");
+            foreach (var c in assembly.Constants) DeclareConstant(c);
+            code.AppendLine("_DATA ENDS");
             // Compile global declarations
             code.AppendLine("_BSS SEGMENT");
             foreach (var g in assembly.Globals) DeclareGlobal(g);
@@ -63,6 +67,14 @@ namespace Yoakke.Lir.Backend.Backends
             code
                 .Append($"{global.Name} DB ")
                 .AppendJoin(", ", Enumerable.Repeat("0", global.Size))
+                .AppendLine(" DUP (?)");
+        }
+
+        private void DeclareConstant(X86Const constant)
+        {
+            code
+                .Append($"{constant.Name} DB ")
+                .AppendJoin(", ", constant.Bytes)
                 .AppendLine(" DUP (?)");
         }
 

@@ -45,6 +45,10 @@ namespace Yoakke.Lir.Instructions
 
             public override void Validate(BuildStatus status)
             {
+                if (Target is Const)
+                {
+                    ReportValidationError(status, "Target address can't be a constant!");
+                }
                 if (!(Target.Type is Type.Ptr targetPtr))
                 {
                     ReportValidationError(status, "Target address must be of a pointer type!");
