@@ -1,5 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
+using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;
+using Type = Yoakke.Lir.Types.Type;
 
 namespace Yoakke.Lir
 {
@@ -126,6 +131,69 @@ namespace Yoakke.Lir
             }
             // Continue at the continuation block
             builder.CurrentBasicBlock = continueBB;
+        }
+
+        /// <summary>
+        /// Writes out a struct initialization.
+        /// </summary>
+        /// <param name="builder">The <see cref="Builder"/> to build the initialization in.</param>
+        /// <param name="structType">The struct <see cref="Type"/> to initialize.</param>
+        /// <param name="fieldValues">The pairs of field index and field <see cref="Value"/> to initialize to.</param>
+        /// <returns>The pointer <see cref="Value"/> to the allocated and initialized struct.</returns>
+        public static Value InitStruct(this Builder builder, Type structType, IEnumerable<KeyValuePair<int, Value>> fieldValues)
+        {
+            if (!(structType is Type.Struct))
+            {
+                throw new ArgumentException("The type of a struct initialization must be a struct type!", nameof(structType));
+            }
+            var structPtr = builder.Alloc(structType);
+            foreach (var (idx, value) in fieldValues)
+            {
+                var fieldPtr = builder.ElementPtr(structPtr, idx);
+                builder.Store(fieldPtr, value);
+            }
+            return structPtr;
+        }
+
+        /// <summary>
+        /// Writes out an array initialization.
+        /// </summary>
+        /// <param name="builder">The <see cref="Builder"/> to build the initialization in.</param>
+        /// <param name="arrayType">The array <see cref="Type"/> to initialize.</param>
+        /// <param name="arrayValues">The pairs of field index and field <see cref="Value"/> to initialize to.</param>
+        /// <returns>The pointer <see cref="Value"/> to the allocated and initialized array.</returns>
+        public static Value InitArray(this Builder builder, Type arrayType, IEnumerable<KeyValuePair<int, Value>> arrayValues)
+        {
+            if (!(arrayType is Type.Array at))
+            {
+                throw new ArgumentException("The type of a array initialization must be an array type!", nameof(arrayType));
+            }
+            var arrayValuePtr = builder.Alloc(arrayType);
+            var arrayPtr = builder.Cast(new Type.Ptr(at.Subtype), arrayValuePtr);
+            foreach (var (idx, value) in arrayValues)
+            {
+                var fieldPtr = builder.Add(arrayPtr, Type.I32.NewValue(idx));
+                builder.Store(fieldPtr, value);
+            }
+            return arrayPtr;
+        }
+
+        /// <summary>
+        /// Writes out an array initialization.
+        /// </summary>
+        /// <param name="builder">The <see cref="Builder"/> to build the initialization in.</param>
+        /// <param name="elementType">The element <see cref="Type"/> in the array.</param>
+        /// <param name="values">The <see cref="Value"/>s to initialize array elements to.</param>
+        /// <returns>The pointer <see cref="Value"/> to the allocated and initialized array.</returns>
+        public static Value InitArray(this Builder builder, Type elementType, params Value[] values)
+        {
+            var arrayLen = values.Length;
+            var arrayType = new Type.Array(elementType, arrayLen);
+            int index = 0;
+            return InitArray(
+                builder, 
+                arrayType, 
+                values.Select(v => new KeyValuePair<int, Value>(index++, v)));
         }
     }
 }

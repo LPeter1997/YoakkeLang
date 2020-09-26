@@ -68,7 +68,52 @@ namespace Yoakke.Lir.Tests
             b.Store(pPtr, new Value.User(p1));
             b.Ret(b.Load(pPtr));
 
-            TestOnVirtualMachine(b, new Value.User(p1));
+            TestOnVirtualMachine(b, new Value.User(new Person { Name = "Jon", Age = 24 }));
+        }
+
+        [TestMethod]
+        public void GetFirstFromArray()
+        {
+            var b = GetBuilder(Type.User_);
+
+            var p1 = new Person { Name = "Jon", Age = 24 };
+            var p2 = new Person { Name = "Chief", Age = 45 };
+            var p3 = new Person { Name = "Amy", Age = 32 };
+
+            var pPtr = b.InitArray(Type.User_, new Value.User(p1), new Value.User(p2), new Value.User(p3));
+            b.Ret(b.Load(b.Add(pPtr, Type.I32.NewValue(0))));
+
+            TestOnVirtualMachine(b, new Value.User(new Person { Name = "Jon", Age = 24 }));
+        }
+
+        [TestMethod]
+        public void GetSecondFromArray()
+        {
+            var b = GetBuilder(Type.User_);
+
+            var p1 = new Person { Name = "Jon", Age = 24 };
+            var p2 = new Person { Name = "Chief", Age = 45 };
+            var p3 = new Person { Name = "Amy", Age = 32 };
+
+            var pPtr = b.InitArray(Type.User_, new Value.User(p1), new Value.User(p2), new Value.User(p3));
+            b.Ret(b.Load(b.Add(pPtr, Type.I32.NewValue(1))));
+
+            TestOnVirtualMachine(b, new Value.User(new Person { Name = "Chief", Age = 45 }));
+        }
+
+        [TestMethod]
+        public void GetThirdFromArray()
+        {
+            var b = GetBuilder(Type.User_);
+
+            var p1 = new Person { Name = "Jon", Age = 24 };
+            var p2 = new Person { Name = "Chief", Age = 45 };
+            var p3 = new Person { Name = "Amy", Age = 32 };
+
+            var pPtr = b.InitArray(Type.User_, new Value.User(p1), new Value.User(p2), new Value.User(p3));
+            b.Ret(b.Load(b.Add(pPtr, Type.I32.NewValue(2))));
+
+            TestOnVirtualMachine(b, new Value.User(new Person { Name = "Amy", Age = 32 }));
         }
     }
 }
