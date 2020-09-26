@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Text;
 using Yoakke.Lir.Backend.Backends.X86Family;
 
@@ -24,15 +26,18 @@ namespace Yoakke.Lir.Backend.Backends
 
         public void Compile(Build build)
         {
+            Debug.Assert(build.CheckedAssembly != null);
+            // Translate
             code.Clear();
             code.AppendLine(".386")
                 .AppendLine(".MODEL flat");
-            // TODO
-            //var x86asm = X86Assembler.Assemble(assembly);
-            //CompileAssembly(x86asm);
+            var x86asm = X86Assembler.Assemble(build.CheckedAssembly);
+            CompileAssembly(x86asm);
             code.AppendLine("END");
-            // TODO
-            //return code.ToString();
+            // Write to file
+            var outPath = Path.Combine(build.IntermediatesDirectory, $"{build.CheckedAssembly.Name}.asm");
+            File.WriteAllText(outPath, code.ToString());
+            build.Extra["assemblyFile"] = outPath;
         }
 
         private void CompileAssembly(X86Assembly assembly)

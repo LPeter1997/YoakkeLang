@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Yoakke.Lir.Backend.Toolchain.Msvc
@@ -16,22 +17,21 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
 
         public override void Execute(Build build)
         {
+            Debug.Assert(build.CheckedAssembly != null);
             // Escape file names
-            var unescapedObjectFiles = (IList<string>)build.Extra["objectFiles"];
-            var objectFiles = string.Join(' ', unescapedObjectFiles.Select(f => $"\"{f}\""));
+            var objectFile = (string)build.Extra["objectFile"];
             // Escape extra binaries
-            var unescapedExtraBinaries = (IList<string>)build.Extra["externalBinaries"];
-            var extraBinaries = string.Join(' ', unescapedExtraBinaries.Select(f => $"\"{f}\""));
+            var extraBinaries = string.Join(' ', build.CheckedAssembly.BinaryReferences.Select(r => $"\"{r}\""));
             // Construct the command
-            // TODO
-            string entryPoint = "";
-            var entry = build.OutputKind == OutputKind.Executable ? $"/ENTRY:\"{entryPoint}\"" : string.Empty;
-            // TODO
-            var exports = "";//string.Join(' ', build.Exports.Select(e => $"/EXPORT:\"{e.Name}\""));
+            var entry = build.OutputKind == OutputKind.Executable 
+                ? $"/ENTRY:\"{build.CheckedAssembly.EntryPoint.Name}\"" 
+                : string.Empty;
+            var publicSymbols = build.CheckedAssembly.Symbols.Where(sym => sym.Visibility == Visibility.Public);
+            var exports = string.Join(' ', publicSymbols.Select(sym => $"/EXPORT:\"{sym.Name}\""));
             var outputKindFlag = GetOutputKindFlag(build.OutputKind);
             var targetMachineId = GetTargetMachineId(build.TargetTriplet);
             var extraFiles = GetExtraFiles(build.OutputKind);
-            var command = $"LINK /NOLOGO {outputKindFlag} {exports} /MACHINE:{targetMachineId} {entry} /OUT:\"{build.OutputPath}\" {objectFiles} {extraFiles} {extraBinaries}";
+            var command = $"LINK /NOLOGO {outputKindFlag} {exports} /MACHINE:{targetMachineId} {entry} /OUT:\"{build.OutputPath}\" {objectFile} {extraFiles} {extraBinaries}";
             // Run it
             InvokeWithEnvironment(command, build);
         }

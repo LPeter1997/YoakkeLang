@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -33,7 +34,7 @@ namespace Yoakke.Lir.Backend.Toolchain
         public void Compile(Build build)
         {
             // There's no reason to continue, if there's no assembly
-            if (build.Assembly == null)
+            if (build.Assembly == null && build.CheckedAssembly == null)
             {
                 build.Report(new EmptyBuild());
                 return;
@@ -42,23 +43,34 @@ namespace Yoakke.Lir.Backend.Toolchain
             build.Metrics.StartTime("Overall");
 
             // First we validate
-            build.Metrics.StartTime("Validation");
-            var asm = build.Assembly.Check(build.Status);
-            build.Metrics.EndTime();
+            if (build.Assembly != null && build.CheckedAssembly == null)
+            {
+                build.Metrics.StartTime("Validation");
+                build.CheckedAssembly = build.Assembly.Check(build.Status);
+                build.Metrics.EndTime();
+            }
 
             if (build.HasErrors)
             {
                 build.Metrics.EndTime();
                 return;
             }
+
+            Debug.Assert(build.CheckedAssembly != null);
             
+            // Do the code pass here
+            if (build.CodePass != null)
+            {
+                build.Metrics.StartTime("Code passes");
+                build.CodePass.Pass(build.CheckedAssembly, out var _);
+                build.Metrics.EndTime();
+            }
+
             // Make sure our intermediates directory exists
             Directory.CreateDirectory(build.IntermediatesDirectory);
 
             // We translate the IR assemblies to the given backend
             build.Metrics.StartTime("Translation to backend code");
-            var assemblyFile = Path.Combine(build.IntermediatesDirectory, $"{asm.Name}.asm");
-            build.Extra["assemblyFile"] = assemblyFile;
             Backend.Compile(build);
             build.Metrics.EndTime();
 
@@ -79,17 +91,10 @@ namespace Yoakke.Lir.Backend.Toolchain
                 return;
             }
 
-            // We append external binaries here
-            build.Extra["externalBinaries"] = asm.BinaryReferences.ToList();
-
             // Invoke the linker or the archiver
             if (build.OutputKind == OutputKind.Executable || build.OutputKind == OutputKind.DynamicLibrary)
             {
                 build.Metrics.StartTime("Linking");
-                // We need to explicitly tell the linker to export everything public
-                build.Extra["publicSymbols"] = asm.Symbols
-                    .Where(sym => sym.Visibility == Visibility.Public)
-                    .ToList();
                 // Invoke the linker
                 Linker.Link(build);
                 build.Metrics.EndTime();

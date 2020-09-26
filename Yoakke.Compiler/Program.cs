@@ -45,6 +45,7 @@ namespace Yoakke.Compiler
 
             var main = b.DefineProc("main");
             main.Return = Type.I32;
+            main.Visibility = Visibility.Public;
 
             var a = b.Alloc(Type.I32);
             b.Store(a, Type.I32.NewValue(123));
@@ -66,27 +67,22 @@ namespace Yoakke.Compiler
 
             var targetTriplet = new TargetTriplet(CpuFamily.X86, OperatingSystem.Windows);
             var toolchain = Toolchains.Supporting(targetTriplet).First();
-            var asm = uncheckedAsm.Check();
-            new CodePassSet().Pass(asm);
 
             var build = new Build
             {
                 OutputKind = OutputKind.Executable,
                 OutputPath = "C:/TMP/globals.exe",
                 IntermediatesDirectory = "C:/TMP/test_app_build",
+                Assembly = b.Assembly,
+                CodePass = new CodePassSet(),
             };
-            build.Assemblies.Add(asm);
-            Console.WriteLine(asm);
-            Console.WriteLine();
-            Console.WriteLine(toolchain.Backend.Compile(asm));
-            Console.WriteLine();
 
-            var vm = new VirtualMachine(asm);
+            var vm = new VirtualMachine(b.Assembly.Check(new Lir.Status.BuildStatus()));
             var res = vm.Execute("main", new List<Value> { });
             Console.WriteLine($"VM result = {res}");
 
-            var err = toolchain.Compile(build);
-            Console.WriteLine($"Toolchain exit code: {err}");
+            toolchain.Compile(build);
+            Console.WriteLine($"Errors: {build.HasErrors}");
             Console.WriteLine();
             foreach (var (name, timeSpan) in build.Metrics.TimeMetrics)
             {

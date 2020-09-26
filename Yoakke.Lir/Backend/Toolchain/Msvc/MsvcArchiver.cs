@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Yoakke.Lir.Backend.Toolchain.Msvc
@@ -15,15 +16,13 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
 
         public override void Execute(Build build)
         {
-            // Escape file names
-            var unescapedObjectFiles = (IList<string>)build.Extra["objectFiles"];
-            var objectFiles = string.Join(' ', unescapedObjectFiles.Select(f => $"\"{f}\""));
+            Debug.Assert(build.CheckedAssembly != null);
+            var objectFile = (string)build.Extra["objectFile"];
             // Escape extra binaries
-            var unescapedExtraBinaries = (IList<string>)build.Extra["externalBinaries"];
-            var extraBinaries = string.Join(' ', unescapedExtraBinaries.Select(f => $"\"{f}\""));
+            var extraBinaries = string.Join(' ', build.CheckedAssembly.BinaryReferences.Select(r => $"\"{r}\""));
             // Construct the command
             var targetMachineId = GetTargetMachineId(build.TargetTriplet);
-            var command = $"LIB /NOLOGO /MACHINE:{targetMachineId} /OUT:\"{build.OutputPath}\" {objectFiles} {extraBinaries}";
+            var command = $"LIB /NOLOGO /MACHINE:{targetMachineId} /OUT:\"{build.OutputPath}\" \"{objectFile}\" {extraBinaries}";
             // Run it
             InvokeWithEnvironment(command, build);
         }

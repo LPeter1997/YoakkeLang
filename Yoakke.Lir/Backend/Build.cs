@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Yoakke.Lir.Passes;
 using Yoakke.Lir.Status;
 
 namespace Yoakke.Lir.Backend
@@ -31,6 +32,14 @@ namespace Yoakke.Lir.Backend
         /// </summary>
         public UncheckedAssembly? Assembly { get; set; }
         /// <summary>
+        /// The already checked <see cref="Assembly"/>.
+        /// </summary>
+        public Assembly? CheckedAssembly { get; set; }
+        /// <summary>
+        /// The <see cref="ICodePass"/> to perform on the checked assembly.
+        /// </summary>
+        public ICodePass? CodePass { get; set; }
+        /// <summary>
         /// Any extra information the build needs to carry.
         /// </summary>
         public readonly IDictionary<string, object> Extra = new Dictionary<string, object>();
@@ -46,7 +55,7 @@ namespace Yoakke.Lir.Backend
 
         public bool HasErrors => Status.Errors.Count != 0;
 
-        public void Report(IBuildWarning warning) => Status.Warnings.Add(warning);
-        public void Report(IBuildError error) => Status.Errors.Add(error);
+        public void Report(IBuildWarning warning) => Status.Report(warning);
+        public void Report(IBuildError error) => Status.Report(error);
     }
 }
