@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Yoakke.Lir.Status;
 using Type = Yoakke.Lir.Types.Type;
 
 namespace Yoakke.Lir.Instructions
@@ -35,16 +36,16 @@ namespace Yoakke.Lir.Instructions
 
             public override string ToString() => $"{Result} = alloc {Allocated}";
 
-            public override void Validate()
+            public override void Validate(BuildStatus status)
             {
                 if (!(Result.Type is Type.Ptr resultPtr))
                 {
-                    ThrowValidationException("Result type must be a pointer!");
+                    ReportValidationError(status, "Result type must be a pointer!");
                     return; // NOTE: Unnecessary
                 }
                 if (!resultPtr.Subtype.Equals(Allocated))
                 {
-                    ThrowValidationException("Type mismatch between the allocated type and the storage pointer's subtype!");
+                    ReportValidationError(status, "Type mismatch between the allocated type and the storage pointer's subtype!");
                 }
             }
         }

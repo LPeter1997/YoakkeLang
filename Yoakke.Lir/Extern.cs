@@ -1,4 +1,5 @@
 ﻿using System;
+using Yoakke.Lir.Status;
 using Yoakke.Lir.Values;
 using Type = Yoakke.Lir.Types.Type;
 
@@ -7,7 +8,7 @@ namespace Yoakke.Lir
     /// <summary>
     /// An external symbol.
     /// </summary>
-    public class Extern : Value, ISymbol
+    public class Extern : Value, ISymbol, IValidate
     {
         public override Type Type { get; }
         public string Name { get; }
@@ -39,7 +40,7 @@ namespace Yoakke.Lir
         // NOTE: Makes no sense to clone this
         public override Value Clone() => this;
 
-        public void Validate()
+        public void Validate(BuildStatus status)
         {
             // No-op
         }

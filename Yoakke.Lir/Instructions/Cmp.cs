@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Yoakke.Lir.Status;
 using Yoakke.Lir.Values;
 using Type = Yoakke.Lir.Types.Type;
 
@@ -98,15 +99,15 @@ namespace Yoakke.Lir.Instructions
             public override string ToString() => 
                 $"{Result} = cmp {Comparison} {Left.ToValueString()}, {Right.ToValueString()}";
 
-            public override void Validate()
+            public override void Validate(BuildStatus status)
             {
                 if (!(Result.Type is Type.Int))
                 {
-                    ThrowValidationException("Result type of comparison must be an integer!");
+                    ReportValidationError(status, "Result type of comparison must be an integer!");
                 }
                 if (!(Left.Type.Equals(Right.Type)))
                 {
-                    ThrowValidationException("Type mismatch between operands!");
+                    ReportValidationError(status, "Type mismatch between operands!");
                 }
                 if (Left.Type is Type.Int && Right.Type is Type.Int)
                 {
@@ -117,12 +118,12 @@ namespace Yoakke.Lir.Instructions
                     // Allowed, if comparison is equality
                     if (Comparison != Comparison.eq && Comparison != Comparison.ne)
                     {
-                        ThrowValidationException("User types can only be equality compared!");
+                        ReportValidationError(status, "User types can only be equality compared!");
                     }
                 }
                 else
                 {
-                    ThrowValidationException("Unsupported comparison types!");
+                    ReportValidationError(status, "Unsupported comparison types!");
                 }
             }
         }

@@ -22,15 +22,17 @@ namespace Yoakke.Lir.Backend.Backends
                targetTriplet.CpuFamily == CpuFamily.X86
             && targetTriplet.OperatingSystem == OperatingSystem.Windows;
 
-        public string Compile(Assembly assembly)
+        public void Compile(Build build)
         {
             code.Clear();
             code.AppendLine(".386")
                 .AppendLine(".MODEL flat");
-            var x86asm = X86Assembler.Assemble(assembly);
-            CompileAssembly(x86asm);
+            // TODO
+            //var x86asm = X86Assembler.Assemble(assembly);
+            //CompileAssembly(x86asm);
             code.AppendLine("END");
-            return code.ToString();
+            // TODO
+            //return code.ToString();
         }
 
         private void CompileAssembly(X86Assembly assembly)

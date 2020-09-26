@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Yoakke.Lir.Status;
 using Yoakke.Lir.Values;
 
 namespace Yoakke.Lir.Instructions
@@ -36,11 +37,11 @@ namespace Yoakke.Lir.Instructions
 
             public override string ToString() => $"ret {Value.ToValueString()}";
 
-            public override void Validate()
+            public override void Validate(BuildStatus status)
             {
                 if (!BasicBlock.Proc.Return.Equals(Value.Type))
                 {
-                    ThrowValidationException("Return type mismatch!");
+                    ReportValidationError(status, "Return type mismatch!");
                 }
             }
         }

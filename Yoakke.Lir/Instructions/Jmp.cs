@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Yoakke.Lir.Status;
 
 namespace Yoakke.Lir.Instructions
 {
@@ -35,11 +36,11 @@ namespace Yoakke.Lir.Instructions
 
             public override string ToString() => $"jmp {Target.Name}";
 
-            public override void Validate()
+            public override void Validate(BuildStatus status)
             {
                 if (Target.Proc != BasicBlock.Proc)
                 {
-                    ThrowValidationException("Cross-procedure jump is illegal!");
+                    ReportValidationError(status, "Cross-procedure jump is illegal!");
                 }
             }
         }

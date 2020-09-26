@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Yoakke.Lir.Status;
 using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;
 
@@ -48,15 +49,15 @@ namespace Yoakke.Lir.Instructions
         public override string ToString() => 
             $"{Result} = {Keyword} {Left.ToValueString()}, {Right.ToValueString()}";
 
-        public override void Validate()
+        public override void Validate(BuildStatus status)
         {
             if (!Left.Type.Equals(Right.Type))
             {
-                ThrowValidationException("Operand type mismatch!");
+                ReportValidationError(status, "Operand type mismatch!");
             }
             if (!Result.Type.Equals(Left.Type))
             {
-                ThrowValidationException("The bitwise result does not match the result storage type!");
+                ReportValidationError(status, "The bitwise result does not match the result storage type!");
             }
             if (Left.Type is Type.Int)
             {
@@ -64,7 +65,7 @@ namespace Yoakke.Lir.Instructions
             }
             else
             {
-                ThrowValidationException("Unsupported operand type!");
+                ReportValidationError(status, "Unsupported operand type!");
             }
         }
     }

@@ -53,7 +53,6 @@ namespace Yoakke.Lir.Backend.Toolchain
         /// Compiles the given <see cref="Build"/>.
         /// </summary>
         /// <param name="build">The <see cref="Build"/> definition for the compilation.</param>
-        /// <returns>The error code. 0 if succeeded.</returns>
-        public int Compile(Build build);
+        public void Compile(Build build);
     }
 }

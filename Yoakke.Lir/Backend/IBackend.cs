@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using Yoakke.Lir.Status;
 
 namespace Yoakke.Lir.Backend
 {
@@ -15,18 +16,9 @@ namespace Yoakke.Lir.Backend
         public bool IsSupported(TargetTriplet targetTriplet);
 
         /// <summary>
-        /// Compiles the given <see cref="Assembly"/> to the backend's representation.
+        /// Compiles the given <see cref="Build"/>s <see cref="Assembly"/> to the backend's representation.
         /// </summary>
-        /// <param name="assembly">The <see cref="Assembly"/> to compile.</param>
-        /// <returns>The string representation of the backend.</returns>
-        public string Compile(Assembly assembly);
-
-        /// <summary>
-        /// Compiles the given <see cref="Assembly"/> to the backend's representation.
-        /// </summary>
-        /// <param name="assembly">The <see cref="Assembly"/> to compile.</param>
-        /// <param name="outputPath">The path of the output file.</param>
-        public void Compile(Assembly assembly, string outputPath) =>
-            File.WriteAllText(outputPath, Compile(assembly));
+        /// <param name="build">The <see cref="Build"/> to work on.</param>
+        public void Compile(Build build);
     }
 }

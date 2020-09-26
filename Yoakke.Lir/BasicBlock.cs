@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Net.NetworkInformation;
 using Yoakke.Lir.Instructions;
+using Yoakke.Lir.Status;
 
 namespace Yoakke.Lir
 {
@@ -43,36 +45,37 @@ namespace Yoakke.Lir
         public override string ToString() => 
             $"label {Name}:\n{string.Join('\n', Instructions.Select(i => $"    {i}"))}";
 
-        public void Validate()
+        public void Validate(BuildStatus status)
         {
             // Check emptyness
             if (Instructions.Count == 0)
             {
-                ThrowValidationException("A basic block cannot be empty!");
+                ReportValidationError(status, "A basic block cannot be empty!");
             }
             // Check basic block assumptions
             if (Instructions.SkipLast(1).Any(ins => ins.IsBranch))
             {
-                ThrowValidationException("A basic block can only contain jump or return instructions at the end!");
+                ReportValidationError(status, "A basic block can only contain jump or return instructions at the end!");
             }
             if (!EndsInBranch)
             {
-                ThrowValidationException("A basic block must end in a jump or return instruction!");
+                ReportValidationError(status, "A basic block must end in a jump or return instruction!");
             }
             // Check instructions
             foreach (var ins in Instructions)
             {
                 if (ins.BasicBlock != this)
                 {
-                    throw new ValidationException(ins, "The instruction is not linked to it's containing basic block!");
+                    var err = new ValidationError(ins, "The instruction is not linked to it's containing basic block!");
+                    status.Errors.Add(err);
                 }
-                ins.Validate();
+                ins.Validate(status);
             }
         }
 
-        private void ThrowValidationException(string message)
+        private void ReportValidationError(BuildStatus status, string message)
         {
-            throw new ValidationException(this, message);
+            status.Errors.Add(new ValidationError(this, message));
         }
     }
 }

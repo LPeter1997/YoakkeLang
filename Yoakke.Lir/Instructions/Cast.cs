@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Yoakke.Lir.Status;
 using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;
 
@@ -45,11 +46,11 @@ namespace Yoakke.Lir.Instructions
 
             public override string ToString() => $"{Result} = cast {Target}, {Value.ToValueString()}";
 
-            public override void Validate()
+            public override void Validate(BuildStatus status)
             {
                 if (!Result.Type.Equals(Target))
                 {
-                    ThrowValidationException("The cast type must match the result storage type!");
+                    ReportValidationError(status, "The cast type must match the result storage type!");
                 }
                 if (Target is Type.Ptr && Value.Type is Type.Ptr)
                 {
@@ -57,7 +58,7 @@ namespace Yoakke.Lir.Instructions
                 }
                 else
                 {
-                    ThrowValidationException("No such cast!");
+                    ReportValidationError(status, "No such cast!");
                 }
             }
         }

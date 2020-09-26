@@ -9,7 +9,6 @@
         /// Links the given source files.
         /// </summary>
         /// <param name="build">The <see cref="Build"/> definition for the compilation.</param>
-        /// <returns>The error code. 0 if succeeded.</returns>
-        public int Link(Build build) => Execute(build);
+        public void Link(Build build) => Execute(build);
     }
 }

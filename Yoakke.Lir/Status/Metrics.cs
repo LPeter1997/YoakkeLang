@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace Yoakke.Lir
+namespace Yoakke.Lir.Status
 {
     /// <summary>
     /// A collection of metrics for the compilation.

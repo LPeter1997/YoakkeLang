@@ -13,7 +13,7 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
         {
         }
 
-        public override int Execute(Build build)
+        public override void Execute(Build build)
         {
             // Escape file names
             var unescapedObjectFiles = (IList<string>)build.Extra["objectFiles"];
@@ -25,7 +25,7 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
             var targetMachineId = GetTargetMachineId(build.TargetTriplet);
             var command = $"LIB /NOLOGO /MACHINE:{targetMachineId} /OUT:\"{build.OutputPath}\" {objectFiles} {extraBinaries}";
             // Run it
-            return InvokeWithEnvironment(command, build.TargetTriplet);
+            InvokeWithEnvironment(command, build);
         }
 
         public override string ToString() => $"LIB-{Version}";

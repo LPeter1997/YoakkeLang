@@ -14,7 +14,7 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
         {
         }
 
-        public override int Execute(Build build)
+        public override void Execute(Build build)
         {
             // Escape file names
             var unescapedObjectFiles = (IList<string>)build.Extra["objectFiles"];
@@ -23,14 +23,17 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
             var unescapedExtraBinaries = (IList<string>)build.Extra["externalBinaries"];
             var extraBinaries = string.Join(' ', unescapedExtraBinaries.Select(f => $"\"{f}\""));
             // Construct the command
-            var entry = build.OutputKind == OutputKind.Executable ? $"/ENTRY:\"{build.EntryPoint}\"" : string.Empty;
-            var exports = string.Join(' ', build.Exports.Select(e => $"/EXPORT:\"{e.Name}\""));
+            // TODO
+            string entryPoint = "";
+            var entry = build.OutputKind == OutputKind.Executable ? $"/ENTRY:\"{entryPoint}\"" : string.Empty;
+            // TODO
+            var exports = "";//string.Join(' ', build.Exports.Select(e => $"/EXPORT:\"{e.Name}\""));
             var outputKindFlag = GetOutputKindFlag(build.OutputKind);
             var targetMachineId = GetTargetMachineId(build.TargetTriplet);
             var extraFiles = GetExtraFiles(build.OutputKind);
             var command = $"LINK /NOLOGO {outputKindFlag} {exports} /MACHINE:{targetMachineId} {entry} /OUT:\"{build.OutputPath}\" {objectFiles} {extraFiles} {extraBinaries}";
             // Run it
-            return InvokeWithEnvironment(command, build.TargetTriplet);
+            InvokeWithEnvironment(command, build);
         }
 
         private static string GetExtraFiles(OutputKind outputKind) => outputKind switch

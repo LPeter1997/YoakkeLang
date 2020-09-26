@@ -1,4 +1,6 @@
-﻿namespace Yoakke.Lir.Backend.Toolchain
+﻿using Yoakke.Lir.Status;
+
+namespace Yoakke.Lir.Backend.Toolchain
 {
     /// <summary>
     /// Interface for archivers.
@@ -9,7 +11,6 @@
         /// Archives the given source files.
         /// </summary>
         /// <param name="build">The <see cref="Build"/> definition for the compilation.</param>
-        /// <returns>The error code. 0 if succeeded.</returns>
-        public int Archive(Build build) => Execute(build);
+        public void Archive(Build build) => Execute(build);
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Text;
+using Yoakke.Lir.Status;
 
 namespace Yoakke.Lir.Backend.Toolchain.Msvc
 {
@@ -24,9 +25,9 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
             this.vcVarsAllPath = vcVarsAllPath;
         }
 
-        protected int InvokeWithEnvironment(string command, TargetTriplet targetTriplet)
+        protected void InvokeWithEnvironment(string command, Build build)
         {
-            var archId = GetTargetMachineId(targetTriplet);
+            var archId = GetTargetMachineId(build.TargetTriplet);
             var proc = new Process
             {
                 StartInfo = new ProcessStartInfo
@@ -47,10 +48,8 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
             proc.WaitForExit();
             if (proc.ExitCode != 0)
             {
-                Console.Error.WriteLine($"Command '{command}' failed to run!");
-                Console.Error.Write(outputBuilder);
+                build.Report(new ToolchainError(this, command, outputBuilder.ToString()));
             }
-            return proc.ExitCode;
         }
 
         protected static string GetTargetMachineId(TargetTriplet targetTriplet) => targetTriplet.CpuFamily switch
@@ -63,6 +62,6 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
                targetTriplet.CpuFamily == CpuFamily.X86 
             && targetTriplet.OperatingSystem == OperatingSystem.Windows;
 
-        public abstract int Execute(Build build);
+        public abstract void Execute(Build build);
     }
 }

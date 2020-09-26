@@ -1,4 +1,6 @@
-﻿namespace Yoakke.Lir.Backend.Toolchain
+﻿using Yoakke.Lir.Status;
+
+namespace Yoakke.Lir.Backend.Toolchain
 {
     /// <summary>
     /// An interface for tools in the <see cref="IToolchain"/>.
@@ -21,7 +23,6 @@
         /// Executes this tool.
         /// </summary>
         /// <param name="build">The <see cref="Build"/> definition for the compilation.</param>
-        /// <returns>The exit code. 0 on success.</returns>
-        public int Execute(Build build);
+        public void Execute(Build build);
     }
 }

@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using Yoakke.Lir.Types;
+using Type = Yoakke.Lir.Types.Type;
 
 namespace Yoakke.Lir
 {
@@ -21,7 +23,26 @@ namespace Yoakke.Lir
         /// If null, the procedure named "main" will be chosen, or the singleton, if there's 
         /// only one procedure defined.
         /// </summary>
-        public Proc? EntryPoint { get; set; }
+        public Proc EntryPoint 
+        { 
+            get
+            {
+                // If it's explicitly given, use that
+                if (entryPoint is not null) return entryPoint;
+                // Search from the public ones
+                var publicProcs = Procedures.Where(p => p.Visibility == Visibility.Public);
+                // Try one named main
+                var main = publicProcs.FirstOrDefault(p => p.Name == "main");
+                if (main is not null) return main;
+                // Try the first one
+                var first = publicProcs.FirstOrDefault();
+                if (first is not null) return first;
+
+                throw new InvalidOperationException("No procedure is suitable as an entry point!");
+            }
+            set => entryPoint = value; 
+        }
+        private Proc? entryPoint;
 
         /// <summary>
         /// The <see cref="Extern"/>s the <see cref="Assembly"/> references.
@@ -59,7 +80,7 @@ namespace Yoakke.Lir
         internal Assembly(UncheckedAssembly uncheckedAssembly)
         {
             Name = uncheckedAssembly.Name;
-            EntryPoint = uncheckedAssembly.EntryPoint;
+            entryPoint = uncheckedAssembly.EntryPoint;
             Externals = uncheckedAssembly.Externals.ToArray();
             Globals = uncheckedAssembly.Globals.ToArray();
             Structs = uncheckedAssembly.Structs.ToArray();

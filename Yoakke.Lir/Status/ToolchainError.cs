@@ -1,0 +1,26 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Yoakke.Lir.Backend.Toolchain;
+
+namespace Yoakke.Lir.Status
+{
+    /// <summary>
+    /// A toolchain error.
+    /// </summary>
+    public class ToolchainError : IBuildError
+    {
+        public readonly ITool Tool;
+        public readonly string Command;
+        public readonly string Message;
+
+        public ToolchainError(ITool tool, string command, string message)
+        {
+            Tool = tool;
+            Command = command;
+            Message = message;
+        }
+    }
+}

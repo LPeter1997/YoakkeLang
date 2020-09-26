@@ -15,7 +15,7 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
         {
         }
 
-        public override int Execute(Build build)
+        public override void Execute(Build build)
         {
             // File names
             var assemblyFiles = (IList<string>)build.Extra["assemblyFiles"];
@@ -33,12 +33,10 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
                 Debug.Assert(outputPath != null);
                 var command = makeCommand(outputPath, assemblyFile);
                 // Execute
-                var errCode = InvokeWithEnvironment(command, build.TargetTriplet);
-                if (errCode != 0) return errCode;
+                InvokeWithEnvironment(command, build);
                 // Append it to object files
                 objectFiles.Add(outputPath);
             }
-            return 0;
         }
 
         public override string ToString() => $"ML-{Version}";

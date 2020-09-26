@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Yoakke.Lir.Status;
 using Yoakke.Lir.Values;
 using Type = Yoakke.Lir.Types.Type;
 
@@ -49,20 +50,20 @@ namespace Yoakke.Lir.Instructions
                 $"{Result} = call {Procedure.ToValueString()}" +
                 $"({string.Join(", ", Arguments.Select(arg => arg.ToValueString()))})";
 
-            public override void Validate()
+            public override void Validate(BuildStatus status)
             {
                 if (!(Procedure.Type is Type.Proc procType))
                 {
-                    ThrowValidationException("The procedure value must be of a procedure type!");
+                    ReportValidationError(status, "The procedure value must be of a procedure type!");
                     return; // NOTE: This is not needed
                 }
                 if (!Result.Type.Equals(procType.Return))
                 {
-                    ThrowValidationException("The result storage type must match with the call result!");
+                    ReportValidationError(status, "The result storage type must match with the call result!");
                 }
                 if (!procType.Parameters.SequenceEqual(Arguments.Select(arg => arg.Type)))
                 {
-                    ThrowValidationException("Argument type mismatch!");
+                    ReportValidationError(status, "Argument type mismatch!");
                 }
             }
         }

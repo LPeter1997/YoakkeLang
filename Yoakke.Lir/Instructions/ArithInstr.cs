@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Yoakke.Lir.Status;
 using Yoakke.Lir.Values;
 using Type = Yoakke.Lir.Types.Type;
 
@@ -49,19 +50,19 @@ namespace Yoakke.Lir.Instructions
         public override string ToString() => 
             $"{Result} = {Keyword} {Left.ToValueString()}, {Right.ToValueString()}";
 
-        public override void Validate()
+        public override void Validate(BuildStatus status)
         {
             try
             {
                 var resultTy = CommonArithmeticType(Left.Type, Right.Type);
                 if (!Result.Type.Equals(resultTy))
                 {
-                    ThrowValidationException("The arithmetic result does not match the result storage type!");
+                    ReportValidationError(status, "The arithmetic result does not match the result storage type!");
                 }
             }
             catch (ArgumentException ex)
             {
-                throw new ValidationException(this, "See inner exception.", ex);
+                ReportValidationError(status, ex.Message);
             }
         }
 

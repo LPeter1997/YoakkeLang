@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Yoakke.Lir.Status;
 using Yoakke.Lir.Values;
 using Type = Yoakke.Lir.Types.Type;
 
@@ -53,19 +54,19 @@ namespace Yoakke.Lir.Instructions
             public override string ToString() => 
                 $"{Result} = elementptr {Value.ToValueString()}, {Index.Value}";
 
-            public override void Validate()
+            public override void Validate(BuildStatus status)
             {
                 try
                 {
                     var subtype = AccessedSubtype(Value.Type, Index.Value);
                     if (!Result.Type.Equals(subtype))
                     {
-                        ThrowValidationException("The result type does not match the result storage type!");
+                        ReportValidationError(status, "The result type does not match the result storage type!");
                     }
                 }
                 catch (ArgumentException ex)
                 {
-                    throw new ValidationException(this, "See inner exception.", ex);
+                    ReportValidationError(status, ex.Message);
                 }
             }
 

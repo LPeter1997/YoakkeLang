@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Yoakke.Lir.Status;
 using Type = Yoakke.Lir.Types.Type;
 
 namespace Yoakke.Lir
@@ -57,20 +58,20 @@ namespace Yoakke.Lir
             Name = name;
         }
 
-        public Assembly Check()
+        public Assembly Check(BuildStatus status)
         {
-            Validate();
+            Validate(status);
             return new Assembly(this);
         }
 
-        public void Validate()
+        public void Validate(BuildStatus status)
         {
             // We check for user-types in externals
             foreach (var ext in Externals)
             {
                 if (ext.Type.Equals(Type.User_))
                 {
-                    throw new ValidationException(ext, "Externals can't be of user types!");
+                    status.Errors.Add(new ValidationError(ext, "Externals can't be of user types!"));
                 }
             }
             // We check name duplication for symbols
@@ -79,11 +80,11 @@ namespace Yoakke.Lir
             {
                 if (!symbolNames.Add(sym.Name))
                 {
-                    throw new ValidationException(sym, "Symbol name already present in the assembly!");
+                    status.Errors.Add(new ValidationError((IValidate)sym, "Symbol name already present in the assembly!"));
                 }
             }
             // TODO: Check circularity for struct definitions?
-            foreach (var proc in Procedures) proc.Validate();
+            foreach (var proc in Procedures) proc.Validate(status);
         } 
     }
 }

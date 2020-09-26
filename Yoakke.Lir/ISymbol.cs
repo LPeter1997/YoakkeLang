@@ -5,7 +5,7 @@ namespace Yoakke.Lir
     /// <summary>
     /// Anything that has a name and can be exported in a DLL.
     /// </summary>
-    public interface ISymbol : IValidate
+    public interface ISymbol
     {
         /// <summary>
         /// The <see cref="Type"/> of this <see cref="ISymbol"/>.

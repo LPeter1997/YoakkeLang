@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Yoakke.DataStructures;
 using Yoakke.Lir.Instructions;
+using Yoakke.Lir.Status;
 using Yoakke.Lir.Values;
 using Type = Yoakke.Lir.Types.Type;
 
@@ -11,7 +12,7 @@ namespace Yoakke.Lir
     /// <summary>
     /// An IR procedure.
     /// </summary>
-    public class Proc : Value, ISymbol
+    public class Proc : Value, ISymbol, IValidate
     {
         internal static readonly Proc Null = new Proc(" <null> ");
 
@@ -74,15 +75,15 @@ namespace Yoakke.Lir
         // NOTE: Makes no sense to clone this
         public override Value Clone() => this;
 
-        public void Validate()
+        public void Validate(BuildStatus status)
         {
             foreach (var bb in BasicBlocks)
             {
                 if (bb.Proc != this)
                 {
-                    throw new ValidationException(bb, "The basic block is not linked to the containing procedure!");
+                    status.Errors.Add(new ValidationError(bb, "The basic block is not linked to the containing procedure!"));
                 }
-                bb.Validate();
+                bb.Validate(status);
             }
         }
 

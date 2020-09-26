@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Yoakke.Lir.Status;
 
 namespace Yoakke.Lir.Instructions
 {
@@ -22,11 +23,11 @@ namespace Yoakke.Lir.Instructions
 
         public abstract override string ToString();
 
-        public abstract void Validate();
+        public abstract void Validate(BuildStatus status);
 
-        protected void ThrowValidationException(string message)
+        protected void ReportValidationError(BuildStatus status, string message)
         {
-            throw new ValidationException(this, message);
+            status.Errors.Add(new ValidationError(this, message));
         }
     }
 }
