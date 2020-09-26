@@ -77,9 +77,9 @@ namespace Yoakke.Compiler
             Console.WriteLine("\n");
 
             Debug.Assert(build.CheckedAssembly != null);
-            //var vm = new VirtualMachine(build.CheckedAssembly);
-            //var res = vm.Execute("main", new List<Value> { });
-            //Console.WriteLine($"VM result = {res}");
+            var vm = new VirtualMachine(build.CheckedAssembly);
+            var res = vm.Execute("main", new List<Value> { });
+            Console.WriteLine($"VM result = {res}");
 
             Console.WriteLine();
             foreach (var (name, timeSpan) in build.Metrics.TimeMetrics)

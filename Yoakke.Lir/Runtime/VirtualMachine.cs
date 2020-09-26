@@ -24,16 +24,18 @@ namespace Yoakke.Lir.Runtime
         private IDictionary<object, int> addresses;
         private IDictionary<Extern, IntPtr> externals;
         private IDictionary<Global, PtrValue> globalsToPointers;
+        private IDictionary<Const, PtrValue> constantsToPointers;
 
         // Runtime
         private Stack<StackFrame> callStack = new Stack<StackFrame>();
         private List<byte[]> memorySegments = new List<byte[]>();
         private List<byte[]> globalMemorySegments = new List<byte[]>();
+        private List<byte[]> constantMemorySegments = new List<byte[]>();
         private Value returnValue = Value.Void_;
         private int instructionPointer;
         private SizeContext sizeContext = new SizeContext
         {
-            PointerSize = 8,
+            PointerSize = 9,
             UserSize = 4,
         };
         // Runtime for user data
@@ -53,6 +55,7 @@ namespace Yoakke.Lir.Runtime
             addresses = new Dictionary<object, int>();
             externals = new Dictionary<Extern, IntPtr>();
             globalsToPointers = new Dictionary<Global, PtrValue>();
+            constantsToPointers = new Dictionary<Const, PtrValue>();
             CompileAssembly();
         }
 
@@ -64,7 +67,7 @@ namespace Yoakke.Lir.Runtime
         {
             // TODO: Finish procedure and call it
             //LoadExternals();
-            AllocateGlobals();
+            AllocateConstantsAndGlobals();
             FlattenCode();
         }
 
@@ -100,16 +103,23 @@ namespace Yoakke.Lir.Runtime
 #endif
         }
 
-        private void AllocateGlobals()
+        private void AllocateConstantsAndGlobals()
         {
-            // NOTE: We add a 0th index global that'll never be referred to.
-            // This is so we can use negatives to annotate globals
-            globalMemorySegments.Add(new byte[0]);
+            foreach (var constant in Assembly.Constants)
+            {
+                var buffer = new byte[SizeOf(constant.UnderlyingType)];
+                var span = buffer.AsSpan();
+                WriteToManagedMemory(ref span, constant.Value);
+                var segmentIndex = constantMemorySegments.Count;
+                var ptr = new PtrValue(PtrPlacement.Constants, segmentIndex, constant.UnderlyingType);
+                constantsToPointers.Add(constant, ptr);
+                constantMemorySegments.Add(buffer);
+            }
             foreach (var global in Assembly.Globals)
             {
                 var buffer = new byte[SizeOf(global.UnderlyingType)];
                 var segmentIndex = globalMemorySegments.Count;
-                var ptr = new PtrValue(-segmentIndex, global.UnderlyingType);
+                var ptr = new PtrValue(PtrPlacement.Globals, segmentIndex, global.UnderlyingType);
                 globalsToPointers.Add(global, ptr);
                 globalMemorySegments.Add(buffer);
             }
@@ -248,6 +258,11 @@ namespace Yoakke.Lir.Runtime
                 {
                     // We just make it a pointer!
                     address = globalsToPointers[globalVal];
+                }
+                else if (address is Const constVal)
+                {
+                    // We just make it a pointer!
+                    address = constantsToPointers[constVal];
                 }
                 if (address is PtrValue ptrVal)
                 {
@@ -451,7 +466,7 @@ namespace Yoakke.Lir.Runtime
             var buffer = new byte[SizeOf(type)];
             var segmentIndex = memorySegments.Count;
             memorySegments.Add(buffer);
-            return new PtrValue(segmentIndex, type);
+            return new PtrValue(PtrPlacement.StackFrame, segmentIndex, type);
         }
 
         private int SizeOf(Value value) => SizeOf(value.Type);
@@ -460,9 +475,13 @@ namespace Yoakke.Lir.Runtime
         private Value ReadManagedPtr(PtrValue value)
         {
             var typeToRead = value.BaseType;
-            byte[] memory;
-            if (value.Segment >= 0) memory = memorySegments[value.Segment];
-            else memory = globalMemorySegments[-value.Segment];
+            byte[] memory = value.Placement switch
+            {
+                PtrPlacement.StackFrame => memorySegments[value.Segment],
+                PtrPlacement.Globals => globalMemorySegments[value.Segment],
+                PtrPlacement.Constants => constantMemorySegments[value.Segment],
+                _ => throw new NotImplementedException(),
+            };
             var segment = memory.AsSpan().Slice(value.Offset);
             return ReadFromManagedMemory(ref segment, typeToRead);
         }
@@ -483,10 +502,11 @@ namespace Yoakke.Lir.Runtime
             {
                 // TODO: We can't differentiate between native and managed pointers!
                 // This could very well be some native pointer
-                var segment = BitConverter.ToInt32(bytes.Slice(0, 4));
-                var offset = BitConverter.ToInt32(bytes.Slice(4, 4));
-                bytes = bytes.Slice(8);
-                return new PtrValue(segment, p.Subtype) { Offset = offset };
+                var placement = (PtrPlacement)bytes[0];
+                var segment = BitConverter.ToInt32(bytes.Slice(1, 4));
+                var offset = BitConverter.ToInt32(bytes.Slice(5, 4));
+                bytes = bytes.Slice(9);
+                return new PtrValue(placement, segment, p.Subtype) { Offset = offset };
             }
 
             case Type.User:
@@ -502,9 +522,13 @@ namespace Yoakke.Lir.Runtime
 
         private void WriteManagedPtr(PtrValue ptr, Value value)
         {
-            byte[] memory;
-            if (ptr.Segment >= 0) memory = memorySegments[ptr.Segment];
-            else memory = globalMemorySegments[-ptr.Segment];
+            byte[] memory = ptr.Placement switch
+            {
+                PtrPlacement.StackFrame => memorySegments[ptr.Segment],
+                PtrPlacement.Globals => globalMemorySegments[ptr.Segment],
+                PtrPlacement.Constants => constantMemorySegments[ptr.Segment],
+                _ => throw new NotImplementedException(),
+            };
             var segment = memory.AsSpan().Slice(ptr.Offset);
             WriteToManagedMemory(ref segment, value);
         }
@@ -522,11 +546,13 @@ namespace Yoakke.Lir.Runtime
 
             case PtrValue p:
             {
+                var placement = (byte)p.Placement;
                 var segment = BitConverter.GetBytes(p.Segment);
                 var offset = BitConverter.GetBytes(p.Offset);
-                segment.CopyTo(bytes);
-                offset.CopyTo(bytes.Slice(4));
-                bytes = bytes.Slice(8);
+                bytes[0] = placement;
+                segment.CopyTo(bytes.Slice(1));
+                offset.CopyTo(bytes.Slice(5));
+                bytes = bytes.Slice(9);
             }
             break;
 
