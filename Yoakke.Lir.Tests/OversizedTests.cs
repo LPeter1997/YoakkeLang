@@ -312,7 +312,6 @@ namespace Yoakke.Lir.Tests
         {
             var b = GetBuilder(Type.I64);
             b.Ret(b.BitNot(Type.I64.NewValue(0x04813baa599ef4a0)));
-            // TODO: Is this correct? Two's complement is confusing
             TestOnAllBackends<Func<Int64>>(b, Type.I64.NewValue(-0x4813baa599ef4a1));
         }
 

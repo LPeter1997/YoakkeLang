@@ -5,6 +5,8 @@
     /// </summary>
     public enum OutputKind
     {
+        Ir,
+        Assembly,
         Object,
         Executable,
         StaticLibrary,

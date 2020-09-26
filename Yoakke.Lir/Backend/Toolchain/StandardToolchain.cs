@@ -66,6 +66,13 @@ namespace Yoakke.Lir.Backend.Toolchain
                 build.Metrics.EndTime();
             }
 
+            if (build.OutputKind == OutputKind.Ir)
+            {
+                // We exit here, as the IR is in it's final form
+                build.Metrics.EndTime();
+                return;
+            }
+
             // Make sure our intermediates directory exists
             Directory.CreateDirectory(build.IntermediatesDirectory);
 
@@ -85,7 +92,7 @@ namespace Yoakke.Lir.Backend.Toolchain
             Assembler.Assemble(build);
             build.Metrics.EndTime();
 
-            if (build.HasErrors)
+            if (build.OutputKind == OutputKind.Assembly || build.HasErrors)
             {
                 build.Metrics.EndTime();
                 return;

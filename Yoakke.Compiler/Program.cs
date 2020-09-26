@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Yoakke.DataStructures;
 using Yoakke.Lir;
@@ -77,12 +78,20 @@ namespace Yoakke.Compiler
                 CodePass = new CodePassSet(),
             };
 
-            var vm = new VirtualMachine(b.Assembly.Check(new Lir.Status.BuildStatus()));
+            toolchain.Compile(build);
+            
+            Console.WriteLine($"Errors: {build.HasErrors}");
+            Console.WriteLine("\n");
+            Console.WriteLine(build.GetIrCode());
+            Console.WriteLine("\n");
+            Console.WriteLine(build.GetAssemblyCode());
+            Console.WriteLine("\n");
+
+            Debug.Assert(build.CheckedAssembly != null);
+            var vm = new VirtualMachine(build.CheckedAssembly);
             var res = vm.Execute("main", new List<Value> { });
             Console.WriteLine($"VM result = {res}");
 
-            toolchain.Compile(build);
-            Console.WriteLine($"Errors: {build.HasErrors}");
             Console.WriteLine();
             foreach (var (name, timeSpan) in build.Metrics.TimeMetrics)
             {

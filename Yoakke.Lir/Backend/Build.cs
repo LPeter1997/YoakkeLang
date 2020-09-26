@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using Yoakke.Lir.Passes;
 using Yoakke.Lir.Status;
 
@@ -57,5 +59,13 @@ namespace Yoakke.Lir.Backend
 
         public void Report(IBuildWarning warning) => Status.Report(warning);
         public void Report(IBuildError error) => Status.Report(error);
+
+        public string GetIrCode()
+        {
+            if (CheckedAssembly == null) throw new InvalidOperationException();
+            return CheckedAssembly.ToString();
+        }
+
+        public string GetAssemblyCode() => File.ReadAllText((string)Extra["assemblyFile"]);
     }
 }
