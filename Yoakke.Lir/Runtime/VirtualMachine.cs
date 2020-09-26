@@ -10,6 +10,9 @@ using Type = Yoakke.Lir.Types.Type;
 
 namespace Yoakke.Lir.Runtime
 {
+    // NOTE: There's still a big problem with native memory: reading from it. It won't be out data format, which is
+    // especailly important for our custom pointer types!
+
     /// <summary>
     /// A virtual machine to execute IR code directly.
     /// </summary>
