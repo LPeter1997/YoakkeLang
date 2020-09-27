@@ -18,6 +18,7 @@ namespace Yoakke.Syntax
         private TextReader reader;
         private Cursor cursor = new Cursor();
 
+        private StringBuilder peekBuffer = new StringBuilder();
 
         /// <summary>
         /// Returns an <see cref="IEnumerable{Token}"/> for the given <see cref="TextReader"/>, that lexes
