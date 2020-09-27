@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 
 namespace Yoakke.Lir.Backend.Toolchain.Msvc
@@ -10,18 +11,14 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
     /// </summary>
     public class MsvcLinker : MsvcToolBase, ILinker
     {
-        public MsvcLinker(string version, string vcVarsAllPath) 
-            : base(version, vcVarsAllPath)
+        public MsvcLinker(string version, string msvcSdk, string windowsSdk, string windowsSdkVer)
+            : base(version, msvcSdk, windowsSdk, windowsSdkVer)
         {
         }
 
         public override void Execute(Build build)
         {
             Debug.Assert(build.CheckedAssembly != null);
-            // Escape file names
-            var objectFile = (string)build.Extra["objectFile"];
-            // Escape extra binaries
-            var extraBinaries = string.Join(' ', build.CheckedAssembly.BinaryReferences.Select(r => $"\"{r}\""));
             // Construct the command
             var entry = build.OutputKind == OutputKind.Executable 
                 ? $"/ENTRY:\"{build.CheckedAssembly.EntryPoint.Name}\"" 
@@ -30,10 +27,22 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
             var exports = string.Join(' ', publicSymbols.Select(sym => $"/EXPORT:\"{sym.Name}\""));
             var outputKindFlag = GetOutputKindFlag(build.OutputKind);
             var targetMachineId = GetTargetMachineId(build.TargetTriplet);
+
+            // Binaries to pass
             var extraFiles = GetExtraFiles(build.OutputKind);
-            var command = $"LINK /NOLOGO {outputKindFlag} {exports} /MACHINE:{targetMachineId} {entry} /OUT:\"{build.OutputPath}\" {objectFile} {extraFiles} {extraBinaries}";
+            var objectFile = $"\"{(string)build.Extra["objectFile"]}\"";
+            var extraBinaries = string.Join(' ', build.CheckedAssembly.BinaryReferences.Select(r => $"\"{r}\""));
+            var allFiles = $"{objectFile} {extraFiles} {extraBinaries}";
+
+            // Library paths
+            var msvcLibPath = Path.Combine(MsvcSdk, "lib", targetMachineId);
+            var winumLibPath = Path.Combine(WindowsSdk, "Lib", WindowsSdkVersion, "um", targetMachineId);
+            var winucrtLibPath = Path.Combine(WindowsSdk, "Lib", WindowsSdkVersion, "ucrt", targetMachineId);
+            var allLibPaths = $"/LIBPATH:\"{msvcLibPath}\" /LIBPATH:\"{winumLibPath}\" /LIBPATH:\"{winucrtLibPath}\"";
+
+            var arguments = $"/NOLOGO {allLibPaths} {outputKindFlag} {exports} /MACHINE:{targetMachineId} {entry} /OUT:\"{build.OutputPath}\" {allFiles}";
             // Run it
-            InvokeWithEnvironment(command, build);
+            InvokeWithEnvironment("LINK.exe", arguments, build);
         }
 
         private static string GetExtraFiles(OutputKind outputKind) => outputKind switch

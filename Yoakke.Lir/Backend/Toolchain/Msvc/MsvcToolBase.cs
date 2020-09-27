@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
 using Yoakke.Lir.Status;
 
@@ -10,30 +11,36 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
     /// </summary>
     public abstract class MsvcToolBase : ITool
     {
-        private string vcVarsAllPath;
-
         public string Version { get; }
+        protected string MsvcSdk { get; }
+        protected string WindowsSdk { get; }
+        protected string WindowsSdkVersion { get; }
 
         /// <summary>
         /// Initializes a new <see cref="MsvcToolBase"/>.
         /// </summary>
         /// <param name="version">The version string.</param>
-        /// <param name="vcVarsAllPath">The path to the 'vcvarsall' tool.</param>
-        public MsvcToolBase(string version, string vcVarsAllPath)
+        /// <param name="msvcSdk">The path to the MSVC SDK.</param>
+        /// <param name="windowsSdk">The path to the Windows SDK.</param>
+        /// <param name="windowsSdkVer">The Windows SDK version.</param>
+        public MsvcToolBase(string version, string msvcSdk, string windowsSdk, string windowsSdkVer)
         {
             Version = version;
-            this.vcVarsAllPath = vcVarsAllPath;
+            MsvcSdk = msvcSdk;
+            WindowsSdk = windowsSdk;
+            WindowsSdkVersion = windowsSdkVer;
         }
 
-        protected void InvokeWithEnvironment(string command, Build build)
+        protected void InvokeWithEnvironment(string toolName, string arguments, Build build)
         {
             var archId = GetTargetMachineId(build.TargetTriplet);
+            var toolPath = Path.Combine(MsvcSdk, "bin", "Hostx86", archId, toolName);
             var proc = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
-                    FileName = "cmd.exe",
-                    Arguments = $"/C (\"{vcVarsAllPath}\" {archId}) && ({command})",
+                    FileName = toolPath,
+                    Arguments = arguments,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     CreateNoWindow = true,
@@ -48,7 +55,8 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
             proc.WaitForExit();
             if (proc.ExitCode != 0)
             {
-                build.Report(new ToolchainError(this, command, outputBuilder.ToString()));
+                var fullCommand = $"\"{toolPath}\" {arguments}";
+                build.Report(new ToolchainError(this, fullCommand, outputBuilder.ToString()));
             }
         }
 

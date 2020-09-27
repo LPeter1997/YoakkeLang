@@ -9,8 +9,8 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
     /// </summary>
     public class MsvcArchiver : MsvcToolBase, IArchiver
     {
-        public MsvcArchiver(string version, string vcVarsAllPath) 
-            : base(version, vcVarsAllPath)
+        public MsvcArchiver(string version, string msvcSdk, string windowsSdk, string windowsSdkVer)
+            : base(version, msvcSdk, windowsSdk, windowsSdkVer)
         {
         }
 
@@ -22,9 +22,9 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
             var extraBinaries = string.Join(' ', build.CheckedAssembly.BinaryReferences.Select(r => $"\"{r}\""));
             // Construct the command
             var targetMachineId = GetTargetMachineId(build.TargetTriplet);
-            var command = $"LIB /NOLOGO /MACHINE:{targetMachineId} /OUT:\"{build.OutputPath}\" \"{objectFile}\" {extraBinaries}";
+            var arguments = $"/NOLOGO /MACHINE:{targetMachineId} /OUT:\"{build.OutputPath}\" \"{objectFile}\" {extraBinaries}";
             // Run it
-            InvokeWithEnvironment(command, build);
+            InvokeWithEnvironment("LIB.exe", arguments, build);
         }
 
         public override string ToString() => $"LIB-{Version}";

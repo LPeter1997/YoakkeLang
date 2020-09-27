@@ -10,8 +10,8 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
     /// </summary>
     public class MsvcAssembler : MsvcToolBase, IAssembler
     {
-        public MsvcAssembler(string version, string vcVarsAllPath) 
-            : base(version, vcVarsAllPath)
+        public MsvcAssembler(string version, string msvcSdk, string windowsSdk, string windowsSdkVer)
+            : base(version, msvcSdk, windowsSdk, windowsSdkVer)
         {
         }
 
@@ -25,9 +25,9 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
             // The actual file name to invoke
             var ml = build.TargetTriplet.CpuFamily == CpuFamily.X86 ? "ML" : "ML64";
             // Create the command
-            var command = $"{ml} /nologo /Fo \"{outputPath}\" /c \"{assemblyFile}\"";
+            var arguments = $"/nologo /Fo \"{outputPath}\" /c \"{assemblyFile}\"";
             // Call it
-            InvokeWithEnvironment(command, build);
+            InvokeWithEnvironment(ml, arguments, build);
         }
 
         public override string ToString() => $"ML-{Version}";

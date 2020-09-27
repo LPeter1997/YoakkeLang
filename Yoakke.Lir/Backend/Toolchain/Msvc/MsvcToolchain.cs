@@ -18,12 +18,12 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
 
         public override string Version { get; }
 
-        public MsvcToolchain(string version, string vcVarsAllPath)
+        public MsvcToolchain(string version, string msvcSdk, string windowsSdk, string windowsSdkVer)
         {
             Version = version;
-            Assembler = new MsvcAssembler(version, vcVarsAllPath);
-            Linker = new MsvcLinker(version, vcVarsAllPath);
-            Archiver = new MsvcArchiver(version, vcVarsAllPath);
+            Assembler = new MsvcAssembler(version, msvcSdk, windowsSdk, windowsSdkVer);
+            Linker = new MsvcLinker(version, msvcSdk, windowsSdk, windowsSdkVer);
+            Archiver = new MsvcArchiver(version, msvcSdk, windowsSdk, windowsSdkVer);
         }
 
         public override string ToString() => $"msvc-{Version}";
