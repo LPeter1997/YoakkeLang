@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using Yoakke.DataStructures;
 using Yoakke.Lir;
@@ -10,6 +11,7 @@ using Yoakke.Lir.Instructions;
 using Yoakke.Lir.Passes;
 using Yoakke.Lir.Runtime;
 using Yoakke.Lir.Values;
+using Yoakke.Syntax;
 using OperatingSystem = Yoakke.Lir.Backend.OperatingSystem;
 using Type = Yoakke.Lir.Types.Type;
 
@@ -39,7 +41,7 @@ namespace Yoakke.Compiler
             {
                 CommandLineApplication.Execute<Compiler>(args);
             }
-#elif true
+#elif false
 
             var uncheckedAsm = new UncheckedAssembly("test_app");
             var b = new Builder(uncheckedAsm);
@@ -87,6 +89,31 @@ namespace Yoakke.Compiler
                 Console.WriteLine($"{name} took: {(int)timeSpan.TotalMilliseconds} ms");
             }
 #endif
+
+            var src = @"
+            const Outer = struct {
+                var m: Inner;
+            };
+            const Inner = struct {
+                var n: i32;
+            };
+""foob
+ar""
+            const foo = proc() -> i32 { 
+                var v = Outer {
+                    m = Inner {
+                        n = 42;
+                    };
+                };
+                var inner = v.m;
+                inner.n = 63;
+                v.m.n
+            };
+";
+            foreach (var t in Lexer.Lex(new StringReader(src)))
+            {
+                Console.WriteLine($"{t.Value} - {t.Type} [{t.Span.Start.Line}:{t.Span.Start.Column}]");
+            }
         }
     }
 }
