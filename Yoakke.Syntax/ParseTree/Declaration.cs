@@ -73,16 +73,16 @@ namespace Yoakke.Syntax.ParseTree
         }
 
         /// <summary>
-        /// A constant <see cref="Declaration"/>.
+        /// A constant or variable definition.
         /// </summary>
-        public class Const : Declaration
+        public class Definition : Declaration
         {
-            public override Span Span => new Span(Const_.Span, Semicolon.Span);
+            public override Span Span => new Span(Keyword.Span, Semicolon.Span);
             public override IEnumerable<IParseTreeElement> Children
             {
                 get
                 {
-                    yield return Const_;
+                    yield return Keyword;
                     yield return Name;
                     if (Colon != null) yield return Colon;
                     if (Type != null) yield return Type;
@@ -92,40 +92,58 @@ namespace Yoakke.Syntax.ParseTree
                 }
             }
 
-#pragma warning disable CS8618
             /// <summary>
             /// The documentation comment.
             /// </summary>
-            public CommentGroup? Doc { get; init; }
+            public readonly CommentGroup? Doc;
             /// <summary>
-            /// The 'const' keyword.
+            /// The 'const' or 'var' keyword.
             /// </summary>
-            public Token Const_ { get; init; }
+            public readonly Token Keyword;
             /// <summary>
             /// The name identifier.
             /// </summary>
-            public Token Name { get; init; }
+            public readonly Token Name;
             /// <summary>
             /// The colon, if there was a type specifier.
             /// </summary>
-            public Token? Colon { get; init; }
+            public readonly Token? Colon;
             /// <summary>
             /// The type specifier.
             /// </summary>
-            public Expression? Type { get; init; }
+            public readonly Expression? Type;
             /// <summary>
             /// The assignment symbol.
             /// </summary>
-            public Token Assign { get; init; }
+            public readonly Token Assign;
             /// <summary>
             /// The assigned value.
             /// </summary>
-            public Expression Value { get; init; }
+            public readonly Expression Value;
             /// <summary>
             /// The ';' at the end.
             /// </summary>
-            public Token Semicolon { get; init; }
-#pragma warning restore CS8618
+            public readonly Token Semicolon;
+
+            public Definition(
+                CommentGroup? doc, 
+                Token keyword, 
+                Token name, 
+                Token? colon, 
+                Expression? type, 
+                Token assign, 
+                Expression value, 
+                Token semicolon)
+            {
+                Doc = doc;
+                Keyword = keyword;
+                Name = name;
+                Colon = colon;
+                Type = type;
+                Assign = assign;
+                Value = value;
+                Semicolon = semicolon;
+            }
         }
     }
 }
