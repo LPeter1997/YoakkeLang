@@ -86,8 +86,8 @@ namespace Yoakke.Syntax.ParseTree
                     yield return Name;
                     if (Colon != null) yield return Colon;
                     if (Type != null) yield return Type;
-                    yield return Assign;
-                    yield return Value;
+                    if (Assign != null) yield return Assign;
+                    if (Value != null) yield return Value;
                     yield return Semicolon;
                 }
             }
@@ -113,13 +113,13 @@ namespace Yoakke.Syntax.ParseTree
             /// </summary>
             public readonly Expression? Type;
             /// <summary>
-            /// The assignment symbol.
+            /// The assignment symbol, if there was a value assigned.
             /// </summary>
-            public readonly Token Assign;
+            public readonly Token? Assign;
             /// <summary>
             /// The assigned value.
             /// </summary>
-            public readonly Expression Value;
+            public readonly Expression? Value;
             /// <summary>
             /// The ';' at the end.
             /// </summary>
