@@ -82,8 +82,11 @@ namespace Yoakke.Syntax
             // Single-line comment
             if (Matches("//"))
             {
+                char Map(char ch, char from, char to) => ch == from ? to : from;
+
                 int len = 2;
-                for (; Peek(len, '\n') != '\n'; ++len) ;
+                // NOTE: A bit hairy logic but basically both EOF and \r become \n
+                for (; Map(Peek(len, '\n'), '\r', '\n') != '\n'; ++len) ;
                 return MakeToken(TokenType.LineComment, len);
             }
 
