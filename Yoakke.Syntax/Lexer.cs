@@ -8,33 +8,38 @@ using Yoakke.Text;
 
 namespace Yoakke.Syntax
 {
-    // TODO: We could factor out a SourceReader that wraps around a TextReader to track position?
-
     /// <summary>
     /// The lexer that splits the input into <see cref="Token"/>s.
     /// </summary>
     public class Lexer
     {
+        public readonly IList<ISyntaxError> Errors = new List<ISyntaxError>();
+
         private TextReader reader;
         private Cursor cursor = new Cursor();
 
         private StringBuilder peekBuffer = new StringBuilder();
 
         /// <summary>
-        /// Returns an <see cref="IEnumerable{Token}"/> for the given <see cref="TextReader"/>, that lexes
+        /// Returns an <see cref="IList{Token}"/> for the given <see cref="TextReader"/>, that lexes
         /// until EOF is read.
         /// </summary>
         /// <param name="reader">The <see cref="TextReader"/> to read from.</param>
-        /// <returns>The <see cref="IEnumerable{Token}"/> of the lexed input.</returns>
-        public static IEnumerable<Token> Lex(TextReader reader)
+        /// <returns>The <see cref="IList{Token}"/> of the lexed input.</returns>
+        public static IList<Token> Lex(TextReader reader, out IList<ISyntaxError> errors)
         {
             var lexer = new Lexer(reader);
+            errors = lexer.Errors;
+            var result = new List<Token>();
+
             while (true)
             {
                 var t = lexer.Next();
-                yield return t;
+                result.Add(t);
                 if (t.Type == TokenType.End) break;
             }
+
+            return result;
         }
 
         /// <summary>
@@ -139,17 +144,17 @@ namespace Yoakke.Syntax
                 // Determine if keyword
                 var tokenType = ident.Value switch
                 {
-                    "proc" => TokenType.KwProc,
-                    "const" => TokenType.KwConst,
-                    "struct" => TokenType.KwStruct,
-                    "true" => TokenType.KwTrue,
-                    "false" => TokenType.KwFalse,
-                    "if" => TokenType.KwIf,
-                    "else" => TokenType.KwElse,
-                    "while" => TokenType.KwWhile,
-                    "var" => TokenType.KwVar,
-                    "return" => TokenType.KwReturn,
-                    _ => TokenType.Identifier,
+                    "proc"   => TokenType.KwProc    ,
+                    "const"  => TokenType.KwConst   ,
+                    "struct" => TokenType.KwStruct  ,
+                    "true"   => TokenType.KwTrue    ,
+                    "false"  => TokenType.KwFalse   ,
+                    "if"     => TokenType.KwIf      ,
+                    "else"   => TokenType.KwElse    ,
+                    "while"  => TokenType.KwWhile   ,
+                    "var"    => TokenType.KwVar     ,
+                    "return" => TokenType.KwReturn  ,
+                    _        => TokenType.Identifier,
                 };
 
                 return new Token(ident.Span, tokenType, ident.Value);
@@ -163,10 +168,10 @@ namespace Yoakke.Syntax
                     var peek = Peek(len);
                     if (peek == '\0')
                     {
-                        // TODO: Error
-                        //var start = position;
-                        //Consume(i - 1);
-                        //throw new UnclosedDelimeterError(start, position, "string literal");
+                        // Unclosed token, report an error
+                        var tok = MakeToken(TokenType.StringLiteral, len);
+                        Errors.Add(new UnclosedTokenError(tok, "\""));
+                        return tok;
                     }
                     if (peek == '"') break;
                     if (peek == '\\') len += 2;
@@ -218,5 +223,30 @@ namespace Yoakke.Syntax
 
         private static bool IsIdent(char ch) =>
             char.IsLetterOrDigit(ch) || ch == '_';
+    }
+
+    /// <summary>
+    /// An error for a token that was missing it's closing delimiter, like an ending quote for
+    /// strings.
+    /// </summary>
+    public class UnclosedTokenError : ISyntaxError
+    {
+        /// <summary>
+        /// The lexed token.
+        /// </summary>
+        public readonly Token Token;
+        /// <summary>
+        /// The expected closing delimiter.
+        /// </summary>
+        public readonly string Close;
+
+        public UnclosedTokenError(Token token, string close)
+        {
+            Token = token;
+            Close = close;
+        }
+
+        public string GetErrorMessage() => 
+            $"Unclosed {Token.Type}! Expected {Close} at the end!";
     }
 }

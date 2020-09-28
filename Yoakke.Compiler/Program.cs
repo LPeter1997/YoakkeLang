@@ -110,9 +110,14 @@ ar""
                 v.m.n
             };
 ";
-            foreach (var t in Lexer.Lex(new StringReader(src)))
+            var tokens = Lexer.Lex(new StringReader(src), out var errors);
+            foreach (var t in tokens)
             {
                 Console.WriteLine($"{t.Value} - {t.Type} [{t.Span.Start.Line}:{t.Span.Start.Column}]");
+            }
+            foreach (var err in errors)
+            {
+                Console.WriteLine(err.GetErrorMessage());
             }
         }
     }
