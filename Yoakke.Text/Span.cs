@@ -58,6 +58,20 @@ namespace Yoakke.Text
         }
 
         /// <summary>
+        /// Initializes a new <see cref="Span"/> by arching over two others.
+        /// </summary>
+        /// <param name="from">The starting span.</param>
+        /// <param name="to">The ending span.</param>
+        public Span(Span from, Span to)
+            : this(from.Source, from.Start, to.End)
+        {
+            if (!from.Source.Equals(to.Source))
+            {
+                throw new ArgumentException("The two spans originate from different sources!");
+            }
+        }
+
+        /// <summary>
         /// Checks if a given <see cref="Position"/> is within the bounds of this <see cref="Span"/>.
         /// </summary>
         /// <param name="position">The <see cref="Position"/> to check.</param>

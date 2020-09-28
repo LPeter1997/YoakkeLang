@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -69,6 +70,58 @@ namespace Yoakke.Syntax.ParseTree
                 }
                 return new Span(source, start, end);
             }
+        }
+
+        /// <summary>
+        /// A constant <see cref="Declaration"/>.
+        /// </summary>
+        public class Const : Declaration
+        {
+            public override Span Span => new Span(Const_.Span, Semicolon.Span);
+            public override IEnumerable<IParseTreeElement> Children
+            {
+                get
+                {
+                    yield return Const_;
+                    yield return Name;
+                    if (Colon != null) yield return Colon;
+                    if (Type != null) yield return Type;
+                    yield return Assign;
+                    yield return Value;
+                    yield return Semicolon;
+                }
+            }
+
+#pragma warning disable CS8618
+            /// <summary>
+            /// The 'const' keyword.
+            /// </summary>
+            public Token Const_ { get; init; }
+            /// <summary>
+            /// The name identifier.
+            /// </summary>
+            public Token Name { get; init; }
+            /// <summary>
+            /// The colon, if there was a type specifier.
+            /// </summary>
+            public Token? Colon { get; init; }
+            /// <summary>
+            /// The type specifier.
+            /// </summary>
+            public Expression? Type { get; init; }
+            /// <summary>
+            /// The assignment symbol.
+            /// </summary>
+            public Token Assign { get; init; }
+            /// <summary>
+            /// The assigned value.
+            /// </summary>
+            public Expression Value { get; init; }
+            /// <summary>
+            /// The ';' at the end.
+            /// </summary>
+            public Token Semicolon { get; init; }
+#pragma warning restore CS8618
         }
     }
 }
