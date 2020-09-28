@@ -10,6 +10,10 @@ namespace Yoakke.Text
 #pragma warning restore CS0660, CS0661
     {
         /// <summary>
+        /// The <see cref="SourceFile"/> this <see cref="Span"/> originates from.
+        /// </summary>
+        public readonly SourceFile Source;
+        /// <summary>
         /// The first <see cref="Position"/> that's inside this <see cref="Span"/>.
         /// </summary>
         public readonly Position Start;
@@ -21,12 +25,14 @@ namespace Yoakke.Text
         /// <summary>
         /// Initializes a new <see cref="Span"/>.
         /// </summary>
+        /// <param name="source">The <see cref="SourceFile"/> this span originates from.</param>
         /// <param name="start">The first <see cref="Position"/> that's inside this span.</param>
         /// <param name="end">The first <see cref="Position"/> after this span.</param>
-        public Span(Position start, Position end)
+        public Span(SourceFile source, Position start, Position end)
         {
             if (end < start) throw new ArgumentException("The end can't be smaller than the start!");
 
+            Source = source;
             Start = start;
             End = end;
         }
@@ -34,15 +40,22 @@ namespace Yoakke.Text
         /// <summary>
         /// Initializes a new <see cref="Span"/>.
         /// </summary>
+        /// <param name="source">The <see cref="SourceFile"/> this span originates from.</param>
         /// <param name="start">The first <see cref="Position"/> that's inside this span.</param>
         /// <param name="length">The length of this span.</param>
-        public Span(Position start, int length)
-            : this(start, start.Advance(length))
+        public Span(SourceFile source, Position start, int length)
+            : this(source, start, start.Advance(length))
         {
         }
 
-        public static bool operator ==(Span s1, Span s2) => s1.Equals(s2);
-        public static bool operator !=(Span s1, Span s2) => !(s1 == s2);
+        /// <summary>
+        /// Initializes a new, empty <see cref="Span"/>.
+        /// </summary>
+        /// <param name="source">The <see cref="SourceFile"/> this span originates from.</param>
+        public Span(SourceFile source)
+            : this(source, new Position(), 0)
+        {
+        }
 
         /// <summary>
         /// Checks if a given <see cref="Position"/> is within the bounds of this <see cref="Span"/>.

@@ -36,13 +36,17 @@ namespace Yoakke.Syntax.ParseTree
             /// </summary>
             public readonly IReadOnlyList<CommentGroup> Comments;
 
+            private readonly SourceFile source;
+
             /// <summary>
             /// Initializes a new <see cref="File"/>.
             /// </summary>
+            /// <param name="source">The <see cref="SourceFile"/> the comments originate from.</param>
             /// <param name="declarations">The <see cref="Declaration"/>s the file contains.</param>
             /// <param name="comments">The free <see cref="CommentGroup"/>s that don't belong to any <see cref="Node"/>.</param>
-            public File(IReadOnlyList<Declaration> declarations, IReadOnlyList<CommentGroup> comments)
+            public File(SourceFile source, IReadOnlyList<Declaration> declarations, IReadOnlyList<CommentGroup> comments)
             {
+                this.source = source;
                 Declarations = declarations;
                 Comments = comments;
             }
@@ -63,7 +67,7 @@ namespace Yoakke.Syntax.ParseTree
                     start = start < start2 ? start : start2;
                     end = end > end2 ? end : end2;
                 }
-                return new Span(start, end);
+                return new Span(source, start, end);
             }
         }
     }

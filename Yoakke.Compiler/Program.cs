@@ -12,6 +12,7 @@ using Yoakke.Lir.Passes;
 using Yoakke.Lir.Runtime;
 using Yoakke.Lir.Values;
 using Yoakke.Syntax;
+using Yoakke.Text;
 using OperatingSystem = Yoakke.Lir.Backend.OperatingSystem;
 using Type = Yoakke.Lir.Types.Type;
 
@@ -110,8 +111,9 @@ ar""
                 v.m.n
             };
 ";
+            var srcFile = new SourceFile("foo.yk", src);
             var status = new SyntaxStatus();
-            var tokens = Lexer.Lex(new StringReader(src), status);
+            var tokens = Lexer.Lex(srcFile, status);
             foreach (var t in tokens)
             {
                 Console.WriteLine($"{t.Value} - {t.Type} [{t.Span.Start.Line}:{t.Span.Start.Column}]");

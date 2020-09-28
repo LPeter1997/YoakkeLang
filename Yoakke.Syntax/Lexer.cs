@@ -18,41 +18,40 @@ namespace Yoakke.Syntax
         /// </summary>
         public SyntaxStatus Status { get; }
 
+        private SourceFile source;
         private TextReader reader;
         private Cursor cursor = new Cursor();
 
         private StringBuilder peekBuffer = new StringBuilder();
 
         /// <summary>
-        /// Returns an <see cref="IList{Token}"/> for the given <see cref="TextReader"/>, that lexes
+        /// Returns an <see cref="IEnumerable{Token}"/> for the given <see cref="SourceFile"/>, that lexes
         /// until EOF is read.
         /// </summary>
-        /// <param name="reader">The <see cref="TextReader"/> to read from.</param>
+        /// <param name="source">The <see cref="SourceFile"/> to lex.</param>
         /// <param name="status">The <see cref="SyntaxStatus"/> to report errors to.</param>
-        /// <returns>The <see cref="IList{Token}"/> of the lexed input.</returns>
-        public static IList<Token> Lex(TextReader reader, SyntaxStatus status)
+        /// <returns>The <see cref="IEnumerable{Token}"/> of the lexed input.</returns>
+        public static IEnumerable<Token> Lex(SourceFile source, SyntaxStatus status)
         {
-            var lexer = new Lexer(reader, status);
-            var result = new List<Token>();
+            var lexer = new Lexer(source, status);
 
             while (true)
             {
                 var t = lexer.Next();
-                result.Add(t);
+                yield return t;
                 if (t.Type == TokenType.End) break;
             }
-
-            return result;
         }
 
         /// <summary>
         /// Initializes a new <see cref="Lexer"/>.
         /// </summary>
-        /// <param name="reader">The <see cref="TextReader"/> to read from.</param>
+        /// <param name="source">The <see cref="SourceFile"/> to lex.</param>
         /// <param name="status">The <see cref="SyntaxStatus"/> to report errors to.</param>
-        public Lexer(TextReader reader, SyntaxStatus status)
+        public Lexer(SourceFile source, SyntaxStatus status)
         {
-            this.reader = reader;
+            this.source = source;
+            reader = new StringReader(source.Text);
             Status = status;
         }
 
@@ -197,7 +196,7 @@ namespace Yoakke.Syntax
         {
             var pos = cursor.Position;
             var content = Consume(len);
-            var span = new Span(pos, cursor.Position);
+            var span = new Span(source, pos, cursor.Position);
             return new Token(span, tokenType, content);
         }
 

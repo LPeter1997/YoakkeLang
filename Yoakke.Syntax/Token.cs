@@ -49,7 +49,7 @@ namespace Yoakke.Syntax
 
         public bool Equals(Token? other) =>
                other is not null 
-            && Span == other.Span 
+            && Span.Equals(other.Span)
             && Type == other.Type 
             && Value == other.Value;
 
