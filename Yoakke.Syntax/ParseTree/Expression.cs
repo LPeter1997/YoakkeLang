@@ -363,5 +363,193 @@ namespace Yoakke.Syntax.ParseTree
                 CloseBrace = closeBrace;
             }
         }
+
+        /// <summary>
+        /// A procedure call.
+        /// </summary>
+        public class Call : Expression
+        {
+            public override Span Span => new Span(Procedure.Span, CloseParen.Span);
+            public override IEnumerable<IParseTreeElement> Children
+            {
+                get
+                {
+                    yield return Procedure;
+                    yield return OpenParen;
+                    foreach (var arg in Arguments) yield return arg;
+                    yield return CloseParen;
+                }
+            }
+
+            /// <summary>
+            /// The called procedure.
+            /// </summary>
+            public readonly Expression Procedure;
+            /// <summary>
+            /// The '('.
+            /// </summary>
+            public readonly Token OpenParen;
+            /// <summary>
+            /// The list of arguments.
+            /// </summary>
+            public readonly IReadOnlyList<WithComma<Expression>> Arguments;
+            /// <summary>
+            /// The ')'.
+            /// </summary>
+            public readonly Token CloseParen;
+
+            public Call(
+                Expression procedure, 
+                Token openParen, 
+                IReadOnlyList<WithComma<Expression>> arguments, 
+                Token closeParen)
+            {
+                Procedure = procedure;
+                OpenParen = openParen;
+                Arguments = arguments;
+                CloseParen = closeParen;
+            }
+        }
+
+        /// <summary>
+        /// An if-else conditional.
+        /// </summary>
+        public class If : Expression
+        {
+            /// <summary>
+            /// An else-if part of an if-expression.
+            /// </summary>
+            public class ElseIf : Expression
+            {
+                public override Span Span => new Span(Else.Span, Then.Span);
+                public override IEnumerable<IParseTreeElement> Children
+                {
+                    get
+                    {
+                        yield return Else;
+                        yield return If_;
+                        yield return Condition;
+                        yield return Then;
+                    }
+                }
+
+                /// <summary>
+                /// The 'else' keyword.
+                /// </summary>
+                public readonly Token Else;
+                /// <summary>
+                /// The 'if' keyword.
+                /// </summary>
+                public readonly Token If_;
+                /// <summary>
+                /// The condition.
+                /// </summary>
+                public readonly Expression Condition;
+                /// <summary>
+                /// The then block.
+                /// </summary>
+                public readonly Block Then;
+
+                public ElseIf(Token @else, Token if_, Expression condition, Block then)
+                {
+                    Else = @else;
+                    If_ = if_;
+                    Condition = condition;
+                    Then = then;
+                }
+            }
+
+            public override Span Span => new Span(If_.Span, Else.Span);
+            public override IEnumerable<IParseTreeElement> Children
+            {
+                get
+                {
+                    yield return If_;
+                    yield return Condition;
+                    yield return Then;
+                    foreach (var elif in ElseIfs) yield return elif;
+                    if (Else_ != null) yield return Else_;
+                    if (Else != null) yield return Else;
+                }
+            }
+
+            /// <summary>
+            /// The 'if' keyword.
+            /// </summary>
+            public readonly Token If_;
+            /// <summary>
+            /// The condition.
+            /// </summary>
+            public readonly Expression Condition;
+            /// <summary>
+            /// The then block.
+            /// </summary>
+            public readonly Block Then;
+            /// <summary>
+            /// The else-if blocks.
+            /// </summary>
+            public readonly IReadOnlyList<ElseIf> ElseIfs;
+            /// <summary>
+            /// The 'else' keyword, if there's an else block.
+            /// </summary>
+            public readonly Token? Else_;
+            /// <summary>
+            /// The else block.
+            /// </summary>
+            public readonly Block Else;
+
+            public If(
+                Token if_, 
+                Expression condition, 
+                Block then, 
+                IReadOnlyList<ElseIf> elseIfs, 
+                Token? else_, 
+                Block @else)
+            {
+                If_ = if_;
+                Condition = condition;
+                Then = then;
+                ElseIfs = elseIfs;
+                Else_ = else_;
+                Else = @else;
+            }
+        }
+
+        /// <summary>
+        /// A while loop.
+        /// </summary>
+        public class While : Expression
+        {
+            public override Span Span => new Span(While_.Span, Body.Span);
+            public override IEnumerable<IParseTreeElement> Children
+            {
+                get
+                {
+                    yield return While_;
+                    yield return Condition;
+                    yield return Body;
+                }
+            }
+
+            /// <summary>
+            /// The 'while' keyword.
+            /// </summary>
+            public readonly Token While_;
+            /// <summary>
+            /// The condition.
+            /// </summary>
+            public readonly Expression Condition;
+            /// <summary>
+            /// The loop body.
+            /// </summary>
+            public readonly Block Body;
+
+            public While(Token while_, Expression condition, Block body)
+            {
+                While_ = while_;
+                Condition = condition;
+                Body = body;
+            }
+        }
     }
 }
