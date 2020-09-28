@@ -76,7 +76,7 @@ namespace Yoakke.Lir
             {
                 if (ext.Type.Equals(Type.User_))
                 {
-                    status.Errors.Add(new ValidationError(ext, "Externals can't be of user types!"));
+                    status.Report(new ValidationError(ext, "Externals can't be of user types!"));
                 }
             }
             // We check name duplication for symbols
@@ -85,7 +85,7 @@ namespace Yoakke.Lir
             {
                 if (!symbolNames.Add(sym.Name))
                 {
-                    status.Errors.Add(new ValidationError((IValidate)sym, "Symbol name already present in the assembly!"));
+                    status.Report(new ValidationError((IValidate)sym, "Symbol name already present in the assembly!"));
                 }
             }
             // TODO: Check circularity for struct definitions?

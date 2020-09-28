@@ -67,7 +67,7 @@ namespace Yoakke.Lir
                 if (ins.BasicBlock != this)
                 {
                     var err = new ValidationError(ins, "The instruction is not linked to it's containing basic block!");
-                    status.Errors.Add(err);
+                    status.Report(err);
                 }
                 ins.Validate(status);
             }
@@ -75,7 +75,7 @@ namespace Yoakke.Lir
 
         private void ReportValidationError(BuildStatus status, string message)
         {
-            status.Errors.Add(new ValidationError(this, message));
+            status.Report(new ValidationError(this, message));
         }
     }
 }

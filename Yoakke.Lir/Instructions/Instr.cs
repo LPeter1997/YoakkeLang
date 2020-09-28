@@ -27,7 +27,7 @@ namespace Yoakke.Lir.Instructions
 
         protected void ReportValidationError(BuildStatus status, string message)
         {
-            status.Errors.Add(new ValidationError(this, message));
+            status.Report(new ValidationError(this, message));
         }
     }
 }

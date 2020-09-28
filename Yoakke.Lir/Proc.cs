@@ -81,7 +81,7 @@ namespace Yoakke.Lir
             {
                 if (bb.Proc != this)
                 {
-                    status.Errors.Add(new ValidationError(bb, "The basic block is not linked to the containing procedure!"));
+                    status.Report(new ValidationError(bb, "The basic block is not linked to the containing procedure!"));
                 }
                 bb.Validate(status);
             }
