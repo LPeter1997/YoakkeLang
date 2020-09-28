@@ -33,10 +33,6 @@ namespace Yoakke.Syntax.ParseTree
             }
 
             /// <summary>
-            /// The documentation comment.
-            /// </summary>
-            public readonly CommentGroup? Doc;
-            /// <summary>
             /// The 'return' keyword.
             /// </summary>
             public readonly Token Return_;
@@ -49,7 +45,7 @@ namespace Yoakke.Syntax.ParseTree
             /// </summary>
             public readonly Token Semicolon;
 
-            public Return(CommentGroup? doc, Token return_, Expression? value, Token semicolon)
+            public Return(Token return_, Expression? value, Token semicolon)
             {
                 Doc = doc;
                 Return_ = return_;
