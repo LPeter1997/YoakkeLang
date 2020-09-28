@@ -12,16 +12,7 @@ namespace Yoakke.Syntax.ParseTree
     /// </summary>
     public abstract class Node : IParseTreeElement
     {
-        /// <summary>
-        /// The source <see cref="Span"/> of this <see cref="Node"/>.
-        /// </summary>
         public abstract Span Span { get; }
-
-        /// <summary>
-        /// All of the children of this <see cref="Node"/>.
-        /// </summary>
-        public abstract IEnumerable<IParseTreeElement> Children { get; }
-
         public virtual IEnumerable<Token> Tokens
         {
             get
@@ -37,5 +28,10 @@ namespace Yoakke.Syntax.ParseTree
                 }
             }
         }
+
+        /// <summary>
+        /// All of the children of this <see cref="Node"/>.
+        /// </summary>
+        public abstract IEnumerable<IParseTreeElement> Children { get; }
     }
 }
