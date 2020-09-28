@@ -82,7 +82,6 @@ namespace Yoakke.Syntax.ParseTree
             {
                 get
                 {
-                    if (Doc != null) yield return Doc;
                     yield return Const_;
                     yield return Name;
                     if (Colon != null) yield return Colon;
