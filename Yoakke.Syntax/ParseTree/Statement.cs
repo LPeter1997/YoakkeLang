@@ -47,9 +47,38 @@ namespace Yoakke.Syntax.ParseTree
 
             public Return(Token return_, Expression? value, Token semicolon)
             {
-                Doc = doc;
                 Return_ = return_;
                 Value = value;
+                Semicolon = semicolon;
+            }
+        }
+
+        public class Expression : Statement
+        {
+            public override Span Span => new Span(Expression_.Span, Semicolon?.Span ?? Expression_.Span);
+            public override IEnumerable<IParseTreeElement> Children
+            {
+                get
+                {
+                    yield return Expression_;
+                    if (Semicolon != null) yield return Semicolon;
+                }
+            }
+
+            /// <summary>
+            /// The <see cref="Expression"/> in <see cref="Statement"/> placement.
+            /// </summary>
+            public readonly ParseTree.Expression Expression_;
+            /// <summary>
+            /// The ';'.
+            /// </summary>
+            public readonly Token? Semicolon;
+
+            public Expression(
+                ParseTree.Expression expression_, 
+                Token? semicolon)
+            {
+                Expression_ = expression_;
                 Semicolon = semicolon;
             }
         }

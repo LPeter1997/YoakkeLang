@@ -551,5 +551,116 @@ namespace Yoakke.Syntax.ParseTree
                 Body = body;
             }
         }
+
+        /// <summary>
+        /// An <see cref="Expression"/> with two operands.
+        /// </summary>
+        public class Binary : Expression
+        {
+            public override Span Span => new Span(Left.Span, Right.Span);
+            public override IEnumerable<IParseTreeElement> Children
+            {
+                get
+                {
+                    yield return Left;
+                    yield return Operator;
+                    yield return Right;
+                }
+            }
+
+            /// <summary>
+            /// The left-hand side operand.
+            /// </summary>
+            public readonly Expression Left;
+            /// <summary>
+            /// The operator.
+            /// </summary>
+            public readonly Token Operator;
+            /// <summary>
+            /// The right-hand side operand.
+            /// </summary>
+            public readonly Expression Right;
+
+            public Binary(Expression left, Token @operator, Expression right)
+            {
+                Left = left;
+                Operator = @operator;
+                Right = right;
+            }
+        }
+
+        /// <summary>
+        /// A dot-path access.
+        /// </summary>
+        public class DotPath : Expression
+        {
+            public override Span Span => new Span(Left.Span, Right.Span);
+            public override IEnumerable<IParseTreeElement> Children
+            {
+                get
+                {
+                    yield return Left;
+                    yield return Operator;
+                    yield return Right;
+                }
+            }
+
+            /// <summary>
+            /// The left-hand side operand.
+            /// </summary>
+            public readonly Expression Left;
+            /// <summary>
+            /// The dot operator.
+            /// </summary>
+            public readonly Token Operator;
+            /// <summary>
+            /// The right-hand side identifier.
+            /// </summary>
+            public readonly Token Right;
+
+            public DotPath(Expression left, Token @operator, Token right)
+            {
+                Left = left;
+                Operator = @operator;
+                Right = right;
+            }
+        }
+
+        /// <summary>
+        /// An <see cref="Expression"/> inside parenthesis.
+        /// </summary>
+        public class Parenthesized : Expression
+        {
+            public override Span Span => new Span(OpenParen.Span, CloseParen.Span);
+            public override IEnumerable<IParseTreeElement> Children
+            {
+                get
+                {
+                    yield return OpenParen;
+                    yield return Inside;
+                    yield return CloseParen;
+                }
+            }
+
+            /// <summary>
+            /// The '('.
+            /// </summary>
+            public readonly Token OpenParen;
+            /// <summary>
+            /// The contained expression.
+            /// </summary>
+            public readonly Expression Inside;
+            /// <summary>
+            /// The ')'.
+            /// </summary>
+            public readonly Token CloseParen;
+
+            public Parenthesized(Token openParen, Expression inside, Token closeParen)
+            {
+                OpenParen = openParen;
+                Inside = inside;
+                CloseParen = closeParen;
+            }
+        }
     }
 }
