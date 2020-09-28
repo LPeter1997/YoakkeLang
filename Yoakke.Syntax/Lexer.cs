@@ -65,7 +65,7 @@ namespace Yoakke.Syntax
             while (true)
             {
                 var t = NextInternal();
-                if (t != null) return t.Value;
+                if (t != null) return t;
             }
         }
 

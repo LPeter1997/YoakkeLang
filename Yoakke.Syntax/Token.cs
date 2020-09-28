@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using Yoakke.Syntax.ParseTree;
 using Yoakke.Text;
 
 namespace Yoakke.Syntax
@@ -10,14 +12,17 @@ namespace Yoakke.Syntax
     /// <summary>
     /// Represents an atom in the language's grammar as the lowest level element of parsing.
     /// </summary>
-#pragma warning disable CS0660, CS0661 // No reason to override Equals or GetHashCode
-    public readonly struct Token
-#pragma warning restore CS0660, CS0661
+    public class Token : IEquatable<Token>, IParseTreeElement
     {
-        /// <summary>
-        /// The source <see cref="Span"/> of this <see cref="Token"/>.
-        /// </summary>
-        public readonly Span Span;
+        public Span Span { get; }
+        public IEnumerable<Token> Tokens
+        {
+            get
+            {
+                yield return this;
+            }
+        }
+
         /// <summary>
         /// The <see cref="TokenType"/> of this <see cref="Token"/>.
         /// </summary>
@@ -40,8 +45,15 @@ namespace Yoakke.Syntax
             Value = value;
         }
 
-        public static bool operator ==(Token t1, Token t2) => t1.Equals(t2);
-        public static bool operator !=(Token t1, Token t2) => !(t1 == t2);
+        public override bool Equals(object? obj) => obj is Token t && Equals(t);
+
+        public bool Equals(Token? other) =>
+               other is not null 
+            && Span == other.Span 
+            && Type == other.Type 
+            && Value == other.Value;
+
+        public override int GetHashCode() => HashCode.Combine(Span, Type, Value);
     }
 
     /// <summary>
