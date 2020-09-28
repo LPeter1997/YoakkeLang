@@ -114,21 +114,25 @@ namespace Yoakke.Syntax
             case '*': return MakeToken(TokenType.Multiply, 1);
             case '/': return MakeToken(TokenType.Divide, 1);
             case '%': return MakeToken(TokenType.Modulo, 1);
+            case '~': return MakeToken(TokenType.Bitnot, 1);
+            case '^': return MakeToken(TokenType.Bitxor, 1);
             case '>':
                 if (Peek(1) == '=') return MakeToken(TokenType.GreaterEqual, 2);
+                if (Peek(1) == '>') return MakeToken(TokenType.RightShift, 2);
                 return MakeToken(TokenType.Greater, 1);
             case '<':
                 if (Peek(1) == '=') return MakeToken(TokenType.LessEqual, 2);
+                if (Peek(1) == '<') return MakeToken(TokenType.LeftShift, 2);
                 return MakeToken(TokenType.Less, 1);
             case '!':
                 if (Peek(1) == '=') return MakeToken(TokenType.NotEqual, 2);
                 return MakeToken(TokenType.Not, 1);
             case '&':
                 if (Peek(1) == '&') return MakeToken(TokenType.And, 2);
-                break; // TODO: Bitand?
+                return MakeToken(TokenType.Bitand, 1);
             case '|':
                 if (Peek(1) == '|') return MakeToken(TokenType.Or, 2);
-                break; // TODO: Bitor?
+                return MakeToken(TokenType.Bitor, 1);
             }
 
             // Literals

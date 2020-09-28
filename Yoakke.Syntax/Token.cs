@@ -176,6 +176,30 @@ namespace Yoakke.Syntax
         /// '!'.
         /// </summary>
         Not,
+        /// <summary>
+        /// '&'.
+        /// </summary>
+        Bitand,
+        /// <summary>
+        /// '|'.
+        /// </summary>
+        Bitor,
+        /// <summary>
+        /// '^'.
+        /// </summary>
+        Bitxor,
+        /// <summary>
+        /// '~'.
+        /// </summary>
+        Bitnot,
+        /// <summary>
+        /// '<<'.
+        /// </summary>
+        LeftShift,
+        /// <summary>
+        /// '>>'.
+        /// </summary>
+        RightShift,
 
         // Literal values
 
