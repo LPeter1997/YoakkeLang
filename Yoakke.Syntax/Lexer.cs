@@ -13,7 +13,10 @@ namespace Yoakke.Syntax
     /// </summary>
     public class Lexer
     {
-        public readonly IList<ISyntaxError> Errors = new List<ISyntaxError>();
+        /// <summary>
+        /// The <see cref="SyntaxStatus"/> this <see cref="Lexer"/> reports to.
+        /// </summary>
+        public SyntaxStatus Status { get; }
 
         private TextReader reader;
         private Cursor cursor = new Cursor();
@@ -25,11 +28,11 @@ namespace Yoakke.Syntax
         /// until EOF is read.
         /// </summary>
         /// <param name="reader">The <see cref="TextReader"/> to read from.</param>
+        /// <param name="status">The <see cref="SyntaxStatus"/> to report errors to.</param>
         /// <returns>The <see cref="IList{Token}"/> of the lexed input.</returns>
-        public static IList<Token> Lex(TextReader reader, out IList<ISyntaxError> errors)
+        public static IList<Token> Lex(TextReader reader, SyntaxStatus status)
         {
-            var lexer = new Lexer(reader);
-            errors = lexer.Errors;
+            var lexer = new Lexer(reader, status);
             var result = new List<Token>();
 
             while (true)
@@ -46,9 +49,11 @@ namespace Yoakke.Syntax
         /// Initializes a new <see cref="Lexer"/>.
         /// </summary>
         /// <param name="reader">The <see cref="TextReader"/> to read from.</param>
-        public Lexer(TextReader reader)
+        /// <param name="status">The <see cref="SyntaxStatus"/> to report errors to.</param>
+        public Lexer(TextReader reader, SyntaxStatus status)
         {
             this.reader = reader;
+            Status = status;
         }
 
         /// <summary>
@@ -170,7 +175,7 @@ namespace Yoakke.Syntax
                     {
                         // Unclosed token, report an error
                         var tok = MakeToken(TokenType.StringLiteral, len);
-                        Errors.Add(new UnclosedTokenError(tok, "\""));
+                        Status.Report(new UnclosedTokenError(tok, "\""));
                         return tok;
                     }
                     if (peek == '"') break;

@@ -110,12 +110,13 @@ ar""
                 v.m.n
             };
 ";
-            var tokens = Lexer.Lex(new StringReader(src), out var errors);
+            var status = new SyntaxStatus();
+            var tokens = Lexer.Lex(new StringReader(src), status);
             foreach (var t in tokens)
             {
                 Console.WriteLine($"{t.Value} - {t.Type} [{t.Span.Start.Line}:{t.Span.Start.Column}]");
             }
-            foreach (var err in errors)
+            foreach (var err in status.Errors)
             {
                 Console.WriteLine(err.GetErrorMessage());
             }
