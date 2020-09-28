@@ -82,6 +82,7 @@ namespace Yoakke.Syntax.ParseTree
             {
                 get
                 {
+                    if (Doc != null) yield return Doc;
                     yield return Const_;
                     yield return Name;
                     if (Colon != null) yield return Colon;
@@ -93,6 +94,10 @@ namespace Yoakke.Syntax.ParseTree
             }
 
 #pragma warning disable CS8618
+            /// <summary>
+            /// The documentation comment.
+            /// </summary>
+            public CommentGroup? Doc { get; init; }
             /// <summary>
             /// The 'const' keyword.
             /// </summary>
