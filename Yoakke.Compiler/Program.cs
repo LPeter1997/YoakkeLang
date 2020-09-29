@@ -104,6 +104,8 @@ namespace Yoakke.Compiler
             var parser = new Parser(tokens, status);
             var prg = parser.ParseFile();
             var ast = ParseTreeToAst.Convert(prg);
+
+            Console.WriteLine(ast.Dump());
         }
     }
 }
