@@ -78,19 +78,6 @@ namespace Yoakke.Syntax.ParseTree
         public class Definition : Declaration
         {
             public override Span Span => new Span(Keyword.Span, Semicolon.Span);
-            public override IEnumerable<IParseTreeElement> Children
-            {
-                get
-                {
-                    yield return Keyword;
-                    yield return Name;
-                    if (Colon != null) yield return Colon;
-                    if (Type != null) yield return Type;
-                    if (Assign != null) yield return Assign;
-                    if (Value != null) yield return Value;
-                    yield return Semicolon;
-                }
-            }
 
             /// <summary>
             /// The documentation comment.

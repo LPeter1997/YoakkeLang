@@ -22,15 +22,6 @@ namespace Yoakke.Syntax.ParseTree
         public class Return : Statement
         {
             public override Span Span => new Span(KwReturn.Span, Semicolon.Span);
-            public override IEnumerable<IParseTreeElement> Children
-            {
-                get
-                {
-                    yield return KwReturn;
-                    if (Value != null) yield return Value;
-                    yield return Semicolon;
-                }
-            }
 
             /// <summary>
             /// The 'return' keyword.
@@ -59,14 +50,6 @@ namespace Yoakke.Syntax.ParseTree
         public class Expression_ : Statement
         {
             public override Span Span => new Span(Expression.Span, Semicolon?.Span ?? Expression.Span);
-            public override IEnumerable<IParseTreeElement> Children
-            {
-                get
-                {
-                    yield return Expression;
-                    if (Semicolon != null) yield return Semicolon;
-                }
-            }
 
             /// <summary>
             /// The <see cref="Expression"/> in <see cref="Statement"/> placement.

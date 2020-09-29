@@ -22,10 +22,6 @@ namespace Yoakke.Syntax.ParseTree
         public class Literal : Expression
         {
             public override Span Span => Token.Span;
-            public override IEnumerable<IParseTreeElement> Children
-            {
-                get { yield return Token; }
-            }
 
             /// <summary>
             /// The <see cref="Token"/>.
@@ -49,16 +45,6 @@ namespace Yoakke.Syntax.ParseTree
             public class Field : Declaration
             {
                 public override Span Span => new Span(Name.Span, Type.Span);
-                public override IEnumerable<IParseTreeElement> Children
-                {
-                    get
-                    {
-                        yield return Name;
-                        yield return Colon;
-                        yield return Type;
-                        yield return Semicolon;
-                    }
-                }
 
                 /// <summary>
                 /// Attached documentation.
@@ -103,16 +89,6 @@ namespace Yoakke.Syntax.ParseTree
             }
 
             public override Span Span => new Span(KwStruct.Span, CloseBrace.Span);
-            public override IEnumerable<IParseTreeElement> Children
-            {
-                get
-                {
-                    yield return KwStruct;
-                    yield return OpenBrace;
-                    foreach (var field in Fields) yield return field;
-                    yield return CloseBrace;
-                }
-            }
 
             /// <summary>
             /// The 'struct' keyword.
@@ -151,16 +127,6 @@ namespace Yoakke.Syntax.ParseTree
             public class Field : Statement
             {
                 public override Span Span => new Span(Name.Span, Semicolon.Span);
-                public override IEnumerable<IParseTreeElement> Children
-                {
-                    get
-                    {
-                        yield return Name;
-                        yield return Assign;
-                        yield return Value;
-                        yield return Semicolon;
-                    }
-                }
 
                 /// <summary>
                 /// The name of the field.
@@ -189,16 +155,6 @@ namespace Yoakke.Syntax.ParseTree
             }
 
             public override Span Span => new Span(Type.Span, CloseBrace.Span);
-            public override IEnumerable<IParseTreeElement> Children
-            {
-                get
-                {
-                    yield return Type;
-                    yield return OpenBrace;
-                    foreach (var field in Fields) yield return field;
-                    yield return CloseBrace;
-                }
-            }
 
             /// <summary>
             /// The struct type.
@@ -237,15 +193,6 @@ namespace Yoakke.Syntax.ParseTree
             public class Parameter : Declaration
             {
                 public override Span Span => new Span(Name?.Span ?? Type.Span, Type.Span);
-                public override IEnumerable<IParseTreeElement> Children
-                {
-                    get
-                    {
-                        if (Name != null) yield return Name;
-                        if (Colon != null) yield return Colon;
-                        yield return Type;
-                    }
-                }
 
                 /// <summary>
                 /// The name of the parameter, if given.
@@ -269,18 +216,6 @@ namespace Yoakke.Syntax.ParseTree
             }
 
             public override Span Span => new Span(KwProc.Span, Return?.Span ?? CloseParen.Span);
-            public override IEnumerable<IParseTreeElement> Children
-            {
-                get
-                {
-                    yield return KwProc;
-                    yield return OpenParen;
-                    foreach (var p in Parameters) yield return p;
-                    yield return CloseParen;
-                    if (Arrow != null) yield return Arrow;
-                    if (Return != null) yield return Return;
-                }
-            }
 
             /// <summary>
             /// The 'proc' keyword.
@@ -330,14 +265,6 @@ namespace Yoakke.Syntax.ParseTree
         public class Proc : Expression
         {
             public override Span Span => new Span(Signature.Span, Body.Span);
-            public override IEnumerable<IParseTreeElement> Children
-            {
-                get
-                {
-                    yield return Signature;
-                    yield return Body;
-                }
-            }
 
             /// <summary>
             /// The signature.
@@ -361,16 +288,6 @@ namespace Yoakke.Syntax.ParseTree
         public class Block : Expression
         {
             public override Span Span => new Span(OpenBrace.Span, CloseBrace.Span);
-            public override IEnumerable<IParseTreeElement> Children
-            {
-                get
-                {
-                    yield return OpenBrace;
-                    foreach (var s in Statements) yield return s;
-                    if (Value != null) yield return Value;
-                    yield return CloseBrace;
-                }
-            }
 
             /// <summary>
             /// The '{'.
@@ -404,16 +321,6 @@ namespace Yoakke.Syntax.ParseTree
         public class Call : Expression
         {
             public override Span Span => new Span(Procedure.Span, CloseParen.Span);
-            public override IEnumerable<IParseTreeElement> Children
-            {
-                get
-                {
-                    yield return Procedure;
-                    yield return OpenParen;
-                    foreach (var arg in Arguments) yield return arg;
-                    yield return CloseParen;
-                }
-            }
 
             /// <summary>
             /// The called procedure.
@@ -456,16 +363,6 @@ namespace Yoakke.Syntax.ParseTree
             public class ElseIf : Expression
             {
                 public override Span Span => new Span(KwElse.Span, Then.Span);
-                public override IEnumerable<IParseTreeElement> Children
-                {
-                    get
-                    {
-                        yield return KwElse;
-                        yield return KwIf;
-                        yield return Condition;
-                        yield return Then;
-                    }
-                }
 
                 /// <summary>
                 /// The 'else' keyword.
@@ -494,18 +391,6 @@ namespace Yoakke.Syntax.ParseTree
             }
 
             public override Span Span => GetSpan();
-            public override IEnumerable<IParseTreeElement> Children
-            {
-                get
-                {
-                    yield return KwIf;
-                    yield return Condition;
-                    yield return Then;
-                    foreach (var elif in ElseIfs) yield return elif;
-                    if (KwElse != null) yield return KwElse;
-                    if (Else != null) yield return Else;
-                }
-            }
 
             /// <summary>
             /// The 'if' keyword.
@@ -570,15 +455,6 @@ namespace Yoakke.Syntax.ParseTree
         public class While : Expression
         {
             public override Span Span => new Span(KwWhile.Span, Body.Span);
-            public override IEnumerable<IParseTreeElement> Children
-            {
-                get
-                {
-                    yield return KwWhile;
-                    yield return Condition;
-                    yield return Body;
-                }
-            }
 
             /// <summary>
             /// The 'while' keyword.
@@ -607,15 +483,6 @@ namespace Yoakke.Syntax.ParseTree
         public class Binary : Expression
         {
             public override Span Span => new Span(Left.Span, Right.Span);
-            public override IEnumerable<IParseTreeElement> Children
-            {
-                get
-                {
-                    yield return Left;
-                    yield return Operator;
-                    yield return Right;
-                }
-            }
 
             /// <summary>
             /// The left-hand side operand.
@@ -644,15 +511,6 @@ namespace Yoakke.Syntax.ParseTree
         public class DotPath : Expression
         {
             public override Span Span => new Span(Left.Span, Right.Span);
-            public override IEnumerable<IParseTreeElement> Children
-            {
-                get
-                {
-                    yield return Left;
-                    yield return Dot;
-                    yield return Right;
-                }
-            }
 
             /// <summary>
             /// The left-hand side operand.
@@ -681,15 +539,6 @@ namespace Yoakke.Syntax.ParseTree
         public class Parenthesized : Expression
         {
             public override Span Span => new Span(OpenParen.Span, CloseParen.Span);
-            public override IEnumerable<IParseTreeElement> Children
-            {
-                get
-                {
-                    yield return OpenParen;
-                    yield return Inside;
-                    yield return CloseParen;
-                }
-            }
 
             /// <summary>
             /// The '('.
