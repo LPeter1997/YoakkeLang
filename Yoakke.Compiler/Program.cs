@@ -96,7 +96,7 @@ namespace Yoakke.Compiler
             // Which is fun
             // And should work
             const foo = proc() -> i32 { 
-            };
+            }; // LISTEN
 ";
             var srcFile = new SourceFile("foo.yk", src);
             var status = new SyntaxStatus();
@@ -105,6 +105,8 @@ namespace Yoakke.Compiler
             var prg = parser.ParseFile();
             var ast = ParseTreeToAst.Convert(prg);
 
+            Console.WriteLine(prg.Dump());
+            Console.WriteLine("\n===================\n");
             Console.WriteLine(ast.Dump());
         }
     }

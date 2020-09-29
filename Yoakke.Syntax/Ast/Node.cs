@@ -61,7 +61,7 @@ namespace Yoakke.Syntax.Ast
                 {
                     node.Dump(builder, indent + 1);
                 }
-                else if (child is IList list)
+                else if (child is IEnumerable list)
                 {
                     builder.AppendLine("[");
                     foreach (var element in list)
