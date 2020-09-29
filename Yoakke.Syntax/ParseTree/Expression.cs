@@ -150,7 +150,7 @@ namespace Yoakke.Syntax.ParseTree
             /// </summary>
             public class Field : Statement
             {
-                public override Span Span => new Span(Name.Span, Value.Span);
+                public override Span Span => new Span(Name.Span, Semicolon.Span);
                 public override IEnumerable<IParseTreeElement> Children
                 {
                     get
@@ -158,6 +158,7 @@ namespace Yoakke.Syntax.ParseTree
                         yield return Name;
                         yield return Assign;
                         yield return Value;
+                        yield return Semicolon;
                     }
                 }
 
@@ -173,12 +174,17 @@ namespace Yoakke.Syntax.ParseTree
                 /// The value of the field.
                 /// </summary>
                 public readonly Expression Value;
+                /// <summary>
+                /// The ';'.
+                /// </summary>
+                public readonly Token Semicolon;
 
-                public Field(Token name, Token assign, Expression value)
+                public Field(Token name, Token assign, Expression value, Token semicolon)
                 {
                     Name = name;
                     Assign = assign;
                     Value = value;
+                    Semicolon = semicolon;
                 }
             }
 
@@ -361,6 +367,7 @@ namespace Yoakke.Syntax.ParseTree
                 {
                     yield return OpenBrace;
                     foreach (var s in Statements) yield return s;
+                    if (Value != null) yield return Value;
                     yield return CloseBrace;
                 }
             }
@@ -374,14 +381,19 @@ namespace Yoakke.Syntax.ParseTree
             /// </summary>
             public readonly IReadOnlyList<Statement> Statements;
             /// <summary>
+            /// The value the block evaluates to.
+            /// </summary>
+            public readonly Expression? Value;
+            /// <summary>
             /// The '}'.
             /// </summary>
             public readonly Token CloseBrace;
 
-            public Block(Token openBrace, IReadOnlyList<Statement> statements, Token closeBrace)
+            public Block(Token openBrace, IReadOnlyList<Statement> statements, Expression? value, Token closeBrace)
             {
                 OpenBrace = openBrace;
                 Statements = statements;
+                Value = value;
                 CloseBrace = closeBrace;
             }
         }
@@ -637,7 +649,7 @@ namespace Yoakke.Syntax.ParseTree
                 get
                 {
                     yield return Left;
-                    yield return Operator;
+                    yield return Dot;
                     yield return Right;
                 }
             }
@@ -649,16 +661,16 @@ namespace Yoakke.Syntax.ParseTree
             /// <summary>
             /// The dot operator.
             /// </summary>
-            public readonly Token Operator;
+            public readonly Token Dot;
             /// <summary>
             /// The right-hand side identifier.
             /// </summary>
             public readonly Token Right;
 
-            public DotPath(Expression left, Token @operator, Token right)
+            public DotPath(Expression left, Token dot, Token right)
             {
                 Left = left;
-                Operator = @operator;
+                Dot = dot;
                 Right = right;
             }
         }

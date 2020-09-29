@@ -141,7 +141,7 @@ namespace Yoakke.Syntax
 
         // Statements //////////////////////////////////////////////////////////
 
-        private Statement ParseStatement()
+        private object ParseStatementOrExpression()
         {
             switch (Peek().Type)
             {
@@ -150,20 +150,31 @@ namespace Yoakke.Syntax
                 return ParseDefinition();
 
             case TokenType.KwReturn:
-                // TODO
-                throw new NotImplementedException();
+                return ParseReturnStatement();
 
+            // Greedy consumption to avoid keeping these as expressions
             case TokenType.OpenBrace:
+                return new Statement.Expression_(ParseBlockExpression(), null);
             case TokenType.KwIf:
+                return new Statement.Expression_(ParseIfExpression(), null);
             case TokenType.KwWhile:
-                // TODO: We need to greedily parse these here to be unambiguous and predictable
-                throw new NotImplementedException();
+                return new Statement.Expression_(ParseWhileExpression(), null);
             }
 
-            // The only remaining possibility is an expression statement
-            var expr = ParseExpression(ExprState.None);
+            // The only remaining possibility is an expression
+            return ParseExpression(ExprState.None);
+        }
+
+        private Statement ParseReturnStatement()
+        {
+            var ret = Expect(TokenType.KwReturn);
+            Expression? value = null;
+            if (Peek().Type != TokenType.Semicolon)
+            {
+                value = ParseExpression(ExprState.None);
+            }
             var semicolon = Expect(TokenType.Semicolon);
-            return new Statement.Expression_(expr, semicolon);
+            return new Statement.Return(ret, value, semicolon);
         }
 
         // Expressions /////////////////////////////////////////////////////////
@@ -227,23 +238,54 @@ namespace Yoakke.Syntax
                 var peek = Peek();
                 if (peek.Type == TokenType.OpenParen)
                 {
+                    var openParen = Expect(TokenType.OpenParen);
                     // Call expression
-                    // TODO
-                    throw new NotImplementedException();
+                    var args = new List<WithComma<Expression>>();
+                    while (true)
+                    {
+                        if (Peek().Type == TokenType.CloseParen) break;
+
+                        var arg = ParseExpression(ExprState.None);
+                        if (Match(TokenType.Comma, out var comma))
+                        {
+                            args.Add(new WithComma<Expression>(arg, comma));
+                        }
+                        else
+                        {
+                            args.Add(new WithComma<Expression>(arg, null));
+                            break;
+                        }
+                    }
+                    var closeParen = Expect(TokenType.CloseParen);
+                    result = new Expression.Call(result, openParen, args, closeParen);
                 }
                 else if (!state.HasFlag(ExprState.TypeOnly)
                       && !state.HasFlag(ExprState.NoBraced)
                       && peek.Type == TokenType.OpenBrace)
                 {
                     // Struct instantiation
-                    // TODO
-                    throw new NotImplementedException();
+                    var openBrace = Expect(TokenType.OpenBrace);
+                    var fields = new List<Expression.StructValue.Field>();
+                    while (true)
+                    {
+                        if (Peek().Type == TokenType.CloseBrace) break;
+
+                        var name = Expect(TokenType.Identifier);
+                        var assign = Expect(TokenType.Assign);
+                        var value = ParseExpression(ExprState.None);
+                        var semicolon = Expect(TokenType.Semicolon);
+
+                        fields.Add(new Expression.StructValue.Field(name, assign, value, semicolon));
+                    }
+                    var closeBrace = Expect(TokenType.CloseBrace);
+                    result = new Expression.StructValue(result, openBrace, fields, closeBrace);
                 }
                 else if (peek.Type == TokenType.Dot)
                 {
                     // Dot path
-                    // TODO
-                    throw new NotImplementedException();
+                    var dot = Expect(TokenType.Dot);
+                    var ident = Expect(TokenType.Identifier);
+                    result = new Expression.DotPath(result, dot, ident);
                 }
                 else break;
             }
@@ -430,8 +472,40 @@ namespace Yoakke.Syntax
 
         private Expression.Block ParseBlockExpression()
         {
-            // TODO
-            throw new NotImplementedException();
+            var openBrace = Expect(TokenType.OpenBrace);
+            var statements = new List<Statement>();
+            Expression? value = null;
+            while (true)
+            {
+                if (Peek().Type == TokenType.CloseBrace) break;
+
+                var element = ParseStatementOrExpression();
+                if (element is Statement stmt)
+                {
+                    statements.Add(stmt);
+                }
+                else
+                {
+                    // It's an expression. It can become a statement with a semicolon.
+                    // Otherwise we treat is as the evaluation value
+                    var expr = (Expression)element;
+                    if (Match(TokenType.Semicolon, out var semicolon))
+                    {
+                        // It's an expression statement
+                        Debug.Assert(semicolon != null);
+                        statements.Add(new Statement.Expression_(expr, semicolon));
+                    }
+                    else
+                    {
+                        // Treat it as value
+                        value = expr;
+                        break;
+                    }
+                }
+            }
+            var closeBrace = Expect(TokenType.CloseBrace);
+            // We are done
+            return new Expression.Block(openBrace, statements, value, closeBrace);
         }
 
         // Helpers /////////////////////////////////////////////////////////////
