@@ -14,6 +14,45 @@ namespace Yoakke.Syntax
     /// </summary>
     public class Parser
     {
+        // Helpers for operator precedence /////////////////////////////////////
+
+        private enum Associativity
+        {
+            Left, Right,
+        }
+
+        private struct Precedence
+        {
+            public Associativity Associativity { get; set; }
+            public HashSet<TokenType> Operators { get; set; }
+
+            private Precedence(Associativity associativity, HashSet<TokenType> operators)
+            {
+                Associativity = associativity;
+                Operators = operators;
+            }
+
+            public static Precedence Left(params TokenType[] operators) =>
+                new Precedence(Associativity.Left, operators.ToHashSet());
+            public static Precedence Right(params TokenType[] operators) =>
+                new Precedence(Associativity.Right, operators.ToHashSet());
+        }
+
+        // Operator precedence table ///////////////////////////////////////////
+
+        private static Precedence[] PrecedenceTable = new Precedence[]
+        {
+            Precedence.Right(TokenType.Assign),
+            Precedence.Left(TokenType.Or),
+            Precedence.Left(TokenType.And),
+            Precedence.Left(TokenType.Equal, TokenType.NotEqual),
+            Precedence.Left(TokenType.Greater, TokenType.GreaterEqual, TokenType.Less, TokenType.LessEqual),
+            Precedence.Left(TokenType.Add, TokenType.Subtract),
+            Precedence.Left(TokenType.Multiply, TokenType.Divide, TokenType.Modulo),
+        };
+
+        // Parser itself ///////////////////////////////////////////////////////
+
         /// <summary>
         /// The <see cref="SyntaxStatus"/> this <see cref="Parser"/> reports to.
         /// </summary>
@@ -39,6 +78,8 @@ namespace Yoakke.Syntax
             Status = status;
         }
 
+        // Declarations ////////////////////////////////////////////////////////
+
         public Declaration.File ParseFile()
         {
             var declarations = new List<Declaration>();
@@ -47,13 +88,13 @@ namespace Yoakke.Syntax
                 // We either want a 'var' or 'const' to have a definition
                 // That's the only valid thing top-level apart from EOF
                 // Unexpected token otherwise
-                var token = Next();
+                var peek = Peek();
                 // EOF
-                if (token.Type == TokenType.End) break;
+                if (peek.Type == TokenType.End) break;
                 // Declaration
-                if (token.Type == TokenType.KwConst || token.Type == TokenType.KwVar)
+                if (peek.Type == TokenType.KwConst || peek.Type == TokenType.KwVar)
                 {
-                    declarations.Add(ParseDefinition(token));
+                    declarations.Add(ParseDefinition());
                     continue;
                 }
                 // Error, unexpected
@@ -72,25 +113,24 @@ namespace Yoakke.Syntax
                 freeComments.ToArray());
         }
 
-        private Declaration.Definition ParseDefinition(Token keyword)
+        private Declaration.Definition ParseDefinition()
         {
+            var keyword = Expect(TokenType.KwConst, TokenType.KwVar);
             var doc = GetDocComment(keyword);
             var name = Expect(TokenType.Identifier);
             // : <type>
             Token? colon = null;
             Expression? type = null;
-            if (Peek().Type == TokenType.Colon)
+            if (Match(TokenType.Colon, out colon))
             {
-                colon = Expect(TokenType.Colon);
-                type = ParseExpression();
+                type = ParseExpression(ExprState.TypeOnly);
             }
             // = value
             Token? assign = null;
             Expression? value = null;
-            if (Peek().Type == TokenType.Assign)
+            if (Match(TokenType.Assign, out assign))
             {
-                assign = Expect(TokenType.Assign);
-                value = ParseExpression();
+                value = ParseExpression(ExprState.None);
             }
             // Semicolon and line comment
             var semicolon = Expect(TokenType.Semicolon);
@@ -101,11 +141,198 @@ namespace Yoakke.Syntax
             );
         }
 
-        private Expression ParseExpression()
+        // Statements //////////////////////////////////////////////////////////
+
+        private Statement ParseStatement()
+        {
+            switch (Peek().Type)
+            {
+            case TokenType.KwConst:
+            case TokenType.KwVar:
+                return ParseDefinition();
+
+            case TokenType.KwReturn:
+                // TODO
+                throw new NotImplementedException();
+
+            case TokenType.OpenBrace:
+            case TokenType.KwIf:
+            case TokenType.KwWhile:
+                // TODO: We need to greedily parse these here to be unambiguous and predictable
+                throw new NotImplementedException();
+            }
+
+            // The only remaining possibility is an expression statement
+            var expr = ParseExpression(ExprState.None);
+            var semicolon = Expect(TokenType.Semicolon);
+            return new Statement.Expression_(expr, semicolon);
+        }
+
+        // Expressions /////////////////////////////////////////////////////////
+
+        [Flags]
+        private enum ExprState
+        {
+            None = 0,
+            TypeOnly = 1,
+            NoBraced = 2,
+        }
+
+        private Expression ParseExpression(ExprState state) => ParseBinaryExpression(state);
+
+        private Expression ParseBinaryExpression(ExprState state, int precedence = 0)
+        {
+            if (precedence >= PrecedenceTable.Length || state.HasFlag(ExprState.TypeOnly))
+            {
+                // Out of precedence table entries or we are parsing a type
+                return ParsePrefixExpression(state);
+            }
+
+            var desc = PrecedenceTable[precedence];
+            var result = ParseBinaryExpression(state, precedence + 1);
+
+            if (desc.Associativity == Associativity.Left)
+            {
+                while (true)
+                {
+                    var op = Peek();
+                    if (!desc.Operators.Contains(op.Type)) break;
+
+                    op = Next();
+                    var right = ParseBinaryExpression(state, precedence + 1);
+                    result = new Expression.Binary(result, op, right);
+                }
+                return result;
+            }
+            else
+            {
+                var op = Peek();
+                if (!desc.Operators.Contains(op.Type)) return result;
+
+                op = Next();
+                var right = ParseBinaryExpression(state, precedence);
+                return new Expression.Binary(result, op, right);
+            }
+        }
+
+        private Expression ParsePrefixExpression(ExprState state)
+        {
+            // NOTE: For now we just use this for extendability
+            return ParsePostfixExpression(state);
+        }
+
+        private Expression ParsePostfixExpression(ExprState state)
+        {
+            var result = ParseAtomicExpression(state);
+            while (true)
+            {
+                var peek = Peek();
+                if (peek.Type == TokenType.OpenParen)
+                {
+                    // Call expression
+                    // TODO
+                    throw new NotImplementedException();
+                }
+                else if (!state.HasFlag(ExprState.TypeOnly)
+                      && !state.HasFlag(ExprState.NoBraced)
+                      && peek.Type == TokenType.OpenBrace)
+                {
+                    // Struct instantiation
+                    // TODO
+                    throw new NotImplementedException();
+                }
+                else if (peek.Type == TokenType.Dot)
+                {
+                    // Dot path
+                    // TODO
+                    throw new NotImplementedException();
+                }
+                else break;
+            }
+            return result;
+        }
+
+        private Expression ParseAtomicExpression(ExprState state)
+        {
+            var peek = Peek();
+            switch (peek.Type)
+            {
+            case TokenType.KwProc: return ParseProcExpression(state);
+            case TokenType.KwIf: return ParseIfExpression();
+            case TokenType.KwWhile: return ParseWhileExpression();
+            case TokenType.KwStruct: return ParseStructTypeExpression();
+
+            case TokenType.Identifier:
+            case TokenType.IntLiteral:
+            case TokenType.StringLiteral:
+            case TokenType.KwTrue:
+            case TokenType.KwFalse:
+                return new Expression.Literal(Next());
+
+            case TokenType.OpenParen: return ParseParenthesized();
+
+            case TokenType.OpenBrace:
+                if (!state.HasFlag(ExprState.NoBraced))
+                {
+                    return ParseBlockExpression();
+                }
+                else
+                {
+                    // TODO: Error
+                    // Or maybe this is a case where we still want to parse a braced block?
+                    // Because... there's no other possibility
+                    throw new NotImplementedException();
+                }
+
+            default:
+                // TODO: Error
+                throw new NotImplementedException();
+            }
+        }
+
+        private Expression ParseProcExpression(ExprState state)
         {
             // TODO
             throw new NotImplementedException();
         }
+
+        private Expression.ProcSignature ParseProcSignature()
+        {
+            // TODO
+            throw new NotImplementedException();
+        }
+
+        private Expression.If ParseIfExpression()
+        {
+            // TODO
+            throw new NotImplementedException();
+        }
+
+        private Expression.While ParseWhileExpression()
+        {
+            // TODO
+            throw new NotImplementedException();
+        }
+
+        private Expression.StructType ParseStructTypeExpression()
+        {
+            // TODO
+            throw new NotImplementedException();
+        }
+
+        private Expression ParseParenthesized()
+        {
+            // TODO
+            throw new NotImplementedException();
+        }
+
+        private Expression ParseBlockExpression()
+        {
+            // TODO
+            throw new NotImplementedException();
+        }
+
+        // Helpers /////////////////////////////////////////////////////////////
 
         private CommentGroup? GetDocComment(Token t)
         {
@@ -143,10 +370,22 @@ namespace Yoakke.Syntax
             }
         }
 
-        private Token Expect(TokenType tt)
+        private bool Match(TokenType tt, out Token? token)
+        {
+            var peek = Peek();
+            if (peek.Type == tt)
+            {
+                token = Next();
+                return true;
+            }
+            token = null;
+            return false;
+        }
+
+        private Token Expect(params TokenType[] tts)
         {
             var t = Next();
-            if (t.Type != tt)
+            if (!tts.Contains(t.Type))
             {
                 // TODO: Report error
                 throw new NotImplementedException();
@@ -154,11 +393,15 @@ namespace Yoakke.Syntax
             return t;
         }
 
-        private Token Peek()
+        private Token Peek(int amount = 0)
         {
             for (int i = tokenIndex + 1; i + 1 < tokens.Count; ++i)
             {
-                if (tokens[i].Type != TokenType.LineComment) return tokens[i];
+                if (tokens[i].Type != TokenType.LineComment)
+                {
+                    if (amount == 0) return tokens[i];
+                    else --amount;
+                }
             }
             return tokens.Last();
         }

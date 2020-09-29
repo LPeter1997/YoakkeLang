@@ -92,36 +92,14 @@ namespace Yoakke.Compiler
 #endif
 
             var src = @"
-            const Outer = struct {
-                var m: Inner;
-            };
-            const Inner = struct {
-                var n: i32;
-            };
-""foob
-ar""
             const foo = proc() -> i32 { 
-                var v = Outer {
-                    m = Inner {
-                        n = 42;
-                    };
-                };
-                var inner = v.m;
-                inner.n = 63;
-                v.m.n
             };
 ";
             var srcFile = new SourceFile("foo.yk", src);
             var status = new SyntaxStatus();
             var tokens = Lexer.Lex(srcFile, status);
-            foreach (var t in tokens)
-            {
-                Console.WriteLine($"{t.Value} - {t.Type} [{t.Span.Start.Line}:{t.Span.Start.Column}]");
-            }
-            foreach (var err in status.Errors)
-            {
-                Console.WriteLine(err.GetErrorMessage());
-            }
+            var parser = new Parser(tokens, status);
+            var prg = parser.ParseFile();
         }
     }
 }
