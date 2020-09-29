@@ -53,6 +53,9 @@ namespace Yoakke.Syntax.ParseTree
             }
         }
 
+        /// <summary>
+        /// An <see cref="Expression"/> wrapped into a <see cref="Statement"/>.
+        /// </summary>
         public class Expression_ : Statement
         {
             public override Span Span => new Span(Expression.Span, Semicolon?.Span ?? Expression.Span);
