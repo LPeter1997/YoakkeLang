@@ -69,10 +69,11 @@ namespace Yoakke.Syntax.ParseTree
             return sb.ToString();
         }
 
+        private static void Indent(StringBuilder builder, int amount) => 
+            builder.Append(new string(' ', amount * 2));
+
         private void Dump(StringBuilder builder, int indent)
         {
-            void Indent(StringBuilder builder, int amount) => builder.Append(new string(' ', amount * 2));
-
             var type = GetType();
 
             // First we print our name
@@ -88,51 +89,43 @@ namespace Yoakke.Syntax.ParseTree
 
                 Indent(builder, indent + 1);
                 builder.Append($"{fieldInfo.Name}: ");
-                if (ReferenceEquals(child, null))
-                {
-                    builder.AppendLine("null");
-                }
-                else if (child is Node node)
-                {
-                    node.Dump(builder, indent + 1);
-                }
-                else if (child is IList list)
-                {
-                    builder.AppendLine("[");
-                    foreach (var element in list)
-                    {
-                        if (element is Node nodeElement)
-                        {
-                            Indent(builder, indent + 2);
-                            nodeElement.Dump(builder, indent + 2);
-                        }
-                        else if (element is Token token)
-                        {
-                            Indent(builder, indent + 2);
-                            builder.AppendLine(token.Value);
-                        }
-                        else
-                        {
-                            Indent(builder, indent + 2);
-                            builder.AppendLine(element?.ToString());
-                        }
-                    }
-                    Indent(builder, indent + 1);
-                    builder.AppendLine("]");
-                }
-                else if (child is Token token)
-                {
-                    builder.AppendLine(token.Value);
-                }
-                else
-                {
-                    builder.AppendLine(child?.ToString());
-                }
+                Dump(builder, child, indent + 1);
             }
 
             // Print a close brace
             Indent(builder, indent);
             builder.AppendLine("}");
+        }
+
+        private static void Dump(StringBuilder builder, object? value, int indent)
+        {
+            if (ReferenceEquals(value, null))
+            {
+                builder.AppendLine("null");
+            }
+            else if (value is Node node)
+            {
+                node.Dump(builder, indent);
+            }
+            else if (value is IEnumerable list && !(value is string))
+            {
+                builder.AppendLine("[");
+                foreach (var element in list)
+                {
+                    Indent(builder, indent + 1);
+                    Dump(builder, element, indent + 1);
+                }
+                Indent(builder, indent);
+                builder.AppendLine("]");
+            }
+            else if (value is Token token)
+            {
+                builder.AppendLine($"\"{token.Value}\"");
+            }
+            else
+            {
+                builder.AppendLine(value?.ToString());
+            }
         }
 
         // Field info cache thing
