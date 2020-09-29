@@ -19,6 +19,65 @@ namespace Yoakke.Syntax.Ast
 
     partial class Statement
     {
-        // TODO: Fill
+        /// <summary>
+        /// Variable declaration and definition.
+        /// </summary>
+        public class Var : Statement
+        {
+            /// <summary>
+            /// The variable name.
+            /// </summary>
+            public readonly string Name;
+            /// <summary>
+            /// The type of the variable.
+            /// </summary>
+            public readonly Expression? Type;
+            /// <summary>
+            /// The initial value.
+            /// </summary>
+            public readonly Expression? Value;
+
+            public Var(ParseTree.Node parseTreeNode, string name, Expression? type, Expression? value)
+                : base(parseTreeNode)
+            {
+                Name = name;
+                Type = type;
+                Value = value;
+            }
+        }
+
+        /// <summary>
+        /// Return <see cref="Statement"/> with an optional value.
+        /// </summary>
+        public class Return : Statement
+        {
+            /// <summary>
+            /// The returned value.
+            /// </summary>
+            public readonly Expression? Value;
+
+            public Return(ParseTree.Node parseTreeNode, Expression? value)
+                : base(parseTreeNode)
+            {
+                Value = value;
+            }
+        }
+
+        /// <summary>
+        /// An <see cref="Expression"/> wrapped into a <see cref="Statement"/>.
+        /// </summary>
+        public class Expression_ : Statement
+        {
+            /// <summary>
+            /// The wrapped expression.
+            /// </summary>
+            public readonly Expression? Expression;
+
+            public Expression_(ParseTree.Node parseTreeNode, Expression? expr)
+                : base(parseTreeNode)
+            {
+                Expression = expr;
+            }
+        }
     }
 }
