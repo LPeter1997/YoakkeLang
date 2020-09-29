@@ -60,6 +60,10 @@ namespace Yoakke.Syntax.ParseTree
                 }
 
                 /// <summary>
+                /// Attached documentation.
+                /// </summary>
+                public readonly CommentGroup? Doc;
+                /// <summary>
                 /// The name of the field.
                 /// </summary>
                 public readonly Token Name;
@@ -71,12 +75,23 @@ namespace Yoakke.Syntax.ParseTree
                 /// The type of the field.
                 /// </summary>
                 public readonly Expression Type;
+                /// <summary>
+                /// Inline comment.
+                /// </summary>
+                public readonly CommentGroup? LineComment;
 
-                public Field(Token name, Token colon, Expression type)
+                public Field(
+                    CommentGroup? doc, 
+                    Token name, 
+                    Token colon, 
+                    Expression type,
+                    CommentGroup? lineComment)
                 {
+                    Doc = doc;
                     Name = name;
                     Colon = colon;
                     Type = type;
+                    LineComment = lineComment;
                 }
             }
 

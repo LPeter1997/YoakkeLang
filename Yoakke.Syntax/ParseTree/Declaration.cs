@@ -124,6 +124,10 @@ namespace Yoakke.Syntax.ParseTree
             /// The ';' at the end.
             /// </summary>
             public readonly Token Semicolon;
+            /// <summary>
+            /// Inline comment.
+            /// </summary>
+            public readonly CommentGroup? LineComment;
 
             public Definition(
                 CommentGroup? doc, 
@@ -131,9 +135,10 @@ namespace Yoakke.Syntax.ParseTree
                 Token name, 
                 Token? colon, 
                 Expression? type, 
-                Token assign, 
-                Expression value, 
-                Token semicolon)
+                Token? assign, 
+                Expression? value, 
+                Token semicolon,
+                CommentGroup? lineComment)
             {
                 Doc = doc;
                 Keyword = keyword;
@@ -143,6 +148,7 @@ namespace Yoakke.Syntax.ParseTree
                 Assign = assign;
                 Value = value;
                 Semicolon = semicolon;
+                LineComment = lineComment;
             }
         }
     }
