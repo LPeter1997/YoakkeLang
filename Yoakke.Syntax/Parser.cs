@@ -130,6 +130,11 @@ namespace Yoakke.Syntax
             {
                 value = ParseExpression(ExprState.None);
             }
+            else if (keyword.Type == TokenType.KwConst)
+            {
+                // TODO: COnstants must have a value assigned
+                throw new NotImplementedException();
+            }
             // Semicolon and line comment
             var semicolon = Expect(TokenType.Semicolon);
             var lineComment = GetLineComment(semicolon);

@@ -268,9 +268,9 @@ namespace Yoakke.Syntax.Ast
             /// <summary>
             /// The falsy expression.
             /// </summary>
-            public readonly Expression Else;
+            public readonly Expression? Else;
 
-            public If(ParseTree.Node parseTreeNode, Expression condition, Expression then, Expression els)
+            public If(ParseTree.Node parseTreeNode, Expression condition, Expression then, Expression? els)
                 : base(parseTreeNode)
             {
                 Condition = condition;
