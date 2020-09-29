@@ -102,12 +102,12 @@ namespace Yoakke.Syntax.ParseTree
                 }
             }
 
-            public override Span Span => new Span(Struct.Span, CloseBrace.Span);
+            public override Span Span => new Span(KwStruct.Span, CloseBrace.Span);
             public override IEnumerable<IParseTreeElement> Children
             {
                 get
                 {
-                    yield return Struct;
+                    yield return KwStruct;
                     yield return OpenBrace;
                     foreach (var field in Fields) yield return field;
                     yield return CloseBrace;
@@ -117,7 +117,7 @@ namespace Yoakke.Syntax.ParseTree
             /// <summary>
             /// The 'struct' keyword.
             /// </summary>
-            public readonly Token Struct;
+            public readonly Token KwStruct;
             /// <summary>
             /// The '{'.
             /// </summary>
@@ -131,9 +131,9 @@ namespace Yoakke.Syntax.ParseTree
             /// </summary>
             public readonly Token CloseBrace;
 
-            public StructType(Token @struct, Token openBrace, IReadOnlyList<Field> fields, Token closeBrace)
+            public StructType(Token kwStruct, Token openBrace, IReadOnlyList<Field> fields, Token closeBrace)
             {
-                Struct = @struct;
+                KwStruct = kwStruct;
                 OpenBrace = openBrace;
                 Fields = fields;
                 CloseBrace = closeBrace;
@@ -268,12 +268,12 @@ namespace Yoakke.Syntax.ParseTree
                 }
             }
 
-            public override Span Span => new Span(Proc_.Span, Return?.Span ?? CloseParen.Span);
+            public override Span Span => new Span(KwProc.Span, Return?.Span ?? CloseParen.Span);
             public override IEnumerable<IParseTreeElement> Children
             {
                 get
                 {
-                    yield return Proc_;
+                    yield return KwProc;
                     yield return OpenParen;
                     foreach (var p in Parameters) yield return p;
                     yield return CloseParen;
@@ -285,7 +285,7 @@ namespace Yoakke.Syntax.ParseTree
             /// <summary>
             /// The 'proc' keyword.
             /// </summary>
-            public readonly Token Proc_;
+            public readonly Token KwProc;
             /// <summary>
             /// The '('.
             /// </summary>
@@ -308,14 +308,14 @@ namespace Yoakke.Syntax.ParseTree
             public readonly Expression? Return;
 
             public ProcSignature(
-                Token proc, 
+                Token kwProc, 
                 Token openParen, 
                 IReadOnlyList<WithComma<Parameter>> parameters, 
                 Token closeParen, 
                 Token? arrow, 
                 Expression? @return)
             {
-                Proc_ = proc;
+                KwProc = kwProc;
                 OpenParen = openParen;
                 Parameters = parameters;
                 CloseParen = closeParen;
@@ -455,13 +455,13 @@ namespace Yoakke.Syntax.ParseTree
             /// </summary>
             public class ElseIf : Expression
             {
-                public override Span Span => new Span(Else.Span, Then.Span);
+                public override Span Span => new Span(KwElse.Span, Then.Span);
                 public override IEnumerable<IParseTreeElement> Children
                 {
                     get
                     {
-                        yield return Else;
-                        yield return If_;
+                        yield return KwElse;
+                        yield return KwIf;
                         yield return Condition;
                         yield return Then;
                     }
@@ -470,11 +470,11 @@ namespace Yoakke.Syntax.ParseTree
                 /// <summary>
                 /// The 'else' keyword.
                 /// </summary>
-                public readonly Token Else;
+                public readonly Token KwElse;
                 /// <summary>
                 /// The 'if' keyword.
                 /// </summary>
-                public readonly Token If_;
+                public readonly Token KwIf;
                 /// <summary>
                 /// The condition.
                 /// </summary>
@@ -484,10 +484,10 @@ namespace Yoakke.Syntax.ParseTree
                 /// </summary>
                 public readonly Block Then;
 
-                public ElseIf(Token @else, Token if_, Expression condition, Block then)
+                public ElseIf(Token kwElse, Token kwIf, Expression condition, Block then)
                 {
-                    Else = @else;
-                    If_ = if_;
+                    KwElse = kwElse;
+                    KwIf = kwIf;
                     Condition = condition;
                     Then = then;
                 }
@@ -498,11 +498,11 @@ namespace Yoakke.Syntax.ParseTree
             {
                 get
                 {
-                    yield return If_;
+                    yield return KwIf;
                     yield return Condition;
                     yield return Then;
                     foreach (var elif in ElseIfs) yield return elif;
-                    if (Else_ != null) yield return Else_;
+                    if (KwElse != null) yield return KwElse;
                     if (Else != null) yield return Else;
                 }
             }
@@ -510,7 +510,7 @@ namespace Yoakke.Syntax.ParseTree
             /// <summary>
             /// The 'if' keyword.
             /// </summary>
-            public readonly Token If_;
+            public readonly Token KwIf;
             /// <summary>
             /// The condition.
             /// </summary>
@@ -526,31 +526,31 @@ namespace Yoakke.Syntax.ParseTree
             /// <summary>
             /// The 'else' keyword, if there's an else block.
             /// </summary>
-            public readonly Token? Else_;
+            public readonly Token? KwElse;
             /// <summary>
             /// The else block.
             /// </summary>
             public readonly Block? Else;
 
             public If(
-                Token if_, 
+                Token kwIf, 
                 Expression condition, 
                 Block then, 
                 IReadOnlyList<ElseIf> elseIfs, 
-                Token? else_, 
+                Token? ksElse, 
                 Block? @else)
             {
-                If_ = if_;
+                KwIf = kwIf;
                 Condition = condition;
                 Then = then;
                 ElseIfs = elseIfs;
-                Else_ = else_;
+                KwElse = ksElse;
                 Else = @else;
             }
 
             private Span GetSpan()
             {
-                var start = If_.Span.Start;
+                var start = KwIf.Span.Start;
                 var end = Then.Span.End;
                 if (Else != null)
                 {
@@ -560,7 +560,7 @@ namespace Yoakke.Syntax.ParseTree
                 {
                     end = ElseIfs.Last().Span.End;
                 }
-                return new Span(If_.Span.Source, start, end);
+                return new Span(KwIf.Span.Source, start, end);
             }
         }
 
@@ -569,12 +569,12 @@ namespace Yoakke.Syntax.ParseTree
         /// </summary>
         public class While : Expression
         {
-            public override Span Span => new Span(While_.Span, Body.Span);
+            public override Span Span => new Span(KwWhile.Span, Body.Span);
             public override IEnumerable<IParseTreeElement> Children
             {
                 get
                 {
-                    yield return While_;
+                    yield return KwWhile;
                     yield return Condition;
                     yield return Body;
                 }
@@ -583,7 +583,7 @@ namespace Yoakke.Syntax.ParseTree
             /// <summary>
             /// The 'while' keyword.
             /// </summary>
-            public readonly Token While_;
+            public readonly Token KwWhile;
             /// <summary>
             /// The condition.
             /// </summary>
@@ -593,9 +593,9 @@ namespace Yoakke.Syntax.ParseTree
             /// </summary>
             public readonly Block Body;
 
-            public While(Token while_, Expression condition, Block body)
+            public While(Token kwWhile, Expression condition, Block body)
             {
-                While_ = while_;
+                KwWhile = kwWhile;
                 Condition = condition;
                 Body = body;
             }
