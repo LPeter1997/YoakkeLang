@@ -92,6 +92,9 @@ namespace Yoakke.Compiler
 #endif
 
             var src = @"
+            // I am now documenting foo
+            // Which is fun
+            // And should work
             const foo = proc() -> i32 { 
             };
 ";

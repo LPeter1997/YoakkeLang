@@ -221,7 +221,7 @@ namespace Yoakke.Syntax.ParseTree
             /// <summary>
             /// A single parameter inside a signature.
             /// </summary>
-            public class Paramerer : Declaration
+            public class Parameter : Declaration
             {
                 public override Span Span => new Span(Name?.Span ?? Type.Span, Type.Span);
                 public override IEnumerable<IParseTreeElement> Children
@@ -247,7 +247,7 @@ namespace Yoakke.Syntax.ParseTree
                 /// </summary>
                 public readonly Expression Type;
 
-                public Paramerer(Token? name, Token? colon, Expression type)
+                public Parameter(Token? name, Token? colon, Expression type)
                 {
                     Name = name;
                     Colon = colon;
@@ -280,7 +280,7 @@ namespace Yoakke.Syntax.ParseTree
             /// <summary>
             /// The list of parameters.
             /// </summary>
-            public readonly IReadOnlyList<WithComma<Paramerer>> Parameters;
+            public readonly IReadOnlyList<WithComma<Parameter>> Parameters;
             /// <summary>
             /// The ')'.
             /// </summary>
@@ -297,7 +297,7 @@ namespace Yoakke.Syntax.ParseTree
             public ProcSignature(
                 Token proc, 
                 Token openParen, 
-                IReadOnlyList<WithComma<Paramerer>> parameters, 
+                IReadOnlyList<WithComma<Parameter>> parameters, 
                 Token closeParen, 
                 Token? arrow, 
                 Expression? @return)
@@ -474,7 +474,7 @@ namespace Yoakke.Syntax.ParseTree
                 }
             }
 
-            public override Span Span => new Span(If_.Span, Else.Span);
+            public override Span Span => GetSpan();
             public override IEnumerable<IParseTreeElement> Children
             {
                 get
@@ -511,7 +511,7 @@ namespace Yoakke.Syntax.ParseTree
             /// <summary>
             /// The else block.
             /// </summary>
-            public readonly Block Else;
+            public readonly Block? Else;
 
             public If(
                 Token if_, 
@@ -519,7 +519,7 @@ namespace Yoakke.Syntax.ParseTree
                 Block then, 
                 IReadOnlyList<ElseIf> elseIfs, 
                 Token? else_, 
-                Block @else)
+                Block? @else)
             {
                 If_ = if_;
                 Condition = condition;
@@ -527,6 +527,21 @@ namespace Yoakke.Syntax.ParseTree
                 ElseIfs = elseIfs;
                 Else_ = else_;
                 Else = @else;
+            }
+
+            private Span GetSpan()
+            {
+                var start = If_.Span.Start;
+                var end = Then.Span.End;
+                if (Else != null)
+                {
+                    end = Else.Span.End;
+                }
+                else if (ElseIfs.Count > 0)
+                {
+                    end = ElseIfs.Last().Span.End;
+                }
+                return new Span(If_.Span.Source, start, end);
             }
         }
 

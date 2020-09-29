@@ -119,16 +119,14 @@ namespace Yoakke.Syntax
             var doc = GetDocComment(keyword);
             var name = Expect(TokenType.Identifier);
             // : <type>
-            Token? colon = null;
             Expression? type = null;
-            if (Match(TokenType.Colon, out colon))
+            if (Match(TokenType.Colon, out var colon))
             {
                 type = ParseExpression(ExprState.TypeOnly);
             }
             // = value
-            Token? assign = null;
             Expression? value = null;
-            if (Match(TokenType.Assign, out assign))
+            if (Match(TokenType.Assign, out var assign))
             {
                 value = ParseExpression(ExprState.None);
             }
@@ -292,20 +290,97 @@ namespace Yoakke.Syntax
 
         private Expression ParseProcExpression(ExprState state)
         {
-            // TODO
-            throw new NotImplementedException();
+            // Either a signature as a type def. or a signature + body, which is a full procedure definition
+            var signature = ParseProcSignature();
+            if (!state.HasFlag(ExprState.TypeOnly) && Peek().Type == TokenType.OpenBrace)
+            {
+                var body = ParseBlockExpression();
+                return new Expression.Proc(signature, body);
+            }
+            return signature;
         }
 
         private Expression.ProcSignature ParseProcSignature()
         {
-            // TODO
-            throw new NotImplementedException();
+            var proc = Expect(TokenType.KwProc);
+            var openParen = Expect(TokenType.OpenParen);
+            // Parameters
+            var parameters = new List<WithComma<Expression.ProcSignature.Parameter>>();
+            while (true)
+            {
+                if (Peek().Type == TokenType.CloseParen) break;
+
+                var param = ParseProcParameter();
+                if (Match(TokenType.Comma, out var comma))
+                {
+                    parameters.Add(new WithComma<Expression.ProcSignature.Parameter>(param, comma));
+                    continue;
+                }
+                parameters.Add(new WithComma<Expression.ProcSignature.Parameter>(param, null));
+
+                break;
+            }
+            var closeParen = Expect(TokenType.CloseParen);
+            // Return type
+            Expression? ret = null;
+            if (Match(TokenType.Arrow, out var arrow))
+            {
+                ret = ParseExpression(ExprState.TypeOnly);
+            }
+            // We are done
+            return new Expression.ProcSignature(
+                proc, openParen, parameters.ToArray(), closeParen, arrow, ret
+            );
+        }
+
+        private Expression.ProcSignature.Parameter ParseProcParameter()
+        {
+            Token? name = null;
+            Token? colon = null;
+            if (Peek(1).Type == TokenType.Colon)
+            {
+                // This parameter has a name
+                name = Expect(TokenType.Identifier);
+                colon = Expect(TokenType.Colon);
+            }
+            var type = ParseExpression(ExprState.TypeOnly);
+            return new Expression.ProcSignature.Parameter(name, colon, type);
         }
 
         private Expression.If ParseIfExpression()
         {
-            // TODO
-            throw new NotImplementedException();
+            var iff = Expect(TokenType.KwIf);
+            var condition = ParseExpression(ExprState.NoBraced);
+            var then = ParseBlockExpression();
+            // Else-ifs and else
+            var elifs = new List<Expression.If.ElseIf>();
+            Token? elseKw = null;
+            Expression.Block? elseBlock = null;
+            while (true)
+            {
+                if (Match(TokenType.KwElse, out elseKw))
+                {
+                    // We have an else or an else if
+                    if (Match(TokenType.KwIf, out var elifIfKw))
+                    {
+                        // It's an else-if
+                        var elifElse = elseKw;
+                        elseKw = null;
+                        var elifCondition = ParseExpression(ExprState.NoBraced);
+                        var elifThen = ParseBlockExpression();
+                        Debug.Assert(elifElse != null);
+                        Debug.Assert(elifIfKw != null);
+                        elifs.Add(new Expression.If.ElseIf(elifElse, elifIfKw, elifCondition, elifThen));
+                    }
+                    else
+                    {
+                        // It was an else
+                        elseBlock = ParseBlockExpression();
+                        break;
+                    }
+                }
+            }
+            return new Expression.If(iff, condition, then, elifs.ToArray(), elseKw, elseBlock);
         }
 
         private Expression.While ParseWhileExpression()
@@ -326,7 +401,7 @@ namespace Yoakke.Syntax
             throw new NotImplementedException();
         }
 
-        private Expression ParseBlockExpression()
+        private Expression.Block ParseBlockExpression()
         {
             // TODO
             throw new NotImplementedException();
