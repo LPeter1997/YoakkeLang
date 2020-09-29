@@ -385,20 +385,47 @@ namespace Yoakke.Syntax
 
         private Expression.While ParseWhileExpression()
         {
-            // TODO
-            throw new NotImplementedException();
+            var whileKw = Expect(TokenType.KwWhile);
+            var condition = ParseExpression(ExprState.NoBraced);
+            var body = ParseBlockExpression();
+            return new Expression.While(whileKw, condition, body);
         }
 
         private Expression.StructType ParseStructTypeExpression()
         {
-            // TODO
-            throw new NotImplementedException();
+            var structKw = Expect(TokenType.KwIf);
+            var openBrace = Expect(TokenType.OpenBrace);
+
+            var fields = new List<Expression.StructType.Field>();
+
+            Token? closeBrace = null;
+            while (!Match(TokenType.CloseBrace, out closeBrace))
+            {
+                fields.Add(ParseStructTypeField());
+            }
+
+            Debug.Assert(closeBrace != null);
+            return new Expression.StructType(structKw, openBrace, fields.ToArray(), closeBrace);
+        }
+
+        private Expression.StructType.Field ParseStructTypeField()
+        {
+            var name = Expect(TokenType.Identifier);
+            var doc = GetDocComment(name);
+            var colon = Expect(TokenType.Colon);
+            var type = ParseExpression(ExprState.TypeOnly);
+            var semicolon = Expect(TokenType.Semicolon);
+            var lineComment = GetLineComment(semicolon);
+
+            return new Expression.StructType.Field(doc, name, colon, type, semicolon, lineComment);
         }
 
         private Expression ParseParenthesized()
         {
-            // TODO
-            throw new NotImplementedException();
+            var openParen = Expect(TokenType.OpenParen);
+            var inside = ParseExpression(ExprState.None);
+            var closeParen = Expect(TokenType.CloseParen);
+            return new Expression.Parenthesized(openParen, inside, closeParen);
         }
 
         private Expression.Block ParseBlockExpression()

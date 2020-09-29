@@ -56,6 +56,7 @@ namespace Yoakke.Syntax.ParseTree
                         yield return Name;
                         yield return Colon;
                         yield return Type;
+                        yield return Semicolon;
                     }
                 }
 
@@ -76,6 +77,10 @@ namespace Yoakke.Syntax.ParseTree
                 /// </summary>
                 public readonly Expression Type;
                 /// <summary>
+                /// The ';'.
+                /// </summary>
+                public readonly Token Semicolon;
+                /// <summary>
                 /// Inline comment.
                 /// </summary>
                 public readonly CommentGroup? LineComment;
@@ -85,12 +90,14 @@ namespace Yoakke.Syntax.ParseTree
                     Token name, 
                     Token colon, 
                     Expression type,
+                    Token semicolon,
                     CommentGroup? lineComment)
                 {
                     Doc = doc;
                     Name = name;
                     Colon = colon;
                     Type = type;
+                    Semicolon = semicolon;
                     LineComment = lineComment;
                 }
             }
