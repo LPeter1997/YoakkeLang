@@ -241,20 +241,12 @@ namespace Yoakke.Syntax
                     var openParen = Expect(TokenType.OpenParen);
                     // Call expression
                     var args = new List<WithComma<Expression>>();
-                    while (true)
+                    while (Peek().Type != TokenType.CloseParen)
                     {
-                        if (Peek().Type == TokenType.CloseParen) break;
-
                         var arg = ParseExpression(ExprState.None);
-                        if (Match(TokenType.Comma, out var comma))
-                        {
-                            args.Add(new WithComma<Expression>(arg, comma));
-                        }
-                        else
-                        {
-                            args.Add(new WithComma<Expression>(arg, null));
-                            break;
-                        }
+                        var hasComma = Match(TokenType.Comma, out var comma);
+                        args.Add(new WithComma<Expression>(arg, comma));
+                        if (!hasComma) break;
                     }
                     var closeParen = Expect(TokenType.CloseParen);
                     result = new Expression.Call(result, openParen, args, closeParen);
@@ -266,16 +258,9 @@ namespace Yoakke.Syntax
                     // Struct instantiation
                     var openBrace = Expect(TokenType.OpenBrace);
                     var fields = new List<Expression.StructValue.Field>();
-                    while (true)
+                    while (Peek().Type != TokenType.CloseBrace)
                     {
-                        if (Peek().Type == TokenType.CloseBrace) break;
-
-                        var name = Expect(TokenType.Identifier);
-                        var assign = Expect(TokenType.Assign);
-                        var value = ParseExpression(ExprState.None);
-                        var semicolon = Expect(TokenType.Semicolon);
-
-                        fields.Add(new Expression.StructValue.Field(name, assign, value, semicolon));
+                        fields.Add(ParseStructValueField());
                     }
                     var closeBrace = Expect(TokenType.CloseBrace);
                     result = new Expression.StructValue(result, openBrace, fields, closeBrace);
@@ -290,6 +275,15 @@ namespace Yoakke.Syntax
                 else break;
             }
             return result;
+        }
+
+        private Expression.StructValue.Field ParseStructValueField()
+        {
+            var name = Expect(TokenType.Identifier);
+            var assign = Expect(TokenType.Assign);
+            var value = ParseExpression(ExprState.None);
+            var semicolon = Expect(TokenType.Semicolon);
+            return new Expression.StructValue.Field(name, assign, value, semicolon);
         }
 
         private Expression ParseAtomicExpression(ExprState state)
@@ -348,19 +342,12 @@ namespace Yoakke.Syntax
             var openParen = Expect(TokenType.OpenParen);
             // Parameters
             var parameters = new List<WithComma<Expression.ProcSignature.Parameter>>();
-            while (true)
+            while (Peek().Type != TokenType.CloseParen)
             {
-                if (Peek().Type == TokenType.CloseParen) break;
-
                 var param = ParseProcParameter();
-                if (Match(TokenType.Comma, out var comma))
-                {
-                    parameters.Add(new WithComma<Expression.ProcSignature.Parameter>(param, comma));
-                    continue;
-                }
-                parameters.Add(new WithComma<Expression.ProcSignature.Parameter>(param, null));
-
-                break;
+                var hasComma = Match(TokenType.Comma, out var comma);
+                parameters.Add(new WithComma<Expression.ProcSignature.Parameter>(param, comma));
+                if (!hasComma) break;
             }
             var closeParen = Expect(TokenType.CloseParen);
             // Return type
