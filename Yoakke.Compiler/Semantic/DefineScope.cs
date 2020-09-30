@@ -11,7 +11,7 @@ namespace Yoakke.Compiler.Semantic
     /// <summary>
     /// A semantic step to define the <see cref="Scope"/>s for each AST node that opens a new lexical scope.
     /// </summary>
-    public class DefineScope
+    public class DefineScope : Visitor<object>
     {
         private SymbolTable symbolTable;
         private Scope currentScope;
@@ -30,111 +30,36 @@ namespace Yoakke.Compiler.Semantic
         /// Defines <see cref="Scope"/>s for the given <see cref="Statement"/> and it's children.
         /// </summary>
         /// <param name="statement">The <see cref="Statement"/> to define inside.</param>
-        public void Define(Statement statement)
-        {
-            switch (statement)
-            {
-            case Declaration.File file:
-                foreach (var decl in file.Statements) Define(decl);
-                break;
-
-            case Declaration.Const cons:
-                DefineNullable(cons.Type);
-                Define(cons.Value);
-                break;
-
-            case Statement.Var var:
-                DefineNullable(var.Type);
-                DefineNullable(var.Value);
-                break;
-
-            case Statement.Return ret:
-                DefineNullable(ret.Value);
-                break;
-
-            case Statement.Expression_ expr:
-                Define(expr.Expression);
-                break;
-
-            default: throw new NotImplementedException();
-            }
-        }
+        public void Define(Statement statement) => Visit(statement);
 
         /// <summary>
         /// Defines <see cref="Scope"/>s for the given <see cref="Expression"/> and it's children.
         /// </summary>
         /// <param name="expression">The <see cref="Expression"/> to define inside.</param>
-        public void Define(Expression expression)
+        public void Define(Expression expression) => Visit(expression);
+
+        protected override object? Visit(Expression.StructType sty)
         {
-            switch (expression)
-            {
-            case Expression.Literal:
-            case Expression.Identifier:
-                // No-op
-                break;
-
-            case Expression.StructType sty:
-                symbolTable.DefinedScope[sty] = PushScope(ScopeTag.None);
-                foreach (var field in sty.Fields) Define(field.Type);
-                PopScope();
-                break;
-
-            case Expression.StructValue sval:
-                Define(sval.StructType);
-                foreach (var field in sval.Fields) Define(field.Value);
-                break;
-
-            case Expression.ProcSignature sign:
-                foreach (var param in sign.Parameters) Define(param.Type);
-                DefineNullable(sign.Return);
-                break;
-
-            case Expression.Proc proc:
-                symbolTable.DefinedScope[proc] = PushScope(ScopeTag.Proc);
-                Define(proc.Signature);
-                Define(proc.Body);
-                PopScope();
-                break;
-
-            case Expression.Block block:
-                symbolTable.DefinedScope[block] = PushScope(ScopeTag.None);
-                foreach (var stmt in block.Statements) Define(stmt);
-                DefineNullable(block.Value);
-                PopScope();
-                break;
-
-            case Expression.Call call:
-                Define(call.Procedure);
-                foreach (var arg in call.Arguments) Define(arg);
-                break;
-
-            case Expression.If iff:
-                Define(iff.Condition);
-                Define(iff.Then);
-                DefineNullable(iff.Else);
-                break;
-
-            case Expression.While whil:
-                Define(whil.Condition);
-                Define(whil.Body);
-                break;
-
-            case Expression.Binary bin:
-                Define(bin.Left);
-                Define(bin.Right);
-                break;
-
-            case Expression.DotPath dot:
-                Define(dot.Left);
-                break;
-
-            default: throw new NotImplementedException();
-            }
+            symbolTable.DefinedScope[sty] = PushScope(ScopeTag.None);
+            base.Visit(sty);
+            PopScope();
+            return null;
         }
 
-        private void DefineNullable(Expression? expr)
+        protected override object? Visit(Expression.Proc proc)
         {
-            if (expr != null) Define(expr);
+            symbolTable.DefinedScope[proc] = PushScope(ScopeTag.Proc);
+            base.Visit(proc);
+            PopScope();
+            return null;
+        }
+
+        protected override object? Visit(Expression.Block block)
+        {
+            symbolTable.DefinedScope[block] = PushScope(ScopeTag.None);
+            base.Visit(block);
+            PopScope();
+            return null;
         }
 
         private Scope PushScope(ScopeTag scopeTag)
