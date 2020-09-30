@@ -2,22 +2,12 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <AssemblyName>yk</AssemblyName>
-    <RuntimeIdentifier>win10-x86</RuntimeIdentifier>
-    
-    <PublishSingleFile>true</PublishSingleFile>
-    
     <TargetFramework>net5</TargetFramework>
+    <Platforms>AnyCPU;x86</Platforms>
     
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <Platforms>AnyCPU;x86</Platforms>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="System.Runtime" Version="4.3.1" />
-    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="3.0.0" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Yoakke.Lir\Yoakke.Lir.csproj" />
