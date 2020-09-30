@@ -1,6 +1,4 @@
-﻿using Yoakke.Lir.Status;
-
-namespace Yoakke.Lir.Backend.Toolchain
+﻿namespace Yoakke.Lir.Backend.Toolchain
 {
     /// <summary>
     /// Interface for archivers.

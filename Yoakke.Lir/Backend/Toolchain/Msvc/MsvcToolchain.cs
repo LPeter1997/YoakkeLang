@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Yoakke.Lir.Backend.Backends;
-using Yoakke.Lir.Status;
+﻿using Yoakke.Lir.Backend.Backends;
 
 namespace Yoakke.Lir.Backend.Toolchain.Msvc
 {

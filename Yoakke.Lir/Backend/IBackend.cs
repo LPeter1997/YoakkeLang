@@ -1,7 +1,4 @@
-﻿using System.IO;
-using Yoakke.Lir.Status;
-
-namespace Yoakke.Lir.Backend
+﻿namespace Yoakke.Lir.Backend
 {
     /// <summary>
     /// Interface for every IR backend, that compiles the IR to some other representation.

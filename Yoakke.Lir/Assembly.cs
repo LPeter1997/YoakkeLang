@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Yoakke.Lir.Types;
 using Type = Yoakke.Lir.Types.Type;
 
 namespace Yoakke.Lir

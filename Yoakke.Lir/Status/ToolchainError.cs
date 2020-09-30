@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Yoakke.Lir.Backend.Toolchain;
+﻿using Yoakke.Lir.Backend.Toolchain;
 
 namespace Yoakke.Lir.Status
 {

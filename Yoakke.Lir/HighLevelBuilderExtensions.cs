@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
-using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;
 using Type = Yoakke.Lir.Types.Type;
 
