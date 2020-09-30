@@ -12,7 +12,7 @@ namespace Yoakke.Syntax.Ast
     /// <typeparam name="T">The result type of the visitation.</typeparam>
     public abstract class Visitor<T>
     {
-        protected T? Visit(Declaration declaration) => declaration switch
+        protected virtual T? Visit(Declaration declaration) => declaration switch
         {
             Declaration.File  f => Visit(f),
             Declaration.Const c => Visit(c),
@@ -20,7 +20,7 @@ namespace Yoakke.Syntax.Ast
             _ => throw new NotImplementedException(),
         };
 
-        protected T? Visit(Statement statement) => statement switch
+        protected virtual T? Visit(Statement statement) => statement switch
         {
             Declaration           d => Visit(d),
             Statement.Var         v => Visit(v),
@@ -30,7 +30,7 @@ namespace Yoakke.Syntax.Ast
             _ => throw new NotImplementedException(),
         };
 
-        protected T? Visit(Expression expression) => expression switch
+        protected virtual T? Visit(Expression expression) => expression switch
         {
             Expression.Literal       l => Visit(l),
             Expression.Identifier    i => Visit(i),

@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Runtime.InteropServices;
+using Yoakke.Compiler.Semantic;
+using Yoakke.Lir.Values;
 using Yoakke.Syntax;
 using Yoakke.Text;
 
@@ -23,6 +26,7 @@ namespace Yoakke.Compiler
                 x
             }; // LISTEN
 ";
+            // Syntax
             var srcFile = new SourceFile("foo.yk", src);
             var status = new SyntaxStatus();
             var tokens = Lexer.Lex(srcFile, status);
@@ -31,9 +35,15 @@ namespace Yoakke.Compiler
             var ast = ParseTreeToAst.Convert(prg);
             ast = Desugaring.Desugar(ast);
 
-            Console.WriteLine(prg.Dump());
-            Console.WriteLine("\n===================\n");
+            //Console.WriteLine(prg.Dump());
             Console.WriteLine(ast.Dump());
+
+            // Semantics
+            var symTab = new SymbolTable();
+            symTab.GlobalScope.Define(new Symbol.Const("i32", new Value.User(Lir.Types.Type.I32)));
+            new DefineScope(symTab).Define(ast);
+            new DeclareSymbol(symTab).Declare(ast);
+            new DefineSymbol(symTab).Define(ast);
         }
     }
 }

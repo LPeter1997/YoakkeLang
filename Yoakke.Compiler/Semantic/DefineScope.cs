@@ -38,9 +38,31 @@ namespace Yoakke.Compiler.Semantic
         /// <param name="expression">The <see cref="Expression"/> to define inside.</param>
         public void Define(Expression expression) => Visit(expression);
 
+        // Attach current scope
+
+        protected override object? Visit(Declaration declaration)
+        {
+            symbolTable.ContainingScope[declaration] = currentScope;
+            return base.Visit(declaration);
+        }
+
+        protected override object? Visit(Statement statement)
+        {
+            symbolTable.ContainingScope[statement] = currentScope;
+            return base.Visit(statement);
+        }
+
+        protected override object? Visit(Expression expression)
+        {
+            symbolTable.ContainingScope[expression] = currentScope;
+            return base.Visit(expression);
+        }
+
+        // Define scopes
+
         protected override object? Visit(Expression.StructType sty)
         {
-            symbolTable.DefinedScope[sty] = PushScope(ScopeTag.None);
+            PushScope(ScopeTag.None);
             base.Visit(sty);
             PopScope();
             return null;
@@ -48,7 +70,7 @@ namespace Yoakke.Compiler.Semantic
 
         protected override object? Visit(Expression.Proc proc)
         {
-            symbolTable.DefinedScope[proc] = PushScope(ScopeTag.Proc);
+            PushScope(ScopeTag.Proc);
             base.Visit(proc);
             PopScope();
             return null;
@@ -56,11 +78,13 @@ namespace Yoakke.Compiler.Semantic
 
         protected override object? Visit(Expression.Block block)
         {
-            symbolTable.DefinedScope[block] = PushScope(ScopeTag.None);
+            PushScope(ScopeTag.None);
             base.Visit(block);
             PopScope();
             return null;
         }
+
+        // Helpers
 
         private Scope PushScope(ScopeTag scopeTag)
         {

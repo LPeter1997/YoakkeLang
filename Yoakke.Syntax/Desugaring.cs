@@ -101,7 +101,7 @@ namespace Yoakke.Syntax
                     DesugarNullable(iff.Else)),
 
             Expression.While whil =>
-                new Expression.While(whil.ParseTreeNode, Desugar(whil.Condition), Desugar(whil.Condition)),
+                new Expression.While(whil.ParseTreeNode, Desugar(whil.Condition), Desugar(whil.Body)),
 
             Expression.Binary bin =>
                 new Expression.Binary(bin.ParseTreeNode, Desugar(bin.Left), bin.Operator, Desugar(bin.Right)),

@@ -8,7 +8,7 @@ using Yoakke.Syntax.Ast;
 namespace Yoakke.Compiler.Semantic
 {
     /// <summary>
-    /// A semantic step to declare order-independent symbols.
+    /// A semantic step to declare order-independent <see cref="Symbol"/>s.
     /// </summary>
     public class DeclareSymbol : Visitor<object>
     {
@@ -39,7 +39,7 @@ namespace Yoakke.Compiler.Semantic
         {
             base.Visit(cons);
 
-            var scope = symbolTable.DefinedScope[cons];
+            var scope = symbolTable.ContainingScope[cons];
             var symbol = new Symbol.Const(cons);
             scope.Define(symbol);
             symbolTable.DefinedSymbol[cons] = symbol;

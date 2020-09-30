@@ -80,17 +80,24 @@ namespace Yoakke.Compiler.Semantic
             /// <summary>
             /// The <see cref="Type"/> of this <see cref="Var"/>.
             /// </summary>
-            public readonly Type Type;
+            public Type? Type { get; set; }
+
+            /// <summary>
+            /// Initializes a new <see cref="Var"/>.
+            /// </summary>
+            /// <param name="param">The parameter definition.</param>
+            public Var(Expression.ProcSignature.Parameter param)
+                : base(param, param.Name ?? throw new InvalidOperationException())
+            {
+            }
 
             /// <summary>
             /// Initializes a new <see cref="Var"/>.
             /// </summary>
             /// <param name="definition">The variable definition statement.</param>
-            /// <param name="type">The <see cref="Type"/> of the variable.</param>
-            public Var(Statement.Var definition, Type type)
+            public Var(Statement.Var definition)
                 : base(definition, definition.Name)
             {
-                Type = type;
             }
         }
     }
