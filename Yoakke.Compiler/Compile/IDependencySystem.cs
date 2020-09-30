@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Yoakke.Lir;
 using Yoakke.Syntax.Ast;
 
 namespace Yoakke.Compiler.Compile
@@ -12,6 +13,13 @@ namespace Yoakke.Compiler.Compile
     /// </summary>
     public interface IDependencySystem
     {
+        /// <summary>
+        /// Compiles the given <see cref="Declaration.File"/> to an <see cref="Assembly"/>.
+        /// </summary>
+        /// <param name="file">The file node to compile.</param>
+        /// <returns>The compiled <see cref="Assembly"/>.</returns>
+        public Assembly Compile(Declaration.File file);
+
         /// <summary>
         /// Asks the dependency system to evaluate the given <see cref="Expression"/>.
         /// </summary>

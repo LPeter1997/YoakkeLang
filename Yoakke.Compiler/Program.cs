@@ -47,8 +47,8 @@ namespace Yoakke.Compiler
             new ResolveSymbol(symTab).Resolve(ast);
 
             // Compilation
-            var codegen = new Codegen(new DependencySystem());
-            var assembly = codegen.Generate(ast);
+            var dependencySystem = new DependencySystem();
+            var assembly = dependencySystem.Compile(ast);
         }
     }
 }
