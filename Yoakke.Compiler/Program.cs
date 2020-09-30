@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using Yoakke.Compiler.Compile;
 using Yoakke.Compiler.Semantic;
 using Yoakke.Lir.Values;
 using Yoakke.Syntax;
