@@ -21,6 +21,13 @@ namespace Yoakke.Compiler.Compile
         public Assembly Compile(Declaration.File file);
 
         /// <summary>
+        /// Asks the dependency system the type of an <see cref="Expression"/>.
+        /// </summary>
+        /// <param name="expression">The <see cref="Expression"/> to get the type of.</param>
+        /// <returns>The type of the <see cref="Expression"/>.</returns>
+        public Semantic.Type TypeOf(Expression expression);
+
+        /// <summary>
         /// Asks the dependency system to evaluate the given <see cref="Expression"/>.
         /// </summary>
         /// <param name="expression">The <see cref="Expression"/> to evaluate.</param>

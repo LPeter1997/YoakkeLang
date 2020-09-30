@@ -18,12 +18,14 @@ namespace Yoakke.Compiler.Compile
     {
         private Codegen codegen;
         private TypeChecker typeChecker;
+        private TypeEval typeEvaluator;
 
         // TODO: Doc
         public DependencySystem()
         {
             codegen = new Codegen(this);
-            typeChecker = new TypeChecker();
+            typeChecker = new TypeChecker(this);
+            typeEvaluator = new TypeEval();
         }
 
         public Assembly Compile(Declaration.File file)
@@ -31,6 +33,8 @@ namespace Yoakke.Compiler.Compile
             typeChecker.Check(file);
             return codegen.Generate(file);
         }
+
+        public Semantic.Type TypeOf(Expression expression) => typeEvaluator.TypeOf(expression);
 
         public Value Evaluate(Expression expression)
         {
