@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Yoakke.Syntax.ParseTree;
 using Yoakke.Text;
@@ -408,8 +409,6 @@ namespace Yoakke.Syntax
                         elseKw = null;
                         var elifCondition = ParseExpression(ExprState.NoBraced);
                         var elifThen = ParseBlockExpression();
-                        Debug.Assert(elifElse != null);
-                        Debug.Assert(elifIfKw != null);
                         elifs.Add(new Expression.If.ElseIf(elifElse, elifIfKw, elifCondition, elifThen));
                     }
                     else
@@ -444,7 +443,6 @@ namespace Yoakke.Syntax
                 fields.Add(ParseStructTypeField());
             }
 
-            Debug.Assert(closeBrace != null);
             return new Expression.StructType(structKw, openBrace, fields.ToArray(), closeBrace);
         }
 
@@ -490,7 +488,6 @@ namespace Yoakke.Syntax
                     if (Match(TokenType.Semicolon, out var semicolon))
                     {
                         // It's an expression statement
-                        Debug.Assert(semicolon != null);
                         statements.Add(new Statement.Expression_(expr, semicolon));
                     }
                     else
@@ -544,7 +541,7 @@ namespace Yoakke.Syntax
             }
         }
 
-        private bool Match(TokenType tt, out Token? token)
+        private bool Match(TokenType tt, [MaybeNullWhen(false)] out Token token)
         {
             var peek = Peek();
             if (peek.Type == tt)
