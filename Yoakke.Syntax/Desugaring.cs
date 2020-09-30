@@ -43,6 +43,8 @@ namespace Yoakke.Syntax
         /// <returns>The desugared <see cref="Statement"/>.</returns>
         public static Statement Desugar(Statement statement) => statement switch
         {
+            Declaration decl => Desugar(decl),
+
             Statement.Var var =>
                 new Statement.Var(var.ParseTreeNode, var.Name, DesugarNullable(var.Type), DesugarNullable(var.Value)),
 
@@ -50,7 +52,7 @@ namespace Yoakke.Syntax
                 new Statement.Return(ret.ParseTreeNode, DesugarNullable(ret.Value)),
 
             Statement.Expression_ expr =>
-                new Statement.Expression_(expr.ParseTreeNode, Desugar(expr.Expression)),
+                new Statement.Expression_(expr.ParseTreeNode, Desugar(expr.Expression), expr.HasSemicolon),
 
             _ => throw new NotImplementedException(),
         };
@@ -83,14 +85,10 @@ namespace Yoakke.Syntax
             Expression.Proc proc =>
                 new Expression.Proc(
                     proc.ParseTreeNode, 
-                    (Expression.ProcSignature)Desugar(proc.Signature), 
-                    Desugar(proc.Body)),
+                    (Expression.ProcSignature)Desugar(proc.Signature),
+                    DesugarProcBody(proc.Body)),
 
-            Expression.Block block =>
-                new Expression.Block(
-                    block.ParseTreeNode, 
-                    block.Statements.Select(Desugar).ToArray(), 
-                    DesugarNullable(block.Value)),
+            Expression.Block block => DesugarBlock(block),
 
             Expression.Call call =>
                 new Expression.Call(
@@ -117,6 +115,37 @@ namespace Yoakke.Syntax
             _ => throw new NotImplementedException(),
         };
 
+        private static Expression DesugarProcBody(Expression body)
+        {
+            body = Desugar(body);
+            if (HasExplicitValue(body))
+            {
+                // Wrap in a return statement
+                return new Expression.Block(
+                    body.ParseTreeNode,
+                    new Statement[] { new Statement.Return(body.ParseTreeNode, body) },
+                    null);
+            }
+            return body;
+        }
+
+        private static Expression.Block DesugarBlock(Expression.Block block)
+        {
+            var statements = block.Statements.Select(Desugar).ToArray();
+            var value = DesugarNullable(block.Value);
+            if (   value == null 
+                && statements.Length > 0
+                && statements.Last() is Statement.Expression_ expr
+                && !HasExplicitValue(expr.Expression))
+            {
+                // There was no return value, but the last statement was an expression without a semicolon
+                // Promote it to value
+                value = expr.Expression;
+                statements = statements.SkipLast(1).ToArray();
+            }
+            return new Expression.Block(block.ParseTreeNode, statements, value);
+        }
+
         private static Expression.StructType.Field Desugar(Expression.StructType.Field field) =>
             new Expression.StructType.Field(field.ParseTreeNode, field.Name, Desugar(field.Type));
 
@@ -128,5 +157,15 @@ namespace Yoakke.Syntax
 
         private static Expression? DesugarNullable(Expression? expression) =>
             expression == null ? null : Desugar(expression);
+
+        private static bool HasExplicitValue(Expression expression) => expression switch
+        {
+            Expression.Block block => block.Value != null,
+
+            // TODO: Don't we always want else to exist?
+            Expression.If iff => HasExplicitValue(iff.Then) || (iff.Else != null && HasExplicitValue(iff.Else)),
+
+            _ => true,
+        };
     }
 }

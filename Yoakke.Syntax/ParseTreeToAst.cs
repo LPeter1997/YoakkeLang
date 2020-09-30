@@ -36,7 +36,7 @@ namespace Yoakke.Syntax
                     ConvertNullable(def.Value)),
 
             ParseTree.Statement.Expression_ expr =>
-                new Ast.Statement.Expression_(expr, Convert(expr.Expression)),
+                new Ast.Statement.Expression_(expr, Convert(expr.Expression), expr.Semicolon != null),
 
             ParseTree.Statement.Return ret =>
                 new Ast.Statement.Return(ret, ConvertNullable(ret.Value)),

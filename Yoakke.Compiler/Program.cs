@@ -110,6 +110,7 @@ namespace Yoakke.Compiler
             var parser = new Parser(tokens, status);
             var prg = parser.ParseFile();
             var ast = ParseTreeToAst.Convert(prg);
+            ast = Desugaring.Desugar(ast);
 
             Console.WriteLine(prg.Dump());
             Console.WriteLine("\n===================\n");

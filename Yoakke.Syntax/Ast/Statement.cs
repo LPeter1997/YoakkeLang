@@ -72,11 +72,16 @@ namespace Yoakke.Syntax.Ast
             /// The wrapped expression.
             /// </summary>
             public readonly Expression Expression;
+            /// <summary>
+            /// True, if this <see cref="Statement"/> wrapped <see cref="Expression"/> is semicolon-terminated.
+            /// </summary>
+            public readonly bool HasSemicolon;
 
-            public Expression_(ParseTree.Node? parseTreeNode, Expression expr)
+            public Expression_(ParseTree.Node? parseTreeNode, Expression expr, bool hasSemicolon)
                 : base(parseTreeNode)
             {
                 Expression = expr;
+                HasSemicolon = hasSemicolon;
             }
         }
     }
