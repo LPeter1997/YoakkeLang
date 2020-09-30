@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using Yoakke.Compiler.Compile;
 using Yoakke.Compiler.Semantic;
 using Yoakke.Lir.Values;
 using Yoakke.Syntax;
@@ -44,6 +45,10 @@ namespace Yoakke.Compiler
             new DefineScope(symTab).Define(ast);
             new DeclareSymbol(symTab).Declare(ast);
             new ResolveSymbol(symTab).Resolve(ast);
+
+            // Compilation
+            var codegen = new Codegen(new DependencySystem());
+            var assembly = codegen.Generate(ast);
         }
     }
 }

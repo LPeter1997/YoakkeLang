@@ -9,6 +9,14 @@ namespace Yoakke.Syntax
     public static class ParseTreeToAst
     {
         /// <summary>
+        /// Converts the parse-tree file to an AST file.
+        /// </summary>
+        /// <param name="file">The <see cref="ParseTree.Declaration.File"/> to convert.</param>
+        /// <returns>The converted <see cref="Ast.Declaration.File"/>.</returns>
+        public static Ast.Declaration.File Convert(ParseTree.Declaration.File file) =>
+            (Ast.Declaration.File)Convert((ParseTree.Statement)file);
+
+        /// <summary>
         /// Converts a parse-tree statement to an AST statement.
         /// </summary>
         /// <param name="s">The parse-tree statement.</param>

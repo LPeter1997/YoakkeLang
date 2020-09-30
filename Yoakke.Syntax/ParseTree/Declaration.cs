@@ -37,6 +37,11 @@ namespace Yoakke.Syntax.ParseTree
             /// </summary>
             public readonly IReadOnlyList<CommentGroup> Comments;
 
+            /// <summary>
+            /// The name of the file.
+            /// </summary>
+            public string Name => System.IO.Path.GetFileNameWithoutExtension(source.Path);
+
             private readonly SourceFile source;
 
             public File(
