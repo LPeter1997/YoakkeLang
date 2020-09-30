@@ -25,6 +25,10 @@ namespace Yoakke.Syntax.ParseTree
                 .OrderedMerge(Comments, e => e.Span.Start);
 
             /// <summary>
+            /// The file documentation.
+            /// </summary>
+            public readonly CommentGroup? Doc;
+            /// <summary>
             /// The list of <see cref="Declaration"/>s this <see cref="File"/> contains.
             /// </summary>
             public readonly IReadOnlyList<Declaration> Declarations;
@@ -35,15 +39,14 @@ namespace Yoakke.Syntax.ParseTree
 
             private readonly SourceFile source;
 
-            /// <summary>
-            /// Initializes a new <see cref="File"/>.
-            /// </summary>
-            /// <param name="source">The <see cref="SourceFile"/> the comments originate from.</param>
-            /// <param name="declarations">The <see cref="Declaration"/>s the file contains.</param>
-            /// <param name="comments">The free <see cref="CommentGroup"/>s that don't belong to any <see cref="Node"/>.</param>
-            public File(SourceFile source, IReadOnlyList<Declaration> declarations, IReadOnlyList<CommentGroup> comments)
+            public File(
+                SourceFile source, 
+                CommentGroup? doc,
+                IReadOnlyList<Declaration> declarations, 
+                IReadOnlyList<CommentGroup> comments)
             {
                 this.source = source;
+                Doc = doc;
                 Declarations = declarations;
                 Comments = comments;
             }

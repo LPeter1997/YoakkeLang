@@ -8,7 +8,9 @@ namespace Yoakke.Compiler
     {
         static void Main(string[] args)
         {
-            var src = @"
+            var src = @"// This is now
+            // File documentation
+
             // I am now documenting foo
             // Which is fun
             // And should work

@@ -104,9 +104,17 @@ namespace Yoakke.Syntax
             {
                 freeComments.Add(CloseLastComments());
             }
+            // If the first free comment started at the first line, we assume it's file documentation
+            CommentGroup? doc = null;
+            if (freeComments.Count > 0 && freeComments.First().Span.Start.Line == 0)
+            {
+                doc = freeComments.First();
+                freeComments.RemoveAt(0);
+            }
             // We are done
             return new Declaration.File(
                 source, 
+                doc,
                 declarations.ToArray(), 
                 freeComments.ToArray());
         }
