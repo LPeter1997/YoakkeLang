@@ -43,7 +43,7 @@ namespace Yoakke.Compiler
             symTab.GlobalScope.Define(new Symbol.Const("i32", new Value.User(Lir.Types.Type.I32)));
             new DefineScope(symTab).Define(ast);
             new DeclareSymbol(symTab).Declare(ast);
-            new DefineSymbol(symTab).Define(ast);
+            new ResolveSymbol(symTab).Resolve(ast);
         }
     }
 }
