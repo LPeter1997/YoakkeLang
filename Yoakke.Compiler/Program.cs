@@ -37,8 +37,8 @@ namespace Yoakke.Compiler
             new ResolveSymbol(symTab).Resolve(ast);
 
             // Compilation
-            var dependencySystem = new DependencySystem();
-            var assembly = dependencySystem.Compile(ast);
+            //var dependencySystem = new DependencySystem();
+            //var assembly = dependencySystem.Compile(ast);
         }
     }
 }
