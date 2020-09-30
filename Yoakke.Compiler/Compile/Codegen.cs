@@ -28,5 +28,12 @@ namespace Yoakke.Compiler.Compile
             // TODO
             throw new NotImplementedException();
         }
+
+        // TODO: Doc
+        public (Assembly, Proc) Generate(Expression expression)
+        {
+            // TODO
+            throw new NotImplementedException();
+        }
     }
 }

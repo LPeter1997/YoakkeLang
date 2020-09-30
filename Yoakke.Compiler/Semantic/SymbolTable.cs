@@ -16,7 +16,7 @@ namespace Yoakke.Compiler.Semantic
         /// <summary>
         /// The global <see cref="Scope"/>.
         /// </summary>
-        public Scope GlobalScope { get; internal set; } = new Scope(ScopeTag.None, null);
+        public readonly Scope GlobalScope = new Scope(ScopeTag.None, null);
 
         internal readonly IDictionary<Node, Scope> ContainingScope = new Dictionary<Node, Scope>();
         internal readonly IDictionary<Node, Symbol> DefinedSymbol = new Dictionary<Node, Symbol>();
