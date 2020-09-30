@@ -29,7 +29,7 @@ namespace Yoakke.Syntax.Ast
             /// </summary>
             public readonly IReadOnlyList<Statement> Statements;
 
-            public File(ParseTree.Node node, IReadOnlyList<Statement> statements)
+            public File(ParseTree.Node? node, IReadOnlyList<Statement> statements)
                 : base(node)
             {
                 Statements = statements;
@@ -54,7 +54,7 @@ namespace Yoakke.Syntax.Ast
             /// </summary>
             public readonly Expression Value;
 
-            public Const(ParseTree.Node parseTreeNode, string name, Expression? type, Expression value)
+            public Const(ParseTree.Node? parseTreeNode, string name, Expression? type, Expression value)
                 : base(parseTreeNode)
             {
                 Name = name;

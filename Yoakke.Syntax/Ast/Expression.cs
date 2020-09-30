@@ -34,7 +34,7 @@ namespace Yoakke.Syntax.Ast
             /// </summary>
             public readonly string Value;
 
-            public Literal(ParseTree.Node parseTreeNode, TokenType type, string value)
+            public Literal(ParseTree.Node? parseTreeNode, TokenType type, string value)
                 : base(parseTreeNode)
             {
                 Type = type;
@@ -52,7 +52,7 @@ namespace Yoakke.Syntax.Ast
             /// </summary>
             public readonly string Name;
 
-            public Identifier(ParseTree.Node parseTreeNode, string name)
+            public Identifier(ParseTree.Node? parseTreeNode, string name)
                 : base(parseTreeNode)
             {
                 Name = name;
@@ -78,7 +78,7 @@ namespace Yoakke.Syntax.Ast
                 /// </summary>
                 public readonly Expression Type;
 
-                public Field(ParseTree.Node parseTreeNode, string name, Expression type)
+                public Field(ParseTree.Node? parseTreeNode, string name, Expression type)
                     : base(parseTreeNode)
                 {
                     Name = name;
@@ -91,7 +91,7 @@ namespace Yoakke.Syntax.Ast
             /// </summary>
             public readonly IReadOnlyList<Field> Fields;
 
-            public StructType(ParseTree.Node parseTreeNode, IReadOnlyList<Field> fields)
+            public StructType(ParseTree.Node? parseTreeNode, IReadOnlyList<Field> fields)
                 : base(parseTreeNode)
             {
                 Fields = fields;
@@ -117,7 +117,7 @@ namespace Yoakke.Syntax.Ast
                 /// </summary>
                 public readonly Expression Value;
 
-                public Field(ParseTree.Node parseTreeNode, string name, Expression value)
+                public Field(ParseTree.Node? parseTreeNode, string name, Expression value)
                     : base(parseTreeNode)
                 {
                     Name = name;
@@ -134,7 +134,7 @@ namespace Yoakke.Syntax.Ast
             /// </summary>
             public readonly IReadOnlyList<Field> Fields;
 
-            public StructValue(ParseTree.Node parseTreeNode, Expression structType, IReadOnlyList<Field> fields)
+            public StructValue(ParseTree.Node? parseTreeNode, Expression structType, IReadOnlyList<Field> fields)
                 : base(parseTreeNode)
             {
                 StructType = structType;
@@ -161,7 +161,7 @@ namespace Yoakke.Syntax.Ast
                 /// </summary>
                 public readonly Expression Type;
 
-                public Parameter(ParseTree.Node parseTreeNode, string? name, Expression type)
+                public Parameter(ParseTree.Node? parseTreeNode, string? name, Expression type)
                 : base(parseTreeNode)
                 {
                     Name = name;
@@ -178,7 +178,7 @@ namespace Yoakke.Syntax.Ast
             /// </summary>
             public readonly Expression? Return;
 
-            public ProcSignature(ParseTree.Node parseTreeNode, IReadOnlyList<Parameter> parameters, Expression? ret)
+            public ProcSignature(ParseTree.Node? parseTreeNode, IReadOnlyList<Parameter> parameters, Expression? ret)
                 : base(parseTreeNode)
             {
                 Parameters = parameters;
@@ -200,7 +200,7 @@ namespace Yoakke.Syntax.Ast
             /// </summary>
             public readonly Expression Body;
 
-            public Proc(ParseTree.Node parseTreeNode, ProcSignature signature, Expression body)
+            public Proc(ParseTree.Node? parseTreeNode, ProcSignature signature, Expression body)
                 : base(parseTreeNode)
             {
                 Signature = signature;
@@ -222,7 +222,7 @@ namespace Yoakke.Syntax.Ast
             /// </summary>
             public readonly Expression? Value;
 
-            public Block(ParseTree.Node parseTreeNode, IReadOnlyList<Statement> statements, Expression? value)
+            public Block(ParseTree.Node? parseTreeNode, IReadOnlyList<Statement> statements, Expression? value)
                 : base(parseTreeNode)
             {
                 Statements = statements;
@@ -244,7 +244,7 @@ namespace Yoakke.Syntax.Ast
             /// </summary>
             public readonly IReadOnlyList<Expression> Arguments;
 
-            public Call(ParseTree.Node parseTreeNode, Expression procedure, IReadOnlyList<Expression> arguments)
+            public Call(ParseTree.Node? parseTreeNode, Expression procedure, IReadOnlyList<Expression> arguments)
                 : base(parseTreeNode)
             {
                 Procedure = procedure;
@@ -270,7 +270,7 @@ namespace Yoakke.Syntax.Ast
             /// </summary>
             public readonly Expression? Else;
 
-            public If(ParseTree.Node parseTreeNode, Expression condition, Expression then, Expression? els)
+            public If(ParseTree.Node? parseTreeNode, Expression condition, Expression then, Expression? els)
                 : base(parseTreeNode)
             {
                 Condition = condition;
@@ -293,7 +293,7 @@ namespace Yoakke.Syntax.Ast
             /// </summary>
             public readonly Expression Body;
 
-            public While(ParseTree.Node parseTreeNode, Expression condition, Expression body)
+            public While(ParseTree.Node? parseTreeNode, Expression condition, Expression body)
                 : base(parseTreeNode)
             {
                 Condition = condition;
@@ -319,7 +319,7 @@ namespace Yoakke.Syntax.Ast
             /// </summary>
             public readonly Expression Right;
 
-            public Binary(ParseTree.Node parseTreeNode, Expression left, TokenType op, Expression right)
+            public Binary(ParseTree.Node? parseTreeNode, Expression left, TokenType op, Expression right)
                 : base(parseTreeNode)
             {
                 Left = left;
@@ -342,7 +342,7 @@ namespace Yoakke.Syntax.Ast
             /// </summary>
             public readonly string Right;
 
-            public DotPath(ParseTree.Node parseTreeNode, Expression left, string right)
+            public DotPath(ParseTree.Node? parseTreeNode, Expression left, string right)
                 : base(parseTreeNode)
             {
                 Left = left;

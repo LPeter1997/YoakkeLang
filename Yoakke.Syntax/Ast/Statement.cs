@@ -37,7 +37,7 @@ namespace Yoakke.Syntax.Ast
             /// </summary>
             public readonly Expression? Value;
 
-            public Var(ParseTree.Node parseTreeNode, string name, Expression? type, Expression? value)
+            public Var(ParseTree.Node? parseTreeNode, string name, Expression? type, Expression? value)
                 : base(parseTreeNode)
             {
                 Name = name;
@@ -56,7 +56,7 @@ namespace Yoakke.Syntax.Ast
             /// </summary>
             public readonly Expression? Value;
 
-            public Return(ParseTree.Node parseTreeNode, Expression? value)
+            public Return(ParseTree.Node? parseTreeNode, Expression? value)
                 : base(parseTreeNode)
             {
                 Value = value;
@@ -71,9 +71,9 @@ namespace Yoakke.Syntax.Ast
             /// <summary>
             /// The wrapped expression.
             /// </summary>
-            public readonly Expression? Expression;
+            public readonly Expression Expression;
 
-            public Expression_(ParseTree.Node parseTreeNode, Expression? expr)
+            public Expression_(ParseTree.Node? parseTreeNode, Expression expr)
                 : base(parseTreeNode)
             {
                 Expression = expr;

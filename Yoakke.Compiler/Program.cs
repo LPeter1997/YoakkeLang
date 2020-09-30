@@ -96,6 +96,12 @@ namespace Yoakke.Compiler
             // Which is fun
             // And should work
             const foo = proc() -> i32 { 
+                var x: i32;
+                x = 0;
+                while x < 10 {
+                    x = x + 1;
+                }
+                x
             }; // LISTEN
 ";
             var srcFile = new SourceFile("foo.yk", src);
