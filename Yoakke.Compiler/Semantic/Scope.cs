@@ -50,6 +50,12 @@ namespace Yoakke.Compiler.Semantic
         }
 
         /// <summary>
+        /// Defines a <see cref="Symbol"/> in this <see cref="Scope"/>.
+        /// </summary>
+        /// <param name="symbol">The <see cref="Symbol"/> to define.</param>
+        public void Define(Symbol symbol) => symbols.Add(symbol.Name, symbol);
+
+        /// <summary>
         /// Searches for a <see cref="Symbol"/> in this or any parent <see cref="Scope"/>.
         /// </summary>
         /// <param name="name">The symbol name.</param>
