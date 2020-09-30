@@ -12,20 +12,10 @@ namespace Yoakke.Compiler
     {
         static void Main(string[] args)
         {
-            var src = @"// This is now
-            // File documentation
-
-            // I am now documenting foo
-            // Which is fun
-            // And should work
+            var src = @"
             const foo = proc() -> i32 { 
-                var x: i32;
-                x = 0;
-                while x < 10 {
-                    x = x + 1;
-                }
-                x
-            }; // LISTEN
+                0
+            };
 ";
             // Syntax
             var srcFile = new SourceFile("foo.yk", src);

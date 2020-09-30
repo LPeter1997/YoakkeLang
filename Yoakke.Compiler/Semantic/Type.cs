@@ -13,6 +13,11 @@ namespace Yoakke.Compiler.Semantic
     /// </summary>
     public abstract partial class Type : IEquatable<Type>
     {
+        public static readonly Type I32 = new Prim("i32", Lir.Types.Type.I32);
+        public static readonly Type Bool = new Prim("bool", Lir.Types.Type.I32);
+        // NOTE: For now it will do
+        public static readonly Type Unit = new Prim("unit", Lir.Types.Type.Void_);
+
         public override bool Equals(object? obj) => obj is Type ty && Equals(ty);
 
         public abstract bool Equals(Type? other);
@@ -27,6 +32,10 @@ namespace Yoakke.Compiler.Semantic
         public class Prim : Type
         {
             /// <summary>
+            /// The name identifier. This is to differentiate different primitives with the same backing Lir type.
+            /// </summary>
+            public readonly string Name;
+            /// <summary>
             /// The Lir <see cref="Type"/>.
             /// </summary>
             public readonly Lir.Types.Type Type;
@@ -34,14 +43,17 @@ namespace Yoakke.Compiler.Semantic
             /// <summary>
             /// Initializes a new <see cref="Prim"/>.
             /// </summary>
+            /// <param name="name">The name identifier.</param>
             /// <param name="type">The Lir <see cref="Type"/> to wrap.</param>
-            public Prim(Lir.Types.Type type)
+            public Prim(string name, Lir.Types.Type type)
             {
+                Name = name;
                 Type = type;
             }
 
-            public override bool Equals(Type? other) => other is Prim p && Type.Equals(p.Type);
-            public override int GetHashCode() => HashCode.Combine(typeof(Prim), Type);
+            public override bool Equals(Type? other) => 
+                other is Prim p && Name == p.Name && Type.Equals(p.Type);
+            public override int GetHashCode() => HashCode.Combine(typeof(Prim), Name, Type);
         }
 
         /// <summary>
