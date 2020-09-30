@@ -45,6 +45,39 @@ namespace Yoakke.Compiler.Semantic
         }
 
         /// <summary>
+        /// A procedure <see cref="Type"/>.
+        /// </summary>
+        public class Proc : Type
+        {
+            /// <summary>
+            /// The list of parameter <see cref="Type"/>s.
+            /// </summary>
+            public readonly IValueList<Type> Parameters;
+            /// <summary>
+            /// The return <see cref="Type"/>.
+            /// </summary>
+            public readonly Type Return;
+
+            /// <summary>
+            /// Initializes a new <see cref="Proc"/>.
+            /// </summary>
+            /// <param name="parameters">The list of parameter <see cref="Type"/>s.</param>
+            /// <param name="ret">The return <see cref="Type"/>.</param>
+            public Proc(IValueList<Type> parameters, Type ret)
+            {
+                Parameters = parameters;
+                Return = ret;
+            }
+
+            public override bool Equals(Type? other) =>
+                   other is Proc p
+                && Parameters.Equals(p.Parameters)
+                && Return.Equals(p.Return);
+            public override int GetHashCode() =>
+                HashCode.Combine(typeof(Proc), Parameters, Return);
+        }
+
+        /// <summary>
         /// A struct <see cref="Type"/>.
         /// </summary>
         public class Struct : Type
@@ -52,11 +85,11 @@ namespace Yoakke.Compiler.Semantic
             /// <summary>
             /// The defining 'struct' keyword.
             /// </summary>
-            public Token KwStruct;
+            public readonly Token KwStruct;
             /// <summary>
             /// The names to field <see cref="Type"/>s.
             /// </summary>
-            public IValueDictionary<string, Type> Fields;
+            public readonly IValueDictionary<string, Type> Fields;
 
             /// <summary>
             /// Initializes a new <see cref="Struct"/>.
