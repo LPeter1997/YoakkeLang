@@ -1,7 +1,6 @@
 
-var my_thing: i32;
+var my_thing = 63;
 
 const main = proc() -> i32 {
-    my_thing = 25;
     my_thing
 };

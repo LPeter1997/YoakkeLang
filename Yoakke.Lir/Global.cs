@@ -32,7 +32,7 @@ namespace Yoakke.Lir
 
         public override string ToValueString() => Name;
         public override string ToString() =>
-            $"global {UnderlyingType} {Name} [visibility = {Visibility}]";
+            $"global {UnderlyingType.ToTypeString()} {Name} [visibility = {Visibility}]";
         public override bool Equals(Value? other) => ReferenceEquals(this, other);
         public override int GetHashCode() => HashCode.Combine(typeof(Global), Name);
         // NOTE: Makes no sense to clone this

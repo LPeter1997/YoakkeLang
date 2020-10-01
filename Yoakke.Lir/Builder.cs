@@ -195,6 +195,31 @@ namespace Yoakke.Lir
             if (ReferenceEquals(bb, currentBasicBlock)) currentBasicBlock = CurrentProc.BasicBlocks.Last();
         }
 
+        /// <summary>
+        /// Executes some <see cref="Action{Builder}"/> while being inside the prelude procedure.
+        /// Useful for defining initialization code.
+        /// </summary>
+        /// <param name="action">The <see cref="Action{Builder}"/> to build code with within the prelude 
+        /// procedure.</param>
+        public void WithPrelude(Action<Builder> action)
+        {
+            // Save state
+            var lastProc = currentProc;
+            var lastBasicBlock = currentBasicBlock;
+            // If there's no prelude function defined, define it
+            if (Assembly.Prelude == null)
+            {
+                Assembly.Prelude = DefineProc("prelude");
+            }
+            // Set it as the current procedure
+            CurrentProc = Assembly.Prelude;
+            // Allow the user to do the things inside
+            action(this);
+            // Reset state
+            currentProc = lastProc;
+            currentBasicBlock = lastBasicBlock;
+        }
+
         // Instructions ////////////////////////////////////////////////////////
 
         /// <summary>

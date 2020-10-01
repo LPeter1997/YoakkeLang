@@ -23,6 +23,12 @@ namespace Yoakke.Lir
         public Proc? EntryPoint { get; set; }
 
         /// <summary>
+        /// The prelude procedure of the assembly.
+        /// If not null, this will be ran before the main code to perform global initializations and such.
+        /// </summary>
+        public Proc? Prelude { get; set; }
+
+        /// <summary>
         /// The <see cref="Extern"/>s this assembly references.
         /// </summary>
         public readonly IList<Extern> Externals = new List<Extern>();

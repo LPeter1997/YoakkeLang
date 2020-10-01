@@ -51,6 +51,11 @@ namespace Yoakke.Compiler.Compile
             system.TypeCheck(file);
             // If the type-checking succeeded, we can compile
             Visit(file);
+            // We close the prelude function
+            if (builder.Assembly.Prelude != null)
+            {
+                builder.WithPrelude(b => b.Ret());
+            }
             // Then we check the assembly
             var asm = builder.Assembly.Check(status);
             // We are done
@@ -95,7 +100,11 @@ namespace Yoakke.Compiler.Compile
                 if (var.Value != null)
                 {
                     // Assign initial value in the startup code
-                    // TODO: We need to inject the initial value in the startup sequence
+                    builder.WithPrelude(b => 
+                    {
+                        var initialValue = NonNull(Visit(var.Value));
+                        b.Store(varSpace, initialValue);
+                    });
                 }
             }
             else

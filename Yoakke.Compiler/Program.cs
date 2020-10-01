@@ -114,7 +114,7 @@ namespace Yoakke.Compiler
             {
                 // Run in the VM
                 var vm = new VirtualMachine(asm);
-                var result = vm.Execute(asm.Procedures[0], new Value[] { });
+                var result = vm.Execute("main", new Value[] { });
                 Console.WriteLine($"Result: {result}");
 
                 // Build an exe
