@@ -23,12 +23,12 @@ namespace Yoakke.Compiler
         public Symbol DefinedSymbolFor(Node node) => symbolTable.DefinedSymbol[node];
         public Symbol ReferredSymbolFor(Node node) => symbolTable.ReferredSymbol[node];
 
-        public Lir.Types.Type TranslateToLirType(Semantic.Type type)
+        public Lir.Types.Type TranslateToLirType(Semantic.Type type) => type switch
         {
-            if (type.Equals(Semantic.Type.I32)) return Lir.Types.Type.I32;
+            Semantic.Type.Prim prim => prim.Type,
 
-            throw new NotImplementedException();
-        }
+            _ => throw new NotImplementedException(),
+        };
 
         public void TypeCheck(Statement statement)
         {
@@ -41,6 +41,10 @@ namespace Yoakke.Compiler
             if (expression is Expression.Proc)
             {
                 return new Semantic.Type.Proc(new ValueList<Semantic.Type> { }, Semantic.Type.I32);
+            }
+            if (expression is Expression.If)
+            {
+                return Semantic.Type.I32;
             }
             throw new NotImplementedException();
         }
@@ -66,7 +70,7 @@ namespace Yoakke.Compiler
         {
             var src = @"
             const foo = proc() -> i32 { 
-                0
+                if true { 1 } else { 0 }
             };
 ";
             // Syntax

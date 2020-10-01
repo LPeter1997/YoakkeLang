@@ -133,7 +133,7 @@ namespace Yoakke.Syntax
             if (   value == null 
                 && statements.Length > 0
                 && statements.Last() is Statement.Expression_ expr
-                && !HasExplicitValue(expr.Expression))
+                && HasExplicitValue(expr.Expression))
             {
                 // There was no return value, but the last statement was an expression without a semicolon
                 // Promote it to value

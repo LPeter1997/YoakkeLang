@@ -123,9 +123,44 @@ namespace Yoakke.Compiler.Compile
             return block.Value == null ? null : Visit(block.Value);
         }
 
+        protected override Value? Visit(Expression.If iff)
+        {
+            if (iff.Else == null)
+            {
+                // No chance for a return value
+                builder.IfThen(
+                    condition: b => NonNull(Visit(iff.Condition)),
+                    then: b => Visit(iff.Then));
+                return null;
+            }
+            else
+            {
+                // First we allocate space for the return value
+                var retType = system.TypeOf(iff);
+                var retSpace = builder.Alloc(system.TranslateToLirType(retType));
+                // Compile it, storing the results in the respective blocks
+                builder.IfThenElse(
+                    condition: b => NonNull(Visit(iff.Condition)),
+                    then: b => 
+                    {
+                        var result = NonNull(Visit(iff.Then));
+                        b.Store(retSpace, result);
+                    },
+                    @else: b =>
+                    {
+                        var result = NonNull(Visit(iff.Else));
+                        b.Store(retSpace, result);
+                    });
+                // Load up the result
+                return builder.Load(retSpace);
+            }
+        }
+
         protected override Value? Visit(Expression.Literal lit) => lit.Type switch
         {
             TokenType.IntLiteral => Lir.Types.Type.I32.NewValue(int.Parse(lit.Value)),
+            TokenType.KwTrue => Lir.Types.Type.I32.NewValue(1),
+            TokenType.KwFalse => Lir.Types.Type.I32.NewValue(0),
 
             _ => throw new NotImplementedException(),
         };
