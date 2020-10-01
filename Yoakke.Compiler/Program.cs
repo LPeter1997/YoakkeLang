@@ -77,6 +77,7 @@ namespace Yoakke.Compiler
             var src = @"
             const foo = proc() -> i32 { 
                 var x = 123;
+                x = x + 1;
                 x
             };
 ";

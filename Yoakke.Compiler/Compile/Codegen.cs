@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Yoakke.DataStructures;
 using Yoakke.Lir;
 using Yoakke.Lir.Status;
 using Yoakke.Lir.Values;
@@ -207,6 +208,54 @@ namespace Yoakke.Compiler.Compile
             TokenType.KwFalse => Lir.Types.Type.I32.NewValue(0),
 
             _ => throw new NotImplementedException(),
+        };
+
+        protected override Value? Visit(Expression.Call call)
+        {
+            // Simply compile the procedure
+            var proc = NonNull(Visit(call.Procedure));
+            // Then the args
+            var args = call.Arguments.Select(arg => NonNull(Visit(arg))).ToList();
+            // And write the call
+            return builder.Call(proc, args);
+        }
+
+        protected override Value? Visit(Expression.Binary bin)
+        {
+            if (bin.Operator == TokenType.Assign)
+            {
+                var left = Lvalue(bin.Left);
+                var right = NonNull(Visit(bin.Right));
+                // Write out the store
+                builder.Store(left, right);
+                return null;
+            }
+            else
+            {
+                // TODO: Do proper type-checking, for now we blindly assume builtin operations
+                // Here we need to handle the case when there's a user-defined operator!
+                var left = NonNull(Visit(bin.Left));
+                var right = NonNull(Visit(bin.Right));
+                return bin.Operator switch
+                {
+                    TokenType.Add      => builder.Add(left, right),
+                    TokenType.Subtract => builder.Sub(left, right),
+                    TokenType.Multiply => builder.Mul(left, right),
+                    TokenType.Divide   => builder.Div(left, right),
+                    TokenType.Modulo   => builder.Mod(left, right),
+
+                    _ => throw new NotImplementedException(),
+                };
+            }
+        }
+
+        // TODO: StructType, StructValue, ProcSignature, DotPath
+
+        private Value Lvalue(Expression expression) => expression switch
+        {
+            Expression.Identifier ident => variablesToRegisters[system.ReferredSymbolFor(ident)],
+
+            _ => throw new NotSupportedException(),
         };
 
         private static T NonNull<T>(T? value) where T : class
