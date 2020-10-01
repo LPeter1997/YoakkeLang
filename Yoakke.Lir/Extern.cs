@@ -11,7 +11,7 @@ namespace Yoakke.Lir
     public class Extern : Value, ISymbol, IValidate
     {
         public override Type Type { get; }
-        public string Name { get; }
+        public string Name { get; set; }
         public Visibility Visibility { get; set; } = Visibility.Public;
 
         /// <summary>

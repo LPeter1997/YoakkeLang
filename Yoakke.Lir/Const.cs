@@ -11,7 +11,7 @@ namespace Yoakke.Lir
     public class Const : Value, ISymbol, IValidate
     {
         public override Type Type => new Type.Ptr(Value.Type);
-        public string Name { get; }
+        public string Name { get; set; }
         public Visibility Visibility { get; set; } = Visibility.Private;
         /// <summary>
         /// The constant <see cref="Value"/>.

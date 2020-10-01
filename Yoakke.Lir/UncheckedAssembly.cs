@@ -13,7 +13,7 @@ namespace Yoakke.Lir
         /// <summary>
         /// The name of this <see cref="Assembly"/>.
         /// </summary>
-        public readonly string Name;
+        public string Name { get; set; }
 
         /// <summary>
         /// The entry point of the assembly.

@@ -21,7 +21,7 @@ namespace Yoakke.Lir
         /// <summary>
         /// The name of the <see cref="BasicBlock"/>.
         /// </summary>
-        public readonly string Name;
+        public string Name { get; set; }
         /// <summary>
         /// The list of instructions this block contains.
         /// </summary>
