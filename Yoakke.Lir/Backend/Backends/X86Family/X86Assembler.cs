@@ -27,6 +27,8 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         private X86BasicBlock? currentBasicBlock;
         private SizeContext sizeContext = new SizeContext { PointerSize = 4, };
 
+        private Proc? entryPoint;
+        private Proc? prelude;
         private string? nextComment = null;
         private IDictionary<BasicBlock, X86BasicBlock> basicBlocks = new Dictionary<BasicBlock, X86BasicBlock>();
         private IDictionary<Proc, X86Proc> procs = new Dictionary<Proc, X86Proc>();
@@ -45,6 +47,8 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
 
         private X86Assembly Compile(Assembly assembly)
         {
+            entryPoint = assembly.EntryPoint;
+            prelude = assembly.Prelude;
             // First we forward declare procedures and basic blocks
             ForwardDeclare(assembly);
             // Compile externals
@@ -852,11 +856,17 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             foreach (var _ in SplitData(byteCount, x => { action(x); return 0; })) ;
         }
 
-        private void WriteProcPrologue(Proc _)
+        private void WriteProcPrologue(Proc proc)
         {
             CommentInstr("prologue");
             WriteInstr(X86Op.Push, Register.ebp);
             WriteInstr(X86Op.Mov, Register.ebp, Register.esp);
+            // Call the prelude procedure, if this is the entry point
+            if (ReferenceEquals(entryPoint, proc) && prelude != null)
+            {
+                var x86proc = procs[prelude];
+                WriteInstr(X86Op.Call, x86proc);
+            }
         }
 
         private void WriteProcEpilogue(Proc _)

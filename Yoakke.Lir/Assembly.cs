@@ -44,6 +44,12 @@ namespace Yoakke.Lir
         private Proc? entryPoint;
 
         /// <summary>
+        /// The prelude procedure of the <see cref="Assembly"/>.
+        /// If not null, this will be ran before the main code to perform global initializations and such.
+        /// </summary>
+        public readonly Proc? Prelude;
+
+        /// <summary>
         /// The <see cref="Extern"/>s the <see cref="Assembly"/> references.
         /// </summary>
         public readonly IReadOnlyList<Extern> Externals;
@@ -85,6 +91,7 @@ namespace Yoakke.Lir
         {
             Name = uncheckedAssembly.Name;
             entryPoint = uncheckedAssembly.EntryPoint;
+            Prelude = uncheckedAssembly.Prelude;
             Externals = uncheckedAssembly.Externals.ToArray();
             Constants = uncheckedAssembly.Constants.ToArray();
             Globals = uncheckedAssembly.Globals.ToArray();

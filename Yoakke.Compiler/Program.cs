@@ -7,6 +7,7 @@ using Yoakke.Compiler.Semantic;
 using Yoakke.DataStructures;
 using Yoakke.Lir.Backend;
 using Yoakke.Lir.Backend.Toolchain;
+using Yoakke.Lir.Passes;
 using Yoakke.Lir.Runtime;
 using Yoakke.Lir.Status;
 using Yoakke.Lir.Values;
@@ -103,6 +104,7 @@ namespace Yoakke.Compiler
             var codegen = new Codegen(new TestDependencySystem(symTab));
             var buildStatus = new BuildStatus();
             var asm = codegen.Generate(ast, buildStatus);
+            new CodePassSet().Pass(asm);
             Console.WriteLine(asm);
             Console.WriteLine("\n");
             foreach (var err in buildStatus.Errors)

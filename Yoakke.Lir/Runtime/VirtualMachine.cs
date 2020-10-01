@@ -60,6 +60,11 @@ namespace Yoakke.Lir.Runtime
             globalsToPointers = new Dictionary<Global, ManagedPtrValue>();
             constantsToPointers = new Dictionary<Const, ManagedPtrValue>();
             CompileAssembly();
+            // If there's a prelude, execute it now
+            if (Assembly.Prelude != null)
+            {
+                Execute(Assembly.Prelude, new Value[] { });
+            }
         }
 
         // We simplify our assembly representation by removing labels and simply 
