@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Yoakke.Compiler.Compile;
 using Yoakke.Compiler.Semantic;
 using Yoakke.DataStructures;
+using Yoakke.Lir.Backend;
+using Yoakke.Lir.Backend.Toolchain;
+using Yoakke.Lir.Runtime;
 using Yoakke.Lir.Status;
 using Yoakke.Lir.Values;
 using Yoakke.Syntax;
@@ -75,10 +79,14 @@ namespace Yoakke.Compiler
         static void Main(string[] args)
         {
             var src = @"
-            const foo = proc() -> i32 { 
-                var x = 123;
-                x = x + 1;
-                x
+            const main = proc() -> i32 { 
+                var sum = 0;
+                var x = 0;
+                while x < 10 {
+                    x = x + 1;
+                    sum = sum + x;
+                }
+                sum
             };
 ";
             // Syntax
@@ -112,8 +120,29 @@ namespace Yoakke.Compiler
             {
                 Console.WriteLine(err.GetErrorMessage());
             }
-            //var dependencySystem = new DependencySystem();
-            //var assembly = dependencySystem.Compile(ast);
+
+            if (buildStatus.Errors.Count == 0)
+            {
+                // Run in the VM
+                var vm = new VirtualMachine(asm);
+                var result = vm.Execute(asm.Procedures[0], new Value[] { });
+                Console.WriteLine($"Result: {result}");
+
+                // Build an exe
+                var toolchain = Toolchains.All().First();
+                var build = new Build
+                {
+                    CheckedAssembly = asm,
+                    IntermediatesDirectory = "C:/TMP/program_build",
+                    OutputPath = "C:/TMP/program.exe",
+                };
+                toolchain.Compile(build);
+
+                foreach (var err in build.Status.Errors)
+                {
+                    Console.WriteLine(err.GetErrorMessage());
+                }
+            }
         }
     }
 }

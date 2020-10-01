@@ -67,6 +67,8 @@ namespace Yoakke.Compiler.Compile
                 var proc = (Proc)NonNull(Visit(cons.Value));
                 // Rename it properly
                 proc.Name = cons.Name;
+                // TODO: We publish all procedures for now
+                proc.Visibility = Visibility.Public;
             }
             return null;
         }
@@ -243,6 +245,13 @@ namespace Yoakke.Compiler.Compile
                     TokenType.Multiply => builder.Mul(left, right),
                     TokenType.Divide   => builder.Div(left, right),
                     TokenType.Modulo   => builder.Mod(left, right),
+
+                    TokenType.Equal        => builder.CmpEq(left, right),
+                    TokenType.NotEqual     => builder.CmpNe(left, right),
+                    TokenType.Greater      => builder.CmpGr(left, right),
+                    TokenType.Less         => builder.CmpLe(left, right),
+                    TokenType.GreaterEqual => builder.CmpGrEq(left, right),
+                    TokenType.LessEqual    => builder.CmpLeEq(left, right),
 
                     _ => throw new NotImplementedException(),
                 };

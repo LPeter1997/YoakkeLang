@@ -507,12 +507,12 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                         if (first)
                         {
                             // We use add or sub
-                            WriteInstr(firstOp, displ, r);
+                            WriteNonImmOrMemoryInstr(firstOp, displ, r);
                         }
                         else
                         {
                             // We use adc or sbb
-                            WriteInstr(remOps, displ, r);
+                            WriteNonImmOrMemoryInstr(remOps, displ, r);
                         }
 
                         offset += width.Size;

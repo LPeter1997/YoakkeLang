@@ -39,7 +39,7 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
             var winucrtLibPath = Path.Combine(WindowsSdk, "Lib", WindowsSdkVersion, "ucrt", targetMachineId);
             var allLibPaths = $"/LIBPATH:\"{msvcLibPath}\" /LIBPATH:\"{winumLibPath}\" /LIBPATH:\"{winucrtLibPath}\"";
 
-            var arguments = $"/NOLOGO {allLibPaths} {outputKindFlag} {exports} /MACHINE:{targetMachineId} {entry} /OUT:\"{build.OutputPath}\" {allFiles}";
+            var arguments = $"/NOLOGO /SUBSYSTEM:CONSOLE {allLibPaths} {outputKindFlag} {exports} /MACHINE:{targetMachineId} {entry} /OUT:\"{build.OutputPath}\" {allFiles}";
             // Run it
             InvokeWithEnvironment("LINK.exe", arguments, build);
         }
