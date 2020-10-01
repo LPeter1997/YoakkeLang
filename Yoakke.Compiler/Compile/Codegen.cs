@@ -86,13 +86,29 @@ namespace Yoakke.Compiler.Compile
                 Debug.Assert(var.Type != null);
                 type = system.EvaluateToType(var.Type);
             }
-            // Allocate space
-            var varSpace = builder.Alloc(system.TranslateToLirType(type));
-            if (var.Value != null)
+            // Globals and locals are very different
+            Value varSpace;
+            if (system.SymbolTable.IsGlobal(var))
             {
-                // We also need to assign the value
-                var value = NonNull(Visit(var.Value));
-                builder.Store(varSpace, value);
+                // Global variable
+                varSpace = builder.DefineGlobal(var.Name, system.TranslateToLirType(type));
+                if (var.Value != null)
+                {
+                    // Assign initial value in the startup code
+                    // TODO: We need to inject the initial value in the startup sequence
+                }
+            }
+            else
+            {
+                // Local variable
+                // Allocate space
+                varSpace = builder.Alloc(system.TranslateToLirType(type));
+                if (var.Value != null)
+                {
+                    // We also need to assign the value
+                    var value = NonNull(Visit(var.Value));
+                    builder.Store(varSpace, value);
+                }
             }
             // Associate with symbol
             var symbol = system.SymbolTable.DefinedSymbol(var);
