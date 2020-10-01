@@ -7,19 +7,22 @@ using System.Threading.Tasks;
 namespace Yoakke.Compiler.Semantic
 {
     /// <summary>
-    /// Extra information about <see cref="Scope"/>s.
+    /// The kind of the <see cref="Scope"/>s.
     /// </summary>
-    [Flags]
-    public enum ScopeTag
+    public enum ScopeKind
     {
         /// <summary>
-        /// No extra information.
+        /// Nothing special.
         /// </summary>
-        None = 0,
+        None,
         /// <summary>
         /// A <see cref="Scope"/> for a procedure.
         /// </summary>
-        Proc = 1,
+        Proc,
+        /// <summary>
+        /// A <see cref="Scope"/> for a structure.
+        /// </summary>
+        Struct,
     }
 
     /// <summary>
@@ -28,9 +31,9 @@ namespace Yoakke.Compiler.Semantic
     public class Scope
     {
         /// <summary>
-        /// The <see cref="ScopeTag"/> of this <see cref="Scope"/>.
+        /// The <see cref="ScopeKind"/> of this <see cref="Scope"/>.
         /// </summary>
-        public readonly ScopeTag Tag;
+        public readonly ScopeKind Kind;
         /// <summary>
         /// The parent of this <see cref="Scope"/>. Null, if this is the root.
         /// </summary>
@@ -41,11 +44,11 @@ namespace Yoakke.Compiler.Semantic
         /// <summary>
         /// Initializes a new <see cref="Scope"/>.
         /// </summary>
-        /// <param name="tag">The <see cref="ScopeTag"/> for this scope.</param>
+        /// <param name="kind">The <see cref="ScopeKind"/> for this scope.</param>
         /// <param name="parent">The parent scope of this scope.</param>
-        public Scope(ScopeTag tag, Scope? parent)
+        public Scope(ScopeKind kind, Scope? parent)
         {
-            Tag = tag;
+            Kind = kind;
             Parent = parent;
         }
 
@@ -66,6 +69,19 @@ namespace Yoakke.Compiler.Semantic
             if (Parent != null) return Parent.Reference(name);
             // TODO: Error
             throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Retrieves the innermost ancestor <see cref="Scope"/> with any of the given <see cref="ScopeKind"/>s.
+        /// </summary>
+        /// <param name="kinds">The <see cref="ScopeKind"/>s to look for.</param>
+        /// <returns>The innermost <see cref="Scope"/> with one of the given <see cref="ScopeKind"/>s, or null if 
+        /// there was none.</returns>
+        public Scope? AncestorWithKind(params ScopeKind[] kinds)
+        {
+            if (kinds.Contains(Kind)) return this;
+            if (Parent != null) return Parent.AncestorWithKind(kinds);
+            return null;
         }
     }
 }

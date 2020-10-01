@@ -38,12 +38,7 @@ namespace Yoakke.Compiler.Semantic
         protected override object? Visit(Statement.Var var)
         {
             base.Visit(var);
-
-            var scope = symbolTable.ContainingScope[var];
-            var symbol = new Symbol.Var(var);
-            scope.Define(symbol);
-            symbolTable.DefinedSymbol[var] = symbol;
-
+            symbolTable.DefineSymbol(var, new Symbol.Var(var));
             return null;
         }
 
@@ -55,10 +50,7 @@ namespace Yoakke.Compiler.Semantic
             {
                 if (param.Name == null) continue;
 
-                var scope = symbolTable.ContainingScope[param];
-                var symbol = new Symbol.Var(param);
-                scope.Define(symbol);
-                symbolTable.DefinedSymbol[param] = symbol;
+                symbolTable.DefineSymbol(param, new Symbol.Var(param));
             }
             Visit(proc.Body);
             return null;
@@ -66,9 +58,7 @@ namespace Yoakke.Compiler.Semantic
 
         protected override object? Visit(Expression.Identifier ident)
         {
-            var scope = symbolTable.ContainingScope[ident];
-            var symbol = scope.Reference(ident.Name);
-            symbolTable.ReferredSymbol[ident] = symbol;
+            symbolTable.ReferSymbol(ident, ident.Name);
             return null;
         }
     }

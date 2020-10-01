@@ -38,12 +38,7 @@ namespace Yoakke.Compiler.Semantic
         protected override object? Visit(Declaration.Const cons)
         {
             base.Visit(cons);
-
-            var scope = symbolTable.ContainingScope[cons];
-            var symbol = new Symbol.Const(cons);
-            scope.Define(symbol);
-            symbolTable.DefinedSymbol[cons] = symbol;
-
+            symbolTable.DefineSymbol(cons, new Symbol.Const(cons));
             return null;
         }
     }

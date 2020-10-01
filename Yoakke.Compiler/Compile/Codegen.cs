@@ -95,7 +95,7 @@ namespace Yoakke.Compiler.Compile
                 builder.Store(varSpace, value);
             }
             // Associate with symbol
-            var symbol = system.DefinedSymbolFor(var);
+            var symbol = system.SymbolTable.DefinedSymbol(var);
             variablesToRegisters.Add(symbol, varSpace);
             return null;
         }
@@ -138,7 +138,7 @@ namespace Yoakke.Compiler.Compile
                 if (param.Name != null)
                 {
                     // It has a symbol, we store the allocated space associated
-                    var symbol = system.DefinedSymbolFor(param);
+                    var symbol = system.SymbolTable.DefinedSymbol(param);
                     variablesToRegisters.Add(symbol, paramSpace);
                 }
             }
@@ -197,7 +197,7 @@ namespace Yoakke.Compiler.Compile
         protected override Value? Visit(Expression.Identifier ident)
         {
             // Look up the register arrociated with the symbol
-            var symbol = system.ReferredSymbolFor(ident);
+            var symbol = system.SymbolTable.ReferredSymbol(ident);
             var reg = variablesToRegisters[symbol];
             // Load the value
             return builder.Load(reg);
@@ -260,12 +260,19 @@ namespace Yoakke.Compiler.Compile
 
         // TODO: StructType, StructValue, ProcSignature, DotPath
 
-        private Value Lvalue(Expression expression) => expression switch
+        private Value Lvalue(Expression expression)
         {
-            Expression.Identifier ident => variablesToRegisters[system.ReferredSymbolFor(ident)],
+            switch (expression)
+            {
+            case Expression.Identifier ident:
+            {
+                var symbol = system.SymbolTable.ReferredSymbol(ident);
+                return variablesToRegisters[symbol];
+            }
 
-            _ => throw new NotSupportedException(),
-        };
+            default: throw new NotImplementedException();
+            }
+        }
 
         private static T NonNull<T>(T? value) where T : class
         {

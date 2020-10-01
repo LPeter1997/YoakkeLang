@@ -17,18 +17,9 @@ namespace Yoakke.Compiler.Compile
     public interface IDependencySystem
     {
         /// <summary>
-        /// Retrieves the <see cref="Symbol"/> that the given <see cref="Node"/> defined.
+        /// The <see cref="SymbolTable"/> of the system.
         /// </summary>
-        /// <param name="node">The <see cref="Node"/> to get the <see cref="Symbol"/> for.</param>
-        /// <returns>The <see cref="Symbol"/> the <see cref="Node"/> defined.</returns>
-        public Symbol DefinedSymbolFor(Node node);
-
-        /// <summary>
-        /// Retrieves the <see cref="Symbol"/> that the given <see cref="Node"/> referred to.
-        /// </summary>
-        /// <param name="node">The <see cref="Node"/> to get the <see cref="Symbol"/> for.</param>
-        /// <returns>The <see cref="Symbol"/> the <see cref="Node"/> referred to.</returns>
-        public Symbol ReferredSymbolFor(Node node);
+        public SymbolTable SymbolTable { get; }
 
         /// <summary>
         /// Retrieves the semantic <see cref="Type"/> of an <see cref="Expression"/>.

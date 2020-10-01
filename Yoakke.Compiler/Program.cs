@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Yoakke.Compiler.Compile;
@@ -17,15 +18,12 @@ namespace Yoakke.Compiler
 {
     class TestDependencySystem : IDependencySystem
     {
-        private SymbolTable symbolTable;
+        public SymbolTable SymbolTable { get; }
 
         public TestDependencySystem(SymbolTable symbolTable)
         {
-            this.symbolTable = symbolTable;
+            SymbolTable = symbolTable;
         }
-
-        public Symbol DefinedSymbolFor(Node node) => symbolTable.DefinedSymbol[node];
-        public Symbol ReferredSymbolFor(Node node) => symbolTable.ReferredSymbol[node];
 
         public Lir.Types.Type TranslateToLirType(Semantic.Type type) => type switch
         {
@@ -78,19 +76,10 @@ namespace Yoakke.Compiler
     {
         static void Main(string[] args)
         {
-            var src = @"
-            const main = proc() -> i32 { 
-                var sum = 0;
-                var x = 0;
-                while x < 10 {
-                    x = x + 1;
-                    sum = sum + x;
-                }
-                sum
-            };
-";
+            var srcPath = @"../../../../../samples/test.yk";
             // Syntax
-            var srcFile = new SourceFile("foo.yk", src);
+            var src = File.ReadAllText(srcPath);
+            var srcFile = new SourceFile(srcPath, src);
             var syntaxStatus = new SyntaxStatus();
             var tokens = Lexer.Lex(srcFile, syntaxStatus);
             var parser = new Parser(tokens, syntaxStatus);

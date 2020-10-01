@@ -77,6 +77,8 @@ namespace Yoakke.Compiler.Semantic
         /// </summary>
         public class Var : Symbol
         {
+            private static int unnamedCnt = 0;
+
             /// <summary>
             /// The <see cref="Type"/> of this <see cref="Var"/>.
             /// </summary>
@@ -87,7 +89,7 @@ namespace Yoakke.Compiler.Semantic
             /// </summary>
             /// <param name="param">The parameter definition.</param>
             public Var(Expression.ProcSignature.Parameter param)
-                : base(param, param.Name ?? throw new InvalidOperationException())
+                : base(param, param.Name ?? $"unnamed_{unnamedCnt++}")
             {
             }
 

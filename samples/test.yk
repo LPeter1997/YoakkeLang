@@ -1,10 +1,10 @@
 
-const identity = proc(x: var) -> var {
-    x
-};
-
 const main = proc() -> i32 {
-    var x: i32 = identity(12);
-    var y: bool = identity(true);
-    0
+    var sum = 0;
+    var x = 0;
+    while x < 10 {
+        x = x + 1;
+        sum = sum + x;
+    }
+    sum
 };

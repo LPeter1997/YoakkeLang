@@ -14,7 +14,6 @@ namespace Yoakke.Compiler.Semantic
     public class DefineScope : Visitor<object>
     {
         private SymbolTable symbolTable;
-        private Scope currentScope;
 
         /// <summary>
         /// Initializes a new <see cref="DefineScope"/>.
@@ -23,7 +22,6 @@ namespace Yoakke.Compiler.Semantic
         public DefineScope(SymbolTable symbolTable)
         {
             this.symbolTable = symbolTable;
-            currentScope = symbolTable.GlobalScope;
         }
 
         /// <summary>
@@ -42,19 +40,19 @@ namespace Yoakke.Compiler.Semantic
 
         protected override object? Visit(Declaration declaration)
         {
-            symbolTable.ContainingScope[declaration] = currentScope;
+            symbolTable.AssignCurrentScope(declaration);
             return base.Visit(declaration);
         }
 
         protected override object? Visit(Statement statement)
         {
-            symbolTable.ContainingScope[statement] = currentScope;
+            symbolTable.AssignCurrentScope(statement);
             return base.Visit(statement);
         }
 
         protected override object? Visit(Expression expression)
         {
-            symbolTable.ContainingScope[expression] = currentScope;
+            symbolTable.AssignCurrentScope(expression);
             return base.Visit(expression);
         }
 
@@ -62,40 +60,26 @@ namespace Yoakke.Compiler.Semantic
 
         protected override object? Visit(Expression.StructType sty)
         {
-            PushScope(ScopeTag.None);
+            symbolTable.PushScope(ScopeKind.Struct);
             base.Visit(sty);
-            PopScope();
+            symbolTable.PopScope();
             return null;
         }
 
         protected override object? Visit(Expression.Proc proc)
         {
-            PushScope(ScopeTag.Proc);
+            symbolTable.PushScope(ScopeKind.Proc);
             base.Visit(proc);
-            PopScope();
+            symbolTable.PopScope();
             return null;
         }
 
         protected override object? Visit(Expression.Block block)
         {
-            PushScope(ScopeTag.None);
+            symbolTable.PushScope(ScopeKind.None);
             base.Visit(block);
-            PopScope();
+            symbolTable.PopScope();
             return null;
-        }
-
-        // Helpers
-
-        private Scope PushScope(ScopeTag scopeTag)
-        {
-            currentScope = new Scope(scopeTag, currentScope);
-            return currentScope;
-        }
-
-        private void PopScope()
-        {
-            Debug.Assert(currentScope.Parent != null);
-            currentScope = currentScope.Parent;
         }
     }
 }
