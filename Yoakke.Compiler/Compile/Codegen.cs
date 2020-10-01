@@ -70,6 +70,47 @@ namespace Yoakke.Compiler.Compile
             return null;
         }
 
+        protected override Value? Visit(Statement.Var var)
+        {
+            // Figure out variable type
+            Semantic.Type type;
+            if (var.Value != null)
+            {
+                type = system.TypeOf(var.Value);
+            }
+            else
+            {
+                Debug.Assert(var.Type != null);
+                type = system.EvaluateToType(var.Type);
+            }
+            // Allocate space
+            var varSpace = builder.Alloc(system.TranslateToLirType(type));
+            if (var.Value != null)
+            {
+                // We also need to assign the value
+                var value = NonNull(Visit(var.Value));
+                builder.Store(varSpace, value);
+            }
+            // Associate with symbol
+            var symbol = system.DefinedSymbolFor(var);
+            variablesToRegisters.Add(symbol, varSpace);
+            return null;
+        }
+
+        protected override Value? Visit(Statement.Return ret)
+        {
+            if (ret.Value == null)
+            {
+                builder.Ret();
+            }
+            else
+            {
+                var value = NonNull(Visit(ret.Value));
+                builder.Ret(value);
+            }
+            return null;
+        }
+
         protected override Value? Visit(Expression.Proc proc)
         {
             var procVal = builder.DefineProc("unnamed");
@@ -101,20 +142,6 @@ namespace Yoakke.Compiler.Compile
             // Now we can compile the body
             Visit(proc.Body);
             return procVal;
-        }
-
-        protected override Value? Visit(Statement.Return ret)
-        {
-            if (ret.Value == null)
-            {
-                builder.Ret();
-            }
-            else
-            {
-                var value = NonNull(Visit(ret.Value));
-                builder.Ret(value);
-            }
-            return null;
         }
 
         protected override Value? Visit(Expression.Block block)
@@ -154,6 +181,23 @@ namespace Yoakke.Compiler.Compile
                 // Load up the result
                 return builder.Load(retSpace);
             }
+        }
+
+        protected override Value? Visit(Expression.While whil)
+        {
+            builder.While(
+                condition: b => NonNull(Visit(whil.Condition)),
+                body: b => Visit(whil.Body));
+            return null;
+        }
+
+        protected override Value? Visit(Expression.Identifier ident)
+        {
+            // Look up the register arrociated with the symbol
+            var symbol = system.ReferredSymbolFor(ident);
+            var reg = variablesToRegisters[symbol];
+            // Load the value
+            return builder.Load(reg);
         }
 
         protected override Value? Visit(Expression.Literal lit) => lit.Type switch

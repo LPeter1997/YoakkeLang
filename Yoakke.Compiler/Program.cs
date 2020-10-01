@@ -46,6 +46,12 @@ namespace Yoakke.Compiler
             {
                 return Semantic.Type.I32;
             }
+            if (expression is Expression.Literal lit)
+            {
+                if (lit.Type == TokenType.IntLiteral) return Semantic.Type.I32;
+                if (lit.Type == TokenType.KwTrue) return Semantic.Type.Bool;
+                if (lit.Type == TokenType.KwFalse) return Semantic.Type.Bool;
+            }
             throw new NotImplementedException();
         }
 
@@ -70,7 +76,8 @@ namespace Yoakke.Compiler
         {
             var src = @"
             const foo = proc() -> i32 { 
-                if true { 1 } else { 0 }
+                var x = 123;
+                x
             };
 ";
             // Syntax
@@ -99,6 +106,11 @@ namespace Yoakke.Compiler
             var buildStatus = new BuildStatus();
             var asm = codegen.Generate(ast, buildStatus);
             Console.WriteLine(asm);
+            Console.WriteLine("\n");
+            foreach (var err in buildStatus.Errors)
+            {
+                Console.WriteLine(err.GetErrorMessage());
+            }
             //var dependencySystem = new DependencySystem();
             //var assembly = dependencySystem.Compile(ast);
         }
