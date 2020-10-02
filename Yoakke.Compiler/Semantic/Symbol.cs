@@ -80,11 +80,6 @@ namespace Yoakke.Compiler.Semantic
             private static int unnamedCnt = 0;
 
             /// <summary>
-            /// The <see cref="Type"/> of this <see cref="Var"/>.
-            /// </summary>
-            public Type? Type { get; set; }
-
-            /// <summary>
             /// Initializes a new <see cref="Var"/>.
             /// </summary>
             /// <param name="param">The parameter definition.</param>

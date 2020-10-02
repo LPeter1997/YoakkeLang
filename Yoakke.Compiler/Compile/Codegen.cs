@@ -233,8 +233,15 @@ namespace Yoakke.Compiler.Compile
             }
             else
             {
-                // TODO: Constant
-                throw new NotImplementedException();
+                var constSymbol = (Semantic.Symbol.Const)symbol;
+                // If there's a value assigned, just return that
+                if (constSymbol.Value != null) return constSymbol.Value;
+                // Otherwise we need to calculate it from the definition
+                // TODO: We should cache the result
+                Debug.Assert(constSymbol.Definition != null);
+                var definition = (Declaration.Const)constSymbol.Definition;
+                var value = system.Evaluate(definition.Value);
+                return value;
             }
         }
 

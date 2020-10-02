@@ -60,6 +60,7 @@ namespace Yoakke.Compiler
 
         public Value Evaluate(Expression expression)
         {
+            // TODO: A local context should be passed that's used for cacheing!
             throw new NotImplementedException();
         }
 
