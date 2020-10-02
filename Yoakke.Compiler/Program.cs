@@ -45,7 +45,7 @@ namespace Yoakke.Compiler
             {
                 return new Semantic.Type.Proc(new ValueList<Semantic.Type> { }, Semantic.Type.I32);
             }
-            if (expression is Expression.If)
+            if (expression is Expression.If || expression is Expression.Call)
             {
                 return Semantic.Type.I32;
             }

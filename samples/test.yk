@@ -1,5 +1,7 @@
 
-var my_thing = 63;
+var my_thing = get_number();
+
+const get_number = proc() -> i32 { 1337 };
 
 const main = proc() -> i32 {
     my_thing

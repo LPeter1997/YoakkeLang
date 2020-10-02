@@ -221,11 +221,21 @@ namespace Yoakke.Compiler.Compile
 
         protected override Value? Visit(Expression.Identifier ident)
         {
-            // Look up the register arrociated with the symbol
+            // Get the referred symbol
             var symbol = system.SymbolTable.ReferredSymbol(ident);
-            var reg = variablesToRegisters[symbol];
-            // Load the value
-            return builder.Load(reg);
+            // Check what kind of symbol it is
+            if (symbol is Semantic.Symbol.Var)
+            {
+                // Handle the variable
+                var reg = variablesToRegisters[symbol];
+                // Load the value
+                return builder.Load(reg);
+            }
+            else
+            {
+                // TODO: Constant
+                throw new NotImplementedException();
+            }
         }
 
         protected override Value? Visit(Expression.Literal lit) => lit.Type switch
