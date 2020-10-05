@@ -59,12 +59,6 @@ namespace Yoakke.Compiler.Compile
             throw new NotImplementedException();
         }
 
-        private bool IsGlobal(Node node)
-        {
-            // TODO
-            throw new NotImplementedException();
-        }
-
         private Lir.Types.Type TranslateToLirType(Semantic.Type type)
         {
             // TODO
@@ -134,7 +128,7 @@ namespace Yoakke.Compiler.Compile
             }
             // Globals and locals are very different
             Value varSpace;
-            if (IsGlobal(var))
+            if (SymbolTable.IsGlobal(var))
             {
                 // Global variable
                 varSpace = builder.DefineGlobal(var.Name, TranslateToLirType(type));
