@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,6 +13,16 @@ namespace Yoakke.Syntax.Ast
     /// <typeparam name="T">The result type of the visitation.</typeparam>
     public abstract class Visitor<T>
     {
+        protected T VisitNonNull(Declaration declaration) => AssertNonNull(Visit(declaration));
+        protected T VisitNonNull(Statement statement) => AssertNonNull(Visit(statement));
+        protected T VisitNonNull(Expression expression) => AssertNonNull(Visit(expression));
+
+        private static T AssertNonNull(T? value)
+        {
+            Debug.Assert(value != null);
+            return value;
+        }
+
         protected virtual T? Visit(Declaration declaration) => declaration switch
         {
             Declaration.File  f => Visit(f),
