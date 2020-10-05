@@ -17,7 +17,7 @@ using Yoakke.Text;
 
 namespace Yoakke.Compiler
 {
-    class TestDependencySystem : IDependencySystem
+    public class TestDependencySystem : IDependencySystem
     {
         public SymbolTable SymbolTable { get; }
 
