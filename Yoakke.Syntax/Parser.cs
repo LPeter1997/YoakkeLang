@@ -418,6 +418,10 @@ namespace Yoakke.Syntax
                         break;
                     }
                 }
+                else
+                {
+                    break;
+                }
             }
             return new Expression.If(iff, condition, then, elifs.ToArray(), elseKw, elseBlock);
         }
