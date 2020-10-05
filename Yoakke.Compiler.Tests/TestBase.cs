@@ -115,8 +115,6 @@ namespace Yoakke.Lir.Tests
         protected void TestOnAllBackends<TFunc>(string source, Value expected, params Value[] args)
             where TFunc : Delegate
         {
-            // TODO: This interface will shuffle around, we'll need to change this
-
             var srcFile = new SourceFile($"{TestContext.TestName}.yk", source);
             var syntaxStatus = new SyntaxStatus();
             var tokens = Lexer.Lex(srcFile, syntaxStatus);
@@ -133,10 +131,11 @@ namespace Yoakke.Lir.Tests
             new ResolveSymbol(symTab).Resolve(ast);
 
             // Compilation
-            var codegen = new Codegen(new TestDependencySystem(symTab));
+            var system = new DependencySystem(symTab);
             var buildStatus = new BuildStatus();
-            var asm = codegen.Generate(ast, buildStatus);
+            var asm = system.Compile(ast, buildStatus);
             Assert.AreEqual(0, buildStatus.Errors.Count);
+            Assert.IsNotNull(asm);
             new CodePassSet().Pass(asm);
 
             TestOnAllBackends<TFunc>(asm, expected, args);

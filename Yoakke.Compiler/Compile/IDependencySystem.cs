@@ -3,6 +3,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Yoakke.Compiler.Semantic;
+using Yoakke.Lir;
+using Yoakke.Lir.Status;
 using Yoakke.Lir.Values;
 using Yoakke.Syntax;
 using Yoakke.Syntax.Ast;
@@ -20,6 +22,14 @@ namespace Yoakke.Compiler.Compile
         /// The <see cref="SymbolTable"/> of the system.
         /// </summary>
         public SymbolTable SymbolTable { get; }
+
+        /// <summary>
+        /// Compiles a given file into an <see cref="Assembly"/>.
+        /// </summary>
+        /// <param name="file"></param>
+        /// <param name="status">The <see cref="BuildStatus"/> to report to.</param>
+        /// <returns>The compiled and verified <see cref="Assembly"/>, if there were no errors.</returns>
+        public Assembly? Compile(Declaration.File file, BuildStatus status);
 
         /// <summary>
         /// Retrieves the semantic <see cref="Type"/> of an <see cref="Expression"/>.

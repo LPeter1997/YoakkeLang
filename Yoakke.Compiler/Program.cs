@@ -17,63 +17,6 @@ using Yoakke.Text;
 
 namespace Yoakke.Compiler
 {
-    public class TestDependencySystem : IDependencySystem
-    {
-        public SymbolTable SymbolTable { get; }
-
-        public TestDependencySystem(SymbolTable symbolTable)
-        {
-            SymbolTable = symbolTable;
-        }
-
-        public Lir.Types.Type TranslateToLirType(Semantic.Type type) => type switch
-        {
-            Semantic.Type.Prim prim => prim.Type,
-
-            _ => throw new NotImplementedException(),
-        };
-
-        public void TypeCheck(Statement statement)
-        {
-            // TODO: Assume correct
-        }
-
-        public Semantic.Type TypeOf(Expression expression)
-        {
-            // TODO
-            if (expression is Expression.Proc)
-            {
-                return new Semantic.Type.Proc(new ValueList<Semantic.Type> { }, Semantic.Type.I32);
-            }
-            if (expression is Expression.If || expression is Expression.Call)
-            {
-                return Semantic.Type.I32;
-            }
-            if (expression is Expression.Literal lit)
-            {
-                if (lit.Type == TokenType.IntLiteral) return Semantic.Type.I32;
-                if (lit.Type == TokenType.KwTrue) return Semantic.Type.Bool;
-                if (lit.Type == TokenType.KwFalse) return Semantic.Type.Bool;
-            }
-            throw new NotImplementedException();
-        }
-
-        public Value Evaluate(Expression expression)
-        {
-            // TODO: A local context should be passed that's used for cacheing!
-            throw new NotImplementedException();
-        }
-
-        public Semantic.Type EvaluateToType(Expression expression)
-        {
-            if (expression is Expression.Identifier ident)
-            {
-                if (ident.Name == "i32") return Semantic.Type.I32;
-            }
-            throw new NotImplementedException();
-        }
-    }
-
     class Program
     {
         static void Main(string[] args)
@@ -102,38 +45,37 @@ namespace Yoakke.Compiler
             new ResolveSymbol(symTab).Resolve(ast);
 
             // Compilation
-            var codegen = new Codegen(new TestDependencySystem(symTab));
+            var system = new DependencySystem(symTab);
             var buildStatus = new BuildStatus();
-            var asm = codegen.Generate(ast, buildStatus);
-            new CodePassSet().Pass(asm);
-            Console.WriteLine(asm);
-            Console.WriteLine("\n");
+            var asm = system.Compile(ast, buildStatus);
             foreach (var err in buildStatus.Errors)
             {
                 Console.WriteLine(err.GetErrorMessage());
             }
+            if (asm == null) return;
 
-            if (buildStatus.Errors.Count == 0)
+            new CodePassSet().Pass(asm);
+            Console.WriteLine(asm);
+            Console.WriteLine("\n");
+            
+            // Run in the VM
+            var vm = new VirtualMachine(asm);
+            var result = vm.Execute("main", new Value[] { });
+            Console.WriteLine($"Result: {result}");
+
+            // Build an exe
+            var toolchain = Toolchains.All().First();
+            var build = new Build
             {
-                // Run in the VM
-                var vm = new VirtualMachine(asm);
-                var result = vm.Execute("main", new Value[] { });
-                Console.WriteLine($"Result: {result}");
+                CheckedAssembly = asm,
+                IntermediatesDirectory = "C:/TMP/program_build",
+                OutputPath = "C:/TMP/program.exe",
+            };
+            toolchain.Compile(build);
 
-                // Build an exe
-                var toolchain = Toolchains.All().First();
-                var build = new Build
-                {
-                    CheckedAssembly = asm,
-                    IntermediatesDirectory = "C:/TMP/program_build",
-                    OutputPath = "C:/TMP/program.exe",
-                };
-                toolchain.Compile(build);
-
-                foreach (var err in build.Status.Errors)
-                {
-                    Console.WriteLine(err.GetErrorMessage());
-                }
+            foreach (var err in build.Status.Errors)
+            {
+                Console.WriteLine(err.GetErrorMessage());
             }
         }
     }
