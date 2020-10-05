@@ -4,51 +4,85 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Yoakke.Compiler.Semantic;
 using Yoakke.DataStructures;
 using Yoakke.Lir;
 using Yoakke.Lir.Status;
+using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;
 using Yoakke.Syntax;
 using Yoakke.Syntax.Ast;
 
 namespace Yoakke.Compiler.Compile
 {
-    /// <summary>
-    /// Generates code for given portions of the code.
-    /// </summary>
+    // TODO: Doc the whole thing
+
     public class Codegen : Visitor<Value>
     {
-        private IDependencySystem system;
         private Builder builder;
         private Dictionary<Semantic.Symbol, Value> variablesToRegisters;
 
-        /// <summary>
-        /// Initializes a new <see cref="Codegen"/>.
-        /// </summary>
-        /// <param name="system">The <see cref="IDependencySystem"/> to use for type-checking and resolving compile-time
-        /// expressions.</param>
-        public Codegen(IDependencySystem system)
+        public Codegen(Builder builder)
         {
-            this.system = system;
-            builder = new Builder(new UncheckedAssembly(string.Empty));
+            this.builder = builder;
             variablesToRegisters = new Dictionary<Semantic.Symbol, Value>();
         }
 
-        /// <summary>
-        /// Generates a Lir <see cref="Assembly"/> for the given file node.
-        /// </summary>
-        /// <param name="file">The file node to generate code for.</param>
-        /// <param name="status">The <see cref="BuildStatus"/> to write errors to.</param>
-        /// <returns>The generated <see cref="Assembly"/>.</returns>
+        public Codegen()
+            : this(new Builder(new UncheckedAssembly(string.Empty)))
+        {
+        }
+
+        // External interface //////////////////////////////////////////////////
+
+        private void TypeCheck(Statement statement)
+        {
+            // TODO: Assume good
+            throw new NotImplementedException();
+        }
+
+        private Semantic.Type TypeOf(Expression expression)
+        {
+            // TODO
+            throw new NotImplementedException();
+        }
+
+        private Value EvaluateConst(Declaration.Const constDecl)
+        {
+            // TODO
+            throw new NotImplementedException();
+        }
+
+        private Semantic.Type EvaluateToType(Expression expression)
+        {
+            // TODO
+            throw new NotImplementedException();
+        }
+
+        private bool IsGlobal(Node node)
+        {
+            // TODO
+            throw new NotImplementedException();
+        }
+
+        private Lir.Types.Type TranslateToLirType(Semantic.Type type)
+        {
+            // TODO
+            throw new NotImplementedException();
+        }
+
+        private SymbolTable SymbolTable => throw new NotImplementedException();
+
+        // Public interface ////////////////////////////////////////////////////
+
         public Assembly Generate(Declaration.File file, BuildStatus status)
         {
             // Rename the assembly
             var parseTreeNode = (Syntax.ParseTree.Declaration.File?)file.ParseTreeNode;
             var fileName = parseTreeNode?.Name ?? "unnamed";
             builder.Assembly.Name = fileName;
-
             // For something to be compiled, it has to be type-checked
-            system.TypeCheck(file);
+            TypeCheck(file);
             // If the type-checking succeeded, we can compile
             Visit(file);
             // We close the prelude function
@@ -62,21 +96,28 @@ namespace Yoakke.Compiler.Compile
             return asm;
         }
 
-        protected override Value? Visit(Declaration.Const cons)
+        public Proc Generate(Expression.Proc procExpr) => (Proc)VisitNonNull(procExpr);
+
+        public Proc GenerateEvaluationProc(Expression expr)
         {
-            // If constants are procedures and they contain no user types, we compile them as procedures
-            var constType = system.TypeOf(cons.Value);
-            if (constType is Semantic.Type.Proc)
+            Proc? procValue = null;
+            builder.WithSubcontext(b =>
             {
-                // It's a procedure, we want to compile it
-                var proc = (Proc)NonNull(Visit(cons.Value));
-                // Rename it properly
-                proc.Name = cons.Name;
-                // TODO: We publish all procedures for now
-                proc.Visibility = Visibility.Public;
-            }
-            return null;
+                procValue = builder.DefineProc("unnamed");
+                // We need the return type
+                var returnType = TypeOf(expr);
+                procValue.Return = TranslateToLirType(returnType);
+                // Compile and return the body
+                var result = VisitNonNull(expr);
+                builder.Ret(result);
+            });
+            Debug.Assert(procValue != null);
+            return procValue;
         }
+
+        // Actual code-generation //////////////////////////////////////////////
+
+        protected override Value? Visit(Declaration.Const cons) => EvaluateConst(cons);
 
         protected override Value? Visit(Statement.Var var)
         {
@@ -84,25 +125,25 @@ namespace Yoakke.Compiler.Compile
             Semantic.Type type;
             if (var.Value != null)
             {
-                type = system.TypeOf(var.Value);
+                type = TypeOf(var.Value);
             }
             else
             {
                 Debug.Assert(var.Type != null);
-                type = system.EvaluateToType(var.Type);
+                type = EvaluateToType(var.Type);
             }
             // Globals and locals are very different
             Value varSpace;
-            if (system.SymbolTable.IsGlobal(var))
+            if (IsGlobal(var))
             {
                 // Global variable
-                varSpace = builder.DefineGlobal(var.Name, system.TranslateToLirType(type));
+                varSpace = builder.DefineGlobal(var.Name, TranslateToLirType(type));
                 if (var.Value != null)
                 {
                     // Assign initial value in the startup code
                     builder.WithPrelude(b => 
                     {
-                        var initialValue = NonNull(Visit(var.Value));
+                        var initialValue = VisitNonNull(var.Value);
                         b.Store(varSpace, initialValue);
                     });
                 }
@@ -111,16 +152,16 @@ namespace Yoakke.Compiler.Compile
             {
                 // Local variable
                 // Allocate space
-                varSpace = builder.Alloc(system.TranslateToLirType(type));
+                varSpace = builder.Alloc(TranslateToLirType(type));
                 if (var.Value != null)
                 {
                     // We also need to assign the value
-                    var value = NonNull(Visit(var.Value));
+                    var value = VisitNonNull(var.Value);
                     builder.Store(varSpace, value);
                 }
             }
             // Associate with symbol
-            var symbol = system.SymbolTable.DefinedSymbol(var);
+            var symbol = SymbolTable.DefinedSymbol(var);
             variablesToRegisters.Add(symbol, varSpace);
             return null;
         }
@@ -129,11 +170,13 @@ namespace Yoakke.Compiler.Compile
         {
             if (ret.Value == null)
             {
+                // No return value
                 builder.Ret();
             }
             else
             {
-                var value = NonNull(Visit(ret.Value));
+                // We also need to compile the return value
+                var value = VisitNonNull(ret.Value);
                 builder.Ret(value);
             }
             return null;
@@ -141,39 +184,45 @@ namespace Yoakke.Compiler.Compile
 
         protected override Value? Visit(Expression.Proc proc)
         {
-            var procVal = builder.DefineProc("unnamed");
-            // We need the return type
-            var returnType = Semantic.Type.Unit;
-            if (proc.Signature.Return != null)
-            { 
-                returnType = system.EvaluateToType(proc.Signature.Return);
-            }
-            procVal.Return = system.TranslateToLirType(returnType);
-            // We need to compile parameters
-            foreach (var param in proc.Signature.Parameters)
+            Proc? procVal = null;
+            builder.WithSubcontext(b =>
             {
-                // Get the parameter type, define it in the Lir code
-                var paramType = system.EvaluateToType(param.Type);
-                var lirParamType = system.TranslateToLirType(paramType);
-                var paramValue = builder.DefineParameter(lirParamType);
-                // We make parameters mutable by making them allocate space on the stack and refer to that space
-                var paramSpace = builder.Alloc(lirParamType);
-                // Copy the initial value
-                builder.Store(paramSpace, paramValue);
-                if (param.Name != null)
+                procVal = builder.DefineProc("unnamed");
+                // We need the return type
+                var returnType = Semantic.Type.Unit;
+                if (proc.Signature.Return != null)
                 {
-                    // It has a symbol, we store the allocated space associated
-                    var symbol = system.SymbolTable.DefinedSymbol(param);
-                    variablesToRegisters.Add(symbol, paramSpace);
+                    returnType = EvaluateToType(proc.Signature.Return);
                 }
-            }
-            // Now we can compile the body
-            Visit(proc.Body);
+                procVal.Return = TranslateToLirType(returnType);
+                // We need to compile parameters
+                foreach (var param in proc.Signature.Parameters)
+                {
+                    // Get the parameter type, define it in the Lir code
+                    var paramType = EvaluateToType(param.Type);
+                    var lirParamType = TranslateToLirType(paramType);
+                    var paramValue = builder.DefineParameter(lirParamType);
+                    // We make parameters mutable by making them allocate space on the stack and refer to that space
+                    var paramSpace = builder.Alloc(lirParamType);
+                    // Copy the initial value
+                    builder.Store(paramSpace, paramValue);
+                    if (param.Name != null)
+                    {
+                        // It has a symbol, we store the allocated space associated
+                        var symbol = SymbolTable.DefinedSymbol(param);
+                        variablesToRegisters.Add(symbol, paramSpace);
+                    }
+                }
+                // Now we can compile the body
+                Visit(proc.Body);
+            });
+            Debug.Assert(procVal != null);
             return procVal;
         }
 
         protected override Value? Visit(Expression.Block block)
         {
+            // We just compile statements and the optional value
             foreach (var stmt in block.Statements) Visit(stmt);
             return block.Value == null ? null : Visit(block.Value);
         }
@@ -184,37 +233,50 @@ namespace Yoakke.Compiler.Compile
             {
                 // No chance for a return value
                 builder.IfThen(
-                    condition: b => NonNull(Visit(iff.Condition)),
+                    condition: b => VisitNonNull(iff.Condition),
                     then: b => Visit(iff.Then));
                 return null;
             }
             else
             {
-                // First we allocate space for the return value
-                var retType = system.TypeOf(iff);
-                var retSpace = builder.Alloc(system.TranslateToLirType(retType));
-                // Compile it, storing the results in the respective blocks
-                builder.IfThenElse(
-                    condition: b => NonNull(Visit(iff.Condition)),
-                    then: b => 
-                    {
-                        var result = NonNull(Visit(iff.Then));
-                        b.Store(retSpace, result);
-                    },
-                    @else: b =>
-                    {
-                        var result = NonNull(Visit(iff.Else));
-                        b.Store(retSpace, result);
-                    });
-                // Load up the result
-                return builder.Load(retSpace);
+                var retType = TypeOf(iff);
+                if (retType.Equals(Semantic.Type.Unit))
+                {
+                    // There is no return value
+                    builder.IfThenElse(
+                        condition: b => VisitNonNull(iff.Condition),
+                        then: b => Visit(iff.Then),
+                        @else: b => Visit(iff.Else));
+                    return null;
+                }
+                else
+                {
+                    // There is a return value we need to take care of
+                    // First we allocate space for the return value
+                    var retSpace = builder.Alloc(TranslateToLirType(retType));
+                    // Compile it, storing the results in the respective blocks
+                    builder.IfThenElse(
+                        condition: b => VisitNonNull(iff.Condition),
+                        then: b =>
+                        {
+                            var result = VisitNonNull(iff.Then);
+                            b.Store(retSpace, result);
+                        },
+                        @else: b =>
+                        {
+                            var result = VisitNonNull(iff.Else);
+                            b.Store(retSpace, result);
+                        });
+                    // Load up the result
+                    return builder.Load(retSpace);
+                }
             }
         }
 
         protected override Value? Visit(Expression.While whil)
         {
             builder.While(
-                condition: b => NonNull(Visit(whil.Condition)),
+                condition: b => VisitNonNull(whil.Condition),
                 body: b => Visit(whil.Body));
             return null;
         }
@@ -222,9 +284,9 @@ namespace Yoakke.Compiler.Compile
         protected override Value? Visit(Expression.Identifier ident)
         {
             // Get the referred symbol
-            var symbol = system.SymbolTable.ReferredSymbol(ident);
+            var symbol = SymbolTable.ReferredSymbol(ident);
             // Check what kind of symbol it is
-            if (symbol is Semantic.Symbol.Var)
+            if (symbol is Symbol.Var)
             {
                 // Handle the variable
                 var reg = variablesToRegisters[symbol];
@@ -233,15 +295,12 @@ namespace Yoakke.Compiler.Compile
             }
             else
             {
-                var constSymbol = (Semantic.Symbol.Const)symbol;
+                var constSymbol = (Symbol.Const)symbol;
                 // If there's a value assigned, just return that
                 if (constSymbol.Value != null) return constSymbol.Value;
                 // Otherwise we need to calculate it from the definition
-                // TODO: We should cache the result
                 Debug.Assert(constSymbol.Definition != null);
-                var definition = (Declaration.Const)constSymbol.Definition;
-                var value = system.Evaluate(definition.Value);
-                return value;
+                return EvaluateConst((Declaration.Const)constSymbol.Definition);
             }
         }
 
@@ -257,9 +316,9 @@ namespace Yoakke.Compiler.Compile
         protected override Value? Visit(Expression.Call call)
         {
             // Simply compile the procedure
-            var proc = NonNull(Visit(call.Procedure));
+            var proc = VisitNonNull(call.Procedure);
             // Then the args
-            var args = call.Arguments.Select(arg => NonNull(Visit(arg))).ToList();
+            var args = call.Arguments.Select(arg => VisitNonNull(arg)).ToList();
             // And write the call
             return builder.Call(proc, args);
         }
@@ -269,7 +328,7 @@ namespace Yoakke.Compiler.Compile
             if (bin.Operator == TokenType.Assign)
             {
                 var left = Lvalue(bin.Left);
-                var right = NonNull(Visit(bin.Right));
+                var right = VisitNonNull(bin.Right);
                 // Write out the store
                 builder.Store(left, right);
                 return null;
@@ -278,8 +337,8 @@ namespace Yoakke.Compiler.Compile
             {
                 // TODO: Do proper type-checking, for now we blindly assume builtin operations
                 // Here we need to handle the case when there's a user-defined operator!
-                var left = NonNull(Visit(bin.Left));
-                var right = NonNull(Visit(bin.Right));
+                var left = VisitNonNull(bin.Left);
+                var right = VisitNonNull(bin.Right);
                 return bin.Operator switch
                 {
                     TokenType.Add      => builder.Add(left, right),
@@ -308,18 +367,12 @@ namespace Yoakke.Compiler.Compile
             {
             case Expression.Identifier ident:
             {
-                var symbol = system.SymbolTable.ReferredSymbol(ident);
+                var symbol = SymbolTable.ReferredSymbol(ident);
                 return variablesToRegisters[symbol];
             }
 
             default: throw new NotImplementedException();
             }
-        }
-
-        private static T NonNull<T>(T? value) where T : class
-        {
-            Debug.Assert(value != null);
-            return value;
         }
     }
 }

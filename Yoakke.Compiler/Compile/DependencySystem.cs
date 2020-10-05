@@ -28,7 +28,7 @@ namespace Yoakke.Compiler.Compile
 
         public Assembly? Compile(Declaration.File file, BuildStatus status)
         {
-            var codegen = new Codegen(this);
+            var codegen = new Codegen();
             var asm = codegen.Generate(file, status);
             if (status.Errors.Count > 0) return null;
             return asm;
