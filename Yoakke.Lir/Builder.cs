@@ -201,19 +201,31 @@ namespace Yoakke.Lir
         /// </summary>
         /// <param name="action">The <see cref="Action{Builder}"/> to build code with within the prelude 
         /// procedure.</param>
-        public void WithPrelude(Action<Builder> action)
+        public void WithPrelude(Action<Builder> action) => 
+            WithSubcontext(b =>
+            {
+                // If there's no prelude function defined, define it
+                if (Assembly.Prelude == null)
+                {
+                    Assembly.Prelude = DefineProc("prelude");
+                }
+                // Set it as the current procedure
+                CurrentProc = Assembly.Prelude;
+                // Allow the user to do the things inside
+                action(this);
+            });
+
+        /// <summary>
+        /// Executes some <see cref="Action{Builder}"/>, restoring the original state (<see cref="CurrentProc"/> and
+        /// <see cref="currentBasicBlock"/>) afterwards.
+        /// </summary>
+        /// <param name="action">The <see cref="Action{Builder}"/> to execute.</param>
+        public void WithSubcontext(Action<Builder> action)
         {
             // Save state
             var lastProc = currentProc;
             var lastBasicBlock = currentBasicBlock;
-            // If there's no prelude function defined, define it
-            if (Assembly.Prelude == null)
-            {
-                Assembly.Prelude = DefineProc("prelude");
-            }
-            // Set it as the current procedure
-            CurrentProc = Assembly.Prelude;
-            // Allow the user to do the things inside
+            // Call the action
             action(this);
             // Reset state
             currentProc = lastProc;
