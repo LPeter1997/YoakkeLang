@@ -46,9 +46,9 @@ namespace Yoakke.Compiler
 
             // Compilation
             //var system = new DependencySystem(symTab);
-            var codegen = new Codegen();
+            var system = new DependencySystem(symTab);
             var buildStatus = new BuildStatus();
-            var asm = codegen.Generate(ast, buildStatus);
+            var asm = system.Compile(ast, buildStatus);
             foreach (var err in buildStatus.Errors)
             {
                 Console.WriteLine(err.GetErrorMessage());

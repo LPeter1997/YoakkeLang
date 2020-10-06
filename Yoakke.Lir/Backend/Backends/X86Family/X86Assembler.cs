@@ -211,7 +211,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                     {
                         CommentInstr("copy return value");
                         // Just store what's written in eax or eax:edx
-                        var resultSize = SizeOf(proc.Return);
+                        var resultSize = SizeOf(procTy.Return);
                         var result = CompileValue(call.Result);
                         if (result.Length == 1)
                         {

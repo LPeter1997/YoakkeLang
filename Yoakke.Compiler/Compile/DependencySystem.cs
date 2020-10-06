@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,22 +22,21 @@ namespace Yoakke.Compiler.Compile
     {
         public SymbolTable SymbolTable { get; }
 
+        private Codegen codegen;
+        private Dictionary<Symbol.Const, Value> constValues = new Dictionary<Symbol.Const, Value>();
+        private string? procNameHint = null;
+
         public DependencySystem(SymbolTable symbolTable)
         {
             SymbolTable = symbolTable;
+            codegen = new Codegen(this);
         }
 
         public Assembly? Compile(Declaration.File file, BuildStatus status)
         {
-            var codegen = new Codegen();
             var asm = codegen.Generate(file, status);
             if (status.Errors.Count > 0) return null;
             return asm;
-        }
-
-        public void TypeCheck(Statement statement)
-        {
-            // TODO: Assume correct
         }
 
         public Type TypeOf(Expression expression)
@@ -59,13 +59,45 @@ namespace Yoakke.Compiler.Compile
             throw new NotImplementedException();
         }
 
+        public void TypeCheck(Statement statement)
+        {
+            // TODO: Assume correct
+        }
+
         public Value Evaluate(Expression expression)
         {
             // TODO: A local context should be passed that's used for cacheing!
+            if (expression is Expression.Proc procExpr)
+            {
+                Debug.Assert(procNameHint != null);
+                var procName = procNameHint;
+                procNameHint = null;
+                return codegen.Generate(procExpr, procName);
+            }
             throw new NotImplementedException();
         }
 
-        public Type EvaluateToType(Expression expression)
+        public Value EvaluateConst(Declaration.Const constDecl)
+        {
+            var symbol = (Symbol.Const)SymbolTable.DefinedSymbol(constDecl);
+            // Check if there's a pre-stored value
+            if (symbol.Value != null) return symbol.Value;
+            // We need to evaluate based on the definition
+            // Check if it's cached
+            if (!constValues.TryGetValue(symbol, out var value))
+            {
+                // Not cached, evaluate and then cache
+                if (constDecl.Value is Expression.Proc)
+                {
+                    procNameHint = constDecl.Name;
+                }
+                value = Evaluate(constDecl.Value);
+                constValues.Add(symbol, value);
+            }
+            return value;
+        }
+
+        public Type EvaluateType(Expression expression)
         {
             if (expression is Expression.Identifier ident)
             {

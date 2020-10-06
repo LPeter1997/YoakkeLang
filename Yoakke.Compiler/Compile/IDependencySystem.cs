@@ -32,17 +32,17 @@ namespace Yoakke.Compiler.Compile
         public Assembly? Compile(Declaration.File file, BuildStatus status);
 
         /// <summary>
+        /// Typechecks the given <see cref="Statement"/>, meaning it validates correct type usage.
+        /// </summary>
+        /// <param name="statement">The <see cref="Statement"/> to type-check.</param>
+        public void TypeCheck(Statement statement);
+
+        /// <summary>
         /// Retrieves the semantic <see cref="Type"/> of an <see cref="Expression"/>.
         /// </summary>
         /// <param name="expression">The <see cref="Expression"/> to get the <see cref="Type"/> of.</param>
         /// <returns>The <see cref="Expression"/>s <see cref="Type"/>.</returns>
         public Type TypeOf(Expression expression);
-
-        /// <summary>
-        /// Typechecks the given <see cref="Statement"/>, meaning it validates correct type usage.
-        /// </summary>
-        /// <param name="statement">The <see cref="Statement"/> to type-check.</param>
-        public void TypeCheck(Statement statement);
 
         /// <summary>
         /// Evaluates the given <see cref="Expression"/> as a <see cref="Value"/>.
@@ -52,11 +52,18 @@ namespace Yoakke.Compiler.Compile
         public Value Evaluate(Expression expression);
 
         /// <summary>
+        /// Evaluates the given <see cref="Declaration.Const"/>, if it's not evaluated yet.
+        /// </summary>
+        /// <param name="constDecl">The <see cref="Declaration.Const"/> to evaluate, if not evaluated yet.</param>
+        /// <returns>The evaluated <see cref="Value"/> of the constant declaration.</returns>
+        public Value EvaluateConst(Declaration.Const constDecl);
+
+        /// <summary>
         /// Evaluates the given <see cref="Expression"/> as a <see cref="Type"/>.
         /// </summary>
         /// <param name="expression">The <see cref="Expression"/> to evaluate.</param>
         /// <returns>The evaluated value as a <see cref="Type"/>.</returns>
-        public Type EvaluateToType(Expression expression);
+        public Type EvaluateType(Expression expression);
 
         /// <summary>
         /// Translates a semantic <see cref="Type"/> to a <see cref="Lir.Types.Type"/>.
