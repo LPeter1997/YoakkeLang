@@ -341,6 +341,13 @@ namespace Yoakke.Compiler.Compile
                     TokenType.Divide   => builder.Div(left, right),
                     TokenType.Modulo   => builder.Mod(left, right),
 
+                    TokenType.LeftShift  => builder.Shl(left, right),
+                    TokenType.RightShift => builder.Shr(left, right),
+
+                    TokenType.Bitand => builder.BitAnd(left, right),
+                    TokenType.Bitor  => builder.BitOr(left, right),
+                    TokenType.Bitxor => builder.BitXor(left, right),
+
                     TokenType.Equal        => builder.CmpEq(left, right),
                     TokenType.NotEqual     => builder.CmpNe(left, right),
                     TokenType.Greater      => builder.CmpGr(left, right),
