@@ -40,6 +40,7 @@ namespace Yoakke.Compiler
             // Probably yes!
             var symTab = new SymbolTable();
             symTab.GlobalScope.Define(new Symbol.Const("i32", new Value.User(Lir.Types.Type.I32)));
+            symTab.GlobalScope.Define(new Symbol.Const("bool", new Value.User(Lir.Types.Type.I32)));
             new DefineScope(symTab).Define(ast);
             new DeclareSymbol(symTab).Declare(ast);
             new ResolveSymbol(symTab).Resolve(ast);

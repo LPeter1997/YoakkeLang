@@ -3,6 +3,8 @@ const factorial = proc(x: i32) -> i32 {
     if x < 3 { x } else { x * factorial(x - 1) }
 };
 
+const fact5 = factorial(5);
+
 const main = proc() -> i32 {
-    factorial(5)
+    fact5
 };

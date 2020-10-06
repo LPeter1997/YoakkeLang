@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Yoakke.Compiler.Semantic;
 using Yoakke.DataStructures;
 using Yoakke.Lir;
+using Yoakke.Lir.Runtime;
 using Yoakke.Lir.Status;
 using Yoakke.Lir.Values;
 using Yoakke.Syntax;
@@ -74,7 +75,23 @@ namespace Yoakke.Compiler.Compile
                 procNameHint = null;
                 return codegen.Generate(procExpr, procName);
             }
-            throw new NotImplementedException();
+            else
+            {
+                // TODO: This should not be part of the final assembly!
+                // We need to erase it before finishing compiling the file
+
+                // It's an unknown expression we have to evaluate
+                // We compile the expression into an evaluation procedure, run it through the VM and return the result
+                var proc = codegen.GenerateEvaluationProc(expression);
+                var status = new BuildStatus();
+                var asm = codegen.Builder.Assembly.Check(status);
+                if (status.Errors.Count > 0)
+                {
+                    throw new NotImplementedException();
+                }
+                var vm = new VirtualMachine(asm);
+                return vm.Execute(proc, new Value[] { });
+            }
         }
 
         public Value EvaluateConst(Declaration.Const constDecl)
