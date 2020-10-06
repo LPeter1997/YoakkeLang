@@ -71,6 +71,8 @@ namespace Yoakke.Compiler.Compile
 
         public Value Evaluate(Expression expression)
         {
+            // TODO: We could mostly avoid special casing?
+            // TODO: We need to capture local variables at evaluation for things like generics to work
             // TODO: A local context should be passed that's used for cacheing!
             if (expression is Expression.Proc procExpr)
             {
@@ -78,6 +80,20 @@ namespace Yoakke.Compiler.Compile
                 var procName = procNameHint;
                 procNameHint = null;
                 return codegen.Generate(procExpr, procName);
+            }
+            else if (expression is Expression.StructType structType)
+            {
+                // TODO: We could probably remove this case and just let evaluation go
+                Debug.Assert(structType.ParseTreeNode != null);
+                var parseTreeNode = (Syntax.ParseTree.Expression.StructType)structType.ParseTreeNode;
+                int fieldCount = 0;
+                var resultType = new Type.Struct(
+                    parseTreeNode.KwStruct, 
+                    structType.Fields.ToDictionary(
+                        field => field.Name ?? $"unnamed_field_{fieldCount++}",
+                        field => EvaluateType(field.Type)
+                    ).AsValueDictionary());
+                return new Value.User(resultType);
             }
             else
             {
