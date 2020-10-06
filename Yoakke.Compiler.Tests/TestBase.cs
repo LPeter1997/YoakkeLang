@@ -125,7 +125,8 @@ namespace Yoakke.Lir.Tests
             ast = Desugaring.Desugar(ast);
 
             var symTab = new SymbolTable();
-            symTab.GlobalScope.Define(new Symbol.Const("i32", new Value.User(Type.I32)));
+            // TODO: Move builtin def to somewhere internal
+            symTab.GlobalScope.Define(new Symbol.Const("i32", new Value.User(Compiler.Semantic.Type.I32)));
             new DefineScope(symTab).Define(ast);
             new DeclareSymbol(symTab).Declare(ast);
             new ResolveSymbol(symTab).Resolve(ast);

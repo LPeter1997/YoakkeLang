@@ -134,5 +134,23 @@ const entry = proc() -> i32 {
 ";
             TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(120));
         }
+
+        [TestMethod]
+        public void SimpleStruct()
+        {
+            string src = @"
+const Vector2 = struct {
+    x: i32;
+    y: i32;
+};
+
+const entry = proc() -> i32 {
+    var x = Vector2 { x = 3; y = 4; };
+    x.y = 632;
+    x.y
+};
+";
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(632));
+        }
     }
 }
