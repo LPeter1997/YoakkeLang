@@ -1,8 +1,8 @@
 
-var my_thing = get_number();
-
-const get_number = proc() -> i32 { 1337 };
+const factorial = proc(x: i32) -> i32 {
+    if x < 3 { x } else { x * factorial(x - 1) }
+};
 
 const main = proc() -> i32 {
-    my_thing
+    factorial(5)
 };

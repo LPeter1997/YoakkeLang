@@ -56,6 +56,24 @@ namespace Yoakke.Compiler.Semantic
             return base.Visit(expression);
         }
 
+        protected override object? Visit(Expression.ProcSignature.Parameter param)
+        {
+            symbolTable.AssignCurrentScope(param);
+            return base.Visit(param);
+        }
+
+        protected override object? Visit(Expression.StructType.Field field)
+        {
+            symbolTable.AssignCurrentScope(field);
+            return base.Visit(field);
+        }
+
+        protected override object? Visit(Expression.StructValue.Field field)
+        {
+            symbolTable.AssignCurrentScope(field);
+            return base.Visit(field);
+        }
+
         // Define scopes
 
         protected override object? Visit(Expression.StructType sty)

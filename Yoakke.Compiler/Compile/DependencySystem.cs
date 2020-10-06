@@ -92,7 +92,11 @@ namespace Yoakke.Compiler.Compile
                     procNameHint = constDecl.Name;
                 }
                 value = Evaluate(constDecl.Value);
-                constValues.Add(symbol, value);
+                // NOTE: We check here again because of recursion
+                if (!constValues.ContainsKey(symbol))
+                {
+                    constValues.Add(symbol, value);
+                }
             }
             return value;
         }
