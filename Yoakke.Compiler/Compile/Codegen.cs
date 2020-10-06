@@ -366,7 +366,23 @@ namespace Yoakke.Compiler.Compile
 
         protected override Value? Visit(Expression.StructValue sval)
         {
-            throw new NotImplementedException();
+            var structType = System.EvaluateType(sval.StructType);
+            var lirType = System.TranslateToLirType(structType);
+            // Allocate space for the struct value
+            var structSpace = Builder.Alloc(lirType);
+            // For each field we compile it and store at the respective field
+            foreach (var field in sval.Fields)
+            {
+                // Evaluate the initializer value
+                var fieldValue = VisitNonNull(field.Value);
+                // Get the field pointer
+                // TODO: Get the proper index
+                var fieldPtr = Builder.ElementPtr(structSpace, 0);
+                // Store it
+                Builder.Store(fieldPtr, fieldValue);
+                throw new NotImplementedException();
+            }
+            return Builder.Load(structSpace);
         }
 
         private Value Lvalue(Expression expression)

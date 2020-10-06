@@ -26,6 +26,7 @@ namespace Yoakke.Compiler.Compile
         private Codegen codegen;
         private Dictionary<Symbol.Const, Value> constValues = new Dictionary<Symbol.Const, Value>();
         private string? procNameHint = null;
+        private int structCount = 0;
 
         public DependencySystem(SymbolTable symbolTable)
         {
@@ -182,11 +183,25 @@ namespace Yoakke.Compiler.Compile
             throw new NotImplementedException();
         }
 
-        public Lir.Types.Type TranslateToLirType(Type type) => type switch
+        public Lir.Types.Type TranslateToLirType(Type type)
         {
-            Type.Prim prim => prim.Type,
+            switch (type)
+            {
+            case Type.Prim prim: return prim.Type;
 
-            _ => throw new NotImplementedException(),
-        };
+            case Type.Struct sty:
+            {
+                var result = new Struct($"user_struct{structCount++}");
+                foreach (var field in sty.Fields)
+                {
+                    // TODO: Save field index?
+                    result.Fields.Add(TranslateToLirType(field.Value));
+                }
+                return result;
+            }
+
+            default: throw new NotImplementedException();
+            }
+        }
     }
 }
