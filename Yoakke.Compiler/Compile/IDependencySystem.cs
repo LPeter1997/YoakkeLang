@@ -78,5 +78,13 @@ namespace Yoakke.Compiler.Compile
         /// <param name="type">The semantic <see cref="Type"/> to translate.</param>
         /// <returns>The translated <see cref="Lir.Types.Type"/>.</returns>
         public Lir.Types.Type TranslateToLirType(Type type);
+
+        /// <summary>
+        /// Retrieves the Lir index for the given struct field.
+        /// </summary>
+        /// <param name="structType">The type of struct to retrieve field index for.</param>
+        /// <param name="name">The name of the field.</param>
+        /// <returns>The Lir field index.</returns>
+        public int FieldIndex(Type.Struct structType, string name);
     }
 }

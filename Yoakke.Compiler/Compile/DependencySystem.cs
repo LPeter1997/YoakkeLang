@@ -26,7 +26,7 @@ namespace Yoakke.Compiler.Compile
         private Codegen codegen;
         private Dictionary<Symbol.Const, Value> constValues = new Dictionary<Symbol.Const, Value>();
         private string? procNameHint = null;
-        private int structCount = 0;
+        private Dictionary<(Type.Struct, string), int> fieldIndices = new Dictionary<(Type.Struct, string), int>();
 
         public DependencySystem(SymbolTable symbolTable)
         {
@@ -37,7 +37,12 @@ namespace Yoakke.Compiler.Compile
         public Assembly? Compile(Declaration.File file, BuildStatus status)
         {
             var asm = codegen.Generate(file, status);
-            if (status.Errors.Count > 0) return null;
+            if (status.Errors.Count > 0)
+            {
+                // TODO: Debug dump
+                Console.WriteLine(asm);
+                return null;
+            }
             return asm;
         }
 
@@ -185,17 +190,21 @@ namespace Yoakke.Compiler.Compile
 
         public Lir.Types.Type TranslateToLirType(Type type)
         {
+            // TODO: Check cache?
             switch (type)
             {
             case Type.Prim prim: return prim.Type;
 
             case Type.Struct sty:
             {
-                var result = new Struct($"user_struct{structCount++}");
+                var fields = sty.Fields.Values.Select(TranslateToLirType);
+                var result = codegen.Builder.DefineStruct(fields);
+                int index = 0;
                 foreach (var field in sty.Fields)
                 {
-                    // TODO: Save field index?
-                    result.Fields.Add(TranslateToLirType(field.Value));
+                    // TODO: We use this because the type is translated multiple times for some reason...
+                    fieldIndices[(sty, field.Key)] = index;
+                    ++index;
                 }
                 return result;
             }
@@ -203,5 +212,7 @@ namespace Yoakke.Compiler.Compile
             default: throw new NotImplementedException();
             }
         }
+
+        public int FieldIndex(Type.Struct structType, string name) => fieldIndices[(structType, name)];
     }
 }

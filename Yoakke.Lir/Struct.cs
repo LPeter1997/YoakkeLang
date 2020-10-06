@@ -31,7 +31,7 @@ namespace Yoakke.Lir
         public override string ToTypeString() => Name;
         public override string ToString() => $"struct {Name} {{ {string.Join(", ", Fields.Select(f => f.ToTypeString()))} }}";
         // NOTE: We don't consider the name for equality or hashing on purpose, so we can filter equivalent definitions!
-        public override bool Equals(Type? other) => other is Struct s && Fields == s.Fields;
+        public override bool Equals(Type? other) => other is Struct s && Fields.Equals(s.Fields);
         public override int GetHashCode() => HashCode.Combine(typeof(Struct), Fields);
     }
 }

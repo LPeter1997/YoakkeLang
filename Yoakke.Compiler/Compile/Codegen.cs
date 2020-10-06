@@ -376,11 +376,10 @@ namespace Yoakke.Compiler.Compile
                 // Evaluate the initializer value
                 var fieldValue = VisitNonNull(field.Value);
                 // Get the field pointer
-                // TODO: Get the proper index
-                var fieldPtr = Builder.ElementPtr(structSpace, 0);
+                int index = System.FieldIndex((Semantic.Type.Struct)structType, field.Name);
+                var fieldPtr = Builder.ElementPtr(structSpace, index);
                 // Store it
                 Builder.Store(fieldPtr, fieldValue);
-                throw new NotImplementedException();
             }
             return Builder.Load(structSpace);
         }
