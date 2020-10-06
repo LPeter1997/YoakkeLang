@@ -46,6 +46,7 @@ namespace Yoakke.Compiler.Compile
         private void TypeCheck(Statement statement) => System.TypeCheck(statement);
         private Semantic.Type TypeOf(Expression expression) => System.TypeOf(expression);
         private Value EvaluateConst(Declaration.Const constDecl) => System.EvaluateConst(constDecl);
+        private Value EvaluateConst(Symbol.Const constSym) => System.EvaluateConst(constSym);
         private Semantic.Type EvaluateType(Expression expression) => System.EvaluateType(expression);
         private Lir.Types.Type TranslateToLirType(Semantic.Type type) => System.TranslateToLirType(type);
 
@@ -282,11 +283,7 @@ namespace Yoakke.Compiler.Compile
             else
             {
                 var constSymbol = (Symbol.Const)symbol;
-                // If there's a value assigned, just return that
-                if (constSymbol.Value != null) return constSymbol.Value;
-                // Otherwise we need to calculate it from the definition
-                Debug.Assert(constSymbol.Definition != null);
-                return EvaluateConst((Declaration.Const)constSymbol.Definition);
+                return EvaluateConst(constSymbol);
             }
         }
 

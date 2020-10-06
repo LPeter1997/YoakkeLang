@@ -59,6 +59,13 @@ namespace Yoakke.Compiler.Compile
         public Value EvaluateConst(Declaration.Const constDecl);
 
         /// <summary>
+        /// Evaluates the given <see cref="Symbol.Const"/>, if it's not evaluated yet.
+        /// </summary>
+        /// <param name="constSym">The <see cref="Symbol.Const"/> to evaluate, if not evaluated yet.</param>
+        /// <returns>The evaluated <see cref="Value"/> of the constant symbol.</returns>
+        public Value EvaluateConst(Symbol.Const constSym);
+
+        /// <summary>
         /// Evaluates the given <see cref="Expression"/> as a <see cref="Type"/>.
         /// </summary>
         /// <param name="expression">The <see cref="Expression"/> to evaluate.</param>

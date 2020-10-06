@@ -61,6 +61,10 @@ namespace Yoakke.Compiler.Compile
             {
                 return Type.Type_;
             }
+            if (expression is Expression.StructValue sval)
+            {
+                return EvaluateType(sval.StructType);
+            }
             throw new NotImplementedException();
         }
 
@@ -143,11 +147,37 @@ namespace Yoakke.Compiler.Compile
             return value;
         }
 
+        public Value EvaluateConst(Symbol.Const constSym)
+        {
+            if (constSym.Value != null) return constSym.Value;
+            Debug.Assert(constSym.Definition != null);
+            var constDecl = (Declaration.Const)constSym.Definition;
+            return EvaluateConst(constDecl);
+        }
+
         public Type EvaluateType(Expression expression)
         {
             if (expression is Expression.Identifier ident)
             {
-                if (ident.Name == "i32") return Semantic.Type.I32;
+                var symbol = SymbolTable.ReferredSymbol(ident);
+                if (symbol is Symbol.Const constSymbol)
+                {
+                    var value = EvaluateConst(constSymbol);
+                    if (value is Value.User uvalue)
+                    {
+                        if (uvalue.Payload is Type type) return type;
+
+                        throw new NotImplementedException();
+                    }
+                    else
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
             }
             throw new NotImplementedException();
         }
