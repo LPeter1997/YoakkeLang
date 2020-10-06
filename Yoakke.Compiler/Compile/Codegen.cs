@@ -352,7 +352,25 @@ namespace Yoakke.Compiler.Compile
             }
         }
 
-        // TODO: StructType, StructValue, ProcSignature, DotPath
+        protected override Value? Visit(Expression.DotPath dot)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override Value? Visit(Expression.ProcSignature sign)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override Value? Visit(Expression.StructType sty)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override Value? Visit(Expression.StructValue sval)
+        {
+            throw new NotImplementedException();
+        }
 
         private Value Lvalue(Expression expression)
         {
