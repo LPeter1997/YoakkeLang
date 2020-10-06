@@ -45,17 +45,21 @@ namespace Yoakke.Compiler.Compile
             // TODO
             if (expression is Expression.Proc)
             {
-                return new Semantic.Type.Proc(new ValueList<Type> { }, Type.I32);
+                return new Type.Proc(new ValueList<Type> { }, Type.I32);
             }
             if (expression is Expression.If || expression is Expression.Call)
             {
-                return Semantic.Type.I32;
+                return Type.I32;
             }
             if (expression is Expression.Literal lit)
             {
-                if (lit.Type == TokenType.IntLiteral) return Semantic.Type.I32;
-                if (lit.Type == TokenType.KwTrue) return Semantic.Type.Bool;
-                if (lit.Type == TokenType.KwFalse) return Semantic.Type.Bool;
+                if (lit.Type == TokenType.IntLiteral) return Type.I32;
+                if (lit.Type == TokenType.KwTrue) return Type.Bool;
+                if (lit.Type == TokenType.KwFalse) return Type.Bool;
+            }
+            if (expression is Expression.StructType sty)
+            {
+                return Type.Type_;
             }
             throw new NotImplementedException();
         }

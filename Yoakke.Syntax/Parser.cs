@@ -436,7 +436,7 @@ namespace Yoakke.Syntax
 
         private Expression.StructType ParseStructTypeExpression()
         {
-            var structKw = Expect(TokenType.KwIf);
+            var structKw = Expect(TokenType.KwStruct);
             var openBrace = Expect(TokenType.OpenBrace);
 
             var fields = new List<Expression.StructType.Field>();

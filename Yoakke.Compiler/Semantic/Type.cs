@@ -17,6 +17,8 @@ namespace Yoakke.Compiler.Semantic
         public static readonly Type Bool = new Prim("bool", Lir.Types.Type.I32);
         // NOTE: For now it will do
         public static readonly Type Unit = new Prim("unit", Lir.Types.Type.Void_);
+        // Special thing
+        public static readonly Type Type_ = new Prim("type", Lir.Types.Type.User_);
 
         public override bool Equals(object? obj) => obj is Type ty && Equals(ty);
 
