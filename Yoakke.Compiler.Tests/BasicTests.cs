@@ -117,5 +117,22 @@ const entry = proc(x: i32) -> i32 {
             TestOnAllBackends<Func<Int32, Int32>>(src, Type.I32.NewValue(24), Type.I32.NewValue(4));
             TestOnAllBackends<Func<Int32, Int32>>(src, Type.I32.NewValue(120), Type.I32.NewValue(5));
         }
+
+        [TestMethod]
+        public void RecursiveFactorialConstant()
+        {
+            string src = @"
+const factorial = proc(x: i32) -> i32 {
+    if x < 3 { x } else { x * factorial(x - 1) }
+};
+
+const fact5 = factorial(5);
+
+const entry = proc() -> i32 {
+    fact5
+};
+";
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(120));
+        }
     }
 }
