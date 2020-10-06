@@ -415,6 +415,14 @@ namespace Yoakke.Compiler.Compile
                 return variablesToRegisters[symbol];
             }
 
+            case Expression.DotPath dotPath:
+            {
+                var leftType = (Semantic.Type.Struct)TypeOf(dotPath.Left);
+                var left = Lvalue(dotPath.Left);
+                var index = FieldIndex(leftType, dotPath.Right);
+                return Builder.ElementPtr(left, index);
+            }
+
             default: throw new NotImplementedException();
             }
         }
