@@ -20,7 +20,7 @@ namespace Yoakke.Compiler.Compile
     public class Codegen : Visitor<Value>
     {
         private Builder builder;
-        private Dictionary<Semantic.Symbol, Value> variablesToRegisters;
+        private Dictionary<Symbol, Value> variablesToRegisters;
 
         public Codegen(Builder builder)
         {
@@ -97,7 +97,7 @@ namespace Yoakke.Compiler.Compile
             Proc? procValue = null;
             builder.WithSubcontext(b =>
             {
-                procValue = builder.DefineProc("unnamed");
+                procValue = builder.DefineProc($"expr_eval_{builder.Assembly.Procedures.Count}");
                 // We need the return type
                 var returnType = TypeOf(expr);
                 procValue.Return = TranslateToLirType(returnType);
