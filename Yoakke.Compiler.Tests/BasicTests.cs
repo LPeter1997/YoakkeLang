@@ -102,5 +102,20 @@ const entry = proc() -> i32 {
 ";
             TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(15));
         }
+
+        [TestMethod]
+        public void RecursiveFactorial()
+        {
+            string src = @"
+const entry = proc(x: i32) -> i32 {
+    if x < 3 { x } else { x * entry(x - 1) }
+};
+";
+            TestOnAllBackends<Func<Int32, Int32>>(src, Type.I32.NewValue(1), Type.I32.NewValue(1));
+            TestOnAllBackends<Func<Int32, Int32>>(src, Type.I32.NewValue(2), Type.I32.NewValue(2));
+            TestOnAllBackends<Func<Int32, Int32>>(src, Type.I32.NewValue(6), Type.I32.NewValue(3));
+            TestOnAllBackends<Func<Int32, Int32>>(src, Type.I32.NewValue(24), Type.I32.NewValue(4));
+            TestOnAllBackends<Func<Int32, Int32>>(src, Type.I32.NewValue(120), Type.I32.NewValue(5));
+        }
     }
 }
