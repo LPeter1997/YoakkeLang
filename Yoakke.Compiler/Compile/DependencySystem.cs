@@ -82,6 +82,8 @@ namespace Yoakke.Compiler.Compile
 
                 // TODO: It's also kinda expensive to just instantiate a new VM for the whole assembly
                 // Can't we just track partially what this expression needs and include that?
+                // We could also just have a VM that could build code incrementally
+                // Like appending unknown procedures and such
 
                 // It's an unknown expression we have to evaluate
                 // We compile the expression into an evaluation procedure, run it through the VM and return the result
