@@ -510,6 +510,18 @@ namespace Yoakke.Lir.Runtime
                 return value;
             }
 
+            case Struct struc:
+            {
+                var fields = new ValueList<Value>();
+                foreach (var field in struc.Fields)
+                {
+                    var fieldValue = ReadMemory(ref bytes, field);
+                    fields.Add(fieldValue);
+                }
+                var resultValue = new StructValue(struc, fields);
+                return resultValue;
+            }
+
             case Type.User:
             {
                 var index = BitConverter.ToInt32(bytes.Slice(0, 4));
@@ -557,6 +569,12 @@ namespace Yoakke.Lir.Runtime
                 bytes[0] = placement;
                 pointer.CopyTo(bytes.Slice(1));
                 bytes = bytes.Slice(9);
+            }
+            break;
+
+            case StructValue s:
+            {
+                foreach (var field in s.Values) WriteMemory(ref bytes, field);
             }
             break;
 
