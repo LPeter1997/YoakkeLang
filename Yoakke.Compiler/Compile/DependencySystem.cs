@@ -27,6 +27,7 @@ namespace Yoakke.Compiler.Compile
         private Dictionary<Symbol.Const, Value> constValues = new Dictionary<Symbol.Const, Value>();
         private string? procNameHint = null;
         private Dictionary<(Type.Struct, string), int> fieldIndices = new Dictionary<(Type.Struct, string), int>();
+        private Dictionary<Symbol.Var, Type> varTypes = new Dictionary<Symbol.Var, Type>();
 
         public DependencySystem(SymbolTable symbolTable)
         {
@@ -70,6 +71,19 @@ namespace Yoakke.Compiler.Compile
             if (expression is Expression.StructValue sval)
             {
                 return EvaluateType(sval.StructType);
+            }
+            if (expression is Expression.Identifier ident)
+            {
+                var symbol = SymbolTable.ReferredSymbol(ident);
+                if (symbol is Symbol.Const constSym)
+                {
+                    // TODO
+                    throw new NotImplementedException();
+                }
+                if (symbol is Symbol.Var varSym)
+                {
+                    return varTypes[varSym];
+                }
             }
             throw new NotImplementedException();
         }
@@ -214,5 +228,7 @@ namespace Yoakke.Compiler.Compile
         }
 
         public int FieldIndex(Type.Struct structType, string name) => fieldIndices[(structType, name)];
+
+        public void SetVarType(Symbol.Var varSym, Type type) => varTypes[varSym] = type;
     }
 }

@@ -6,5 +6,5 @@ const Vector2 = struct {
 
 const main = proc() -> i32 {
     var x = Vector2 { x = 3; y = 4; };
-    0
+    x.y
 };

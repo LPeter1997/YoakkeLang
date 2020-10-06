@@ -86,5 +86,8 @@ namespace Yoakke.Compiler.Compile
         /// <param name="name">The name of the field.</param>
         /// <returns>The Lir field index.</returns>
         public int FieldIndex(Type.Struct structType, string name);
+
+        // TODO: Doc
+        public void SetVarType(Symbol.Var varSym, Type type);
     }
 }

@@ -49,6 +49,8 @@ namespace Yoakke.Compiler.Compile
         private Value EvaluateConst(Symbol.Const constSym) => System.EvaluateConst(constSym);
         private Semantic.Type EvaluateType(Expression expression) => System.EvaluateType(expression);
         private Lir.Types.Type TranslateToLirType(Semantic.Type type) => System.TranslateToLirType(type);
+        private int FieldIndex(Semantic.Type.Struct sty, string name) => System.FieldIndex(sty, name);
+        private void SetVarType(Symbol.Var var, Semantic.Type type) => System.SetVarType(var, type);
 
         // Public interface ////////////////////////////////////////////////////
 
@@ -144,6 +146,8 @@ namespace Yoakke.Compiler.Compile
             // Associate with symbol
             var symbol = SymbolTable.DefinedSymbol(var);
             variablesToRegisters.Add(symbol, varSpace);
+            // TODO: Does this belong here?
+            SetVarType((Symbol.Var)symbol, type);
             return null;
         }
 
@@ -351,7 +355,24 @@ namespace Yoakke.Compiler.Compile
 
         protected override Value? Visit(Expression.DotPath dot)
         {
-            throw new NotImplementedException();
+            var leftType = TypeOf(dot.Left);
+            var left = VisitNonNull(dot.Left);
+            if (leftType is Semantic.Type.Struct sty)
+            {
+                // Since we need a pointer, we need to write the struct to memory
+                var leftSpace = Builder.Alloc(TranslateToLirType(leftType));
+                Builder.Store(leftSpace, left);
+                // We need the field index
+                var index = FieldIndex(sty, dot.Right);
+                // Get the proper pointer
+                var ptr = Builder.ElementPtr(leftSpace, index);
+                // Load it
+                return Builder.Load(ptr);
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
         }
 
         protected override Value? Visit(Expression.ProcSignature sign)
@@ -366,8 +387,8 @@ namespace Yoakke.Compiler.Compile
 
         protected override Value? Visit(Expression.StructValue sval)
         {
-            var structType = System.EvaluateType(sval.StructType);
-            var lirType = System.TranslateToLirType(structType);
+            var structType = EvaluateType(sval.StructType);
+            var lirType = TranslateToLirType(structType);
             // Allocate space for the struct value
             var structSpace = Builder.Alloc(lirType);
             // For each field we compile it and store at the respective field
@@ -376,7 +397,7 @@ namespace Yoakke.Compiler.Compile
                 // Evaluate the initializer value
                 var fieldValue = VisitNonNull(field.Value);
                 // Get the field pointer
-                int index = System.FieldIndex((Semantic.Type.Struct)structType, field.Name);
+                int index = FieldIndex((Semantic.Type.Struct)structType, field.Name);
                 var fieldPtr = Builder.ElementPtr(structSpace, index);
                 // Store it
                 Builder.Store(fieldPtr, fieldValue);
