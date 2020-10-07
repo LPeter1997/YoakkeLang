@@ -24,6 +24,8 @@ namespace Yoakke.Compiler.Compile
         public SymbolTable SymbolTable { get; }
 
         private Codegen codegen;
+        private TypeEval typeEval;
+        private TypeCheck typeCheck;
         private Dictionary<Symbol.Const, Value> constValues = new Dictionary<Symbol.Const, Value>();
         private string? procNameHint = null;
         private Dictionary<(Type.Struct, string), int> fieldIndices = new Dictionary<(Type.Struct, string), int>();
@@ -33,6 +35,8 @@ namespace Yoakke.Compiler.Compile
         {
             SymbolTable = symbolTable;
             codegen = new Codegen(this);
+            typeEval = new TypeEval(this);
+            typeCheck = new TypeCheck(this);
         }
 
         public Assembly? Compile(Declaration.File file, BuildStatus status)
@@ -47,51 +51,8 @@ namespace Yoakke.Compiler.Compile
             return asm;
         }
 
-        public Type TypeOf(Expression expression)
-        {
-            // TODO
-            if (expression is Expression.Proc)
-            {
-                return new Type.Proc(new ValueList<Type> { }, Type.I32);
-            }
-            if (expression is Expression.If || expression is Expression.Call)
-            {
-                return Type.I32;
-            }
-            if (expression is Expression.Literal lit)
-            {
-                if (lit.Type == TokenType.IntLiteral) return Type.I32;
-                if (lit.Type == TokenType.KwTrue) return Type.Bool;
-                if (lit.Type == TokenType.KwFalse) return Type.Bool;
-            }
-            if (expression is Expression.StructType sty)
-            {
-                return Type.Type_;
-            }
-            if (expression is Expression.StructValue sval)
-            {
-                return EvaluateType(sval.StructType);
-            }
-            if (expression is Expression.Identifier ident)
-            {
-                var symbol = SymbolTable.ReferredSymbol(ident);
-                if (symbol is Symbol.Const constSym)
-                {
-                    // TODO
-                    throw new NotImplementedException();
-                }
-                if (symbol is Symbol.Var varSym)
-                {
-                    return varTypes[varSym];
-                }
-            }
-            throw new NotImplementedException();
-        }
-
-        public void TypeCheck(Statement statement)
-        {
-            // TODO: Assume correct
-        }
+        public Type TypeOf(Expression expression) => typeEval.TypeOf(expression);
+        public void TypeCheck(Statement statement) => typeCheck.Check(statement);
 
         public Value Evaluate(Expression expression)
         {
@@ -202,33 +163,7 @@ namespace Yoakke.Compiler.Compile
             throw new NotImplementedException();
         }
 
-        public Lir.Types.Type TranslateToLirType(Type type)
-        {
-            // TODO: Check cache?
-            switch (type)
-            {
-            case Type.Prim prim: return prim.Type;
-
-            case Type.Struct sty:
-            {
-                var fields = sty.Fields.Values.Select(TranslateToLirType);
-                var result = codegen.Builder.DefineStruct(fields);
-                int index = 0;
-                foreach (var field in sty.Fields)
-                {
-                    // TODO: We use this because the type is translated multiple times for some reason...
-                    fieldIndices[(sty, field.Key)] = index;
-                    ++index;
-                }
-                return result;
-            }
-
-            default: throw new NotImplementedException();
-            }
-        }
-
         public int FieldIndex(Type.Struct structType, string name) => fieldIndices[(structType, name)];
-
         public void SetVarType(Symbol.Var varSym, Type type) => varTypes[varSym] = type;
     }
 }

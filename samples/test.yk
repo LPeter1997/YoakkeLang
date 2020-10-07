@@ -1,11 +1,4 @@
 
-const Vector2 = struct {
-    x: i32;
-    y: i32;
-};
-
 const main = proc() -> i32 {
-    var x = Vector2 { x = 3; y = 4; };
-    x.y = 632;
-    x.y
+    123
 };

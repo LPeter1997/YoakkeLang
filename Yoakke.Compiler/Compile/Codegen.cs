@@ -16,7 +16,6 @@ using Yoakke.Syntax.Ast;
 namespace Yoakke.Compiler.Compile
 {
     // TODO: Doc the whole thing
-
     public class Codegen : Visitor<Value>
     {
         public IDependencySystem System { get; }
@@ -48,7 +47,6 @@ namespace Yoakke.Compiler.Compile
         private Value EvaluateConst(Declaration.Const constDecl) => System.EvaluateConst(constDecl);
         private Value EvaluateConst(Symbol.Const constSym) => System.EvaluateConst(constSym);
         private Semantic.Type EvaluateType(Expression expression) => System.EvaluateType(expression);
-        private Lir.Types.Type TranslateToLirType(Semantic.Type type) => System.TranslateToLirType(type);
         private int FieldIndex(Semantic.Type.Struct sty, string name) => System.FieldIndex(sty, name);
         private void SetVarType(Symbol.Var var, Semantic.Type type) => System.SetVarType(var, type);
 
@@ -99,6 +97,9 @@ namespace Yoakke.Compiler.Compile
         }
 
         // Actual code-generation //////////////////////////////////////////////
+
+        private Lir.Types.Type TranslateToLirType(Semantic.Type type) => 
+            TypeTranslator.ToLirType(type, Builder);
 
         protected override Value? Visit(Declaration.Const cons) => EvaluateConst(cons);
 
