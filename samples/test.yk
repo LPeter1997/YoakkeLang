@@ -7,6 +7,7 @@ const Vector2 = proc(T: type) -> type {
 };
 
 const main = proc() -> i32 {
-    var x: Vector2(i32) = Vector2(i32) { x = 3; y = 4; };
-    x.z
+    var x = Vector2(i32) { x = 3; y = 4; };
+    var y = Vector2(bool) { x = true; y = false; };
+    x.y
 };

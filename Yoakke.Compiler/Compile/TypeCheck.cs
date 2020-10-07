@@ -48,6 +48,7 @@ namespace Yoakke.Compiler.Compile
 
         protected override object? Visit(Statement.Var var)
         {
+            base.Visit(var);
             var symbol = (Symbol.Var)System.SymbolTable.DefinedSymbol(var);
             Type? inferredType = null;
             if (var.Type != null)
@@ -113,6 +114,7 @@ namespace Yoakke.Compiler.Compile
 
         protected override object? Visit(Expression.Proc proc)
         {
+            Visit(proc.Signature);
             // Evaluate parameter types, assign their return types
             foreach (var param in proc.Signature.Parameters)
             {
@@ -188,7 +190,95 @@ namespace Yoakke.Compiler.Compile
             return null;
         }
 
-        // TODO: Do the rest
+        protected override object? Visit(Expression.Call call)
+        {
+            base.Visit(call);
+            // Check if the called thing is even a procedure
+            var calledType = System.TypeOf(call.Procedure);
+            if (!(calledType is Type.Proc procType))
+            {
+                // TODO
+                throw new NotImplementedException("Can't call non-procedure!");
+            }
+            // Check if arguments match
+            var argTypes = call.Arguments.Select(arg => System.TypeOf(arg));
+            if (!procType.Parameters.SequenceEqual(argTypes))
+            {
+                // TODO
+                throw new NotImplementedException("Call argument types mismatch!");
+            }
+            return null;
+        }
+
+        protected override object? Visit(Expression.Binary bin)
+        {
+            base.Visit(bin);
+            if (bin.Operator == Syntax.TokenType.Assign)
+            {
+                // For assignment the sides must match
+                var leftType = System.TypeOf(bin.Left);
+                var rightType = System.TypeOf(bin.Right);
+                if (!leftType.Equals(rightType))
+                {
+                    // TODO
+                    throw new NotImplementedException($"Assignment type mismatch '{leftType}' vs '{rightType}'!");
+                }
+            }
+            else
+            {
+                // TODO
+            }
+            return null;
+        }
+
+        protected override object? Visit(Expression.StructValue sval)
+        {
+            base.Visit(sval);
+            // Check if it's even a struct type
+            var instanceType = System.EvaluateType(sval.StructType);
+            if (!(instanceType is Type.Struct structType))
+            {
+                // TODO
+                throw new NotImplementedException("Can't instantiate non-struct!");
+            }
+            // Check if all fields are instantiated exactly once and with their proper type
+            var remainingFields = structType.Fields.ToDictionary(f => f.Key, f => f.Value);
+            foreach (var field in sval.Fields)
+            {
+                if (!remainingFields.Remove(field.Name, out var declaredType))
+                {
+                    // Either already initialized, or unknown field
+                    if (structType.Fields.ContainsKey(field.Name))
+                    {
+                        // Double-init
+                        // TODO
+                        throw new NotImplementedException($"Field '{field.Name}' is double-initialized!");
+                    }
+                    else
+                    {
+                        // Unknown field
+                        // TODO
+                        throw new NotImplementedException($"Unknown field '{field.Name}'!");
+                    }
+                }
+                else
+                {
+                    // Types need to match
+                    var assignedType = System.TypeOf(field.Value);
+                    if (!assignedType.Equals(declaredType))
+                    {
+                        // TODO
+                        throw new NotImplementedException($"Field type mismatch '{declaredType}' vs '{assignedType}'!");
+                    }
+                }
+            }
+            if (remainingFields.Count > 0)
+            {
+                // TODO
+                throw new NotImplementedException($"{remainingFields.Count} fields remaining uninitialized!");
+            }
+            return null;
+        }
 
         private object? WithCurrentProcReturnType(Type? procReturnType, Action action)
         {
