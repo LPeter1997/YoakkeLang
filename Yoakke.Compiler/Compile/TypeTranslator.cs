@@ -20,7 +20,7 @@ namespace Yoakke.Compiler.Compile
             throw new NotImplementedException();
         }
 
-        public Semantic.Type ToSemanticType(Lir.Values.Value value)
+        public static Semantic.Type ToSemanticType(Lir.Values.Value value)
         {
             throw new NotImplementedException();
         }

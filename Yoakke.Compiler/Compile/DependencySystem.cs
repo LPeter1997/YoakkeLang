@@ -136,29 +136,8 @@ namespace Yoakke.Compiler.Compile
 
         public Type EvaluateType(Expression expression)
         {
-            if (expression is Expression.Identifier ident)
-            {
-                var symbol = SymbolTable.ReferredSymbol(ident);
-                if (symbol is Symbol.Const constSymbol)
-                {
-                    var value = EvaluateConst(constSymbol);
-                    if (value is Value.User uvalue)
-                    {
-                        if (uvalue.Payload is Type type) return type;
-
-                        throw new NotImplementedException();
-                    }
-                    else
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-                else
-                {
-                    throw new NotImplementedException();
-                }
-            }
-            throw new NotImplementedException();
+            var value = Evaluate(expression);
+            return TypeTranslator.ToSemanticType(value);
         }
     }
 }
