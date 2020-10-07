@@ -40,8 +40,10 @@ namespace Yoakke.Compiler.Compile
         public Assembly? Compile(Declaration.File file, BuildStatus status)
         {
             var asm = codegen.Generate(file);
-            // Erase the temporaries
-            asm.Procedures = asm.Procedures.Except(tempEval).ToList();
+            // Erase the temporaries and things that have user-types in them
+            asm.Procedures = asm.Procedures
+                .Except(tempEval)
+                .Where(proc => !proc.HasUserValues()).ToList();
             var checkedAsm = asm.Check(status);
             if (status.Errors.Count > 0)
             {

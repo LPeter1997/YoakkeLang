@@ -14,6 +14,7 @@ namespace Yoakke.Compiler.Semantic
     public abstract partial class Type : IEquatable<Type>
     {
         public static readonly Type I32 = new Prim("i32", Lir.Types.Type.I32);
+        public static readonly Type I64 = new Prim("i64", Lir.Types.Type.I64);
         public static readonly Type Bool = new Prim("bool", Lir.Types.Type.I32);
         // NOTE: For now it will do
         public static readonly Type Unit = new Prim("unit", Lir.Types.Type.Void_);

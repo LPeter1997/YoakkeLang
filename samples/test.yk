@@ -1,10 +1,12 @@
 
-const Vector2 = struct {
-    x: i32;
-    y: i32;
+const Vector2 = proc(T: type) -> type {
+    struct {
+        x: T;
+        y: T;
+    }
 };
 
 const main = proc() -> i32 {
-    var x = Vector2 { x = 3; y = 4; };
+    var x = Vector2(i32) { x = 3; y = 4; };
     x.y
 };

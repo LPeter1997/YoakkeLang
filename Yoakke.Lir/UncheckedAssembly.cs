@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Yoakke.Lir.Status;
 using Type = Yoakke.Lir.Types.Type;
 
@@ -68,6 +69,20 @@ namespace Yoakke.Lir
         {
             Name = name;
         }
+
+        public override string ToString() => new StringBuilder()
+            .AppendJoin('\n', Externals)
+            .Append("\n\n")
+            .AppendJoin('\n', Constants)
+            .Append("\n\n")
+            .AppendJoin('\n', Globals)
+            .Append("\n\n")
+            .AppendJoin('\n', Structs)
+            .Append("\n\n")
+            .AppendJoin("\n\n", Procedures)
+            .Replace("\n\n\n", "\n\n")
+            .ToString()
+            .Trim();
 
         public Assembly Check(BuildStatus status)
         {
