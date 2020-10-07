@@ -14,13 +14,18 @@ namespace Yoakke.C.Syntax.Cpp
     /// <summary>
     /// Basically does this:
     /// https://gcc.gnu.org/onlinedocs/gcc-10.2.0/cpp/Initial-processing.html#Initial-processing
-    /// Up until the trigraph substitution.
+    /// Up until line continuations.
     /// </summary>
     public class CppTextReader
     {
         private TextReader reader;
         private Cursor cursor = new Cursor();
         private StringBuilder peekBuffer = new StringBuilder();
+
+        /// <summary>
+        /// The current <see cref="Position"/> of this reader.
+        /// </summary>
+        public Position Position => cursor.Position;
 
         /// <summary>
         /// Initializes a new <see cref="CppTextReader"/>.
@@ -88,6 +93,9 @@ namespace Yoakke.C.Syntax.Cpp
 
         private bool IsEndOfLine(int offset, out int toConsume)
         {
+            toConsume = offset;
+            // Skip trailing spaces
+            for (; Peek(offset) == ' '; ++offset) ;
             var peek1 = Peek(offset);
             if (peek1 == '\r' && Peek(offset + 1) == '\n')
             {
@@ -101,7 +109,6 @@ namespace Yoakke.C.Syntax.Cpp
                 toConsume = offset + 1;
                 return true;
             }
-            toConsume = offset;
             return false;
         }
 

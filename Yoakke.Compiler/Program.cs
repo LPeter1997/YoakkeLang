@@ -24,7 +24,7 @@ namespace Yoakke.Compiler
         static void Main(string[] args)
         {
             var src = @"
-hell\
+hell??/   
 o world??(
 ";
             var reader = new CppTextReader(new StringReader(src));
