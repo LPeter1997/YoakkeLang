@@ -48,6 +48,11 @@ namespace Yoakke.Compiler.Compile
                 var definition = (Declaration.Const)constSym.Definition;
                 return TypeOf(definition.Value);
             }
+            else if (symbol is Symbol.Var varSym)
+            {
+                Debug.Assert(varSym.Type != null);
+                return varSym.Type;
+            }
             else
             {
                 throw new NotImplementedException();
@@ -65,5 +70,14 @@ namespace Yoakke.Compiler.Compile
             // Construct the procedure type
             return new Type.Proc(paramTypes.ToList().AsValueList(), returnType);
         }
+
+        protected override Type? Visit(Expression.If iff)
+        {
+            Debug.Assert(iff.Else != null);
+            return TypeOf(iff.Then);
+        }
+
+        protected override Type? Visit(Expression.Block block) =>
+            block.Value == null ? Type.Unit : TypeOf(block.Value);
     }
 }

@@ -126,7 +126,7 @@ namespace Yoakke.Lir.Tests
 
             var symTab = new SymbolTable();
             // TODO: Move builtin def to somewhere internal
-            symTab.GlobalScope.Define(new Symbol.Const("i32", new Value.User(Compiler.Semantic.Type.I32)));
+            symTab.GlobalScope.Define(new Symbol.Const("i32", Compiler.Semantic.Type.Type_, new Value.User(Compiler.Semantic.Type.I32)));
             new DefineScope(symTab).Define(ast);
             new DeclareSymbol(symTab).Declare(ast);
             new ResolveSymbol(symTab).Resolve(ast);
