@@ -21,6 +21,7 @@ namespace Yoakke.Compiler.Compile
         public IDependencySystem System { get; }
         public Builder Builder { get; }
 
+        private TypeTranslator typeTranslator;
         private Dictionary<Expression.Proc, Proc> compiledProcs;
         private Dictionary<Symbol, Value> variablesToRegisters;
         private string? procNameHint;
@@ -29,6 +30,7 @@ namespace Yoakke.Compiler.Compile
         {
             System = system;
             Builder = builder;
+            typeTranslator = new TypeTranslator();
             variablesToRegisters = new Dictionary<Symbol, Value>();
             compiledProcs = new Dictionary<Expression.Proc, Proc>();
         }
@@ -47,7 +49,7 @@ namespace Yoakke.Compiler.Compile
         private Value EvaluateConst(Declaration.Const constDecl) => System.EvaluateConst(constDecl);
         private Value EvaluateConst(Symbol.Const constSym) => System.EvaluateConst(constSym);
         private Semantic.Type EvaluateType(Expression expression) => System.EvaluateType(expression);
-        private int FieldIndex(Semantic.Type.Struct sty, string name) => System.FieldIndex(sty, name);
+        private int FieldIndex(Semantic.Type sty, string name) => typeTranslator.FieldIndex(sty, name);
 
         // Public interface ////////////////////////////////////////////////////
 
@@ -97,8 +99,7 @@ namespace Yoakke.Compiler.Compile
 
         // Actual code-generation //////////////////////////////////////////////
 
-        private Lir.Types.Type TranslateToLirType(Semantic.Type type) => 
-            TypeTranslator.ToLirType(type, Builder);
+        private Lir.Types.Type TranslateToLirType(Semantic.Type type) => typeTranslator.ToLirType(type, Builder);
 
         protected override Value? Visit(Declaration.Const cons) => EvaluateConst(cons);
 
@@ -395,7 +396,7 @@ namespace Yoakke.Compiler.Compile
                 // Evaluate the initializer value
                 var fieldValue = VisitNonNull(field.Value);
                 // Get the field pointer
-                int index = FieldIndex((Semantic.Type.Struct)structType, field.Name);
+                int index = FieldIndex(structType, field.Name);
                 var fieldPtr = Builder.ElementPtr(structSpace, index);
                 // Store it
                 Builder.Store(fieldPtr, fieldValue);

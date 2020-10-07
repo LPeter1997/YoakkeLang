@@ -23,6 +23,5 @@ namespace Yoakke.Compiler.Compile
         public Value EvaluateConst(Declaration.Const constDecl);
         public Value EvaluateConst(Symbol.Const constSym);
         public Type EvaluateType(Expression expression);
-        public int FieldIndex(Type.Struct structType, string name);
     }
 }

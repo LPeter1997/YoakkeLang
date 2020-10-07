@@ -28,7 +28,6 @@ namespace Yoakke.Compiler.Compile
         private TypeCheck typeCheck;
         private Dictionary<Symbol.Const, Value> constValues = new Dictionary<Symbol.Const, Value>();
         private string? procNameHint = null;
-        private Dictionary<(Type.Struct, string), int> fieldIndices = new Dictionary<(Type.Struct, string), int>();
 
         public DependencySystem(SymbolTable symbolTable)
         {
@@ -161,7 +160,5 @@ namespace Yoakke.Compiler.Compile
             }
             throw new NotImplementedException();
         }
-
-        public int FieldIndex(Type.Struct structType, string name) => fieldIndices[(structType, name)];
     }
 }
