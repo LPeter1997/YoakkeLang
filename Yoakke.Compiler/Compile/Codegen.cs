@@ -381,19 +381,12 @@ namespace Yoakke.Compiler.Compile
         {
             var structType = EvaluateType(sval.StructType);
             var lirType = TranslateToLirType(structType);
-            // Allocate space for the struct value
-            var structSpace = Builder.Alloc(lirType);
-            // For each field we compile it and store at the respective field
-            foreach (var field in sval.Fields)
-            {
-                // Evaluate the initializer value
-                var fieldValue = VisitNonNull(field.Value);
-                // Get the field pointer
-                int index = FieldIndex(structType, field.Name);
-                var fieldPtr = Builder.ElementPtr(structSpace, index);
-                // Store it
-                Builder.Store(fieldPtr, fieldValue);
-            }
+            // Use the initializer to allocate and initialize space
+            var structSpace = Builder.InitStruct(
+                structType: lirType,
+                fieldValues: sval.Fields.Select(field => new KeyValuePair<int, Value>(
+                    key: FieldIndex(structType, field.Name), 
+                    value: VisitNonNull(field.Value))));
             return Builder.Load(structSpace);
         }
 

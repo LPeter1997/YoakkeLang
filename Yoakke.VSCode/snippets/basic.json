@@ -2,10 +2,29 @@
     "Define a procedure": {
         "prefix": "cproc",
         "body": [
-            "const $1 = proc($2) -> $3 {",
+            "const ${1:name} = proc(${2:parameters}) -> ${3:return} {",
             "\t$4",
             "};"
         ],
-        "description": "Define a procedure as a constant"
+        "description": "Define a procedure as a constant."
+    },
+
+    "Define a struct": {
+        "prefix": "cstruct",
+        "body": [
+            "const ${1:name} = struct {",
+            "\t$2",
+            "};"
+        ],
+        "description": "Define a struct type as a constant."
+    },
+
+    "Define a struct field": {
+        "prefix": "field",
+        "body": [
+            "${1:name}: ${2:type};",
+            "$3"
+        ],
+        "description": "Define a field inside a struct."
     }
 }
