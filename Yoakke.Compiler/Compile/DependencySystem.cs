@@ -27,7 +27,6 @@ namespace Yoakke.Compiler.Compile
         private TypeEval typeEval;
         private TypeCheck typeCheck;
         private Dictionary<Symbol.Const, Value> constValues = new Dictionary<Symbol.Const, Value>();
-        private string? procNameHint = null;
 
         public DependencySystem(SymbolTable symbolTable)
         {
@@ -56,74 +55,38 @@ namespace Yoakke.Compiler.Compile
         {
             // TODO: We could mostly avoid special casing?
             // TODO: We need to capture local variables at evaluation for things like generics to work
-            // TODO: A local context should be passed that's used for cacheing!
-            if (expression is Expression.Proc procExpr)
-            {
-                Debug.Assert(procNameHint != null);
-                var procName = procNameHint;
-                procNameHint = null;
-                return codegen.Generate(procExpr, procName);
-            }
-            else if (expression is Expression.StructType structType)
-            {
-                // TODO: We could probably remove this case and just let evaluation go
-                Debug.Assert(structType.ParseTreeNode != null);
-                var parseTreeNode = (Syntax.ParseTree.Expression.StructType)structType.ParseTreeNode;
-                int fieldCount = 0;
-                var resultType = new Type.Struct(
-                    parseTreeNode.KwStruct, 
-                    structType.Fields.ToDictionary(
-                        field => field.Name ?? $"unnamed_field_{fieldCount++}",
-                        field => EvaluateType(field.Type)
-                    ).AsValueDictionary());
-                return new Value.User(resultType);
-            }
-            else
-            {
-                // TODO: This should not be part of the final assembly!
-                // We need to erase it before finishing compiling the file
+            // TODO: This should not be part of the final assembly!
+            // We need to erase it before finishing compiling the file
 
-                // TODO: It's also kinda expensive to just instantiate a new VM for the whole assembly
-                // Can't we just track partially what this expression needs and include that?
-                // We could also just have a VM that could build code incrementally
-                // Like appending unknown procedures and such
+            // TODO: It's also kinda expensive to just instantiate a new VM for the whole assembly
+            // Can't we just track partially what this expression needs and include that?
+            // We could also just have a VM that could build code incrementally
+            // Like appending unknown procedures and such
 
-                // It's an unknown expression we have to evaluate
-                // We compile the expression into an evaluation procedure, run it through the VM and return the result
-                var proc = codegen.GenerateEvaluationProc(expression);
-                var status = new BuildStatus();
-                var asm = codegen.Builder.Assembly.Check(status);
-                if (status.Errors.Count > 0)
-                {
-                    throw new NotImplementedException();
-                }
-                var vm = new VirtualMachine(asm);
-                return vm.Execute(proc, new Value[] { });
+            // It's an unknown expression we have to evaluate
+            // We compile the expression into an evaluation procedure, run it through the VM and return the result
+            var proc = codegen.GenerateEvaluationProc(expression);
+            var status = new BuildStatus();
+            var asm = codegen.Builder.Assembly.Check(status);
+            if (status.Errors.Count > 0)
+            {
+                // TODO: The compiled assembly might be incomplete!
+                //throw new NotImplementedException();
             }
+            var vm = new VirtualMachine(asm);
+            return vm.Execute(proc, new Value[] { });
         }
 
         public Value EvaluateConst(Declaration.Const constDecl)
         {
             var symbol = (Symbol.Const)SymbolTable.DefinedSymbol(constDecl);
-            // Check if there's a pre-stored value
-            if (symbol.Value != null) return symbol.Value;
-            // We need to evaluate based on the definition
-            // Check if it's cached
-            if (!constValues.TryGetValue(symbol, out var value))
+            // Check if there's a pre-stored value, if not, evaluate it
+            if (symbol.Value == null)
             {
-                // Not cached, evaluate and then cache
-                if (constDecl.Value is Expression.Proc)
-                {
-                    procNameHint = constDecl.Name;
-                }
-                value = Evaluate(constDecl.Value);
-                // NOTE: We check here again because of recursion
-                if (!constValues.ContainsKey(symbol))
-                {
-                    constValues.Add(symbol, value);
-                }
+                symbol.Value = Evaluate(constDecl.Value);
+                if (symbol.Value is Proc proc) proc.Name = constDecl.Name;
             }
-            return value;
+            return symbol.Value;
         }
 
         public Value EvaluateConst(Symbol.Const constSym)

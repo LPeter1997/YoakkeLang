@@ -42,13 +42,18 @@ namespace Yoakke.Compiler.Semantic
         public class Const : Symbol
         {
             /// <summary>
+            /// The <see cref="Type"/> of the value.
+            /// </summary>
+            public Type? Type { get; set; }
+            /// <summary>
             /// The calculated compile-time value.
             /// </summary>
             public Value? Value { get; set; }
 
-            private Const(Node? definition, string name, Value? value)
+            private Const(Node? definition, string name, Type? type, Value? value)
                 : base(definition, name)
             {
+                Type = type;
                 Value = value;
             }
 
@@ -57,7 +62,7 @@ namespace Yoakke.Compiler.Semantic
             /// </summary>
             /// <param name="definition">The constant definition node.</param>
             public Const(Declaration.Const definition)
-                : this(definition, definition.Name, null)
+                : this(definition, definition.Name, null, null)
             {
             }
 
@@ -65,9 +70,10 @@ namespace Yoakke.Compiler.Semantic
             /// Initializes a new <see cref="Const"/> by a name and <see cref="Value"/>.
             /// </summary>
             /// <param name="name">The name of the symbol.</param>
+            /// <param name="type">The <see cref="Type"/> of the symbol.</param>
             /// <param name="value">The <see cref="Value"/> of the symbol.</param>
-            public Const(string name, Value value)
-                : this(null, name, value)
+            public Const(string name, Type type, Value value)
+                : this(null, name, type, value)
             {
             }
         }

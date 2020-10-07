@@ -23,7 +23,8 @@ namespace Yoakke.Lir.Types
             }
 
             public override string ToTypeString() => 
-                $"{Return} proc[callconv = {CallConv}]({string.Join(", ", Parameters.Select(p => p.ToTypeString()))})";
+                $"{Return.ToTypeString()} proc[callconv = {CallConv}]" +
+                $"({string.Join(", ", Parameters.Select(p => p.ToTypeString()))})";
             public override bool Equals(Type? other) =>
                    other is Proc p 
                 && CallConv == p.CallConv && Return.Equals(p.Return) && Parameters.Equals(p.Parameters);
