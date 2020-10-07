@@ -24,6 +24,5 @@ namespace Yoakke.Compiler.Compile
         public Value EvaluateConst(Symbol.Const constSym);
         public Type EvaluateType(Expression expression);
         public int FieldIndex(Type.Struct structType, string name);
-        public void SetVarType(Symbol.Var varSym, Type type);
     }
 }

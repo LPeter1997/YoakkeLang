@@ -48,7 +48,6 @@ namespace Yoakke.Compiler.Compile
         private Value EvaluateConst(Symbol.Const constSym) => System.EvaluateConst(constSym);
         private Semantic.Type EvaluateType(Expression expression) => System.EvaluateType(expression);
         private int FieldIndex(Semantic.Type.Struct sty, string name) => System.FieldIndex(sty, name);
-        private void SetVarType(Symbol.Var var, Semantic.Type type) => System.SetVarType(var, type);
 
         // Public interface ////////////////////////////////////////////////////
 
@@ -147,8 +146,6 @@ namespace Yoakke.Compiler.Compile
             // Associate with symbol
             var symbol = SymbolTable.DefinedSymbol(var);
             variablesToRegisters.Add(symbol, varSpace);
-            // TODO: Does this belong here?
-            SetVarType((Symbol.Var)symbol, type);
             return null;
         }
 

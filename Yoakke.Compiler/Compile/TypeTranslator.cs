@@ -14,5 +14,10 @@ namespace Yoakke.Compiler.Compile
             Semantic.Type.Prim prim => prim.Type,
             _ => throw new NotImplementedException(),
         };
+
+        public static Semantic.Type ToSemanticType(Lir.Values.Value value)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
