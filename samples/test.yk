@@ -1,13 +1,13 @@
 
-const Vector2 = proc(T: type) -> type {
-    struct {
-        x: T;
-        y: T;
-    }
+const S1 = struct {
+    f: S2;
+};
+
+const S2 = struct {
+    g: i32;
 };
 
 const main = proc() -> i32 {
-    var x = Vector2(i32) { x = 3; y = 4; };
-    var y = Vector2(bool) { x = true; y = false; };
-    x.y
+    var x = S1 { f = S2 { g = 13; }; };
+    x.f.g
 };

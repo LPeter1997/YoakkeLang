@@ -169,5 +169,25 @@ const entry = proc() -> i32 {
 ";
             TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(632));
         }
+
+        [TestMethod]
+        public void NestedStruct()
+        {
+            string src = @"
+const S1 = struct {
+    f: S2;
+};
+
+const S2 = struct {
+    g: i32;
+};
+
+const main = proc() -> i32 {
+    var x = S1 { f = S2 { g = 13; }; };
+    x.f.g
+};
+";
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(13));
+        }
     }
 }

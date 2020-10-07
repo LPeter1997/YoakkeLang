@@ -584,6 +584,12 @@ namespace Yoakke.Lir.Runtime
             }
             break;
 
+            case ArrayValue a:
+            {
+                foreach (var field in a.Values) WriteMemory(ref bytes, field);
+            }
+            break;
+
             case Value.User u:
             {
                 // Cache the user payload
