@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Threading.Tasks;
 using Yoakke.Compiler.Semantic;
@@ -71,30 +72,43 @@ namespace Yoakke.Compiler.Compile
             return new Type.Proc(paramTypes.ToList().AsValueList(), returnType);
         }
 
-        protected override Type? Visit(Expression.If iff)
-        {
-            Debug.Assert(iff.Else != null);
-            return TypeOf(iff.Then);
-        }
+        protected override Type? Visit(Expression.If iff) => TypeOf(iff.Then);
+
+        protected override Type? Visit(Expression.While whil) => Type.Unit;
 
         protected override Type? Visit(Expression.Block block) =>
             block.Value == null ? Type.Unit : TypeOf(block.Value);
 
         protected override Type? Visit(Expression.Call call)
         {
-            var proc = TypeOf(call.Procedure);
-            if (proc is Type.Proc procType)
+            var procType = (Type.Proc)TypeOf(call.Procedure);
+            return procType.Return;
+        }
+
+        protected override Type? Visit(Expression.Binary bin)
+        {
+            // TODO: Just a basic assumption for now
+            switch (bin.Operator)
             {
-                return procType.Return;
-            }
-            else
-            {
-                // TODO
-                throw new NotImplementedException("Can't call non-procedure!");
+            case TokenType.Less:
+            case TokenType.LessEqual:
+            case TokenType.Greater:
+            case TokenType.GreaterEqual:
+            case TokenType.Equal:
+            case TokenType.NotEqual:
+                return Type.Bool;
+
+            default: return TypeOf(bin.Left);
             }
         }
 
         protected override Type? Visit(Expression.StructValue sval) =>
             System.EvaluateType(sval.StructType);
+
+        protected override Type? Visit(Expression.DotPath dot)
+        {
+            var leftType = (Type.Struct)TypeOf(dot.Left);
+            return leftType.Fields[dot.Right];
+        }
     }
 }
