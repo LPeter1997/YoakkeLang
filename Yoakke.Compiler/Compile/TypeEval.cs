@@ -93,5 +93,8 @@ namespace Yoakke.Compiler.Compile
                 throw new NotImplementedException("Can't call non-procedure!");
             }
         }
+
+        protected override Type? Visit(Expression.StructValue sval) =>
+            System.EvaluateType(sval.StructType);
     }
 }

@@ -44,7 +44,7 @@ namespace Yoakke.Compiler.Compile
 
         private SymbolTable SymbolTable => System.SymbolTable;
 
-        private void TypeCheck(Statement statement) => System.TypeCheck(statement);
+        private void TypeCheck(Node node) => System.TypeCheck(node);
         private Semantic.Type TypeOf(Expression expression) => System.TypeOf(expression);
         private Value EvaluateConst(Declaration.Const constDecl) => System.EvaluateConst(constDecl);
         private Value EvaluateConst(Symbol.Const constSym) => System.EvaluateConst(constSym);
@@ -75,6 +75,7 @@ namespace Yoakke.Compiler.Compile
 
         public Proc GenerateEvaluationProc(Expression expr)
         {
+            TypeCheck(expr);
             Proc? procValue = null;
             Builder.WithSubcontext(b =>
             {
@@ -374,7 +375,14 @@ namespace Yoakke.Compiler.Compile
 
         protected override Value? Visit(Expression.StructType sty)
         {
-            throw new NotImplementedException();
+            // For struct types we create an array of N+1 user types, where N is the number of fields
+            // The first element will be pointer to this expression
+            // The rest are the actual field types
+            var arrayValues = new List<Value>();
+            arrayValues.Add(new Value.User(sty));
+            foreach (var field in sty.Fields) arrayValues.Add(VisitNonNull(field.Type));
+            var arraySpace = Builder.InitArray(Lir.Types.Type.User_, arrayValues.ToArray());
+            return Builder.Load(arraySpace);
         }
 
         protected override Value? Visit(Expression.StructValue sval)

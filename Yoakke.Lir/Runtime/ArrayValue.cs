@@ -12,12 +12,12 @@ namespace Yoakke.Lir.Runtime
 {
     // NOTE: We made this public just because of user values
     // Should not be used while generating code
-    public class StructValue : Value
+    public class ArrayValue : Value
     {
         public readonly IValueList<Value> Values;
         public override Type Type { get; }
 
-        public StructValue(Type type, IValueList<Value> values)
+        public ArrayValue(Type type, IValueList<Value> values)
         {
             Type = type;
             Values = values;
@@ -33,6 +33,6 @@ namespace Yoakke.Lir.Runtime
             new StructValue(Type, Values.Select(v => v.Clone()).ToList().AsValueList());
 
         public override string ToValueString() => $"{Type.ToTypeString()} " +
-            $"{{ {string.Join(", ", Values.Select(v => v.ToValueString()))} }}";
+            $"[{string.Join(", ", Values.Select(v => v.ToValueString()))}]";
     }
 }

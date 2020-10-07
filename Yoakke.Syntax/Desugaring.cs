@@ -65,7 +65,7 @@ namespace Yoakke.Syntax
             Expression.Identifier ident => ident,
 
             Expression.StructType sty =>
-                new Expression.StructType(sty.ParseTreeNode, sty.Fields.Select(Desugar).ToArray()),
+                new Expression.StructType(sty.ParseTreeNode, sty.KwStruct, sty.Fields.Select(Desugar).ToArray()),
 
             Expression.StructValue sval =>
                 new Expression.StructValue(

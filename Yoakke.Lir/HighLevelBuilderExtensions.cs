@@ -173,7 +173,7 @@ namespace Yoakke.Lir
                 var fieldPtr = builder.Add(arrayPtr, Type.I32.NewValue(idx));
                 builder.Store(fieldPtr, value);
             }
-            return arrayPtr;
+            return arrayValuePtr;
         }
 
         /// <summary>

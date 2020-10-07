@@ -17,7 +17,7 @@ namespace Yoakke.Compiler.Compile
         public SymbolTable SymbolTable { get; }
 
         public Assembly? Compile(Declaration.File file, BuildStatus status);
-        public void TypeCheck(Statement statement);
+        public void TypeCheck(Node node);
         public Type TypeOf(Expression expression);
         public Value Evaluate(Expression expression);
         public Value EvaluateConst(Declaration.Const constDecl);

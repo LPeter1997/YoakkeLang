@@ -22,7 +22,7 @@ namespace Yoakke.Compiler.Compile
             System = system;
         }
 
-        public void Check(Statement statement) => Visit(statement);
+        public void Check(Node node) => Visit(node);
 
         protected override object? Visit(Statement.Var var)
         {
@@ -65,6 +65,7 @@ namespace Yoakke.Compiler.Compile
                 var symbol = (Symbol.Var)System.SymbolTable.DefinedSymbol(param);
                 symbol.Type = System.EvaluateType(param.Type);
             }
+            Visit(proc.Body);
             return null;
         }
 

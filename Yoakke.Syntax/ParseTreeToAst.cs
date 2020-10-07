@@ -60,7 +60,7 @@ namespace Yoakke.Syntax
                 : new Ast.Expression.Literal(lit, lit.Token.Type, lit.Token.Value),
 
             ParseTree.Expression.StructType sty => 
-                new Ast.Expression.StructType(sty, sty.Fields.Select(Convert).ToArray()),
+                new Ast.Expression.StructType(sty, sty.KwStruct, sty.Fields.Select(Convert).ToArray()),
 
             ParseTree.Expression.StructValue sval =>
                 new Ast.Expression.StructValue(sval, Convert(sval.Type), sval.Fields.Select(Convert).ToArray()),

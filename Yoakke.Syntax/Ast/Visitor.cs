@@ -23,6 +23,15 @@ namespace Yoakke.Syntax.Ast
             return value;
         }
 
+        protected virtual T? Visit(Node node) => node switch
+        {
+            Declaration d => Visit(d),
+            Statement   s => Visit(s),
+            Expression  e => Visit(e),
+
+            _ => throw new NotImplementedException(),
+        };
+
         protected virtual T? Visit(Declaration declaration) => declaration switch
         {
             Declaration.File  f => Visit(f),

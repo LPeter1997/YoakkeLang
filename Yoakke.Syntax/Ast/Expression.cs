@@ -82,13 +82,18 @@ namespace Yoakke.Syntax.Ast
             }
 
             /// <summary>
+            /// The 'struct' keyword.
+            /// </summary>
+            public readonly Token KwStruct;
+            /// <summary>
             /// The <see cref="Field"/>s of the struct type.
             /// </summary>
             public readonly IReadOnlyList<Field> Fields;
 
-            public StructType(ParseTree.Node? parseTreeNode, IReadOnlyList<Field> fields)
+            public StructType(ParseTree.Node? parseTreeNode, Token kwStruct, IReadOnlyList<Field> fields)
                 : base(parseTreeNode)
             {
+                KwStruct = kwStruct;
                 Fields = fields;
             }
         }

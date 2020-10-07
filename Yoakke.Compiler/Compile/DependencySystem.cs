@@ -53,7 +53,7 @@ namespace Yoakke.Compiler.Compile
         }
 
         public Type TypeOf(Expression expression) => typeEval.TypeOf(expression);
-        public void TypeCheck(Statement statement) => typeCheck.Check(statement);
+        public void TypeCheck(Node node) => typeCheck.Check(node);
 
         public Value Evaluate(Expression expression)
         {
