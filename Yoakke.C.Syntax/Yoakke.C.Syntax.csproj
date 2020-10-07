@@ -4,4 +4,8 @@
     <TargetFramework>net5</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Yoakke.Text\Yoakke.Text.csproj" />
+  </ItemGroup>
+
 </Project>
