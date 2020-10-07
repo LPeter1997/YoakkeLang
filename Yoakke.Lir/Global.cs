@@ -11,7 +11,7 @@ namespace Yoakke.Lir
     public class Global : Value, ISymbol, IValidate
     {
         public override Type Type { get; }
-        public string Name { get; set; }
+        public string Name { get; }
         public Visibility Visibility { get; set; } = Visibility.Private;
 
         /// <summary>

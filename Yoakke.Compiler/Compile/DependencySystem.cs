@@ -26,7 +26,6 @@ namespace Yoakke.Compiler.Compile
         private Codegen codegen;
         private TypeEval typeEval;
         private TypeCheck typeCheck;
-        private Dictionary<Symbol.Const, Value> constValues = new Dictionary<Symbol.Const, Value>();
 
         public DependencySystem(SymbolTable symbolTable)
         {
@@ -83,8 +82,8 @@ namespace Yoakke.Compiler.Compile
             // Check if there's a pre-stored value, if not, evaluate it
             if (symbol.Value == null)
             {
+                codegen.HintName(constDecl.Name);
                 symbol.Value = Evaluate(constDecl.Value);
-                if (symbol.Value is Proc proc) proc.Name = constDecl.Name;
             }
             return symbol.Value;
         }

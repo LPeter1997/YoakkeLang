@@ -79,5 +79,19 @@ namespace Yoakke.Compiler.Compile
 
         protected override Type? Visit(Expression.Block block) =>
             block.Value == null ? Type.Unit : TypeOf(block.Value);
+
+        protected override Type? Visit(Expression.Call call)
+        {
+            var proc = TypeOf(call.Procedure);
+            if (proc is Type.Proc procType)
+            {
+                return procType.Return;
+            }
+            else
+            {
+                // TODO
+                throw new NotImplementedException("Can't call non-procedure!");
+            }
+        }
     }
 }

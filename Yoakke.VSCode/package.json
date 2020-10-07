@@ -20,6 +20,12 @@
             "language": "yoakke",
             "scopeName": "source.yoakke",
             "path": "./syntaxes/yoakke.tmLanguage.json"
-        }]
+        }],
+        "snippets": [
+            {
+                "language": "yoakke",
+                "path": "./snippets/basic.json"
+            }
+        ]
     }
 }

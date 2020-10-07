@@ -24,7 +24,7 @@ namespace Yoakke.Compiler.Compile
         private TypeTranslator typeTranslator;
         private Dictionary<Expression.Proc, Proc> compiledProcs;
         private Dictionary<Symbol, Value> variablesToRegisters;
-        private string? procNameHint;
+        private string? nameHint;
 
         public Codegen(IDependencySystem system, Builder builder)
         {
@@ -53,6 +53,8 @@ namespace Yoakke.Compiler.Compile
 
         // Public interface ////////////////////////////////////////////////////
 
+        public void HintName(string name) => nameHint = name;
+
         public Assembly Generate(Declaration.File file, BuildStatus status)
         {
             // Rename the assembly
@@ -72,12 +74,6 @@ namespace Yoakke.Compiler.Compile
             var asm = Builder.Assembly.Check(status);
             // We are done
             return asm;
-        }
-
-        public Proc Generate(Expression.Proc procExpr, string name)
-        {
-            procNameHint = name;
-            return (Proc)VisitNonNull(procExpr);
         }
 
         public Proc GenerateEvaluationProc(Expression expr)
@@ -172,8 +168,8 @@ namespace Yoakke.Compiler.Compile
             if (compiledProcs.TryGetValue(proc, out var procVal)) return procVal;
             Builder.WithSubcontext(b =>
             {
-                procVal = Builder.DefineProc(procNameHint ?? $"unnamed_proc_{Builder.Assembly.Procedures.Count}");
-                procNameHint = null;
+                procVal = Builder.DefineProc(nameHint ?? $"unnamed_proc_{Builder.Assembly.Procedures.Count}");
+                nameHint = null;
                 // Add it to the cache here to get ready for recursion
                 compiledProcs.Add(proc, procVal);
                 // Dow now we make every procedure public

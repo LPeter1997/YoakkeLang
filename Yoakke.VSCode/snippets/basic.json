@@ -1,0 +1,11 @@
+{
+    "Define a procedure": {
+        "prefix": "cproc",
+        "body": [
+            "const $1 = proc($2) -> $3 {",
+            "\t$4",
+            "};"
+        ],
+        "description": "Define a procedure as a constant"
+    }
+}

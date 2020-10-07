@@ -57,6 +57,17 @@ namespace Yoakke.Compiler.Compile
             return null;
         }
 
+        protected override object? Visit(Expression.Proc proc)
+        {
+            // TODO: This is missing a few things, just a start
+            foreach (var param in proc.Signature.Parameters)
+            {
+                var symbol = (Symbol.Var)System.SymbolTable.DefinedSymbol(param);
+                symbol.Type = System.EvaluateType(param.Type);
+            }
+            return null;
+        }
+
         // TODO: Do the rest
     }
 }

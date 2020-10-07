@@ -18,7 +18,7 @@ namespace Yoakke.Lir
 
         public override Type Type =>
             new Type.Proc(CallConv, Return, Parameters.Select(p => p.Type).ToList().AsValueList());
-        public string Name { get; set; }
+        public string Name { get; }
         public Visibility Visibility { get; set; }
 
         // TODO: Procedure alignment
