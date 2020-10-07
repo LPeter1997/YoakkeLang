@@ -31,6 +31,7 @@ namespace Yoakke.Compiler.Compile
         // Implementation details //////////////////////////////////////////////
 
         protected override Type? Visit(Expression.StructType sty) => Type.Type_;
+        protected override Type? Visit(Expression.ProcSignature sign) => Type.Type_;
 
         protected override Type? Visit(Expression.Literal lit) => lit.Type switch
         {
