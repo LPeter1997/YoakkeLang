@@ -55,7 +55,7 @@ namespace Yoakke.Compiler.Compile
 
         public void HintName(string name) => nameHint = name;
 
-        public Assembly Generate(Declaration.File file, BuildStatus status)
+        public UncheckedAssembly Generate(Declaration.File file)
         {
             // Rename the assembly
             var parseTreeNode = (Syntax.ParseTree.Declaration.File?)file.ParseTreeNode;
@@ -70,10 +70,7 @@ namespace Yoakke.Compiler.Compile
             {
                 Builder.WithPrelude(b => b.Ret());
             }
-            // Then we check the assembly
-            var asm = Builder.Assembly.Check(status);
-            // We are done
-            return asm;
+            return Builder.Assembly;
         }
 
         public Proc GenerateEvaluationProc(Expression expr)

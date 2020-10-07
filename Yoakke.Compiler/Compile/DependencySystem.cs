@@ -27,6 +27,8 @@ namespace Yoakke.Compiler.Compile
         private TypeEval typeEval;
         private TypeCheck typeCheck;
 
+        private HashSet<Proc> tempEval = new HashSet<Proc>();
+
         public DependencySystem(SymbolTable symbolTable)
         {
             SymbolTable = symbolTable;
@@ -37,14 +39,17 @@ namespace Yoakke.Compiler.Compile
 
         public Assembly? Compile(Declaration.File file, BuildStatus status)
         {
-            var asm = codegen.Generate(file, status);
+            var asm = codegen.Generate(file);
+            // Erase the temporaries
+            asm.Procedures = asm.Procedures.Except(tempEval).ToList();
+            var checkedAsm = asm.Check(status);
             if (status.Errors.Count > 0)
             {
                 // TODO: Debug dump
                 Console.WriteLine(asm);
                 return null;
             }
-            return asm;
+            return checkedAsm;
         }
 
         public Type TypeOf(Expression expression) => typeEval.TypeOf(expression);
@@ -65,6 +70,8 @@ namespace Yoakke.Compiler.Compile
             // It's an unknown expression we have to evaluate
             // We compile the expression into an evaluation procedure, run it through the VM and return the result
             var proc = codegen.GenerateEvaluationProc(expression);
+            // We memorize the evaluation procedure so we can remove it from the final assembly
+            tempEval.Add(proc);
             var status = new BuildStatus();
             var asm = codegen.Builder.Assembly.Check(status);
             if (status.Errors.Count > 0)

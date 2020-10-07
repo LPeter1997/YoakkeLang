@@ -31,23 +31,23 @@ namespace Yoakke.Lir
         /// <summary>
         /// The <see cref="Extern"/>s this assembly references.
         /// </summary>
-        public readonly IList<Extern> Externals = new List<Extern>();
+        public IList<Extern> Externals { get; set; } = new List<Extern>();
         /// <summary>
         /// The <see cref="Const"/>s this assembly defines.
         /// </summary>
-        public readonly IList<Const> Constants = new List<Const>();
+        public IList<Const> Constants { get; set; } = new List<Const>();
         /// <summary>
         /// The <see cref="Global"/>s this assembly defines.
         /// </summary>
-        public readonly IList<Global> Globals = new List<Global>();
+        public IList<Global> Globals { get; set; } = new List<Global>();
         /// <summary>
         /// The <see cref="Struct"/>s in this assembly.
         /// </summary>
-        public readonly IList<Struct> Structs = new List<Struct>();
+        public IList<Struct> Structs { get; set; } = new List<Struct>();
         /// <summary>
         /// The <see cref="Proc"/>s defined in this assembly.
         /// </summary>
-        public readonly IList<Proc> Procedures = new List<Proc>();
+        public IList<Proc> Procedures { get; set; } = new List<Proc>();
 
         /// <summary>
         /// All symbols this <see cref="Assembly"/> defines.
