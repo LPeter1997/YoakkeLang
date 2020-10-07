@@ -59,9 +59,6 @@ namespace Yoakke.Compiler.Compile
         {
             // TODO: We could mostly avoid special casing?
             // TODO: We need to capture local variables at evaluation for things like generics to work
-            // TODO: This should not be part of the final assembly!
-            // We need to erase it before finishing compiling the file
-
             // TODO: It's also kinda expensive to just instantiate a new VM for the whole assembly
             // Can't we just track partially what this expression needs and include that?
             // We could also just have a VM that could build code incrementally
