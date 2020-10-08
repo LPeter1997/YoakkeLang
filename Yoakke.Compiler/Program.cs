@@ -1,7 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
+using Yoakke.C.Syntax.Cpp;
 using Yoakke.Compiler.Compile;
 using Yoakke.Compiler.Semantic;
 using Yoakke.DataStructures;
@@ -61,7 +63,7 @@ namespace Yoakke.Compiler
             new CodePassSet().Pass(asm);
             Console.WriteLine(asm);
             Console.WriteLine("\n");
-            
+
             // Run in the VM
             var vm = new VirtualMachine(asm);
             var result = vm.Execute("main", new Value[] { });
@@ -79,7 +81,7 @@ namespace Yoakke.Compiler
 
             foreach (var err in build.Status.Errors)
             {
-                Console.WriteLine(err.GetErrorMessage());
+                Console.WriteLine($"{t.Value} - {t.Type}");
             }
         }
     }
