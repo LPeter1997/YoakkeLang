@@ -36,6 +36,15 @@ namespace Yoakke.C.Syntax
             Type = type;
             Value = value;
         }
+
+        /// <summary>
+        /// Derives another <see cref="Token"/> from this one, keeping the spans.
+        /// </summary>
+        /// <param name="type">The <see cref="TokenType"/> of the derived <see cref="Token"/>.</param>
+        /// <param name="value">The textual value of the derived <see cref="Token"/>.</param>
+        /// <returns>The derived <see cref="Token"/>.</returns>
+        public Token Derive(TokenType type, string value) =>
+            new Token(PhysicalSpan, LogicalSpan, type, value);
     }
 
     /// <summary>

@@ -95,7 +95,7 @@ NE__
             var pp = new PreProcessor(ppTokens);
             pp.Define("__LINE__", new FuncLabelMacro(t => new C.Syntax.Token[]
             {
-                new C.Syntax.Token(t.PhysicalSpan, t.LogicalSpan, C.Syntax.TokenType.IntLiteral, t.PhysicalSpan.Start.Line.ToString()),
+                t.Derive(C.Syntax.TokenType.IntLiteral, t.PhysicalSpan.Start.Line.ToString()),
             }));
             foreach (var t in pp.Process(ppTokens))
             {
