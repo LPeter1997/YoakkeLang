@@ -103,7 +103,16 @@ namespace Yoakke.C.Syntax.Cpp
                 var t = substitution[i];
                 if (namedArgs.TryGetValue(t.Value, out var argValue))
                 {
+                    // A named argument, substitute
                     foreach (var sub in argValue) yield return sub;
+                }
+                else if (IsVariadic && t.Value == "__VA_ARGS__")
+                {
+                    // Variadic argument reference
+                    foreach (var subList in variadicArgs)
+                    {
+                        foreach (var subTok in subList) yield return subTok;
+                    }
                 }
                 else
                 {

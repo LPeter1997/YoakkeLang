@@ -189,9 +189,11 @@ namespace Yoakke.C.Syntax.Cpp
             {
                 int offset = 0;
                 bool lastComma = false;
+                bool first = true;
                 // First we need to fill in the named argument list
                 foreach (var argName in macro.Parameters)
                 {
+                    first = false;
                     var argValue = ParseMacroArg(args, ref offset);
                     namedArgs.Add(argName, argValue);
                     lastComma = ParseComma(args, ref offset);
@@ -204,8 +206,9 @@ namespace Yoakke.C.Syntax.Cpp
                     throw new NotImplementedException("Not enough macro arguments!");
                 }
                 // Continue parsing, if there was a comma, these go to the variadic args
-                while (lastComma)
+                while (first || lastComma)
                 {
+                    first = false;
                     var argValue = ParseMacroArg(args, ref offset);
                     variadicArgs.Add(argValue);
                     lastComma = ParseComma(args, ref offset);
