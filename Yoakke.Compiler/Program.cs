@@ -86,8 +86,8 @@ namespace Yoakke.Compiler
             }
 #endif
             var src = @"
-#define FOO(x) #x
-FOO((123,gsdg     rwr))
+#define FOO(x, y) L ## ""hello world""
+FOO(2, 5)
 ";
             var ppTokens = C.Syntax.Lexer.Lex(new SourceFile("a.c", src));
             var pp = new PreProcessor(ppTokens);

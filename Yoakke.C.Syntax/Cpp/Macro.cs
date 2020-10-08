@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -211,8 +212,14 @@ namespace Yoakke.C.Syntax.Cpp
 
         private static Token Concatenate(Token t1, Token t2)
         {
-            // TODO
-            throw new NotImplementedException();
+            var src = new SourceFile("preprocessor.c", t1.Value + t2.Value);
+            var tokens = Lexer.Lex(src).ToList();
+            if (tokens.Count != 2)
+            {
+                // TODO
+                throw new NotImplementedException("Tokens don't make a single one pasted");
+            }
+            return tokens[0];
         }
     }
 }
