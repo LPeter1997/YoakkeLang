@@ -61,40 +61,39 @@ namespace Yoakke.C.Syntax.Cpp
 
             while (true)
             {
-                var result = Next();
-                bool hasEnd = false;
-                foreach (var t in result)
-                {
-                    yield return t;
-                    if (t.Type == TokenType.End) hasEnd = true;
-                }
-                if (hasEnd) break;
+                var t = Next();
+                yield return t;
+                if (t.Type == TokenType.End) break;
             }
         }
 
-        private IEnumerable<Token> Next()
+        private Token Next()
         {
-            if (ParseDirective(out var directiveName, out var directiveArgs))
+            while (true)
             {
-                // TODO
-                Console.WriteLine($"Directive: {directiveName}");
-                foreach (var arg in directiveArgs)
+                if (ParseDirective(out var directiveName, out var directiveArgs))
                 {
-                    Console.WriteLine($"    arg {arg.Value} - {arg.Type}");
+                    // TODO
+                    Console.WriteLine($"Directive: {directiveName}");
+                    foreach (var arg in directiveArgs)
+                    {
+                        Console.WriteLine($"    arg {arg.Value} - {arg.Type}");
+                    }
+                    throw new NotImplementedException();
                 }
-                throw new NotImplementedException();
-            }
-            else if (ParseMacroCall(out var macro, out var callSiteIdent, out var macroArgs))
-            {
-                // TODO: Handle arguments
-                var result =  macro.Expand(callSiteIdent, new Dictionary<string, IList<Token>>(), new List<IList<Token>>());
-                foreach (var t in result) yield return t;
-            }
-            else
-            {
-                // TODO
-                var t = Consume();
-                yield return t;
+                else if (ParseMacroCall(out var macro, out var callSiteIdent, out var macroArgs))
+                {
+                    // TODO: Handle arguments
+                    var result = macro.Expand(callSiteIdent, new Dictionary<string, IList<Token>>(), new List<IList<Token>>());
+                    // Insert it to the beginning of the peek buffer
+                    peekBuffer.InsertRange(0, result);
+                }
+                else
+                {
+                    // TODO
+                    var t = Consume();
+                    return t;
+                }
             }
         }
 
