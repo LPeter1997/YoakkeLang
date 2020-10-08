@@ -31,13 +31,9 @@ namespace Yoakke.C.Syntax.Cpp
         /// Expands this macro.
         /// </summary>
         /// <param name="callSiteIdent">The call-site identifier <see cref="Token"/> that referenced this macro.</param>
-        /// <param name="namedArgs">The argument dictionary mapping argument names to <see cref="Token"/> sequences.</param>
-        /// <param name="variadicArgs">The list of variadic <see cref="Token"/> argument sequences.</param>
+        /// <param name="args">The argument dictionary mapping argument names to <see cref="Token"/> sequences.</param>
         /// <returns>The expanded <see cref="IEnumerable{Token}"/>.</returns>
-        public abstract IEnumerable<Token> Expand(
-            Token callSiteIdent, 
-            IDictionary<string, IList<Token>> namedArgs,
-            IList<IList<Token>> variadicArgs);
+        public abstract IEnumerable<Token> Expand(Token callSiteIdent, IDictionary<string, IList<Token>> args);
     }
 
     /// <summary>
@@ -60,13 +56,9 @@ namespace Yoakke.C.Syntax.Cpp
             this.expander = expander;
         }
 
-        public override IEnumerable<Token> Expand(
-            Token callSiteIdent, 
-            IDictionary<string, IList<Token>> namedArgs, 
-            IList<IList<Token>> variadicArgs)
+        public override IEnumerable<Token> Expand(Token callSiteIdent, IDictionary<string, IList<Token>> args)
         {
-            Debug.Assert(namedArgs.Count == 0);
-            Debug.Assert(variadicArgs.Count == 0);
+            Debug.Assert(args.Count == 0);
             return expander(callSiteIdent);
         }
     }
@@ -90,17 +82,11 @@ namespace Yoakke.C.Syntax.Cpp
             this.substitution = substitution;
         }
 
-        public override IEnumerable<Token> Expand(
-            Token callSiteIdent, 
-            IDictionary<string, IList<Token>> namedArgs, 
-            IList<IList<Token>> variadicArgs)
+        public override IEnumerable<Token> Expand(Token callSiteIdent, IDictionary<string, IList<Token>> args)
         {
-            Debug.Assert(Parameters.Count == namedArgs.Count);
-            Debug.Assert(IsVariadic || variadicArgs.Count == 0);
-
             for (int offset = 0; offset < substitution.Count;)
             {
-                var expansion = NextExpansion(namedArgs, variadicArgs, ref offset);
+                var expansion = NextExpansion(args, ref offset);
                 if (offset < substitution.Count && substitution[offset].Type == TokenType.HashHash)
                 {
                     // It's a concatenation
@@ -110,7 +96,7 @@ namespace Yoakke.C.Syntax.Cpp
                         // TODO
                         throw new NotImplementedException("## can't appear at either end of a macro expansion");
                     }
-                    var otherExpansion = NextExpansion(namedArgs, variadicArgs, ref offset);
+                    var otherExpansion = NextExpansion(args, ref offset);
                     foreach (var e in expansion.SkipLast(1)) yield return e;
                     var toCat1 = expansion.Last();
                     var toCat2 = otherExpansion.First();
@@ -126,10 +112,7 @@ namespace Yoakke.C.Syntax.Cpp
         }
 
         // Expands argumentsm applies # automatically
-        private IList<Token> NextExpansion(
-            IDictionary<string, IList<Token>> namedArgs, 
-            IList<IList<Token>> variadicArgs, 
-            ref int offset)
+        private IList<Token> NextExpansion(IDictionary<string, IList<Token>> args, ref int offset)
         {
             var t = substitution[offset];
             if (t.Type == TokenType.HashHash)
@@ -145,7 +128,7 @@ namespace Yoakke.C.Syntax.Cpp
                     // TODO
                     throw new NotImplementedException("# needs an argument");
                 }
-                var expanded = ExpandToken(substitution[offset++], namedArgs, variadicArgs, out var isExpansion);
+                var expanded = ExpandToken(substitution[offset++], args, out var isExpansion);
                 if (!isExpansion)
                 {
                     // TODO
@@ -156,33 +139,23 @@ namespace Yoakke.C.Syntax.Cpp
             else
             {
                 // Just expand it
-                return ExpandToken(substitution[offset++], namedArgs, variadicArgs, out var _);
+                return ExpandToken(substitution[offset++], args, out var _);
             }
         }
 
-        private IList<Token> ExpandToken(
-            Token arg, 
-            IDictionary<string, IList<Token>> namedArgs, 
-            IList<IList<Token>> variadicArgs,
-            out bool realExpansion)
+        private IList<Token> ExpandToken(Token toExpand, IDictionary<string, IList<Token>> args, out bool realExpansion)
         {
-            if (namedArgs.TryGetValue(arg.Value, out var argValue))
+            if (args.TryGetValue(toExpand.Value, out var argValue))
             {
                 // A named argument, substitute
                 realExpansion = true;
                 return argValue;
             }
-            else if (IsVariadic && arg.Value == "__VA_ARGS__")
-            {
-                // Variadic argument reference
-                realExpansion = true;
-                return variadicArgs.SelectMany(x => x).ToList();
-            }
             else
             {
                 // Just a simple argument
                 realExpansion = false;
-                return new List<Token> { arg };
+                return new List<Token> { toExpand };
             }
         }
 

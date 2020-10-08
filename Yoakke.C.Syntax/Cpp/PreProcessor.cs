@@ -163,8 +163,8 @@ namespace Yoakke.C.Syntax.Cpp
                 {
                     if (ParseMacroCall(out var macro, out var callSiteIdent, out var macroArgs))
                     {
-                        var (namedArgs, variadicArgs) = ParseMacroArgs(macro, macroArgs);
-                        var result = macro.Expand(callSiteIdent, namedArgs, variadicArgs);
+                        var args = ParseMacroArgs(macro, macroArgs);
+                        var result = macro.Expand(callSiteIdent, args);
                         // Insert it to the beginning of the peek buffer
                         peekBuffer.InsertRange(0, result);
                     }
@@ -312,11 +312,11 @@ namespace Yoakke.C.Syntax.Cpp
         }
 
         // Pair of named and variadic args
-        private static (IDictionary<string, IList<Token>>, IList<IList<Token>>) ParseMacroArgs(Macro macro, IList<Token> args)
+        private static IDictionary<string, IList<Token>> ParseMacroArgs(Macro macro, IList<Token> args)
         {
             // We don't need to care about caller parenthesis here
             var namedArgs = new Dictionary<string, IList<Token>>();
-            var variadicArgs = new List<IList<Token>>();
+            var variadicArgs = new List<Token>();
             if (macro.Parameters.Count == 1 && args.Count == 0)
             {
                 // A special case, we passed no args but the macro expects a single parameter
@@ -345,7 +345,7 @@ namespace Yoakke.C.Syntax.Cpp
                     {
                         first = false;
                         var argValue = ParseMacroArg(parser);
-                        variadicArgs.Add(argValue);
+                        variadicArgs.AddRange(argValue);
                         lastComma = parser.Matches(TokenType.Comma);
                     }
                 }
@@ -362,7 +362,11 @@ namespace Yoakke.C.Syntax.Cpp
                     throw new NotImplementedException("Too many macro arguments!");
                 }
             }
-            return (namedArgs, variadicArgs);
+            if (macro.IsVariadic)
+            {
+                namedArgs["__VA_ARGS__"] = variadicArgs;
+            }
+            return namedArgs;
         }
 
         private static IList<Token> ParseMacroArg(SubParser parser) =>
