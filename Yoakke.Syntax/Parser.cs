@@ -73,7 +73,7 @@ namespace Yoakke.Syntax
         {
             this.tokens = tokens.ToArray();
             Debug.Assert(this.tokens.Count > 0);
-            source = this.tokens[0].Span.Source;
+            source = this.tokens.First().Span.Source;
             Status = status;
         }
 

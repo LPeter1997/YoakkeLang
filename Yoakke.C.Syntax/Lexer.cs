@@ -11,6 +11,7 @@ namespace Yoakke.C.Syntax
 {
     /// <summary>
     /// A C lexer that breaks up the source into <see cref="Token"/>s.
+    /// Skips comments.
     /// </summary>
     public class Lexer
     {
