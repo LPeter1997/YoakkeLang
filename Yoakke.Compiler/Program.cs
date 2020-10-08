@@ -24,15 +24,11 @@ namespace Yoakke.Compiler
         static void Main(string[] args)
         {
             var src = @"
-hell??/   
-o world??(
+#include <stdio.h>
 ";
-            var reader = new CppTextReader(new StringReader(src));
-            while (true)
+            foreach (var t in C.Syntax.Lexer.Lex(new SourceFile("a.c", src)))
             {
-                char? ch = reader.Next();
-                if (ch == null) break;
-                Console.Write(ch.Value);
+                Console.WriteLine($"{t.Value} - {t.Type}");
             }
         }
     }

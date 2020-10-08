@@ -79,7 +79,7 @@ namespace Yoakke.Syntax
             // Single-line comment
             if (Matches("//"))
             {
-                char Map(char ch, char from, char to) => ch == from ? to : from;
+                char Map(char ch, char from, char to) => ch == from ? to : ch;
 
                 int len = 2;
                 // NOTE: A bit hairy logic but basically both EOF and \r become \n

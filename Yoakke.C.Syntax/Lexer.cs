@@ -20,6 +20,13 @@ namespace Yoakke.C.Syntax
 
         // NOTE: Since we don't have proper peeking in CppTextReader, we just save positions for peeks now
         private List<(Position, char)> peekBuffer = new List<(Position, char)>();
+        // These allow us to parse strings between <>, if we are after an include macro
+        // The lastLine is the last token's line
+        // The stateLine is the line the directive started
+        // The stateCounter is 0 by default, 1 after # and 2 after include
+        private int lastLine = -1;
+        private int stateLine;
+        private int stateCounter;
 
         /// <summary>
         /// Returns an <see cref="IEnumerable{Token}"/> for the given <see cref="SourceFile"/>, that lexes
@@ -58,13 +65,28 @@ namespace Yoakke.C.Syntax
             while (true)
             {
                 var t = NextInternal();
-                if (t != null) return t;
+                if (t != null)
+                {
+                    // Update the state
+                    var newLastLine = t.LogicalSpan.End.Line;
+                    if (lastLine != newLastLine) stateCounter = 0;
+                    lastLine = newLastLine;
+                    // Update the state counter
+                    if (stateCounter == 0 && t.Type == TokenType.Hash)
+                    {
+                        stateLine = newLastLine;
+                        stateCounter = 1;
+                    }
+                    else if (stateCounter == 1 && t.Type == TokenType.Identifier && t.Value == "include") stateCounter = 2;
+                    else stateCounter = 0;
+                    return t;
+                }
             }
         }
 
         private Token? NextInternal()
         {
-            char Map(char ch, char from, char to) => ch == from ? to : from;
+            char Map(char ch, char from, char to) => ch == from ? to : ch;
 
             var ch = Peek(0);
             // EOF
@@ -115,13 +137,13 @@ namespace Yoakke.C.Syntax
             // Integer or float literal
             if (char.IsDigit(ch) || (ch == '.' && char.IsDigit(Peek(1))))
             {
-                bool IsE(char ch) => ch == 'e' || ch == 'E';
-                bool IsP(char ch) => ch == 'p' || ch == 'P';
-                bool IsX(char ch) => ch == 'x' || ch == 'X';
-                bool IsLlu(char ch) => ch == 'l' || ch == 'L' || ch == 'u' || ch == 'U';
-                bool IsSign(char ch) => ch == '+' || ch == '-';
-                bool IsFs(char ch) => ch == 'l' || ch == 'L' || ch == 'f' || ch == 'F';
-                bool IsHex(char ch)
+                static bool IsE(char ch) => ch == 'e' || ch == 'E';
+                static bool IsP(char ch) => ch == 'p' || ch == 'P';
+                static bool IsX(char ch) => ch == 'x' || ch == 'X';
+                static bool IsLlu(char ch) => ch == 'l' || ch == 'L' || ch == 'u' || ch == 'U';
+                static bool IsSign(char ch) => ch == '+' || ch == '-';
+                static bool IsFs(char ch) => ch == 'l' || ch == 'L' || ch == 'f' || ch == 'F';
+                static bool IsHex(char ch)
                 {
                     ch = char.ToLower(ch);
                     return char.IsDigit(ch) || (ch >= 'a' && ch <= 'f');
@@ -196,6 +218,29 @@ namespace Yoakke.C.Syntax
                 return MakeToken(isFloat ? TokenType.FloatLiteral : TokenType.IntLiteral, len);
             }
 
+            // String literal
+            if  (ch == '"' || (ch == 'L' && Peek(1) == '"') 
+                // For include
+             || (stateCounter == 2 && stateLine == reader.Position.Line && ch == '<'))
+            {
+                var close = ch == '<' ? '>' : '\"';
+                int len = ch == 'L' ? 2 : 1;
+                while (true)
+                {
+                    var peek = Map(Peek(len, '\n'), '\r', '\n');
+                    if (peek == '\n')
+                    {
+                        // TODO
+                        throw new NotImplementedException("Unclosed string literal!");
+                    }
+                    if (peek == close) break;
+                    if (peek == '\\') len += 2;
+                    else ++len;
+                }
+                // NOTE: len + 1 because the last quote is not counted!
+                return MakeToken(TokenType.StringLiteral, len + 1);
+            }
+
             // Punctuation and operators
             switch (ch)
             {
@@ -267,25 +312,6 @@ namespace Yoakke.C.Syntax
                 return MakeToken(TokenType.Bitor, 1);
             }
 
-            // String literal
-            if (ch == '"' || (ch == 'L' && Peek(1) == '"'))
-            {
-                int len = ch == '"' ? 1 : 2;
-                while (true)
-                {
-                    var peek = Map(Peek(len, '\n'), '\r', '\n');
-                    if (peek == '\n')
-                    {
-                        // TODO
-                        throw new NotImplementedException("Unclosed string literal!");
-                    }
-                    if (peek == '"') break;
-                    if (peek == '\\') len += 2;
-                    else ++len;
-                }
-                // NOTE: len + 1 because the last quote is not counted!
-                return MakeToken(TokenType.StringLiteral, len + 1);
-            }
             // Char literal
             if (ch == '\'' || (ch == 'L' && Peek(1) == '\''))
             {
@@ -301,6 +327,7 @@ namespace Yoakke.C.Syntax
                 // NOTE: len + 1 because the last quote is not counted!
                 return MakeToken(TokenType.CharLiteral, len + 1);
             }
+
             // Identifier
             if (IsIdent(ch))
             {
