@@ -23,6 +23,7 @@ namespace Yoakke.Compiler
     {
         static void Main(string[] args)
         {
+#if false
             var srcPath = @"../../../../../samples/test.yk";
             // Syntax
             var src = File.ReadAllText(srcPath);
@@ -80,6 +81,15 @@ namespace Yoakke.Compiler
             toolchain.Compile(build);
 
             foreach (var err in build.Status.Errors)
+            {
+                Console.WriteLine($"{t.Value} - {t.Type}");
+            }
+#endif
+            var src = @"
+asd #include <stdio.h>
+#include <stdlib.h>
+";
+            foreach (var t in C.Syntax.Lexer.Lex(new SourceFile("a.c", src)))
             {
                 Console.WriteLine($"{t.Value} - {t.Type}");
             }

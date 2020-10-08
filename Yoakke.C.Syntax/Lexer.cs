@@ -72,10 +72,14 @@ namespace Yoakke.C.Syntax
                     if (lastLine != newLastLine) stateCounter = 0;
                     lastLine = newLastLine;
                     // Update the state counter
-                    if (stateCounter == 0 && t.Type == TokenType.Hash)
+                    if (stateCounter == 0)
                     {
-                        stateLine = newLastLine;
-                        stateCounter = 1;
+                        if (t.Type == TokenType.Hash)
+                        {
+                            stateLine = newLastLine;
+                            stateCounter = 1;
+                        }
+                        else stateCounter = -1;
                     }
                     else if (stateCounter == 1 && t.Type == TokenType.Identifier && t.Value == "include") stateCounter = 2;
                     else stateCounter = 0;
