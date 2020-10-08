@@ -112,6 +112,90 @@ namespace Yoakke.C.Syntax
                 return null;
             }
 
+            // Integer or float literal
+            if (char.IsDigit(ch) || (ch == '.' && char.IsDigit(Peek(1))))
+            {
+                bool IsE(char ch) => ch == 'e' || ch == 'E';
+                bool IsP(char ch) => ch == 'p' || ch == 'P';
+                bool IsX(char ch) => ch == 'x' || ch == 'X';
+                bool IsLlu(char ch) => ch == 'l' || ch == 'L' || ch == 'u' || ch == 'U';
+                bool IsSign(char ch) => ch == '+' || ch == '-';
+                bool IsFs(char ch) => ch == 'l' || ch == 'L' || ch == 'f' || ch == 'F';
+                bool IsHex(char ch)
+                {
+                    ch = char.ToLower(ch);
+                    return char.IsDigit(ch) || (ch >= 'a' && ch <= 'f');
+                }
+
+                bool isFloat = ch == '.';
+                int len = isFloat ? 2 : 1;
+                if (isFloat)
+                {
+                    // We are past the first digit
+                    for (; char.IsDigit(Peek(len)); ++len) ;
+                    if (IsE(Peek(len)))
+                    {
+                        // Exponent
+                        ++len;
+                        if (IsSign(Peek(len))) ++len;
+                        bool hasExponentDigits = false;
+                        for (; char.IsDigit(Peek(len)); ++len) hasExponentDigits = true;
+                        if (!hasExponentDigits)
+                        {
+                            // TODO
+                            throw new NotImplementedException("Expected exponent digits!");
+                        }
+                    }
+                    if (IsFs(Peek(len))) ++len;
+                }
+                else
+                {
+                    // NOTE: We do nothing exact here, we just consume everything correct
+                    bool hex = false;
+                    if (ch == '0' && IsX(Peek(1)))
+                    {
+                        hex = true;
+                        ++len;
+                    }
+                    for (; hex ? IsHex(Peek(len)) : char.IsDigit(Peek(len)); ++len) ;
+                    // LLU, ULL, U, LL, ...
+                    if (IsLlu(Peek(len)))
+                    {
+                        // At most 3 chars
+                        for (int i = 0; i < 3 && IsLlu(Peek(len)); ++i, ++len) ;
+                    }
+                    else
+                    {
+                        if (Peek(len) == '.')
+                        {
+                            isFloat = true;
+                            ++len;
+                            for (; hex ? IsHex(Peek(len)) : char.IsDigit(Peek(len)); ++len) ;
+                        }
+                        if (hex ? IsP(Peek(len)) : IsE(Peek(len)))
+                        {
+                            // Exponent
+                            isFloat = true;
+                            ++len;
+                            if (IsSign(Peek(len))) ++len;
+                            bool hasExponentDigits = false;
+                            for (; char.IsDigit(Peek(len)); ++len) hasExponentDigits = true;
+                            if (!hasExponentDigits)
+                            {
+                                // TODO
+                                throw new NotImplementedException("Expected exponent digits!");
+                            }
+                        }
+                        if (IsFs(Peek(len)))
+                        {
+                            isFloat = true;
+                            ++len;
+                        }
+                    }
+                }
+                return MakeToken(isFloat ? TokenType.FloatLiteral : TokenType.IntLiteral, len);
+            }
+
             // Punctuation and operators
             switch (ch)
             {
@@ -125,7 +209,9 @@ namespace Yoakke.C.Syntax
                 if (Matches("...")) return MakeToken(TokenType.Ellipsis, 3);
                 return MakeToken(TokenType.Dot, 1);
             case ',': return MakeToken(TokenType.Comma, 1);
-            case ':': return MakeToken(TokenType.Colon, 1);
+            case ':':
+                if (Peek(1) == '>') return MakeToken(TokenType.CloseBracket, 2);
+                return MakeToken(TokenType.Colon, 1);
             case ';': return MakeToken(TokenType.Semicolon, 1);
             case '?': return MakeToken(TokenType.QuestionMark, 1);
             case '#': 
@@ -150,6 +236,7 @@ namespace Yoakke.C.Syntax
                 return MakeToken(TokenType.Divide, 1);
             case '%':
                 if (Peek(1) == '=') return MakeToken(TokenType.ModuloAssign, 2);
+                if (Peek(1) == '>') return MakeToken(TokenType.CloseBrace, 2);
                 return MakeToken(TokenType.Modulo, 1);
             case '~': return MakeToken(TokenType.Bitnot, 1);
             case '^':
@@ -164,6 +251,8 @@ namespace Yoakke.C.Syntax
                 if (Matches("<<=")) return MakeToken(TokenType.LeftShiftAssign, 3);
                 if (Peek(1) == '=') return MakeToken(TokenType.LessEqual, 2);
                 if (Peek(1) == '<') return MakeToken(TokenType.LeftShift, 2);
+                if (Peek(1) == '%') return MakeToken(TokenType.OpenBrace, 2);
+                if (Peek(1) == ':') return MakeToken(TokenType.OpenBracket, 2);
                 return MakeToken(TokenType.Less, 1);
             case '!':
                 if (Peek(1) == '=') return MakeToken(TokenType.NotEqual, 2);
@@ -178,15 +267,39 @@ namespace Yoakke.C.Syntax
                 return MakeToken(TokenType.Bitor, 1);
             }
 
-            // Literals
-
-            // Integer or float literal
-            if (char.IsDigit(ch))
+            // String literal
+            if (ch == '"' || (ch == 'L' && Peek(1) == '"'))
             {
-                // TODO
-                int len = 1;
-                for (; char.IsDigit(Peek(len)); ++len) ;
-                return MakeToken(TokenType.IntLiteral, len);
+                int len = ch == '"' ? 1 : 2;
+                while (true)
+                {
+                    var peek = Map(Peek(len, '\n'), '\r', '\n');
+                    if (peek == '\n')
+                    {
+                        // TODO
+                        throw new NotImplementedException("Unclosed string literal!");
+                    }
+                    if (peek == '"') break;
+                    if (peek == '\\') len += 2;
+                    else ++len;
+                }
+                // NOTE: len + 1 because the last quote is not counted!
+                return MakeToken(TokenType.StringLiteral, len + 1);
+            }
+            // Char literal
+            if (ch == '\'' || (ch == 'L' && Peek(1) == '\''))
+            {
+                int len = ch == '\'' ? 1 : 2;
+                if (Peek(len) == '\\') ++len;
+                // Consume character inside
+                ++len;
+                if (Peek(len) != '\'')
+                {
+                    // TODO
+                    throw new NotImplementedException("Unclosed character literal!");
+                }
+                // NOTE: len + 1 because the last quote is not counted!
+                return MakeToken(TokenType.CharLiteral, len + 1);
             }
             // Identifier
             if (IsIdent(ch))
@@ -239,28 +352,7 @@ namespace Yoakke.C.Syntax
 
                 return new Token(ident.PhysicalSpan, ident.LogicalSpan, tokenType, ident.Value);
             }
-            // String literal
-            if (ch == '"')
-            {
-                int len = 1;
-                while (true)
-                {
-                    var peek = Map(Peek(len, '\n'), '\r', '\n');
-                    if (peek == '\n')
-                    {
-                        // TODO
-                        throw new NotImplementedException("Unclosed string literal!");
-                    }
-                    if (peek == '"') break;
-                    if (peek == '\\') len += 2;
-                    else ++len;
-                }
-                // NOTE: i + 1 because the last quote is not counted!
-                return MakeToken(TokenType.StringLiteral, len + 1);
-            }
-
-            // TODO: Char literal
-
+            
             return MakeToken(TokenType.Unknown, 1);
         }
 
