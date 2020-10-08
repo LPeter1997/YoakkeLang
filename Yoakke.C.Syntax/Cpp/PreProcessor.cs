@@ -19,6 +19,7 @@ namespace Yoakke.C.Syntax.Cpp
         private int tokenIndex = -1;
         private List<Token> peekBuffer = new List<Token>();
         private IDictionary<string, Macro> macros = new Dictionary<string, Macro>();
+        private Stack<ControlInfo> controlFlowStack = new Stack<ControlInfo>();
 
         /// <summary>
         /// Initializes a new <see cref="PreProcessor"/>.
@@ -26,6 +27,7 @@ namespace Yoakke.C.Syntax.Cpp
         /// <param name="tokens">The <see cref="IEnumerable{Token}"/>s to pre-process.</param>
         public PreProcessor(IEnumerable<Token> tokens)
         {
+            controlFlowStack.Push(new ControlInfo { Keep = true, Satisfied = true });
         }
 
         /// <summary>
@@ -71,30 +73,111 @@ namespace Yoakke.C.Syntax.Cpp
         {
             while (true)
             {
+                var control = controlFlowStack.Peek();
+                
                 if (ParseDirective(out var directiveName, out var directiveArgs))
                 {
                     switch (directiveName)
                     {
-                    case "define":
-                        ParseUserMacro(directiveArgs);
+                    // Control flow
+
+                    case "if":
+                    case "ifdef":
+                    case "ifndef":
+                    {
+                        if (!control.Keep)
+                        {
+                            controlFlowStack.Push(new ControlInfo { Keep = false, Satisfied = true });
+                            break;
+                        }
+                        var parser = new SubParser(directiveArgs);
+                        bool condition;
+                        if (directiveName == "if")
+                        {
+                            condition = EvaluateCondition(parser);
+                        }
+                        else
+                        {
+                            var ident = parser.Expect(TokenType.Identifier);
+                            condition = IsDefined(ident.Value);
+                            if (directiveName == "ifndef") condition = !condition;
+                        }
+                        controlFlowStack.Push(new ControlInfo { Keep = condition, Satisfied = condition });
+                    }
+                    break;
+
+                    case "elif":
+                    {
+                        controlFlowStack.Pop();
+                        if (control.Satisfied)
+                        {
+                            // The last branch was already satisfied, we don't want to keep from now on
+                            controlFlowStack.Push(new ControlInfo { Keep = false, Satisfied = true });
+                            break;
+                        }
+                        // The last branch was not satisfied
+                        var parser = new SubParser(directiveArgs);
+                        bool condition = EvaluateCondition(parser);
+                        controlFlowStack.Push(new ControlInfo { Keep = condition, Satisfied = condition });
+                    }
+                    break;
+
+                    case "else":
+                        controlFlowStack.Pop();
+                        if (control.Satisfied)
+                        {
+                            // We were satisfied the last time
+                            controlFlowStack.Push(new ControlInfo { Keep = false, Satisfied = true });
+                            break;
+                        }
+                        // We were not satisfied, the else needs to be included
+                        controlFlowStack.Push(new ControlInfo { Keep = true, Satisfied = true });
+                        break;
+
+                    case "endif":
+                        controlFlowStack.Pop();
                         break;
 
                     default:
-                        throw new NotImplementedException($"Unknown directive '{directiveName}'!");
+                        if (!control.Keep) break;
+                        // Other directives
+                        switch (directiveName)
+                        {
+                        case "define": 
+                            ParseUserMacro(directiveArgs);
+                            break;
+
+                        case "undef":
+                            var parser = new SubParser(directiveArgs);
+                            var name = parser.Expect(TokenType.Identifier);
+                            Undefine(name.Value);
+                            break;
+
+                        default: 
+                            throw new NotImplementedException($"Unknown directive '{directiveName}'!");
+                        }
+                        break;
                     }
                 }
-                else if (ParseMacroCall(out var macro, out var callSiteIdent, out var macroArgs))
+                else if (control.Keep)
                 {
-                    var (namedArgs, variadicArgs) = ParseMacroArgs(macro, macroArgs);
-                    var result = macro.Expand(callSiteIdent, namedArgs, variadicArgs);
-                    // Insert it to the beginning of the peek buffer
-                    peekBuffer.InsertRange(0, result);
+                    if (ParseMacroCall(out var macro, out var callSiteIdent, out var macroArgs))
+                    {
+                        var (namedArgs, variadicArgs) = ParseMacroArgs(macro, macroArgs);
+                        var result = macro.Expand(callSiteIdent, namedArgs, variadicArgs);
+                        // Insert it to the beginning of the peek buffer
+                        peekBuffer.InsertRange(0, result);
+                    }
+                    else
+                    {
+                        // TODO
+                        var t = Consume();
+                        return t;
+                    }
                 }
                 else
                 {
-                    // TODO
-                    var t = Consume();
-                    return t;
+                    Consume();
                 }
             }
         }
@@ -111,7 +194,8 @@ namespace Yoakke.C.Syntax.Cpp
             {
                 // It's a hash on a fresh line, could be a directive
                 var ident = Peek(1);
-                if (ident.Type == TokenType.Identifier)
+                // We need the extra crud here because of keywords...
+                if (SubParser.IsIdent(ident))
                 {
                     // Confirmed directive
                     name = ident.Value;
@@ -132,7 +216,7 @@ namespace Yoakke.C.Syntax.Cpp
             [MaybeNullWhen(false)] out IList<Token> args)
         {
             var peek = Peek();
-            if (peek.Type == TokenType.Identifier && macros.TryGetValue(peek.Value, out macro))
+            if (SubParser.IsIdent(peek) && macros.TryGetValue(peek.Value, out macro))
             {
                 // There's a macro with the given name
                 callSiteIdent = peek;
@@ -178,7 +262,7 @@ namespace Yoakke.C.Syntax.Cpp
         private void ParseUserMacro(IList<Token> tokens)
         {
             var parser = new SubParser(tokens);
-            parser.Expect(TokenType.Identifier, out var name);
+            var name = parser.Expect(TokenType.Identifier);
 
             bool needsParens = false;
             bool isVariadic = false;
@@ -187,10 +271,10 @@ namespace Yoakke.C.Syntax.Cpp
             var expansion = new List<Token>();
 
             // Argument list
-            if (parser.Matches(TokenType.OpenParen, out var _))
+            if (parser.Matches(TokenType.OpenParen))
             {
                 needsParens = true;
-                if (!parser.Matches(TokenType.CloseParen, out var _))
+                if (!parser.Matches(TokenType.CloseParen))
                 {
                     while (true)
                     {
@@ -202,9 +286,9 @@ namespace Yoakke.C.Syntax.Cpp
                                 throw new NotImplementedException("Duplicate parameter name");
                             }
                             parameters.Add(param.Value);
-                            if (!parser.Matches(TokenType.Comma, out var _)) break;
+                            if (!parser.Matches(TokenType.Comma)) break;
                         }
-                        else if (parser.Matches(TokenType.Ellipsis, out var _))
+                        else if (parser.Matches(TokenType.Ellipsis))
                         {
                             // Must be the last one
                             isVariadic = true;
@@ -216,7 +300,7 @@ namespace Yoakke.C.Syntax.Cpp
                             throw new NotImplementedException("Unexpected argument");
                         }
                     }
-                    parser.Expect(TokenType.CloseParen, out var _);
+                    parser.Expect(TokenType.CloseParen);
                 }
             }
 
@@ -253,7 +337,7 @@ namespace Yoakke.C.Syntax.Cpp
                         // A macro argument is simply everything until a balanced ',' or ')'
                         var argValue = ParseMacroArg(parser);
                         namedArgs.Add(argName, argValue);
-                        lastComma = parser.Matches(TokenType.Comma, out var _);
+                        lastComma = parser.Matches(TokenType.Comma);
                         if (!lastComma) break;
                     }
                     // Continue parsing, if there was a comma, these go to the variadic args
@@ -262,7 +346,7 @@ namespace Yoakke.C.Syntax.Cpp
                         first = false;
                         var argValue = ParseMacroArg(parser);
                         variadicArgs.Add(argValue);
-                        lastComma = parser.Matches(TokenType.Comma, out var _);
+                        lastComma = parser.Matches(TokenType.Comma);
                     }
                 }
                 // Check if we collected enough arguments
@@ -283,6 +367,12 @@ namespace Yoakke.C.Syntax.Cpp
 
         private static IList<Token> ParseMacroArg(SubParser parser) =>
             parser.ParseBalancedUntil(TokenType.Comma, TokenType.CloseParen).ToList();
+
+        private static bool EvaluateCondition(SubParser parser)
+        {
+            // TODO
+            throw new NotImplementedException();
+        }
 
         // Primitives for parsing //////////////////////////////////////////////
 
@@ -314,6 +404,14 @@ namespace Yoakke.C.Syntax.Cpp
         {
             if (tokenIndex + 1 < tokens.Count) ++tokenIndex;
             return tokens[tokenIndex];
+        }
+
+        // Helper for control flow
+
+        private class ControlInfo
+        {
+            public bool Keep { get; set; }
+            public bool Satisfied { get; set; }
         }
 
         // A helper parser structure ///////////////////////////////////////////
@@ -350,8 +448,7 @@ namespace Yoakke.C.Syntax.Cpp
 
             public IEnumerable<Token> ParseBalancedGroup()
             {
-                Expect(TokenType.OpenParen, out var openParen);
-                yield return openParen;
+                yield return Expect(TokenType.OpenParen);
                 int depth = 1;
                 while (depth > 0)
                 {
@@ -366,15 +463,16 @@ namespace Yoakke.C.Syntax.Cpp
                 }
             }
 
-            public void Expect(TokenType tt, out Token token)
+            public Token Expect(TokenType tt)
             {
-#pragma warning disable CS8601 // Possible null reference assignment.
-                if (!Matches(tt, out token))
-#pragma warning restore CS8601 // Possible null reference assignment.
+                if (!Matches(tt, out var token))
                 {
                     throw new NotImplementedException($"Expected {tt}");
                 }
+                return token;
             }
+
+            public bool Matches(TokenType tt) => Matches(tt, out var _);
 
             public bool Matches(TokenType tt, [MaybeNullWhen(false)] out Token token)
             {
@@ -390,10 +488,18 @@ namespace Yoakke.C.Syntax.Cpp
             public bool Peek(TokenType tt)
             {
                 if (tokens.Count <= offset) return false;
-                return tokens[offset].Type == tt;
+                var token = tokens[offset];
+                if (tt == TokenType.Identifier) return IsIdent(token);
+                return token.Type == tt;
             }
 
             public Token Consume() => tokens[offset++];
+
+            public static bool IsIdent(Token token) =>
+                   token.Type == TokenType.Identifier
+                || (token.Value.Length > 0 && !char.IsDigit(token.Value.First()) && token.Value.All(ch => IsIdent(ch)));
+
+            private static bool IsIdent(char ch) => char.IsLetterOrDigit(ch) || ch == '_';
         }
     }
 }
