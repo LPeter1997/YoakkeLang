@@ -190,7 +190,6 @@ namespace Yoakke.C.Syntax.Cpp
             Debug.Assert(tokens.Count > 0);
 
             var sb = new StringBuilder();
-            sb.Append('"');
             for (int i = 0; i < tokens.Count; ++i)
             {
                 if (i > 0 && tokens[i - 1].LogicalSpan.End != tokens[i].LogicalSpan.Start)
@@ -200,6 +199,10 @@ namespace Yoakke.C.Syntax.Cpp
                 }
                 sb.Append(tokens[i].Value);
             }
+            // We need to escape the quotations
+            sb.Replace("\"", "\\\"");
+            // Surround with quotes
+            sb.Insert(0, '"');
             sb.Append('"');
             var physicalSpan = new Span(tokens.First().PhysicalSpan, tokens.Last().PhysicalSpan);
             var logicalSpan = new Span(tokens.First().LogicalSpan, tokens.Last().LogicalSpan);
