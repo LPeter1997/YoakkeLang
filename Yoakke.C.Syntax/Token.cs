@@ -104,6 +104,14 @@ namespace Yoakke.C.Syntax
         /// '...'.
         /// </summary>
         Ellipsis,
+        /// <summary>
+        /// '#'.
+        /// </summary>
+        Hash,
+        /// <summary>
+        /// '##'.
+        /// </summary>
+        HashHash,
 
         // Operators
 
@@ -243,10 +251,6 @@ namespace Yoakke.C.Syntax
         // Literal values
 
         /// <summary>
-        /// A directive starting with a '#'.
-        /// </summary>
-        Directive,
-        /// <summary>
         /// Anything that matches the regex '[@A-Za-z_][A-Za-z0-9_]*'.
         /// </summary>
         Identifier,
@@ -262,6 +266,10 @@ namespace Yoakke.C.Syntax
         /// Between double quotes, optional escape characters.
         /// </summary>
         StringLiteral,
+        /// <summary>
+        /// Between single quotes either an unescaped or escaped character, or character code.
+        /// </summary>
+        CharLiteral,
 
         // Keywords
 
