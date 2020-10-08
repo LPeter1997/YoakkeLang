@@ -86,7 +86,9 @@ namespace Yoakke.Compiler
             }
 #endif
             var src = @"
-__LI\
+\
+\
+__LI??/
 NE__
 ";
             var ppTokens = C.Syntax.Lexer.Lex(new SourceFile("a.c", src));

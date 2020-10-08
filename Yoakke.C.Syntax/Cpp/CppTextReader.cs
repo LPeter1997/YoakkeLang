@@ -25,7 +25,14 @@ namespace Yoakke.C.Syntax.Cpp
         /// <summary>
         /// The current <see cref="Position"/> of this reader.
         /// </summary>
-        public Position Position => cursor.Position;
+        public Position Position
+        {
+            get
+            {
+                SkipBlanks();
+                return cursor.Position;
+            }
+        }
 
         /// <summary>
         /// Initializes a new <see cref="CppTextReader"/>.
@@ -42,54 +49,81 @@ namespace Yoakke.C.Syntax.Cpp
         /// <returns></returns>
         public char? Next()
         {
+            SkipBlanks();
+            char? peek = null;
+            int toConsume = 0;
+            // Check for trigraph
+            if (Matches("??"))
+            {
+                // Possible trigraph
+                char? result = TranslateTrigraph(Peek(2));
+                if (result != null)
+                {
+                    // It is a trigraph
+                    peek = result.Value;
+                    toConsume = 3;
+                }
+            }
+            if (peek == null)
+            {
+                // Just a single character
+                peek = Peek(0);
+                toConsume = 1;
+            }
+            if (peek == '\0') peek = null;
+            Consume(toConsume);
+            return peek;
+        }
+
+        private void SkipBlanks()
+        {
             while (true)
             {
-                char? toReturn = null;
+                char? peek = null;
                 int toConsume = 0;
                 // Check for trigraphs
                 if (Matches("??"))
                 {
                     // Possible trigraph
-                    char? result = Peek(2) switch
-                    {
-                        '(' => '[',
-                        ')' => ']',
-                        '<' => '{',
-                        '>' => '}',
-                        '=' => '#',
-                        '/' => '\\',
-                        '\'' => '^',
-                        '!' => '|',
-                        '-' => '~',
-                        _ => null,
-                    };
+                    char? result = TranslateTrigraph(Peek(2));
                     if (result != null)
                     {
                         // It is a trigraph
-                        toReturn = result.Value;
+                        peek = result.Value;
                         toConsume = 3;
                     }
                 }
-                if (toReturn == null)
+                if (peek == null)
                 {
                     // Just a single character
-                    toReturn = Peek(0);
+                    peek = Peek(0);
                     toConsume = 1;
                 }
                 // Check for a line continuation
-                if (toReturn == '\\' && IsEndOfLine(toConsume, out toConsume))
+                if (peek == '\\' && IsEndOfLine(toConsume, out toConsume))
                 {
                     // End of line, try a next character
                     Consume(toConsume);
                     continue;
                 }
-                // Check of EOF
-                if (toReturn == '\0') return null;
-                // Not EOF, eat it
-                Consume(toConsume);
-                return toReturn.Value;
+                // Non-blank
+                return;
             }
         }
+
+        private static char? TranslateTrigraph(char ch) => ch switch
+        {
+            '(' => '[',
+            ')' => ']',
+            '<' => '{',
+            '>' => '}',
+            '=' => '#',
+            '/' => '\\',
+            '\'' => '^',
+            '!' => '|',
+            '-' => '~',
+            _ => null,
+        };
 
         private bool IsEndOfLine(int offset, out int toConsume)
         {
