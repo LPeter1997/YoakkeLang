@@ -177,29 +177,54 @@ namespace Yoakke.C.Syntax.Cpp
 
         private void ParseUserMacro(IList<Token> tokens)
         {
-            if (tokens[0].Type != TokenType.Identifier)
-            {
-                // TODO
-                throw new NotImplementedException("Macro name expected!");
-            }
+            var parser = new SubParser(tokens);
+            parser.Expect(TokenType.Identifier, out var name);
 
-            var name = tokens.First().Value;
             bool needsParens = false;
             bool isVariadic = false;
+            var parametersSet = new HashSet<string>();
             var parameters = new List<string>();
             var expansion = new List<Token>();
 
-            int offset = 1;
-            if (tokens.Count > offset && tokens[offset].Type == TokenType.OpenParen)
+            // Argument list
+            if (parser.Matches(TokenType.OpenParen, out var _))
             {
                 needsParens = true;
-                while (true)
+                if (!parser.Matches(TokenType.CloseParen, out var _))
                 {
-                    
+                    while (true)
+                    {
+                        if (parser.Matches(TokenType.Identifier, out var param))
+                        {
+                            if (!parametersSet.Add(param.Value))
+                            {
+                                // TODO
+                                throw new NotImplementedException("Duplicate parameter name");
+                            }
+                            parameters.Add(param.Value);
+                            if (!parser.Matches(TokenType.Comma, out var _)) break;
+                        }
+                        else if (parser.Matches(TokenType.Ellipsis, out var _))
+                        {
+                            // Must be the last one
+                            isVariadic = true;
+                            break;
+                        }
+                        else
+                        {
+                            // TODO
+                            throw new NotImplementedException("Unexpected argument");
+                        }
+                    }
+                    parser.Expect(TokenType.CloseParen, out var _);
                 }
             }
 
+            // Expansion
+            expansion.AddRange(parser.Remaining());
+
             var macro = new UserMacro(needsParens, isVariadic, parameters, expansion);
+            Define(name.Value, macro);
         }
 
         // Pair of named and variadic args
@@ -217,31 +242,34 @@ namespace Yoakke.C.Syntax.Cpp
             else
             {
                 var parser = new SubParser(args);
-                bool lastComma = false;
-                bool first = true;
-                // First we need to fill in the named argument list
-                foreach (var argName in macro.Parameters)
+                if (!parser.IsEnd)
                 {
-                    first = false;
-                    // A macro argument is simply everything until a balanced ',' or ')'
-                    var argValue = ParseMacroArg(parser);
-                    namedArgs.Add(argName, argValue);
-                    lastComma = parser.Matches(TokenType.Comma, out var _);
-                    if (!lastComma) break;
+                    bool lastComma = false;
+                    bool first = true;
+                    // First we need to fill in the named argument list
+                    foreach (var argName in macro.Parameters)
+                    {
+                        first = false;
+                        // A macro argument is simply everything until a balanced ',' or ')'
+                        var argValue = ParseMacroArg(parser);
+                        namedArgs.Add(argName, argValue);
+                        lastComma = parser.Matches(TokenType.Comma, out var _);
+                        if (!lastComma) break;
+                    }
+                    // Continue parsing, if there was a comma, these go to the variadic args
+                    while (first || lastComma)
+                    {
+                        first = false;
+                        var argValue = ParseMacroArg(parser);
+                        variadicArgs.Add(argValue);
+                        lastComma = parser.Matches(TokenType.Comma, out var _);
+                    }
                 }
                 // Check if we collected enough arguments
                 if (namedArgs.Count < macro.Parameters.Count)
                 {
                     // TODO
                     throw new NotImplementedException("Not enough macro arguments!");
-                }
-                // Continue parsing, if there was a comma, these go to the variadic args
-                while (first || lastComma)
-                {
-                    first = false;
-                    var argValue = ParseMacroArg(parser);
-                    variadicArgs.Add(argValue);
-                    lastComma = parser.Matches(TokenType.Comma, out var _);
                 }
                 // Check if we even required variadic args
                 if (!macro.IsVariadic && variadicArgs.Count > 0)
@@ -301,6 +329,8 @@ namespace Yoakke.C.Syntax.Cpp
             {
                 this.tokens = tokens;
             }
+
+            public IEnumerable<Token> Remaining() => tokens.Skip(offset);
 
             public IEnumerable<Token> ParseBalancedUntil(params TokenType[] tts)
             {
