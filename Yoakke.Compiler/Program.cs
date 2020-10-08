@@ -86,13 +86,18 @@ namespace Yoakke.Compiler
             }
 #endif
             var src = @"
-asd #include <stdio.h>
-#include <stdlib.h>
+__LI\
+NE__
 ";
             var ppTokens = C.Syntax.Lexer.Lex(new SourceFile("a.c", src));
-            foreach (var t in PreProcessor.Process(ppTokens))
+            var pp = new PreProcessor(ppTokens);
+            pp.Define("__LINE__", new FuncLabelMacro(t => new C.Syntax.Token[]
             {
-                Console.WriteLine($"{t.Value} - {t.Type}");
+                new C.Syntax.Token(t.PhysicalSpan, t.LogicalSpan, C.Syntax.TokenType.IntLiteral, t.PhysicalSpan.Start.Line.ToString()),
+            }));
+            foreach (var t in pp.Process(ppTokens))
+            {
+                Console.WriteLine($"'{t.Value}' - {t.Type}");
             }
         }
     }

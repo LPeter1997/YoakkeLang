@@ -14,23 +14,54 @@ namespace Yoakke.C.Syntax.Cpp
     /// </summary>
     public class PreProcessor
     {
-        private SourceFile source;
-        private IReadOnlyList<Token> tokens;
+        private SourceFile source = new SourceFile("unknown", string.Empty);
+        private IReadOnlyList<Token> tokens = new Token[] { };
         private int tokenIndex = -1;
         private List<Token> peekBuffer = new List<Token>();
+        private IDictionary<string, Macro> macros = new Dictionary<string, Macro>();
 
         /// <summary>
-        /// Pre-processes the given <see cref="Token"/>s.
+        /// Initializes a new <see cref="PreProcessor"/>.
         /// </summary>
-        /// <param name="tokens">The <see cref="IEnumerable{Token}"/> to pre-process.</param>
-        /// <returns>The <see cref="IEnumerable{Token}"/> of the pre-processed input.</returns>
-        public static IEnumerable<Token> Process(IEnumerable<Token> tokens)
+        /// <param name="tokens">The <see cref="IEnumerable{Token}"/>s to pre-process.</param>
+        public PreProcessor(IEnumerable<Token> tokens)
         {
-            var pp = new PreProcessor(tokens);
+        }
+
+        /// <summary>
+        /// Defines a <see cref="Macro"/>.
+        /// </summary>
+        /// <param name="name">The name to define.</param>
+        /// <param name="macro">The <see cref="Macro"/> to assiciate the name with.</param>
+        public void Define(string name, Macro macro) => macros[name] = macro;
+
+        /// <summary>
+        /// Undefines a <see cref="Macro"/>.
+        /// </summary>
+        /// <param name="name">The name to undefine.</param>
+        public void Undefine(string name) => macros.Remove(name);
+
+        /// <summary>
+        /// True, if the given <see cref="Macro"/> is defined.
+        /// </summary>
+        /// <param name="name">The name to search for.</param>
+        /// <returns>True, if a <see cref="Macro"/> is defined under the given name.</returns>
+        public bool IsDefined(string name) => macros.ContainsKey(name);
+
+        /// <summary>
+        /// Pre-processes the whole input.
+        /// </summary>
+        /// <param name="tokens">The <see cref="IEnumerable{Token}"/>s to pre-process.</param>
+        /// <returns>The <see cref="IEnumerable{Token}"/> of the pre-processed input.</returns>
+        public IEnumerable<Token> Process(IEnumerable<Token> tokens)
+        {
+            this.tokens = tokens.ToArray();
+            Debug.Assert(this.tokens.Count > 0);
+            source = this.tokens.First().PhysicalSpan.Source;
 
             while (true)
             {
-                var result = pp.Next();
+                var result = Next();
                 bool hasEnd = false;
                 foreach (var t in result)
                 {
@@ -41,37 +72,28 @@ namespace Yoakke.C.Syntax.Cpp
             }
         }
 
-        /// <summary>
-        /// Initializes a new <see cref="PreProcessor"/>.
-        /// </summary>
-        /// <param name="tokens">The <see cref="IEnumerable{Token}"/>s to pre-process.</param>
-        public PreProcessor(IEnumerable<Token> tokens)
+        private IEnumerable<Token> Next()
         {
-            this.tokens = tokens.ToArray();
-            Debug.Assert(this.tokens.Count > 0);
-            source = this.tokens.First().PhysicalSpan.Source;
-        }
-
-        /// <summary>
-        /// Retrieves the next batch of <see cref="Token"/>s.
-        /// Can return multiple <see cref="Token"/>s in case of macro expansions.
-        /// </summary>
-        /// <returns></returns>
-        public IEnumerable<Token> Next()
-        {
-            if (ParseDirective(out var name, out var args))
+            if (ParseDirective(out var directiveName, out var directiveArgs))
             {
-                Console.WriteLine($"Directive: {name}");
-                foreach (var arg in args)
+                // TODO
+                Console.WriteLine($"Directive: {directiveName}");
+                foreach (var arg in directiveArgs)
                 {
                     Console.WriteLine($"    arg {arg.Value} - {arg.Type}");
                 }
+                throw new NotImplementedException();
+            }
+            else if (ParseMacroCall(out var macro, out var callSiteIdent, out var macroArgs))
+            {
+                // TODO: Handle arguments
+                var result =  macro.Expand(callSiteIdent, new Dictionary<string, IList<Token>>(), new List<IList<Token>>());
+                foreach (var t in result) yield return t;
             }
             else
             {
                 // TODO
                 var t = Consume();
-                Console.WriteLine($"Just a token: {t.Value} - {t.Type}");
                 yield return t;
             }
         }
@@ -100,6 +122,32 @@ namespace Yoakke.C.Syntax.Cpp
             }
             name = null;
             args = null;
+            return false;
+        }
+
+        private bool ParseMacroCall(
+            [MaybeNullWhen(false)] out Macro macro,
+            [MaybeNullWhen(false)] out Token callSiteIdent,
+            [MaybeNullWhen(false)] out IList<Token> args)
+        {
+            var peek = Peek();
+            if (peek.Type == TokenType.Identifier && macros.TryGetValue(peek.Value, out macro))
+            {
+                // There's a macro with the given name
+                callSiteIdent = peek;
+                // If it requires no parenthesis, we are done
+                if (!macro.NeedsParens)
+                {
+                    args = new List<Token>();
+                    Consume();
+                    return true;
+                }
+                // TODO
+                throw new NotImplementedException();
+            }
+            macro = null;
+            args = null;
+            callSiteIdent = null;
             return false;
         }
 
