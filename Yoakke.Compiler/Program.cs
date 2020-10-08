@@ -89,7 +89,8 @@ namespace Yoakke.Compiler
 asd #include <stdio.h>
 #include <stdlib.h>
 ";
-            foreach (var t in C.Syntax.Lexer.Lex(new SourceFile("a.c", src)))
+            var ppTokens = C.Syntax.Lexer.Lex(new SourceFile("a.c", src));
+            foreach (var t in PreProcessor.Process(ppTokens))
             {
                 Console.WriteLine($"{t.Value} - {t.Type}");
             }

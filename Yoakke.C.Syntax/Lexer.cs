@@ -414,8 +414,11 @@ namespace Yoakke.C.Syntax
 
         private void ConsumeComment(int len)
         {
-            peekBuffer.RemoveRange(0, len);
-            cursor.Append(' ');
+            // NOTE: Just for safety we keep the comments in the logical representation
+            // The original 2 lines were substituted
+            //peekBuffer.RemoveRange(0, len);
+            //cursor.Append(' ');
+            Consume(len);
         }
 
         private bool Matches(string str)
