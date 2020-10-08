@@ -362,7 +362,7 @@ namespace Yoakke.C.Syntax.Cpp
                     var token = Consume();
                     yield return token;
                     if (token.Type == TokenType.OpenParen) ++depth;
-                    else if (token.Type == TokenType.OpenParen) --depth;
+                    else if (token.Type == TokenType.CloseParen) --depth;
                 }
             }
 
