@@ -47,11 +47,7 @@ namespace Yoakke.C.Syntax.Cpp
         public override bool IsVariadic => false;
         public override IReadOnlyList<string> Parameters { get; } = new string[] { };
 
-        /// <summary>
-        /// The <see cref="Func{Token, IEnumerable{Token}}"/> to expand the macro with.
-        /// It only receives the call-site identifier <see cref="Token"/>.
-        /// </summary>
-        public readonly Func<Token, IEnumerable<Token>> Expander;
+        private readonly Func<Token, IEnumerable<Token>> expander;
 
         /// <summary>
         /// Initializes a new <see cref="FuncLabelMacro"/>.
@@ -59,7 +55,7 @@ namespace Yoakke.C.Syntax.Cpp
         /// <param name="expander">The <see cref="Expander"/> function.</param>
         public FuncLabelMacro(Func<Token, IEnumerable<Token>> expander)
         {
-            Expander = expander;
+            this.expander = expander;
         }
 
         public override IEnumerable<Token> Expand(
@@ -69,7 +65,53 @@ namespace Yoakke.C.Syntax.Cpp
         {
             Debug.Assert(namedArgs.Count == 0);
             Debug.Assert(variadicArgs.Count == 0);
-            return Expander(callSiteIdent);
+            return expander(callSiteIdent);
+        }
+    }
+
+    /// <summary>
+    /// A user-defined macro.
+    /// </summary>
+    public class UserMacro : Macro
+    {
+        public override bool NeedsParens { get; }
+        public override bool IsVariadic { get; }
+        public override IReadOnlyList<string> Parameters { get; }
+
+        private IReadOnlyList<Token> substitution;
+
+        public UserMacro(bool needsParens, bool isVariadic, IReadOnlyList<string> parameters, IReadOnlyList<Token> substitution)
+        {
+            NeedsParens = needsParens;
+            IsVariadic = isVariadic;
+            Parameters = parameters;
+            this.substitution = substitution;
+        }
+
+        public override IEnumerable<Token> Expand(
+            Token callSiteIdent, 
+            IDictionary<string, IList<Token>> namedArgs, 
+            IList<IList<Token>> variadicArgs)
+        {
+            Debug.Assert(Parameters.Count == namedArgs.Count);
+            Debug.Assert(IsVariadic || variadicArgs.Count == 0);
+            
+            for (int i = 0; i < substitution.Count;)
+            {
+                // TODO: Handle #, ##, __VA_ARGS__
+
+                var t = substitution[i];
+                if (namedArgs.TryGetValue(t.Value, out var argValue))
+                {
+                    foreach (var sub in argValue) yield return sub;
+                }
+                else
+                {
+                    // Just a simple argument
+                    yield return t;
+                }
+                ++i;
+            }
         }
     }
 }

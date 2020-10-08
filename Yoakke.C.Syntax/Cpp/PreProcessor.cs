@@ -227,10 +227,10 @@ namespace Yoakke.C.Syntax.Cpp
             {
                 var t = source[offset];
                 if (t.Type == TokenType.Comma) break;
+                ++offset;
                 result.Add(t);
                 if (t.Type == TokenType.OpenParen)
                 {
-                    ++offset;
                     int depth = 1;
                     while (depth > 0)
                     {
