@@ -83,8 +83,8 @@ namespace Yoakke.C.Syntax.Cpp
                 }
                 else if (ParseMacroCall(out var macro, out var callSiteIdent, out var macroArgs))
                 {
-                    // TODO: Handle arguments
-                    var result = macro.Expand(callSiteIdent, new Dictionary<string, IList<Token>>(), new List<IList<Token>>());
+                    var (namedArgs, variadicArgs) = ParseMacroArgs(macro, macroArgs);
+                    var result = macro.Expand(callSiteIdent, namedArgs, variadicArgs);
                     // Insert it to the beginning of the peek buffer
                     peekBuffer.InsertRange(0, result);
                 }
@@ -141,12 +141,121 @@ namespace Yoakke.C.Syntax.Cpp
                     Consume();
                     return true;
                 }
-                // TODO
-                throw new NotImplementedException();
+                else if (Peek(1).Type == TokenType.OpenParen)
+                {
+                    // Requires parenthesis and we are invoking it
+                    // From now on everything else is an error
+                    Consume(2);
+                    args = new List<Token>();
+                    int depth = 1;
+                    while (true)
+                    {
+                        var next = Consume();
+                        if (next.Type == TokenType.End)
+                        {
+                            // TODO
+                            throw new NotImplementedException("Unclosed macro call");
+                        }
+                        if (next.Type == TokenType.CloseParen)
+                        {
+                            --depth;
+                            if (depth == 0) break;
+                        }
+                        if (next.Type == TokenType.OpenParen) ++depth;
+                        args.Add(next);
+                    }
+                    return true;
+                }
             }
             macro = null;
             args = null;
             callSiteIdent = null;
+            return false;
+        }
+
+        // Pair of named and variadic args
+        private static (IDictionary<string, IList<Token>>, IList<IList<Token>>) ParseMacroArgs(Macro macro, IList<Token> args)
+        {
+            // We don't need to care about caller parenthesis here
+            var namedArgs = new Dictionary<string, IList<Token>>();
+            var variadicArgs = new List<IList<Token>>();
+            if (macro.Parameters.Count == 1 && args.Count == 0)
+            {
+                // A special case, we passed no args but the macro expects a single parameter
+                // We pass in an empty argument
+                namedArgs[macro.Parameters.First()] = new List<Token>();
+            }
+            else
+            {
+                int offset = 0;
+                bool lastComma = false;
+                // First we need to fill in the named argument list
+                foreach (var argName in macro.Parameters)
+                {
+                    var argValue = ParseMacroArg(args, ref offset);
+                    namedArgs.Add(argName, argValue);
+                    lastComma = ParseComma(args, ref offset);
+                    if (!lastComma) break;
+                }
+                // Check if we collected enough arguments
+                if (namedArgs.Count < macro.Parameters.Count)
+                {
+                    // TODO
+                    throw new NotImplementedException("Not enough macro arguments!");
+                }
+                // Continue parsing, if there was a comma, these go to the variadic args
+                while (lastComma)
+                {
+                    var argValue = ParseMacroArg(args, ref offset);
+                    variadicArgs.Add(argValue);
+                    lastComma = ParseComma(args, ref offset);
+                }
+                // Check if we even required variadic args
+                if (!macro.IsVariadic && variadicArgs.Count > 0)
+                {
+                    // TODO
+                    throw new NotImplementedException("Too many macro arguments!");
+                }
+            }
+            return (namedArgs, variadicArgs);
+        }
+
+        private static IList<Token> ParseMacroArg(IList<Token> source, ref int offset)
+        {
+            var result = new List<Token>();
+            while (offset < source.Count)
+            {
+                var t = source[offset];
+                if (t.Type == TokenType.Comma) break;
+                result.Add(t);
+                if (t.Type == TokenType.OpenParen)
+                {
+                    ++offset;
+                    int depth = 1;
+                    while (depth > 0)
+                    {
+                        if (offset >= source.Count)
+                        {
+                            // TODO
+                            throw new NotImplementedException("Unclosed macro argument!");
+                        }
+                        t = source[offset++];
+                        result.Add(t);
+                        if (t.Type == TokenType.OpenParen) ++depth;
+                        else if (t.Type == TokenType.CloseParen) --depth;
+                    }
+                }
+            }
+            return result;
+        }
+
+        private static bool ParseComma(IList<Token> source, ref int offset)
+        {
+            if (source.Count > offset && source[offset].Type == TokenType.Comma)
+            {
+                ++offset;
+                return true;
+            }
             return false;
         }
 
