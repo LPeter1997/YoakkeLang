@@ -216,16 +216,17 @@ namespace Yoakke.C.Syntax.Cpp
             }
             else
             {
-                int offset = 0;
+                var parser = new SubParser(args);
                 bool lastComma = false;
                 bool first = true;
                 // First we need to fill in the named argument list
                 foreach (var argName in macro.Parameters)
                 {
                     first = false;
-                    var argValue = ParseMacroArg(args, ref offset);
+                    // A macro argument is simply everything until a balanced ',' or ')'
+                    var argValue = ParseMacroArg(parser);
                     namedArgs.Add(argName, argValue);
-                    lastComma = ParseComma(args, ref offset);
+                    lastComma = parser.Matches(TokenType.Comma, out var _);
                     if (!lastComma) break;
                 }
                 // Check if we collected enough arguments
@@ -238,9 +239,9 @@ namespace Yoakke.C.Syntax.Cpp
                 while (first || lastComma)
                 {
                     first = false;
-                    var argValue = ParseMacroArg(args, ref offset);
+                    var argValue = ParseMacroArg(parser);
                     variadicArgs.Add(argValue);
-                    lastComma = ParseComma(args, ref offset);
+                    lastComma = parser.Matches(TokenType.Comma, out var _);
                 }
                 // Check if we even required variadic args
                 if (!macro.IsVariadic && variadicArgs.Count > 0)
@@ -252,44 +253,8 @@ namespace Yoakke.C.Syntax.Cpp
             return (namedArgs, variadicArgs);
         }
 
-        private static IList<Token> ParseMacroArg(IList<Token> source, ref int offset)
-        {
-            var result = new List<Token>();
-            while (offset < source.Count)
-            {
-                var t = source[offset];
-                if (t.Type == TokenType.Comma) break;
-                ++offset;
-                result.Add(t);
-                if (t.Type == TokenType.OpenParen)
-                {
-                    int depth = 1;
-                    while (depth > 0)
-                    {
-                        if (offset >= source.Count)
-                        {
-                            // TODO
-                            throw new NotImplementedException("Unclosed macro argument!");
-                        }
-                        t = source[offset++];
-                        result.Add(t);
-                        if (t.Type == TokenType.OpenParen) ++depth;
-                        else if (t.Type == TokenType.CloseParen) --depth;
-                    }
-                }
-            }
-            return result;
-        }
-
-        private static bool ParseComma(IList<Token> source, ref int offset)
-        {
-            if (source.Count > offset && source[offset].Type == TokenType.Comma)
-            {
-                ++offset;
-                return true;
-            }
-            return false;
-        }
+        private static IList<Token> ParseMacroArg(SubParser parser) =>
+            parser.ParseBalancedUntil(TokenType.Comma, TokenType.CloseParen).ToList();
 
         // Primitives for parsing //////////////////////////////////////////////
 

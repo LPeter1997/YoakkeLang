@@ -86,12 +86,14 @@ namespace Yoakke.Compiler
             }
 #endif
             var src = @"
-#define FOO
+EXPAND(2, 456 235, 42,)
 ";
             var ppTokens = C.Syntax.Lexer.Lex(new SourceFile("a.c", src));
             var pp = new PreProcessor(ppTokens);
             pp.Define("EXPAND", new UserMacro(true, true, new string[] { }, 
-                new C.Syntax.Token[] { new C.Syntax.Token(new Span(), new Span(), C.Syntax.TokenType.Identifier, "__VA_ARGS__") }
+                new C.Syntax.Token[] { 
+                    new C.Syntax.Token(new Span(), new Span(), C.Syntax.TokenType.Identifier, "__VA_ARGS__") 
+                }
              ));
             foreach (var t in pp.Process(ppTokens))
             {
