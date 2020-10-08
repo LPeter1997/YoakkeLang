@@ -86,7 +86,7 @@ namespace Yoakke.Compiler
             }
 #endif
             var src = @"
-EXPAND(2, 5, 23, 732)
+#define FOO
 ";
             var ppTokens = C.Syntax.Lexer.Lex(new SourceFile("a.c", src));
             var pp = new PreProcessor(ppTokens);

@@ -73,13 +73,15 @@ namespace Yoakke.C.Syntax.Cpp
             {
                 if (ParseDirective(out var directiveName, out var directiveArgs))
                 {
-                    // TODO
-                    Console.WriteLine($"Directive: {directiveName}");
-                    foreach (var arg in directiveArgs)
+                    switch (directiveName)
                     {
-                        Console.WriteLine($"    arg {arg.Value} - {arg.Type}");
+                    case "define":
+                        ParseUserMacro(directiveArgs);
+                        break;
+
+                    default:
+                        throw new NotImplementedException($"Unknown directive '{directiveName}'!");
                     }
-                    throw new NotImplementedException();
                 }
                 else if (ParseMacroCall(out var macro, out var callSiteIdent, out var macroArgs))
                 {
@@ -171,6 +173,33 @@ namespace Yoakke.C.Syntax.Cpp
             args = null;
             callSiteIdent = null;
             return false;
+        }
+
+        private void ParseUserMacro(IList<Token> tokens)
+        {
+            if (tokens[0].Type != TokenType.Identifier)
+            {
+                // TODO
+                throw new NotImplementedException("Macro name expected!");
+            }
+
+            var name = tokens.First().Value;
+            bool needsParens = false;
+            bool isVariadic = false;
+            var parameters = new List<string>();
+            var expansion = new List<Token>();
+
+            int offset = 1;
+            if (tokens.Count > offset && tokens[offset].Type == TokenType.OpenParen)
+            {
+                needsParens = true;
+                while (true)
+                {
+                    
+                }
+            }
+
+            var macro = new UserMacro(needsParens, isVariadic, parameters, expansion);
         }
 
         // Pair of named and variadic args
@@ -292,6 +321,84 @@ namespace Yoakke.C.Syntax.Cpp
         {
             if (tokenIndex + 1 < tokens.Count) ++tokenIndex;
             return tokens[tokenIndex];
+        }
+
+        // A helper parser structure ///////////////////////////////////////////
+
+        private class SubParser
+        {
+            public bool IsEnd => offset >= tokens.Count;
+
+            private IList<Token> tokens;
+            private int offset;
+
+            public SubParser(IList<Token> tokens)
+            {
+                this.tokens = tokens;
+            }
+
+            public IEnumerable<Token> ParseBalancedUntil(params TokenType[] tts)
+            {
+                while (true)
+                {
+                    if (IsEnd || tts.Any(tt => Peek(tt))) break;
+                    if (Peek(TokenType.OpenParen))
+                    {
+                        foreach (var t in ParseBalancedGroup()) yield return t;
+                    }
+                    else
+                    {
+                        yield return Consume();
+                    }
+                }
+            }
+
+            public IEnumerable<Token> ParseBalancedGroup()
+            {
+                Expect(TokenType.OpenParen, out var openParen);
+                yield return openParen;
+                int depth = 1;
+                while (depth > 0)
+                {
+                    if (IsEnd)
+                    {
+                        throw new NotImplementedException("Unbalanced parenthesis!");
+                    }
+                    var token = Consume();
+                    yield return token;
+                    if (token.Type == TokenType.OpenParen) ++depth;
+                    else if (token.Type == TokenType.OpenParen) --depth;
+                }
+            }
+
+            public void Expect(TokenType tt, out Token token)
+            {
+#pragma warning disable CS8601 // Possible null reference assignment.
+                if (!Matches(tt, out token))
+#pragma warning restore CS8601 // Possible null reference assignment.
+                {
+                    throw new NotImplementedException($"Expected {tt}");
+                }
+            }
+
+            public bool Matches(TokenType tt, [MaybeNullWhen(false)] out Token token)
+            {
+                if (Peek(tt))
+                {
+                    token = Consume();
+                    return true;
+                }
+                token = null;
+                return false;
+            }
+
+            public bool Peek(TokenType tt)
+            {
+                if (tokens.Count <= offset) return false;
+                return tokens[offset].Type == tt;
+            }
+
+            public Token Consume() => tokens[offset++];
         }
     }
 }
