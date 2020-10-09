@@ -85,6 +85,8 @@ namespace Yoakke.Compiler
                 Console.WriteLine($"{t.Value} - {t.Type}");
             }
 #endif
+            // TODO: We need to expand arguments
+            // We need to refactor out expansion (and parsing) mechanism to work everywhere, not just in the main parser module
             var src = @"
 #define A(x, ...) __VA_ARGS__ x
 A(hello, a b c, de   35563)
