@@ -6,13 +6,13 @@ namespace Yoakke.Text
     /// An 2D interval of text positions.
     /// </summary>
 #pragma warning disable CS0660, CS0661 // No reason to override Equals or GetHashCode
-    public readonly struct Span
+    public struct Span
 #pragma warning restore CS0660, CS0661
     {
         /// <summary>
         /// The <see cref="SourceFile"/> this <see cref="Span"/> originates from.
         /// </summary>
-        public readonly SourceFile Source;
+        public SourceFile? Source { get; set; }
         /// <summary>
         /// The first <see cref="Position"/> that's inside this <see cref="Span"/>.
         /// </summary>
@@ -28,7 +28,7 @@ namespace Yoakke.Text
         /// <param name="source">The <see cref="SourceFile"/> this span originates from.</param>
         /// <param name="start">The first <see cref="Position"/> that's inside this span.</param>
         /// <param name="end">The first <see cref="Position"/> after this span.</param>
-        public Span(SourceFile source, Position start, Position end)
+        public Span(SourceFile? source, Position start, Position end)
         {
             if (end < start) throw new ArgumentException("The end can't be smaller than the start!");
 
@@ -40,11 +40,31 @@ namespace Yoakke.Text
         /// <summary>
         /// Initializes a new <see cref="Span"/>.
         /// </summary>
+        /// <param name="start">The first <see cref="Position"/> that's inside this span.</param>
+        /// <param name="end">The first <see cref="Position"/> after this span.</param>
+        public Span(Position start, Position end)
+            : this(null, start, end)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="Span"/>.
+        /// </summary>
         /// <param name="source">The <see cref="SourceFile"/> this span originates from.</param>
         /// <param name="start">The first <see cref="Position"/> that's inside this span.</param>
         /// <param name="length">The length of this span.</param>
-        public Span(SourceFile source, Position start, int length)
+        public Span(SourceFile? source, Position start, int length)
             : this(source, start, start.Advance(length))
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="Span"/>.
+        /// </summary>
+        /// <param name="start">The first <see cref="Position"/> that's inside this span.</param>
+        /// <param name="length">The length of this span.</param>
+        public Span(Position start, int length)
+            : this(null, start, start.Advance(length))
         {
         }
 
@@ -52,7 +72,7 @@ namespace Yoakke.Text
         /// Initializes a new, empty <see cref="Span"/>.
         /// </summary>
         /// <param name="source">The <see cref="SourceFile"/> this span originates from.</param>
-        public Span(SourceFile source)
+        public Span(SourceFile? source)
             : this(source, new Position(), 0)
         {
         }
@@ -65,7 +85,7 @@ namespace Yoakke.Text
         public Span(Span from, Span to)
             : this(from.Source, from.Start, to.End)
         {
-            if (!from.Source.Equals(to.Source))
+            if (!Equals(from.Source, to.Source))
             {
                 throw new ArgumentException("The two spans originate from different sources!");
             }

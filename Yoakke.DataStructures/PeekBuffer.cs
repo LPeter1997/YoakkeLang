@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Yoakke.DataStructures
@@ -75,7 +76,7 @@ namespace Yoakke.DataStructures
         /// buffer was out of elements.</returns>
         public int Consume(int amount)
         {
-            TryPeek(out var _, amount);
+            if (amount > 0) TryPeek(out var _, amount - 1);
             amount = Math.Min(amount, Buffer.Count);
             if (amount > 0)
             {
@@ -128,7 +129,8 @@ namespace Yoakke.DataStructures
             while (buffer.Count <= amount)
             {
                 var element = ReadNextInternal();
-                if (element == null) break;
+                if (sourceEnded) break;
+                Debug.Assert(element != null);
                 buffer.Add(element);
             }
             if (buffer.Count <= amount)

@@ -57,7 +57,7 @@ namespace Yoakke.Syntax
         /// </summary>
         public SyntaxStatus Status { get; }
 
-        private SourceFile source;
+        private SourceFile? source;
         private IReadOnlyList<Token> tokens;
         private int tokenIndex = -1;
 

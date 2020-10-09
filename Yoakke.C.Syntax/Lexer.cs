@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading.Tasks;
 using Yoakke.C.Syntax.Cpp;
+using Yoakke.DataStructures;
 using Yoakke.Text;
 
 namespace Yoakke.C.Syntax
@@ -13,14 +16,49 @@ namespace Yoakke.C.Syntax
     /// A C lexer that breaks up the source into <see cref="Token"/>s.
     /// Skips comments.
     /// </summary>
-    public class Lexer
+    public class Lexer : IEnumerator<Token>
     {
-        private SourceFile source;
-        private CppTextReader reader;
-        private Cursor cursor = new Cursor();
+        /// <summary>
+        /// Breaks up the given source into pre-processor <see cref="Token"/>s.
+        /// </summary>
+        /// <param name="sourceText">The source to break up.</param>
+        /// <returns>The broken up <see cref="IEnumerable{Token}"/>.</returns>
+        public static IEnumerable<Token> Lex(IEnumerable<PositionedChar> sourceText)
+        {
+            var lexer = new Lexer(sourceText);
+            while (lexer.MoveNext()) yield return lexer.Current;
+        }
 
-        // NOTE: Since we don't have proper peeking in CppTextReader, we just save positions for peeks now
-        private List<(Position, char)> peekBuffer = new List<(Position, char)>();
+        /// <summary>
+        /// Same as <see cref="Lex(IEnumerable{PositionedChar})"/>.
+        /// </summary>
+        public static IEnumerable<Token> Lex(IEnumerable<char> sourceText) => Lex(Adapt(sourceText));
+
+        /// <summary>
+        /// Breaks up the given source into pre-processor <see cref="Token"/>s.
+        /// Also assigns the <see cref="Token"/>s their <see cref="SourceFile"/>.
+        /// </summary>
+        /// <param name="sourceText">The source to break up.</param>
+        /// <param name="sourceFile">The <see cref="SourceFile"/> to originate the <see cref="Token"/>s from.</param>
+        /// <returns>The broken up <see cref="IEnumerable{Token}"/>.</returns>
+        public static IEnumerable<Token> Lex(SourceFile sourceFile, IEnumerable<PositionedChar> sourceText) =>
+            Lex(sourceText).Select(token =>
+            {
+                token.PhysicalSpan.Source = sourceFile;
+                token.LogicalSpan.Source = sourceFile;
+                return token;
+            });
+
+        /// <summary>
+        /// Same as <see cref="Lex(SourceFile, IEnumerable{PositionedChar})"/>.
+        /// </summary>
+        public static IEnumerable<Token> Lex(SourceFile sourceFile, IEnumerable<char> sourceText) => 
+            Lex(sourceFile, Adapt(sourceText));
+
+        // Keep track of logical position
+        private Cursor cursor = new Cursor();
+        // We need physical positions too
+        private PeekBuffer<PositionedChar> source;
         // These allow us to parse strings between <>, if we are after an include macro
         // The lastLine is the last token's line
         // The stateLine is the line the directive started
@@ -29,40 +67,40 @@ namespace Yoakke.C.Syntax
         private int stateLine;
         private int stateCounter;
 
-        /// <summary>
-        /// Returns an <see cref="IEnumerable{Token}"/> for the given <see cref="SourceFile"/>, that lexes
-        /// until EOF is read.
-        /// </summary>
-        /// <param name="source">The <see cref="SourceFile"/> to lex.</param>
-        /// <returns>The <see cref="IEnumerable{Token}"/> of the lexed input.</returns>
-        public static IEnumerable<Token> Lex(SourceFile source)
-        {
-            var lexer = new Lexer(source);
+        private Token? current;
 
-            while (true)
+        public Token Current
+        {
+            get
             {
-                var t = lexer.Next();
-                yield return t;
-                if (t.Type == TokenType.End) break;
+                if (current == null) throw new InvalidOperationException();
+                return current;
             }
+        }
+        object IEnumerator.Current => Current;
+
+        /// <summary>
+        /// Initializes a new <see cref="Lexer"/>.
+        /// </summary>
+        /// <param name="source">The source <see cref="IEnumerable{PositionedChar}"/> that yields
+        /// characters with physical positions.</param>
+        public Lexer(IEnumerable<PositionedChar> source)
+        {
+            this.source = new PeekBuffer<PositionedChar>(source);
         }
 
         /// <summary>
         /// Initializes a new <see cref="Lexer"/>.
         /// </summary>
-        /// <param name="source">The <see cref="SourceFile"/> to lex.</param>
-        public Lexer(SourceFile source)
+        /// <param name="source">The source to read, mapping physical positions to logical ones.</param>
+        public Lexer(IEnumerable<char> source)
+            : this(Adapt(source))
         {
-            this.source = source;
-            reader = new CppTextReader(new StringReader(source.Text));
         }
 
-        /// <summary>
-        /// Reads in the next <see cref="Token"/> in the input.
-        /// </summary>
-        /// <returns>The read in <see cref="Token"/>.</returns>
-        public Token Next()
+        public bool MoveNext()
         {
+            if (current != null && current.Type == TokenType.End) return false;
             while (true)
             {
                 var t = NextInternal();
@@ -84,10 +122,15 @@ namespace Yoakke.C.Syntax
                     }
                     else if (stateCounter == 1 && t.Type == TokenType.Identifier && t.Value == "include") stateCounter = 2;
                     else stateCounter = 0;
-                    return t;
+                    // Assign current
+                    current = t;
+                    return true;
                 }
             }
         }
+
+        public void Reset() => throw new NotSupportedException();
+        public void Dispose() { }
 
         private Token? NextInternal()
         {
@@ -224,9 +267,9 @@ namespace Yoakke.C.Syntax
             }
 
             // String literal
-            if  (ch == '"' || (ch == 'L' && Peek(1) == '"') 
-                // For include
-             || (stateCounter == 2 && stateLine == reader.Position.Line && ch == '<'))
+            if (ch == '"' || (ch == 'L' && Peek(1) == '"')
+             // For include
+             || (stateCounter == 2 && stateLine == cursor.Position.Line && ch == '<'))
             {
                 var close = ch == '<' ? '>' : '\"';
                 int len = ch == 'L' ? 2 : 1;
@@ -255,7 +298,7 @@ namespace Yoakke.C.Syntax
             case '}': return MakeToken(TokenType.CloseBrace, 1);
             case '[': return MakeToken(TokenType.OpenBracket, 1);
             case ']': return MakeToken(TokenType.CloseBracket, 1);
-            case '.': 
+            case '.':
                 if (Matches("...")) return MakeToken(TokenType.Ellipsis, 3);
                 return MakeToken(TokenType.Dot, 1);
             case ',': return MakeToken(TokenType.Comma, 1);
@@ -264,7 +307,7 @@ namespace Yoakke.C.Syntax
                 return MakeToken(TokenType.Colon, 1);
             case ';': return MakeToken(TokenType.Semicolon, 1);
             case '?': return MakeToken(TokenType.QuestionMark, 1);
-            case '#': 
+            case '#':
                 if (Peek(1) == '#') return MakeToken(TokenType.HashHash, 2);
                 return MakeToken(TokenType.Hash, 1);
             case '=':
@@ -342,49 +385,49 @@ namespace Yoakke.C.Syntax
                 // Determine if keyword
                 var tokenType = ident.Value switch
                 {
-                    "auto"       => TokenType.KwAuto     ,
-                    "_Bool"      => TokenType.KwBool     ,
-                    "break"      => TokenType.KwBreak    ,
-                    "case"       => TokenType.KwCase     ,
-                    "char"       => TokenType.KwChar     ,
-                    "_Complex"   => TokenType.KwComplex  ,
-                    "const"      => TokenType.KwConst    ,
-                    "continue"   => TokenType.KwContinue ,
-                    "default"    => TokenType.KwDefault  ,
-                    "do"         => TokenType.KwDo       ,
-                    "double"     => TokenType.KwDouble   ,
-                    "else"       => TokenType.KwElse     ,
-                    "enum"       => TokenType.KwEnum     ,
-                    "extern"     => TokenType.KwExtern   ,
-                    "float"      => TokenType.KwFloat    ,
-                    "for"        => TokenType.KwFor      ,
-                    "goto"       => TokenType.KwGoto     ,
-                    "if"         => TokenType.KwIf       ,
+                    "auto" => TokenType.KwAuto,
+                    "_Bool" => TokenType.KwBool,
+                    "break" => TokenType.KwBreak,
+                    "case" => TokenType.KwCase,
+                    "char" => TokenType.KwChar,
+                    "_Complex" => TokenType.KwComplex,
+                    "const" => TokenType.KwConst,
+                    "continue" => TokenType.KwContinue,
+                    "default" => TokenType.KwDefault,
+                    "do" => TokenType.KwDo,
+                    "double" => TokenType.KwDouble,
+                    "else" => TokenType.KwElse,
+                    "enum" => TokenType.KwEnum,
+                    "extern" => TokenType.KwExtern,
+                    "float" => TokenType.KwFloat,
+                    "for" => TokenType.KwFor,
+                    "goto" => TokenType.KwGoto,
+                    "if" => TokenType.KwIf,
                     "_Imaginary" => TokenType.KwImaginary,
-                    "inline"     => TokenType.KwInline   ,
-                    "int"        => TokenType.KwInt      ,
-                    "long"       => TokenType.KwLong     ,
-                    "register"   => TokenType.KwRegister ,
-                    "restrict"   => TokenType.KwRestrict ,
-                    "return"     => TokenType.KwReturn   ,
-                    "short"      => TokenType.KwShort    ,
-                    "signed"     => TokenType.KwSigned   ,
-                    "sizeof"     => TokenType.KwSizeof   ,
-                    "static"     => TokenType.KwStatic   ,
-                    "struct"     => TokenType.KwStruct   ,
-                    "switch"     => TokenType.KwSwitch   ,
-                    "typedef"    => TokenType.KwTypedef  ,
-                    "union"      => TokenType.KwUnion    ,
-                    "unsigned"   => TokenType.KwUnsigned ,
-                    "void"       => TokenType.KwVoid     ,
-                    "volatile"   => TokenType.KwVolatile ,
-                    "while"      => TokenType.KwWhile    ,
-                    _            => TokenType.Identifier ,
+                    "inline" => TokenType.KwInline,
+                    "int" => TokenType.KwInt,
+                    "long" => TokenType.KwLong,
+                    "register" => TokenType.KwRegister,
+                    "restrict" => TokenType.KwRestrict,
+                    "return" => TokenType.KwReturn,
+                    "short" => TokenType.KwShort,
+                    "signed" => TokenType.KwSigned,
+                    "sizeof" => TokenType.KwSizeof,
+                    "static" => TokenType.KwStatic,
+                    "struct" => TokenType.KwStruct,
+                    "switch" => TokenType.KwSwitch,
+                    "typedef" => TokenType.KwTypedef,
+                    "union" => TokenType.KwUnion,
+                    "unsigned" => TokenType.KwUnsigned,
+                    "void" => TokenType.KwVoid,
+                    "volatile" => TokenType.KwVolatile,
+                    "while" => TokenType.KwWhile,
+                    _ => TokenType.Identifier,
                 };
 
                 return new Token(ident.PhysicalSpan, ident.LogicalSpan, tokenType, ident.Value);
             }
-            
+
             return MakeToken(TokenType.Unknown, 1);
         }
 
@@ -392,24 +435,23 @@ namespace Yoakke.C.Syntax
         {
             var pos = cursor.Position;
             var (physicalSpan, content) = Consume(len);
-            var logicalSpan = new Span(source, pos, cursor.Position);
+            var logicalSpan = new Span(null, pos, cursor.Position);
             return new Token(physicalSpan, logicalSpan, tokenType, content);
         }
 
         private (Span, string) Consume(int len)
         {
             // Convert the peek to string
-            var peekContent = string.Concat(peekBuffer.Take(len).Select(e => e.Item2));
+            var peekContent = string.Concat(source.Buffer.Take(len).Select(e => e.Char));
             // Get the starting physical position
-            var position = peekBuffer.First().Item1;
+            var position = PeekPositioned(0).Position;
             // Remove it
-            peekBuffer.RemoveRange(0, len);
-            // Advance out cursor
+            source.Consume(len);
+            // Advance our cursor
             cursor.Append(peekContent);
             // Peek one more for the physical ending position
-            Peek(0);
-            var endPosition = peekBuffer.First().Item1;
-            return (new Span(source, position, endPosition), peekContent);
+            var endPosition = PeekPositioned(0).Position;
+            return (new Span(null, position, endPosition), peekContent);
         }
 
         private void ConsumeComment(int len)
@@ -424,27 +466,32 @@ namespace Yoakke.C.Syntax
         private bool Matches(string str)
         {
             Peek(str.Length);
-            for (int i = 0; i < str.Length; ++i)
-            {
-                if (peekBuffer[i].Item2 != str[i]) return false;
-            }
-            return true;
+            return source.Buffer
+                .Select(pc => pc.Char)
+                .Take(str.Length)
+                .SequenceEqual(str);
         }
 
-        private char Peek(int amount, char eof = '\0')
-        {
-            while (peekBuffer.Count <= amount)
-            {
-                var pos = reader.Position;
-                /*
-                var ch = reader.Next() ?? eof;
-                peekBuffer.Add((pos, ch));
-                */
-            }
-            return peekBuffer[amount].Item2;
-        }
+        private char Peek(int amount, char eof = '\0') => PeekPositioned(amount, eof).Char;
+        private Position PeekDefaultPosition => 
+            source.PrevOrDefault(new PositionedChar()).Position;
+
+        private PositionedChar PeekPositioned(int amount, char eof = '\0') => 
+            source.PeekOrDefault(amount, new PositionedChar(PeekDefaultPosition, eof));
 
         private static bool IsIdent(char ch) =>
             char.IsLetterOrDigit(ch) || ch == '_';
+
+        // Adapters for sources ////////////////////////////////////////////////
+
+        private static IEnumerable<PositionedChar> Adapt(IEnumerable<char> chars)
+        {
+            var cursor = new Cursor();
+            foreach (var ch in chars)
+            {
+                yield return new PositionedChar(cursor.Position, ch);
+                cursor.Append(ch);
+            }
+        }
     }
 }

@@ -6,6 +6,8 @@ using System.Linq;
 
 namespace Yoakke.Text
 {
+    // TODO: Maybe this should only be a file reference and not actually contain the source?
+
     /// <summary>
     /// Represents a source text that originates from some path.
     /// </summary>

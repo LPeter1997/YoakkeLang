@@ -185,6 +185,7 @@ namespace Yoakke.C.Syntax.Cpp
 
         private static Token Concatenate(Token t1, Token t2)
         {
+            /*
             var src = new SourceFile("preprocessor.c", t1.Value + t2.Value);
             var tokens = Lexer.Lex(src).ToList();
             if (tokens.Count != 2)
@@ -193,6 +194,9 @@ namespace Yoakke.C.Syntax.Cpp
                 throw new NotImplementedException("Tokens don't make a single one pasted");
             }
             return tokens[0];
+            */
+            // TODO
+            throw new NotImplementedException();
         }
     }
 }

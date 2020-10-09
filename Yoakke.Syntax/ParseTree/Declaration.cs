@@ -40,12 +40,12 @@ namespace Yoakke.Syntax.ParseTree
             /// <summary>
             /// The name of the file.
             /// </summary>
-            public string Name => System.IO.Path.GetFileNameWithoutExtension(source.Path);
+            public string Name => System.IO.Path.GetFileNameWithoutExtension(source?.Path ?? "unnamed");
 
-            private readonly SourceFile source;
+            private readonly SourceFile? source;
 
             public File(
-                SourceFile source, 
+                SourceFile? source, 
                 CommentGroup? doc,
                 IReadOnlyList<Declaration> declarations, 
                 IReadOnlyList<CommentGroup> comments)

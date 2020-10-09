@@ -14,7 +14,7 @@ namespace Yoakke.C.Syntax.Cpp
     /// </summary>
     public class PreProcessor
     {
-        private SourceFile source = new SourceFile("unknown", string.Empty);
+        private SourceFile? source = new SourceFile("unknown", string.Empty);
         private IReadOnlyList<Token> tokens = new Token[] { };
         private int tokenIndex = -1;
         private List<Token> peekBuffer = new List<Token>();

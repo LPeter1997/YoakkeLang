@@ -15,14 +15,14 @@ namespace Yoakke.C.Syntax.Cpp
     /// https://gcc.gnu.org/onlinedocs/gcc-10.2.0/cpp/Initial-processing.html#Initial-processing
     /// Up until line-continuations.
     /// </summary>
-    public class CppTextReader : IEnumerator<char>
+    public class CppTextReader : IEnumerator<PositionedChar>
     {
         /// <summary>
         /// Processes the given source.
         /// </summary>
         /// <param name="source">The source characters to process.</param>
         /// <returns>The processed characters that have no trigraphs or line-continuations.</returns>
-        public static IEnumerable<char> Process(IEnumerable<char> source)
+        public static IEnumerable<PositionedChar> Process(IEnumerable<char> source)
         {
             var reader = new CppTextReader(source);
             while (reader.MoveNext()) yield return reader.Current;
@@ -31,13 +31,13 @@ namespace Yoakke.C.Syntax.Cpp
         /// <summary>
         /// Same as <see cref="Process(IEnumerable{char})"/>.
         /// </summary>
-        public static IEnumerable<char> Process(TextReader reader) => Process(reader.AsCharEnumerable());
+        public static IEnumerable<PositionedChar> Process(TextReader reader) => Process(reader.AsCharEnumerable());
 
         private PeekBuffer<char> source;
         private Cursor cursor = new Cursor();
-        private char? current;
+        private PositionedChar? current;
 
-        public char Current
+        public PositionedChar Current
         {
             get
             {
@@ -46,18 +46,6 @@ namespace Yoakke.C.Syntax.Cpp
             }
         }
         object IEnumerator.Current => Current;
-
-        /// <summary>
-        /// The current <see cref="Position"/> of this reader.
-        /// </summary>
-        public Position Position
-        {
-            get
-            {
-                SkipBlanks();
-                return cursor.Position;
-            }
-        }
 
         /// <summary>
         /// Initializes a new <see cref="CppTextReader"/>.
@@ -90,17 +78,17 @@ namespace Yoakke.C.Syntax.Cpp
                 if (result != null)
                 {
                     // It is a trigraph
-                    current = result.Value;
+                    current = new PositionedChar(cursor.Position, result.Value);
                     toConsume = 3;
                 }
             }
             if (current == null)
             {
                 // Just a single character
-                current = Peek(0);
+                current = new PositionedChar(cursor.Position, Peek(0));
                 toConsume = 1;
             }
-            if (current == '\0') current = null;
+            if (current.Value.Char == '\0') current = null;
             Consume(toConsume);
             return current != null;
         }
