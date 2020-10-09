@@ -29,7 +29,7 @@ namespace Yoakke.DataStructures
         private PeekBuffer(IEnumerator<T> source)
         {
             this.source = source;
-            sourceEnded = source.MoveNext();
+            sourceEnded = !source.MoveNext();
         }
 
         /// <summary>
@@ -182,7 +182,7 @@ namespace Yoakke.DataStructures
         {
             if (sourceEnded) return default;
             var result = source.Current;
-            sourceEnded = source.MoveNext();
+            sourceEnded = !source.MoveNext();
             return result;
         }
     }

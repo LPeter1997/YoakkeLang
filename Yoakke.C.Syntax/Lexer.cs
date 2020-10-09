@@ -436,8 +436,10 @@ namespace Yoakke.C.Syntax
             while (peekBuffer.Count <= amount)
             {
                 var pos = reader.Position;
+                /*
                 var ch = reader.Next() ?? eof;
                 peekBuffer.Add((pos, ch));
+                */
             }
             return peekBuffer[amount].Item2;
         }

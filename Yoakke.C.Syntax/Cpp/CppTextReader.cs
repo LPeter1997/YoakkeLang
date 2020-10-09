@@ -1,26 +1,51 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Yoakke.DataStructures;
 using Yoakke.Text;
 
 namespace Yoakke.C.Syntax.Cpp
 {
-    // TODO: The functionality here (buffering) is a duplicate of what the yoakke syntax lexer does
-    // Maybe we should factor it out
-
     /// <summary>
     /// Basically does this:
     /// https://gcc.gnu.org/onlinedocs/gcc-10.2.0/cpp/Initial-processing.html#Initial-processing
-    /// Up until line continuations.
+    /// Up until line-continuations.
     /// </summary>
-    public class CppTextReader
+    public class CppTextReader : IEnumerator<char>
     {
-        private TextReader reader;
+        /// <summary>
+        /// Processes the given source.
+        /// </summary>
+        /// <param name="source">The source characters to process.</param>
+        /// <returns>The processed characters that have no trigraphs or line-continuations.</returns>
+        public static IEnumerable<char> Process(IEnumerable<char> source)
+        {
+            var reader = new CppTextReader(source);
+            while (reader.MoveNext()) yield return reader.Current;
+        }
+
+        /// <summary>
+        /// Same as <see cref="Process(IEnumerable{char})"/>.
+        /// </summary>
+        public static IEnumerable<char> Process(TextReader reader) => Process(reader.AsCharEnumerable());
+
+        private PeekBuffer<char> source;
         private Cursor cursor = new Cursor();
-        private StringBuilder peekBuffer = new StringBuilder();
+        private char? current;
+
+        public char Current
+        {
+            get
+            {
+                if (current == null) throw new InvalidOperationException();
+                return current.Value;
+            }
+        }
+        object IEnumerator.Current => Current;
 
         /// <summary>
         /// The current <see cref="Position"/> of this reader.
@@ -37,20 +62,25 @@ namespace Yoakke.C.Syntax.Cpp
         /// <summary>
         /// Initializes a new <see cref="CppTextReader"/>.
         /// </summary>
-        /// <param name="reader">The <see cref="TextReader"/> to read characters from.</param>
-        public CppTextReader(TextReader reader)
+        /// <param name="source">The source to read characters from.</param>
+        public CppTextReader(IEnumerable<char> source)
         {
-            this.reader = reader;
+            this.source = new PeekBuffer<char>(source);
         }
 
         /// <summary>
-        /// Reads in the next character, escaping trigraphs and skipping line continuations.
+        /// Initializes a new <see cref="CppTextReader"/>.
         /// </summary>
-        /// <returns></returns>
-        public char? Next()
+        /// <param name="reader">The reader to read characters from.</param>
+        public CppTextReader(TextReader reader)
+            : this(reader.AsCharEnumerable())
+        {
+        }
+
+        public bool MoveNext()
         {
             SkipBlanks();
-            char? peek = null;
+            current = null;
             int toConsume = 0;
             // Check for trigraph
             if (Matches("??"))
@@ -60,20 +90,24 @@ namespace Yoakke.C.Syntax.Cpp
                 if (result != null)
                 {
                     // It is a trigraph
-                    peek = result.Value;
+                    current = result.Value;
                     toConsume = 3;
                 }
             }
-            if (peek == null)
+            if (current == null)
             {
                 // Just a single character
-                peek = Peek(0);
+                current = Peek(0);
                 toConsume = 1;
             }
-            if (peek == '\0') peek = null;
+            if (current == '\0') current = null;
             Consume(toConsume);
-            return peek;
+            return current != null;
         }
+
+        public void Reset() => throw new NotSupportedException();
+
+        public void Dispose() { }
 
         private void SkipBlanks()
         {
@@ -148,30 +182,19 @@ namespace Yoakke.C.Syntax.Cpp
 
         private void Consume(int len)
         {
-            var peekContent = peekBuffer.ToString().Substring(0, len);
-            peekBuffer.Remove(0, len);
+            var peekContent = string.Concat(source.Buffer.Take(len));
+            source.Consume(len);
             cursor.Append(peekContent);
         }
 
         private bool Matches(string str)
         {
             Peek(str.Length);
-            for (int i = 0; i < str.Length; ++i)
-            {
-                if (peekBuffer[i] != str[i]) return false;
-            }
-            return true;
+            return source.Buffer
+                .Take(str.Length)
+                .SequenceEqual(str);
         }
 
-        private char Peek(int amount, char eof = '\0')
-        {
-            while (peekBuffer.Length <= amount)
-            {
-                var code = reader.Read();
-                var ch = code == -1 ? eof : (char)code;
-                peekBuffer.Append(ch);
-            }
-            return peekBuffer[amount];
-        }
+        private char Peek(int amount, char eof = '\0') => source.PeekOrDefault(amount, eof);
     }
 }

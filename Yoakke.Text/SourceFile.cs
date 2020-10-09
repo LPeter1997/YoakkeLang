@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,7 +9,7 @@ namespace Yoakke.Text
     /// <summary>
     /// Represents a source text that originates from some path.
     /// </summary>
-    public class SourceFile : IEquatable<SourceFile>
+    public class SourceFile : IEquatable<SourceFile>, IEnumerable<char>
     {
         /// <summary>
         /// The path this file originates from.
@@ -92,5 +93,8 @@ namespace Yoakke.Text
                 }
             }
         }
+
+        public IEnumerator<char> GetEnumerator() => Text.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }
