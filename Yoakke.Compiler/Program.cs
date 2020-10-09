@@ -88,16 +88,13 @@ namespace Yoakke.Compiler
             // TODO: We need to expand arguments
             // We need to refactor out expansion (and parsing) mechanism to work everywhere, not just in the main parser module
             var src = @"
-#include ??/
-
-<asd>
+#define FOO \
+hello boi
+FOO
+FOO
 ";
-            foreach (var ch in C.Syntax.Lexer.Lex(CppTextReader.Process(src)))
-            {
-                Console.WriteLine($"'{ch.Value}' - [{ch.Type}]");
-            }
-            /*var ppTokens = C.Syntax.Lexer.Lex(new SourceFile("a.c", src));
-            var pp = new PreProcessor(ppTokens);
+            var ppTokens = C.Syntax.Lexer.Lex(CppTextReader.Process(src));
+            var pp = new PreProcessor();
             pp.Define("EXPAND", new UserMacro(true, true, new string[] { }, 
                 new C.Syntax.Token[] { 
                     new C.Syntax.Token(new Span(), new Span(), C.Syntax.TokenType.Identifier, "__VA_ARGS__") 
@@ -106,7 +103,7 @@ namespace Yoakke.Compiler
             foreach (var t in pp.Process(ppTokens))
             {
                 Console.WriteLine($"'{t.Value}' - {t.Type}");
-            }*/
+            }
         }
     }
 }
