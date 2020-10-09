@@ -5,6 +5,8 @@ using Yoakke.Text;
 
 namespace Yoakke.Syntax
 {
+    // TODO: We can rewrite with PeekBuffer!
+
     /// <summary>
     /// The lexer that splits the input into <see cref="Token"/>s.
     /// </summary>

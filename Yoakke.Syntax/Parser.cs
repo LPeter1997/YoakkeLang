@@ -8,6 +8,8 @@ using Yoakke.Text;
 
 namespace Yoakke.Syntax
 {
+    // TODO: We can rewrite with PeekBuffer!
+
     /// <summary>
     /// The parser that converts a sequence of tokens into a parse tree.
     /// </summary>
