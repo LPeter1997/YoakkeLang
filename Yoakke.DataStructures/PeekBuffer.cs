@@ -128,8 +128,8 @@ namespace Yoakke.DataStructures
             }
             while (buffer.Count <= amount)
             {
-                var element = ReadNextInternal();
                 if (sourceEnded) break;
+                var element = ReadNextInternal();
                 Debug.Assert(element != null);
                 buffer.Add(element);
             }

@@ -16,7 +16,7 @@ namespace Yoakke.C.Syntax.Cpp
     public class PreProcessor
     {
         // Helper for control flow
-        private class ControlFlow
+        private struct ControlFlow
         {
             // Should we keep the current tokens
             public bool Keep { get; set; }
@@ -111,18 +111,81 @@ namespace Yoakke.C.Syntax.Cpp
 
         private void HandleDirective(string name, IList<Token> arguments)
         {
-            switch (name)
+            if (IsControlFlowDirective(name))
             {
+                HandleControlFlowDirective(name, arguments);
+                return;
+            }
+            switch (name)
+            { 
             default: throw new NotImplementedException($"Unknown directive '{name}'!");
             }
         }
 
         private void HandleControlFlowDirective(string name, IList<Token> arguments)
         {
+            var control = controlStack.Peek();
             switch (name)
             {
+            case "if":
+            case "ifdef":
+            case "ifndef":
+                if (!control.Keep)
+                {
+                    // We didn't keep the surrounding scope, we don't keep this either
+                    // We say that this is satisfied because there's no way anything else can satisfy this depth
+                    controlStack.Push(new ControlFlow { Keep = false, Satisfied = true });
+                }
+                else
+                {
+                    // We keep this scope, we need a condition
+                    bool condition;
+                    if (name == "if")
+                    {
+                        condition = EvaluateCondition(arguments);
+                    }
+                    else
+                    {
+                        var ident = arguments[0];
+                        condition = IsDefined(ident.Value);
+                        if (name == "ifndef") condition = !condition;
+                    }
+                    controlStack.Push(new ControlFlow { Keep = condition, Satisfied = condition });
+                }
+                break;
+
+            case "elif":
+                controlStack.Pop();
+                if (control.Satisfied)
+                {
+                    // We were satisfied before, don't keep
+                    controlStack.Push(new ControlFlow { Keep = false, Satisfied = true });
+                }
+                else
+                {
+                    // We weren't satisfied, evaluate condition
+                    var condition = EvaluateCondition(arguments);
+                    controlStack.Push(new ControlFlow { Keep = condition, Satisfied = condition });
+                }
+                break;
+
+            case "else":
+                controlStack.Pop();
+                controlStack.Push(new ControlFlow { Keep = !control.Satisfied, Satisfied = true });
+                break;
+
+            case "endif":
+                controlStack.Pop();
+                break;
+
             default: throw new InvalidOperationException();
             }
+        }
+
+        private bool EvaluateCondition(IList<Token> tokens)
+        {
+            // TODO
+            throw new NotImplementedException();
         }
 
         // Parsers /////////////////////////////////////////////////////////////
@@ -139,7 +202,7 @@ namespace Yoakke.C.Syntax.Cpp
             {
                 // Hash on a fresh line, if an identifier comes up, it's definitely a directive
                 var ident = Peek(1);
-                if (ident.Type == TokenType.Identifier)
+                if (IsIdent(ident))
                 {
                     // It is a directive
                     Consume(2);
@@ -167,10 +230,11 @@ namespace Yoakke.C.Syntax.Cpp
         private static bool IsControlFlowDirective(string name) => name switch
         {
             "if" => true,
-            "elif" => true,
-            "else" => true,
             "ifdef" => true,
             "ifndef" => true,
+            "elif" => true,
+            "else" => true,
+            "endif" => true,
             _ => false,
         };
 

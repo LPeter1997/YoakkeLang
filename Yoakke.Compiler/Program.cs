@@ -88,10 +88,11 @@ namespace Yoakke.Compiler
             // TODO: We need to expand arguments
             // We need to refactor out expansion (and parsing) mechanism to work everywhere, not just in the main parser module
             var src = @"
-#define FOO \
-hello boi
-FOO
-FOO
+#ifdef FOO
+asda   ewr
+#else
+rrrrrr sadf
+#endif
 ";
             var ppTokens = C.Syntax.Lexer.Lex(CppTextReader.Process(src));
             var pp = new PreProcessor();
