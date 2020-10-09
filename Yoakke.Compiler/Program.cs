@@ -84,7 +84,7 @@ namespace Yoakke.Compiler
             {
                 Console.WriteLine($"{t.Value} - {t.Type}");
             }
-#endif
+#else
             // TODO: We need to expand arguments
             // We need to refactor out expansion (and parsing) mechanism to work everywhere, not just in the main parser module
             var src = @"
@@ -106,5 +106,6 @@ rrrrrr sadf
                 Console.WriteLine($"'{t.Value}' - {t.Type}");
             }
         }
+#endif
     }
 }
