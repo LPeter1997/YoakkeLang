@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Runtime.CompilerServices;
 
 namespace Yoakke.DataStructures
 {
@@ -8,6 +10,26 @@ namespace Yoakke.DataStructures
     /// </summary>
     public static class EnumerableExtensions
     {
+        // TextReader //////////////////////////////////////////////////////////
+
+        /// <summary>
+        /// Adapts a <see cref="TextReader"/> to become an <see cref="IEnumerable{char}"/>.
+        /// </summary>
+        /// <param name="reader">The <see cref="TextReader"/> to adapt.</param>
+        /// <returns>The <see cref="IEnumerable{char}"/> that reads the <see cref="TextReader"/>
+        /// until the end.</returns>
+        public static IEnumerable<char> AsCharEnumerable(this TextReader reader)
+        {
+            while (true)
+            {
+                var code = reader.Read();
+                if (code == -1) break;
+                yield return (char)code;
+            }
+        }
+
+        // Ordered merge ///////////////////////////////////////////////////////
+
         /// <summary>
         /// Merges two ordered <see cref="IEnumerable{T}"/>s and keeps the ordering.
         /// </summary>
