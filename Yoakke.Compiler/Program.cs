@@ -23,7 +23,7 @@ namespace Yoakke.Compiler
     {
         static void Main(string[] args)
         {
-#if false
+#if true
             var srcPath = @"../../../../../samples/test.yk";
             // Syntax
             var src = File.ReadAllText(srcPath);
@@ -80,19 +80,10 @@ namespace Yoakke.Compiler
             };
             toolchain.Compile(build);
 
-            foreach (var err in build.Status.Errors)
-            {
-                Console.WriteLine($"{t.Value} - {t.Type}");
-            }
 #else
             // TODO: We need to expand arguments
             // We need to refactor out expansion (and parsing) mechanism to work everywhere, not just in the main parser module
             var src = @"
-#ifdef FOO
-asda   ewr
-#else
-rrrrrr sadf
-#endif
 ";
             var ppTokens = C.Syntax.Lexer.Lex(CppTextReader.Process(src));
             var pp = new PreProcessor();
@@ -105,7 +96,7 @@ rrrrrr sadf
             {
                 Console.WriteLine($"'{t.Value}' - {t.Type}");
             }
-        }
 #endif
+        }
     }
 }

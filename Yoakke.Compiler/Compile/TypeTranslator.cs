@@ -49,22 +49,23 @@ namespace Yoakke.Compiler.Compile
             if (value is Lir.Values.Value.User user)
             {
                 if (user.Payload is Semantic.Type type) return type;
-            }
-            if (value is Lir.Runtime.ArrayValue array)
-            {
-                var tagType = ((Lir.Values.Value.User)array.Values[0]).Payload;
-                var ctorTypes = array.Values.Skip(1);
-                if (tagType is Expression.StructType structType)
+                if (user.Payload is Lir.Runtime.ArrayValue array)
                 {
-                    return new Semantic.Type.Struct(
-                        structType.KwStruct,
-                        structType.Fields
-                            .Select(field => field.Name)
-                            .Zip(ctorTypes.Select(ToSemanticType))
-                            .ToDictionary(kv => kv.First, kv => kv.Second)
-                            .AsValueDictionary());
+                    var tagType = ((Lir.Values.Value.User)array.Values[0]).Payload;
+                    var ctorTypes = array.Values.Skip(1);
+                    if (tagType is Expression.StructType structType)
+                    {
+                        return new Semantic.Type.Struct(
+                            structType.KwStruct,
+                            structType.Fields
+                                .Select(field => field.Name)
+                                .Zip(ctorTypes.Select(ToSemanticType))
+                                .ToDictionary(kv => kv.First, kv => kv.Second)
+                                .AsValueDictionary());
+                    }
                 }
             }
+            
             throw new NotImplementedException();
         }
     }

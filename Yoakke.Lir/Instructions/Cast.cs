@@ -52,9 +52,14 @@ namespace Yoakke.Lir.Instructions
                 {
                     ReportValidationError(status, "The cast type must match the result storage type!");
                 }
-                if (Target is Type.Ptr && Value.Type is Type.Ptr)
+                if (
+                    // Source type and target type match, basically a no-op
+                       Target.Equals(Value.Type)
+                    // Always allow pointer to pointer
+                    || Target is Type.Ptr && Value.Type is Type.Ptr
+                    // Target type is a user type, allow that for type transformations
+                    || Target is Type.User)
                 {
-                    // Always allow that
                 }
                 else
                 {

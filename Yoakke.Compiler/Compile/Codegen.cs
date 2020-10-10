@@ -382,7 +382,8 @@ namespace Yoakke.Compiler.Compile
             arrayValues.Add(new Value.User(sty));
             foreach (var field in sty.Fields) arrayValues.Add(VisitNonNull(field.Type));
             var arraySpace = Builder.InitArray(Lir.Types.Type.User_, arrayValues.ToArray());
-            return Builder.Load(arraySpace);
+            // We cast it to a singular user type
+            return Builder.Cast(Lir.Types.Type.User_, Builder.Load(arraySpace));
         }
 
         protected override Value? Visit(Expression.StructValue sval)

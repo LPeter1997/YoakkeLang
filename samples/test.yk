@@ -1,4 +1,3 @@
-
 const S1 = struct {
     f: S2;
 };

@@ -182,7 +182,7 @@ const S2 = struct {
     g: i32;
 };
 
-const main = proc() -> i32 {
+const entry = proc() -> i32 {
     var x = S1 { f = S2 { g = 13; }; };
     x.f.g
 };

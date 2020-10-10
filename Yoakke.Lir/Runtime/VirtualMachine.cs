@@ -364,7 +364,12 @@ namespace Yoakke.Lir.Runtime
             case Instr.Cast cast:
             {
                 var value = Unwrap(cast.Value);
-                if (cast.Target is Type.Ptr toType && value.Type is Type.Ptr)
+                if (cast.Target.Equals(value.Type))
+                {
+                    // NO-OP
+                    return value;
+                }
+                else if (cast.Target is Type.Ptr toType && value.Type is Type.Ptr)
                 {
                     if (value is ManagedPtrValue managedPtr)
                     {
@@ -372,6 +377,11 @@ namespace Yoakke.Lir.Runtime
                     }
                     // TODO: Native ptr
                     throw new NotImplementedException();
+                }
+                else if (cast.Target is Type.User)
+                {
+                    // Wrap the type in a user value
+                    return new Value.User(value);
                 }
                 throw new InvalidOperationException();
             }

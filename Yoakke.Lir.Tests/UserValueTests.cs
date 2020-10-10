@@ -81,7 +81,7 @@ namespace Yoakke.Lir.Tests
             var p3 = new Person { Name = "Amy", Age = 32 };
 
             var pPtr = b.InitArray(Type.User_, new Value.User(p1), new Value.User(p2), new Value.User(p3));
-            b.Ret(b.Load(b.Add(pPtr, Type.I32.NewValue(0))));
+            b.Ret(b.Load(b.Add(b.Cast(new Type.Ptr(Type.User_), pPtr), Type.I32.NewValue(0))));
 
             TestOnVirtualMachine(b, new Value.User(new Person { Name = "Jon", Age = 24 }));
         }
@@ -96,7 +96,7 @@ namespace Yoakke.Lir.Tests
             var p3 = new Person { Name = "Amy", Age = 32 };
 
             var pPtr = b.InitArray(Type.User_, new Value.User(p1), new Value.User(p2), new Value.User(p3));
-            b.Ret(b.Load(b.Add(pPtr, Type.I32.NewValue(1))));
+            b.Ret(b.Load(b.Add(b.Cast(new Type.Ptr(Type.User_), pPtr), Type.I32.NewValue(1))));
 
             TestOnVirtualMachine(b, new Value.User(new Person { Name = "Chief", Age = 45 }));
         }
@@ -111,7 +111,7 @@ namespace Yoakke.Lir.Tests
             var p3 = new Person { Name = "Amy", Age = 32 };
 
             var pPtr = b.InitArray(Type.User_, new Value.User(p1), new Value.User(p2), new Value.User(p3));
-            b.Ret(b.Load(b.Add(pPtr, Type.I32.NewValue(2))));
+            b.Ret(b.Load(b.Add(b.Cast(new Type.Ptr(Type.User_), pPtr), Type.I32.NewValue(2))));
 
             TestOnVirtualMachine(b, new Value.User(new Person { Name = "Amy", Age = 32 }));
         }
