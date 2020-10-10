@@ -189,5 +189,69 @@ const entry = proc() -> i32 {
 ";
             TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(13));
         }
+
+        [TestMethod]
+        public void NestedStructAssignInner()
+        {
+            string src = @"
+const S1 = struct {
+    f: S2;
+};
+
+const S2 = struct {
+    g: i32;
+};
+
+const entry = proc() -> i32 {
+    var x = S1 { f = S2 { g = 13; }; };
+    x.f.g = 632;
+    x.f.g
+};
+";
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(632));
+        }
+
+        [TestMethod]
+        public void NestedStructAssignOuter()
+        {
+            string src = @"
+const S1 = struct {
+    f: S2;
+};
+
+const S2 = struct {
+    g: i32;
+};
+
+const entry = proc() -> i32 {
+    var x = S1 { f = S2 { g = 13; }; };
+    x.f = S2 { g = 632; };
+    x.f.g
+};
+";
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(632));
+        }
+
+        [TestMethod]
+        public void NestedStructCopyInner()
+        {
+            string src = @"
+const S1 = struct {
+    f: S2;
+};
+
+const S2 = struct {
+    g: i32;
+};
+
+const entry = proc() -> i32 {
+    var x = S1 { f = S2 { g = 13; }; };
+    var y = x.f;
+    y.g = 27;
+    x.f.g
+};
+";
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(13));
+        }
     }
 }
