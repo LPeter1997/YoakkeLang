@@ -91,6 +91,8 @@ namespace Yoakke.Compiler.Compile
             // TODO: Just a basic assumption for now
             switch (bin.Operator)
             {
+            case TokenType.And:
+            case TokenType.Or:
             case TokenType.Less:
             case TokenType.LessEqual:
             case TokenType.Greater:

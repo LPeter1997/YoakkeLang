@@ -253,5 +253,65 @@ const entry = proc() -> i32 {
 ";
             TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(13));
         }
+
+        [TestMethod]
+        public void LazyAndAllTrue()
+        {
+            string src = @"
+var x = 0;
+const f = proc() -> bool { x = x + 1; true };
+const g = proc() -> bool { x = x + 1; true };
+const entry = proc() -> i32 {
+    f() && g();
+    x
+};
+";
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(2));
+        }
+
+        [TestMethod]
+        public void LazyAndFirstFalse()
+        {
+            string src = @"
+var x = 0;
+const f = proc() -> bool { x = x + 1; false };
+const g = proc() -> bool { x = x + 1; true };
+const entry = proc() -> i32 {
+    f() && g();
+    x
+};
+";
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(1));
+        }
+
+        [TestMethod]
+        public void LazyOrAllTrue()
+        {
+            string src = @"
+var x = 0;
+const f = proc() -> bool { x = x + 1; true };
+const g = proc() -> bool { x = x + 1; true };
+const entry = proc() -> i32 {
+    f() || g();
+    x
+};
+";
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(1));
+        }
+
+        [TestMethod]
+        public void LazyOrFirstFalse()
+        {
+            string src = @"
+var x = 0;
+const f = proc() -> bool { x = x + 1; false };
+const g = proc() -> bool { x = x + 1; true };
+const entry = proc() -> i32 {
+    f() || g();
+    x
+};
+";
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(2));
+        }
     }
 }

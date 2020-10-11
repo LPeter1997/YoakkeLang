@@ -193,5 +193,41 @@ namespace Yoakke.Lir
                 arrayType, 
                 values.Select(v => new KeyValuePair<int, Value>(index++, v)));
         }
+
+        /// <summary>
+        /// Builds a lazy 'and' operation that only evaluates the right-hand side if necessary.
+        /// </summary>
+        /// <param name="builder">The <see cref="Builder"/> to build the 'and' in.</param>
+        /// <param name="first">The <see cref="Func{Builder, Value}"/> that compiles the first operand to evaluate.</param>
+        /// <param name="second">The <see cref="Func{Builder, Value}"/> that compiles the second operand to evaluate.</param>
+        /// <returns>The resulting <see cref="Value"/>.</returns>
+        public static Value LazyAnd(this Builder builder, Func<Builder, Value> first, Func<Builder, Value> second)
+        {
+            // NOTE: We assume bool is i32
+            var result = builder.Alloc(Type.I32);
+            builder.IfThenElse(
+                condition: first,
+                then: b => b.Store(result, second(b)),
+                @else: b => b.Store(result, Type.I32.NewValue(0)));
+            return builder.Load(result);
+        }
+
+        /// <summary>
+        /// Builds a lazy 'or' operation that only evaluates the right-hand side if necessary.
+        /// </summary>
+        /// <param name="builder">The <see cref="Builder"/> to build the 'or' in.</param>
+        /// <param name="first">The <see cref="Func{Builder, Value}"/> that compiles the first operand to evaluate.</param>
+        /// <param name="second">The <see cref="Func{Builder, Value}"/> that compiles the second operand to evaluate.</param>
+        /// <returns>The resulting <see cref="Value"/>.</returns>
+        public static Value LazyOr(this Builder builder, Func<Builder, Value> first, Func<Builder, Value> second)
+        {
+            // NOTE: We assume bool is i32
+            var result = builder.Alloc(Type.I32);
+            builder.IfThenElse(
+                condition: first,
+                then: b => b.Store(result, Type.I32.NewValue(1)),
+                @else: b => b.Store(result, second(b)));
+            return builder.Load(result);
+        }
     }
 }

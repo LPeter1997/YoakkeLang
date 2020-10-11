@@ -313,6 +313,19 @@ namespace Yoakke.Compiler.Compile
                 Builder.Store(left, right);
                 return null;
             }
+            else if (bin.Operator == TokenType.And || bin.Operator == TokenType.Or)
+            {
+                // TODO: Do proper type-checking, for now we blindly assume builtin operations
+                // NOTE: Different case as these are lazy operators
+                if (bin.Operator == TokenType.And)
+                {
+                    return Builder.LazyAnd(b => VisitNonNull(bin.Left), b => VisitNonNull(bin.Right));
+                }
+                else
+                {
+                    return Builder.LazyOr(b => VisitNonNull(bin.Left), b => VisitNonNull(bin.Right));
+                }
+            }
             else
             {
                 // TODO: Do proper type-checking, for now we blindly assume builtin operations

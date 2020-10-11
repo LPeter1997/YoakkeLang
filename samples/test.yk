@@ -1,12 +1,8 @@
-const S1 = struct {
-    f: S2;
-};
 
-const S2 = struct {
-    g: i32;
-};
-
+var x = 0;
+const f = proc() -> bool { x = x + 1; true };
+const g = proc() -> bool { x = x + 1; true };
 const main = proc() -> i32 {
-    var x = S1 { f = S2 { g = 13; }; };
-    x.f.g
+    f() && g();
+    x
 };
