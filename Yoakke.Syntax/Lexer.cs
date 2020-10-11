@@ -106,15 +106,24 @@ namespace Yoakke.Syntax
             case ':': return MakeToken(TokenType.Colon, 1);
             case ';': return MakeToken(TokenType.Semicolon, 1);
             case '-':
+                if (Peek(1) == '=') return MakeToken(TokenType.SubtractAssign, 2);
                 if (Peek(1) == '>') return MakeToken(TokenType.Arrow, 2);
                 return MakeToken(TokenType.Subtract, 1);
             case '=':
                 if (Peek(1) == '=') return MakeToken(TokenType.Equal, 2);
                 return MakeToken(TokenType.Assign, 1);
-            case '+': return MakeToken(TokenType.Add, 1);
-            case '*': return MakeToken(TokenType.Multiply, 1);
-            case '/': return MakeToken(TokenType.Divide, 1);
-            case '%': return MakeToken(TokenType.Modulo, 1);
+            case '+':
+                if (Peek(1) == '=') return MakeToken(TokenType.AddAssign, 2);
+                return MakeToken(TokenType.Add, 1);
+            case '*':
+                if (Peek(1) == '=') return MakeToken(TokenType.MultiplyAssign, 2);
+                return MakeToken(TokenType.Multiply, 1);
+            case '/':
+                if (Peek(1) == '=') return MakeToken(TokenType.DivideAssign, 2);
+                return MakeToken(TokenType.Divide, 1);
+            case '%':
+                if (Peek(1) == '=') return MakeToken(TokenType.ModuloAssign, 2);
+                return MakeToken(TokenType.Modulo, 1);
             case '~': return MakeToken(TokenType.Bitnot, 1);
             case '^': return MakeToken(TokenType.Bitxor, 1);
             case '>':

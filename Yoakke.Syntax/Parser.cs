@@ -43,7 +43,9 @@ namespace Yoakke.Syntax
 
         private static Precedence[] PrecedenceTable = new Precedence[]
         {
-            Precedence.Right(TokenType.Assign),
+            Precedence.Right(TokenType.Assign,
+                TokenType.AddAssign, TokenType.SubtractAssign, 
+                TokenType.MultiplyAssign, TokenType.DivideAssign, TokenType.ModuloAssign),
             Precedence.Left(TokenType.Or),
             Precedence.Left(TokenType.And),
             Precedence.Left(TokenType.Equal, TokenType.NotEqual),

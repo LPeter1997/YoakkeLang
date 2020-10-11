@@ -209,6 +209,29 @@ namespace Yoakke.Syntax
         /// </summary>
         RightShift,
 
+        // Compound assignment operators
+
+        /// <summary>
+        /// '+='.
+        /// </summary>
+        AddAssign,
+        /// <summary>
+        /// '-='.
+        /// </summary>
+        SubtractAssign,
+        /// <summary>
+        /// '*='.
+        /// </summary>
+        MultiplyAssign,
+        /// <summary>
+        /// '/='.
+        /// </summary>
+        DivideAssign,
+        /// <summary>
+        /// '%='.
+        /// </summary>
+        ModuloAssign,
+
         // Literal values
 
         /// <summary>
