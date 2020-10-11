@@ -313,6 +313,26 @@ namespace Yoakke.Compiler.Compile
                 Builder.Store(left, right);
                 return null;
             }
+            else if (bin.Operator.IsCompoundAssignment(out var op))
+            {
+                // TODO: Do proper type-checking, for now we blindly assume builtin operations
+                // Here we need to handle the case when there's a user-defined operator!
+                var leftPlace = Lvalue(bin.Left);
+                var left = Builder.Load(leftPlace);
+                var right = VisitNonNull(bin.Right);
+                var result = op switch
+                {
+                    TokenType.Add => Builder.Add(left, right),
+                    TokenType.Subtract => Builder.Sub(left, right),
+                    TokenType.Multiply => Builder.Mul(left, right),
+                    TokenType.Divide => Builder.Div(left, right),
+                    TokenType.Modulo => Builder.Mod(left, right),
+
+                    _ => throw new NotImplementedException(),
+                };
+                Builder.Store(leftPlace, result);
+                return null;
+            }
             else if (bin.Operator == TokenType.And || bin.Operator == TokenType.Or)
             {
                 // TODO: Do proper type-checking, for now we blindly assume builtin operations

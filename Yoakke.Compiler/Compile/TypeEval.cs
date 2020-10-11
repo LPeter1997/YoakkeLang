@@ -89,6 +89,11 @@ namespace Yoakke.Compiler.Compile
         protected override Type? Visit(Expression.Binary bin)
         {
             // TODO: Just a basic assumption for now
+            if (bin.Operator == TokenType.Assign || bin.Operator.IsCompoundAssignment())
+            {
+                return Type.Unit;
+            }
+
             switch (bin.Operator)
             {
             case TokenType.And:

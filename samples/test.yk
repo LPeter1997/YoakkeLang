@@ -5,7 +5,7 @@ const main = proc() -> i32 {
         if no_divisors(i) == 8 && contains_7(i) {
             return 2020 - i;
         }
-        i = i - 1;
+        i -= 1;
     }
     0
 };
@@ -15,7 +15,7 @@ const contains_7 = proc(n: i32) -> bool {
         if n % 10 == 7 {
             return true;
         }
-        n = n / 10;
+        n /= 10;
     }
     false
 };
@@ -25,9 +25,9 @@ const no_divisors = proc(n: i32) -> i32 {
     var cnt = 0;
     while i <= n {
         if n % i == 0 {
-            cnt = cnt + 1;
+            cnt += 1;
         }
-        i = i + 1;
+        i += 1;
     }
     cnt
 };

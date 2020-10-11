@@ -8,6 +8,7 @@ using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Threading.Tasks;
 using Yoakke.Compiler.Semantic;
+using Yoakke.Syntax;
 using Yoakke.Syntax.Ast;
 using Type = Yoakke.Compiler.Semantic.Type;
 
@@ -213,7 +214,7 @@ namespace Yoakke.Compiler.Compile
         protected override object? Visit(Expression.Binary bin)
         {
             base.Visit(bin);
-            if (bin.Operator == Syntax.TokenType.Assign)
+            if (bin.Operator == Syntax.TokenType.Assign || bin.Operator.IsCompoundAssignment())
             {
                 // For assignment the sides must match
                 var leftType = System.TypeOf(bin.Left);
