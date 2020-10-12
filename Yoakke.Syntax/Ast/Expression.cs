@@ -55,6 +55,28 @@ namespace Yoakke.Syntax.Ast
         }
 
         /// <summary>
+        /// An array type.
+        /// </summary>
+        public class ArrayType : Expression
+        {
+            /// <summary>
+            /// The length of the array.
+            /// </summary>
+            public readonly Expression Length;
+            /// <summary>
+            /// The element type of the array.
+            /// </summary>
+            public readonly Expression ElementType;
+
+            public ArrayType(ParseTree.Node? parseTreeNode, Expression length, Expression elementType)
+                : base(parseTreeNode)
+            {
+                Length = length;
+                ElementType = elementType;
+            }
+        }
+
+        /// <summary>
         /// A struct type expression.
         /// </summary>
         public class StructType : Expression

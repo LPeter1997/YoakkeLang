@@ -59,6 +59,9 @@ namespace Yoakke.Syntax
                 ? new Ast.Expression.Identifier(lit, lit.Token.Value)
                 : new Ast.Expression.Literal(lit, lit.Token.Type, lit.Token.Value),
 
+            ParseTree.Expression.ArrayType aty =>
+                new Ast.Expression.ArrayType(aty, Convert(aty.Length), Convert(aty.ElementType)),
+
             ParseTree.Expression.StructType sty => 
                 new Ast.Expression.StructType(sty, sty.KwStruct, sty.Fields.Select(Convert).ToArray()),
 

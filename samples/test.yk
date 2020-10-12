@@ -1,6 +1,8 @@
 
-const abs = @extern("abs", proc(i32) -> i32);
+const foo = proc(x: [5]i32) {
+
+};
 
 const main = proc() -> i32 {
-    abs(-25)
+    0
 };

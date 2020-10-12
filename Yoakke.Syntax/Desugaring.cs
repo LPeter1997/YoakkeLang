@@ -64,6 +64,9 @@ namespace Yoakke.Syntax
             Expression.Literal lit => lit,
             Expression.Identifier ident => ident,
 
+            Expression.ArrayType aty =>
+                new Expression.ArrayType(aty.ParseTreeNode, Desugar(aty.Length), Desugar(aty.ElementType)),
+
             Expression.StructType sty =>
                 new Expression.StructType(sty.ParseTreeNode, sty.KwStruct, sty.Fields.Select(Desugar).ToArray()),
 

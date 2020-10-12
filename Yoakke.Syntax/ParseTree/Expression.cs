@@ -32,6 +32,39 @@ namespace Yoakke.Syntax.ParseTree
         }
 
         /// <summary>
+        /// An array type definition.
+        /// </summary>
+        public class ArrayType : Expression
+        {
+            public override Span Span => new Span(OpenBracket.Span, ElementType.Span);
+
+            /// <summary>
+            /// The '['.
+            /// </summary>
+            public readonly Token OpenBracket;
+            /// <summary>
+            /// The length of the array.
+            /// </summary>
+            public readonly Expression Length;
+            /// <summary>
+            /// The ']'.
+            /// </summary>
+            public readonly Token CloseBracket;
+            /// <summary>
+            /// The element type.
+            /// </summary>
+            public readonly Expression ElementType;
+
+            public ArrayType(Token openBracket, Expression length, Token closeBracket, Expression elementType)
+            {
+                OpenBracket = openBracket;
+                Length = length;
+                CloseBracket = closeBracket;
+                ElementType = elementType;
+            }
+        }
+
+        /// <summary>
         /// A struct type definition.
         /// </summary>
         public class StructType : Expression

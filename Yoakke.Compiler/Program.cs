@@ -38,7 +38,7 @@ namespace Yoakke.Compiler
             //Console.WriteLine(prg.Dump());
             Console.WriteLine(ast.Dump());
 
-#if true
+#if false
             // Semantics
             // TODO: Maye this should also be part of the dependency system?
             // Probably yes!

@@ -271,6 +271,15 @@ namespace Yoakke.Syntax
                 var operand = ParsePrefixExpression(state);
                 return new Expression.Prefix(op, operand);
             }
+            else if (peek.Type == TokenType.OpenBracket)
+            {
+                var openBracket = Expect(TokenType.OpenBracket);
+                // Array type expression
+                var length = ParseExpression(ExprState.None);
+                var closeBracket = Expect(TokenType.CloseBracket);
+                var elementType = ParsePrefixExpression(state);
+                return new Expression.ArrayType(openBracket, length, closeBracket, elementType);
+            }
             else
             {
                 return ParsePostfixExpression(state);
