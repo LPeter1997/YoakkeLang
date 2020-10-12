@@ -22,6 +22,7 @@ namespace Yoakke.Compiler.Compile
     public class DependencySystem : IDependencySystem
     {
         public SymbolTable SymbolTable { get; }
+        public Builder Builder => codegen.Builder;
 
         private Codegen codegen;
         private TypeEval typeEval;

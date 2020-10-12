@@ -1,10 +1,6 @@
 
-const modify = proc(x: *i32) {
-    x~ = 24;
-};
+const abs = @extern("abs", proc(i32) -> i32);
 
 const main = proc() -> i32 {
-    var x = 0;
-    modify(&x);
-    x
+    abs(-25)
 };

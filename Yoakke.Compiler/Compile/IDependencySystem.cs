@@ -15,6 +15,7 @@ namespace Yoakke.Compiler.Compile
     public interface IDependencySystem
     {
         public SymbolTable SymbolTable { get; }
+        public Builder Builder { get; }
 
         public Assembly? Compile(Declaration.File file, BuildStatus status);
         public void TypeCheck(Node node);
