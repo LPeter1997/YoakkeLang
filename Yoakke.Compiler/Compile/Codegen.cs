@@ -309,6 +309,13 @@ namespace Yoakke.Compiler.Compile
             return Builder.Call(proc, args);
         }
 
+        protected override Value? Visit(Expression.Subscript sub)
+        {
+            // TODO
+            //var array = VisitNonNull(sub.Array);
+            throw new NotImplementedException();
+        }
+
         protected override Value? Visit(Expression.Binary bin)
         {
             if (bin.Operator == TokenType.Assign)
@@ -477,7 +484,23 @@ namespace Yoakke.Compiler.Compile
 
         protected override Value? Visit(Expression.ProcSignature sign)
         {
+            // TODO: Now we can properly construct types (like structs)
+            // No reason to avoid this!
             throw new NotImplementedException();
+        }
+
+        protected override Value? Visit(Expression.ArrayType aty)
+        {
+            // The first element will be a pointer to this expression
+            // The second one will be the length
+            // The third will be the array element type
+            var arrayValues = new List<Value>();
+            arrayValues.Add(new Value.User(aty));
+            arrayValues.Add(VisitNonNull(aty.Length));
+            arrayValues.Add(VisitNonNull(aty.ElementType));
+            var arraySpace = Builder.InitArray(Lir.Types.Type.User_, arrayValues.ToArray());
+            // We cast it to a singular user type
+            return Builder.Cast(Lir.Types.Type.User_, Builder.Load(arraySpace));
         }
 
         protected override Value? Visit(Expression.StructType sty)

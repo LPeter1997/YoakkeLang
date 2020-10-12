@@ -27,6 +27,11 @@ namespace Yoakke.Compiler.Compile
                     proc.Parameters.Select(param => ToLirType(param, builder)).ToList().AsValueList()),
             
             Semantic.Type.Struct struc => ToLirStruct(struc, builder),
+
+            Semantic.Type.Array array => 
+                new Lir.Types.Type.Array(
+                    ToLirType(array.ElementType, builder),
+                    array.Length),
             
             _ => throw new NotImplementedException(),
         };
@@ -59,6 +64,13 @@ namespace Yoakke.Compiler.Compile
                         && prefix.Operator == Syntax.TokenType.Multiply)
                     {
                         return new Semantic.Type.Ptr(ToSemanticType(ctorTypes.First()));
+                    }
+                    if (tagType is Expression.ArrayType)
+                    {
+                        var ctorValues = ctorTypes.ToList();
+                        var length = (Lir.Values.Value.Int)ctorValues[0];
+                        var elementType = ToSemanticType(ctorValues[1]);
+                        return new Semantic.Type.Array(elementType, (int)length.Value);
                     }
                     if (tagType is Expression.StructType structType)
                     {

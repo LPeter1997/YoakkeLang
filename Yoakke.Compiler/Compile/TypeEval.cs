@@ -31,6 +31,7 @@ namespace Yoakke.Compiler.Compile
         // Implementation details //////////////////////////////////////////////
 
         protected override Type? Visit(Expression.StructType sty) => Type.Type_;
+        protected override Type? Visit(Expression.ArrayType aty) => Type.Type_;
         protected override Type? Visit(Expression.ProcSignature sign) => Type.Type_;
 
         protected override Type? Visit(Expression.Literal lit) => lit.Type switch
@@ -84,6 +85,12 @@ namespace Yoakke.Compiler.Compile
         {
             var procType = (Type.Proc)TypeOf(call.Procedure);
             return procType.Return;
+        }
+
+        protected override Type? Visit(Expression.Subscript sub)
+        {
+            var arrayType = (Type.Array)TypeOf(sub.Array);
+            return arrayType.ElementType;
         }
 
         protected override Type? Visit(Expression.Binary bin)

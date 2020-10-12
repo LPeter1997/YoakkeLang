@@ -211,6 +211,26 @@ namespace Yoakke.Compiler.Compile
             return null;
         }
 
+        protected override object? Visit(Expression.Subscript sub)
+        {
+            base.Visit(sub);
+            // Check if the indexed thing is even an array
+            var indexedType = System.TypeOf(sub.Array);
+            if (!(indexedType is Type.Array arrayType))
+            {
+                // TODO
+                throw new NotImplementedException("Can't index non-array!");
+            }
+            // Check if the index is an integer
+            var indexType = System.TypeOf(sub.Index);
+            if (!(indexType is Type.Prim prim && prim.Type is Lir.Types.Type.Int))
+            {
+                // TODO
+                throw new NotImplementedException("Can't index with non-integer!");
+            }
+            return null;
+        }
+
         protected override object? Visit(Expression.Binary bin)
         {
             base.Visit(bin);
