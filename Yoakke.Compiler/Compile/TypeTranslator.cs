@@ -18,6 +18,8 @@ namespace Yoakke.Compiler.Compile
         {
             Semantic.Type.Prim prim => prim.Type,
 
+            Semantic.Type.Ptr ptr => new Lir.Types.Type.Ptr(ToLirType(ptr.Subtype, builder)),
+
             Semantic.Type.Proc proc =>
                 new Lir.Types.Type.Proc(
                     Lir.CallConv.Cdecl,
@@ -53,6 +55,11 @@ namespace Yoakke.Compiler.Compile
                 {
                     var tagType = ((Lir.Values.Value.User)array.Values[0]).Payload;
                     var ctorTypes = array.Values.Skip(1);
+                    if (   tagType is Expression.Prefix prefix 
+                        && prefix.Operator == Syntax.TokenType.Multiply)
+                    {
+                        return new Semantic.Type.Ptr(ToSemanticType(ctorTypes.First()));
+                    }
                     if (tagType is Expression.StructType structType)
                     {
                         return new Semantic.Type.Struct(

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using Yoakke.Compiler.Semantic;
@@ -199,6 +200,11 @@ namespace Yoakke.Compiler.Compile
                 }
                 // Now we can compile the body
                 Visit(proc.Body);
+                // Add a return, if there's none and the return-type is unit
+                if (!Builder.CurrentBasicBlock.EndsInBranch && returnType.Equals(Semantic.Type.Unit))
+                {
+                    Builder.Ret();
+                }
             });
             Debug.Assert(procVal != null);
             return procVal;
@@ -379,6 +385,74 @@ namespace Yoakke.Compiler.Compile
             }
         }
 
+        protected override Value? Visit(Expression.Prefix pre)
+        {
+            switch (pre.Operator)
+            {
+            case TokenType.Add:
+                // No-op for numbers
+                return VisitNonNull(pre.Operand);
+
+            case TokenType.Subtract:
+            {
+                // Find the integer type
+                var intType = (Lir.Types.Type.Int)((Semantic.Type.Prim)TypeOf(pre.Operand)).Type;
+                Debug.Assert(intType.Signed);
+                // Multiply by -1
+                var sub = VisitNonNull(pre.Operand);
+                return Builder.Mul(sub, intType.NewValue(-1));
+            }
+
+            case TokenType.Not:
+            {
+                // Either bitwise or bool not
+                var subType = TypeOf(pre.Operand);
+                var sub = VisitNonNull(pre.Operand);
+                if (subType.Equals(Semantic.Type.Bool))
+                {
+                    // Bool-not
+                    var intType = (Lir.Types.Type.Int)((Semantic.Type.Prim)subType).Type;
+                    return Builder.BitXor(sub, intType.NewValue(1));
+                }
+                else
+                {
+                    // Assume bitwise not
+                    return Builder.BitNot(sub);
+                }
+            }
+
+            // Address-of
+            case TokenType.Bitand: return Lvalue(pre.Operand);
+
+            // Pointer type construction
+            case TokenType.Multiply:
+            {
+                // The first element will be pointer to this expression
+                // The second one will be the subtype
+                var arrayValues = new List<Value>();
+                arrayValues.Add(new Value.User(pre));
+                arrayValues.Add(VisitNonNull(pre.Operand));
+                var arraySpace = Builder.InitArray(Lir.Types.Type.User_, arrayValues.ToArray());
+                // We cast it to a singular user type
+                return Builder.Cast(Lir.Types.Type.User_, Builder.Load(arraySpace));
+            }
+
+            default: throw new NotImplementedException();
+            }
+        }
+
+        protected override Value? Visit(Expression.Postfix post)
+        {
+            switch (post.Operator)
+            {
+            // Dereference
+            case TokenType.Bitnot:
+                return Builder.Load(VisitNonNull(post.Operand));
+
+            default: throw new NotImplementedException();
+            }
+        }
+
         protected override Value? Visit(Expression.DotPath dot)
         {
             var leftType = TypeOf(dot.Left);
@@ -449,6 +523,9 @@ namespace Yoakke.Compiler.Compile
                 var index = FieldIndex(leftType, dotPath.Right);
                 return Builder.ElementPtr(left, index);
             }
+
+            case Expression.Postfix postfix when postfix.Operator == TokenType.Bitnot:
+                return Builder.Load(Lvalue(postfix.Operand));
 
             default: throw new NotImplementedException();
             }

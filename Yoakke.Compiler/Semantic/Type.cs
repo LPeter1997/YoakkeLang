@@ -60,6 +60,32 @@ namespace Yoakke.Compiler.Semantic
         }
 
         /// <summary>
+        /// A pointer <see cref="Type"/>.
+        /// </summary>
+        public class Ptr : Type
+        {
+            /// <summary>
+            /// The subtype that the pointer points to.
+            /// </summary>
+            public readonly Type Subtype;
+
+            /// <summary>
+            /// Initializes a new <see cref="Ptr"/>.
+            /// </summary>
+            /// <param name="subtype">The subtype that the pointer points to.</param>
+            public Ptr(Type subtype)
+            {
+                Subtype = subtype;
+            }
+
+            public override bool Equals(Type? other) =>
+                   other is Ptr p
+                && Subtype.Equals(p.Subtype);
+            public override int GetHashCode() =>
+                HashCode.Combine(typeof(Ptr), Subtype);
+        }
+
+        /// <summary>
         /// A procedure <see cref="Type"/>.
         /// </summary>
         public class Proc : Type

@@ -214,7 +214,7 @@ namespace Yoakke.Compiler.Compile
         protected override object? Visit(Expression.Binary bin)
         {
             base.Visit(bin);
-            if (bin.Operator == Syntax.TokenType.Assign || bin.Operator.IsCompoundAssignment())
+            if (bin.Operator == TokenType.Assign || bin.Operator.IsCompoundAssignment())
             {
                 // For assignment the sides must match
                 var leftType = System.TypeOf(bin.Left);
@@ -228,6 +228,35 @@ namespace Yoakke.Compiler.Compile
             else
             {
                 // TODO
+            }
+            return null;
+        }
+
+        protected override object? Visit(Expression.Prefix pre)
+        {
+            base.Visit(pre);
+            // TODO: Implement everything
+            // For now we assume correct usage
+            return null;
+        }
+
+        protected override object? Visit(Expression.Postfix post)
+        {
+            base.Visit(post);
+            switch (post.Operator)
+            {
+            case TokenType.Bitnot:
+            {
+                var subType = System.TypeOf(post.Operand);
+                if (!(subType is Type.Ptr))
+                {
+                    // TODO
+                    throw new NotImplementedException("Can't deref non-pointer!");
+                }
+            }
+            break;
+
+            default: throw new NotImplementedException();
             }
             return null;
         }

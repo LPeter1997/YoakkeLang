@@ -313,5 +313,54 @@ const entry = proc() -> i32 {
 ";
             TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(2));
         }
+
+        [TestMethod]
+        public void NumericNegation()
+        {
+            string src = @"
+const entry = proc() -> i32 {
+    -123
+};
+";
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(-123));
+        }
+
+        [TestMethod]
+        public void NumericPonoted()
+        {
+            string src = @"
+const entry = proc() -> i32 {
+    +265
+};
+";
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(265));
+        }
+
+        [TestMethod]
+        public void BasicPointers()
+        {
+            string src = @"
+const modify = proc(x: *i32) {
+    x~ = 24;
+};
+const entry = proc() -> i32 {
+    var x = 0;
+    modify(&x);
+    x
+};
+";
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(24));
+        }
+
+        [TestMethod]
+        public void BitwiseNegation()
+        {
+            string src = @"
+const entry = proc() -> i32 {
+    !2
+};
+";
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(-3));
+        }
     }
 }

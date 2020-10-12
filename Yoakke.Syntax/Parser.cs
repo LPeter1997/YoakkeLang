@@ -43,12 +43,14 @@ namespace Yoakke.Syntax
 
         private static HashSet<TokenType> PrefixOperators = new HashSet<TokenType>
         { 
+            // Ponoted
+            TokenType.Add,
             // Negation
-            TokenType.Subtract, 
+            TokenType.Subtract,
             // Pointer type
-            TokenType.Multiply, 
+            TokenType.Multiply,
             // Address of
-            TokenType.And, 
+            TokenType.Bitand, 
             // Bitwise and bool negation
             TokenType.Not,
         };

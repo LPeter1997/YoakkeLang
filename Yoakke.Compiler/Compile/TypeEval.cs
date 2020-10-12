@@ -110,6 +110,39 @@ namespace Yoakke.Compiler.Compile
             }
         }
 
+        protected override Type? Visit(Expression.Prefix pre)
+        {
+            switch (pre.Operator)
+            {
+            case TokenType.Add:
+            case TokenType.Subtract:
+            case TokenType.Not:
+                return TypeOf(pre.Operand);
+
+            case TokenType.Bitand:
+                return new Type.Ptr(TypeOf(pre.Operand));
+
+            case TokenType.Multiply:
+                return Type.Type_;
+
+            default: throw new NotImplementedException();
+            }
+        }
+
+        protected override Type? Visit(Expression.Postfix post)
+        {
+            switch (post.Operator)
+            {
+            case TokenType.Bitnot:
+            {
+                var ptrType = (Type.Ptr)TypeOf(post.Operand);
+                return ptrType.Subtype;
+            }
+
+            default: throw new NotImplementedException();
+            }
+        }
+
         protected override Type? Visit(Expression.StructValue sval) =>
             System.EvaluateType(sval.StructType);
 
