@@ -54,12 +54,14 @@ namespace Yoakke.Syntax.Ast
         {
             Expression.Literal       l => Visit(l),
             Expression.Identifier    i => Visit(i),
+            Expression.ArrayType     a => Visit(a),
             Expression.StructType    s => Visit(s),
             Expression.StructValue   s => Visit(s),
             Expression.ProcSignature s => Visit(s),
             Expression.Proc          p => Visit(p),
             Expression.Block         b => Visit(b),
             Expression.Call          c => Visit(c),
+            Expression.Subscript     s => Visit(s),
             Expression.If            i => Visit(i),
             Expression.While         w => Visit(w),
             Expression.Binary        b => Visit(b),
@@ -111,6 +113,13 @@ namespace Yoakke.Syntax.Ast
         protected virtual T? Visit(Expression.Literal lit) => default;
         protected virtual T? Visit(Expression.Identifier ident) => default;
 
+        protected virtual T? Visit(Expression.ArrayType aty)
+        {
+            Visit(aty.Length);
+            Visit(aty.ElementType);
+            return default;
+        }
+
         protected virtual T? Visit(Expression.StructType sty)
         {
             foreach (var field in sty.Fields) Visit(field);
@@ -149,6 +158,13 @@ namespace Yoakke.Syntax.Ast
         {
             Visit(call.Procedure);
             foreach (var arg in call.Arguments) Visit(arg);
+            return default;
+        }
+
+        protected virtual T? Visit(Expression.Subscript sub)
+        {
+            Visit(sub.Array);
+            Visit(sub.Index);
             return default;
         }
 
