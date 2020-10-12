@@ -91,6 +91,12 @@ namespace Yoakke.Syntax
             ParseTree.Expression.Binary bin =>
                 new Ast.Expression.Binary(bin, Convert(bin.Left), bin.Operator.Type, Convert(bin.Right)),
 
+            ParseTree.Expression.Prefix pre =>
+                new Ast.Expression.Prefix(pre, pre.Operator.Type, Convert(pre.Operand)),
+
+            ParseTree.Expression.Postfix post =>
+                new Ast.Expression.Postfix(post, Convert(post.Operand), post.Operator.Type),
+
             ParseTree.Expression.DotPath dot =>
                 new Ast.Expression.DotPath(dot, Convert(dot.Left), dot.Right.Value),
 

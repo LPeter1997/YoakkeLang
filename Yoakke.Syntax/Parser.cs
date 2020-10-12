@@ -39,6 +39,26 @@ namespace Yoakke.Syntax
                 new Precedence(Associativity.Right, operators.ToHashSet());
         }
 
+        // Prefix and postfix operators ////////////////////////////////////////
+
+        private static HashSet<TokenType> PrefixOperators = new HashSet<TokenType>
+        { 
+            // Negation
+            TokenType.Subtract, 
+            // Pointer type
+            TokenType.Multiply, 
+            // Address of
+            TokenType.And, 
+            // Bitwise and bool negation
+            TokenType.Not,
+        };
+
+        private static HashSet<TokenType> PostfixOperators = new HashSet<TokenType>
+        {
+            // Dereference
+            TokenType.Bitnot,
+        };
+
         // Operator precedence table ///////////////////////////////////////////
 
         private static Precedence[] PrecedenceTable = new Precedence[]
@@ -242,8 +262,17 @@ namespace Yoakke.Syntax
 
         private Expression ParsePrefixExpression(ExprState state)
         {
-            // NOTE: For now we just use this for extendability
-            return ParsePostfixExpression(state);
+            var peek = Peek();
+            if (PrefixOperators.Contains(peek.Type))
+            {
+                var op = Next();
+                var operand = ParsePrefixExpression(state);
+                return new Expression.Prefix(op, operand);
+            }
+            else
+            {
+                return ParsePostfixExpression(state);
+            }
         }
 
         private Expression ParsePostfixExpression(ExprState state)
@@ -252,7 +281,12 @@ namespace Yoakke.Syntax
             while (true)
             {
                 var peek = Peek();
-                if (peek.Type == TokenType.OpenParen)
+                if (PostfixOperators.Contains(peek.Type))
+                {
+                    var op = Next();
+                    result = new Expression.Postfix(result, op);
+                }
+                else if (peek.Type == TokenType.OpenParen)
                 {
                     var openParen = Expect(TokenType.OpenParen);
                     // Call expression

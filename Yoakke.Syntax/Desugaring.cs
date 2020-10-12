@@ -106,6 +106,12 @@ namespace Yoakke.Syntax
             Expression.Binary bin =>
                 new Expression.Binary(bin.ParseTreeNode, Desugar(bin.Left), bin.Operator, Desugar(bin.Right)),
 
+            Expression.Prefix pre =>
+                new Expression.Prefix(pre.ParseTreeNode, pre.Operator, Desugar(pre.Operand)),
+
+            Expression.Postfix post =>
+                new Expression.Postfix(post.ParseTreeNode, Desugar(post.Operand), post.Operator),
+
             Expression.DotPath dot =>
                 new Expression.DotPath(dot.ParseTreeNode, Desugar(dot.Left), dot.Right),
 

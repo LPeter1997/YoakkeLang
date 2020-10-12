@@ -503,6 +503,52 @@ namespace Yoakke.Syntax.ParseTree
         }
 
         /// <summary>
+        /// An <see cref="Expression"/> with a prefix operator.
+        /// </summary>
+        public class Prefix : Expression
+        {
+            public override Span Span => new Span(Operator.Span, Operand.Span);
+
+            /// <summary>
+            /// The prefix operator.
+            /// </summary>
+            public readonly Token Operator;
+            /// <summary>
+            /// The operand to apply the operation to.
+            /// </summary>
+            public readonly Expression Operand;
+
+            public Prefix(Token @operator, Expression operand)
+            {
+                Operator = @operator;
+                Operand = operand;
+            }
+        }
+
+        /// <summary>
+        /// An <see cref="Expression"/> with a postfix operator.
+        /// </summary>
+        public class Postfix : Expression
+        {
+            public override Span Span => new Span(Operand.Span, Operator.Span);
+
+            /// <summary>
+            /// The operand to apply the operation to.
+            /// </summary>
+            public readonly Expression Operand;
+            /// <summary>
+            /// The prefix operator.
+            /// </summary>
+            public readonly Token Operator;
+
+            public Postfix(Expression operand, Token @operator)
+            {
+                Operand = operand;
+                Operator = @operator;
+            }
+        }
+
+        /// <summary>
         /// A dot-path access.
         /// </summary>
         public class DotPath : Expression

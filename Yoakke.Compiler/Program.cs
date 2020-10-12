@@ -38,6 +38,7 @@ namespace Yoakke.Compiler
             //Console.WriteLine(prg.Dump());
             Console.WriteLine(ast.Dump());
 
+#if false
             // Semantics
             // TODO: Maye this should also be part of the dependency system?
             // Probably yes!
@@ -79,6 +80,7 @@ namespace Yoakke.Compiler
                 OutputPath = "C:/TMP/program.exe",
             };
             toolchain.Compile(build);
+#endif
 
 #else
             // TODO: We need to expand arguments

@@ -329,6 +329,50 @@ namespace Yoakke.Syntax.Ast
         }
 
         /// <summary>
+        /// A prefix operation.
+        /// </summary>
+        public class Prefix : Expression
+        {
+            /// <summary>
+            /// The operator kind.
+            /// </summary>
+            public readonly TokenType Operator;
+            /// <summary>
+            /// The operand.
+            /// </summary>
+            public readonly Expression Operand;
+
+            public Prefix(ParseTree.Node? parseTreeNode, TokenType op, Expression operand)
+                : base(parseTreeNode)
+            {
+                Operator = op;
+                Operand = operand;
+            }
+        }
+
+        /// <summary>
+        /// A postfix operation.
+        /// </summary>
+        public class Postfix : Expression
+        {
+            /// <summary>
+            /// The operand.
+            /// </summary>
+            public readonly Expression Operand;
+            /// <summary>
+            /// The operator kind.
+            /// </summary>
+            public readonly TokenType Operator;
+
+            public Postfix(ParseTree.Node? parseTreeNode, Expression operand, TokenType op)
+                : base(parseTreeNode)
+            {
+                Operand = operand;
+                Operator = op;
+            }
+        }
+
+        /// <summary>
         /// A subpath accessed with a dot.
         /// </summary>
         public class DotPath : Expression
