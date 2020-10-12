@@ -312,6 +312,14 @@ namespace Yoakke.Syntax
                     var closeParen = Expect(TokenType.CloseParen);
                     result = new Expression.Call(result, openParen, args, closeParen);
                 }
+                else if (peek.Type == TokenType.OpenBracket)
+                {
+                    var openBracket = Expect(TokenType.OpenBracket);
+                    // Subscript expression
+                    var index = ParseExpression(ExprState.None);
+                    var closeBracket = Expect(TokenType.CloseBracket);
+                    result = new Expression.Subscript(result, openBracket, index, closeBracket);
+                }
                 else if (!state.HasFlag(ExprState.TypeOnly)
                       && !state.HasFlag(ExprState.NoBraced)
                       && peek.Type == TokenType.OpenBrace)

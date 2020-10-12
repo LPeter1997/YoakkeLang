@@ -1,8 +1,6 @@
 
-const foo = proc(x: [5]i32) {
-
-};
-
 const main = proc() -> i32 {
-    0
+    var arr: [5]i32;
+    arr[0] = 24;
+    arr[0]
 };

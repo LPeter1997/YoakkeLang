@@ -96,6 +96,9 @@ namespace Yoakke.Syntax
                     Desugar(call.Procedure), 
                     call.Arguments.Select(Desugar).ToArray()),
 
+            Expression.Subscript sub =>
+                new Expression.Subscript(sub.ParseTreeNode, Desugar(sub.Array), Desugar(sub.Index)),
+
             Expression.If iff =>
                 new Expression.If(
                     iff.ParseTreeNode, 

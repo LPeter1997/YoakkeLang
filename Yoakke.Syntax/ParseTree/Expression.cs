@@ -383,6 +383,39 @@ namespace Yoakke.Syntax.ParseTree
         }
 
         /// <summary>
+        /// An array-subscript.
+        /// </summary>
+        public class Subscript : Expression
+        {
+            public override Span Span => new Span(Array.Span, CloseBracket.Span);
+
+            /// <summary>
+            /// The subscripted array.
+            /// </summary>
+            public readonly Expression Array;
+            /// <summary>
+            /// The '['.
+            /// </summary>
+            public readonly Token OpenBracked;
+            /// <summary>
+            /// The index.
+            /// </summary>
+            public readonly Expression Index;
+            /// <summary>
+            /// The ']'.
+            /// </summary>
+            public readonly Token CloseBracket;
+
+            public Subscript(Expression array, Token openBracked, Expression index, Token closeBracket)
+            {
+                Array = array;
+                OpenBracked = openBracked;
+                Index = index;
+                CloseBracket = closeBracket;
+            }
+        }
+
+        /// <summary>
         /// An if-else conditional.
         /// </summary>
         public class If : Expression

@@ -86,6 +86,9 @@ namespace Yoakke.Syntax
                     Convert(call.Procedure), 
                     call.Arguments.Select(a => a.Element).Select(Convert).ToArray()),
 
+            ParseTree.Expression.Subscript sub =>
+                new Ast.Expression.Subscript(sub, Convert(sub.Array), Convert(sub.Index)),
+
             ParseTree.Expression.If iff => ConvertIf(iff),
 
             ParseTree.Expression.While whil =>

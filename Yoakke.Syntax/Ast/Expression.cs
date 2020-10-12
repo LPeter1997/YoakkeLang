@@ -275,6 +275,28 @@ namespace Yoakke.Syntax.Ast
         }
 
         /// <summary>
+        /// An array-subscript.
+        /// </summary>
+        public class Subscript : Expression
+        {
+            /// <summary>
+            /// The accessed array.
+            /// </summary>
+            public readonly Expression Array;
+            /// <summary>
+            /// The array index.
+            /// </summary>
+            public readonly Expression Index;
+
+            public Subscript(ParseTree.Node? parseTreeNode, Expression array, Expression index)
+                : base(parseTreeNode)
+            {
+                Array = array;
+                Index = index;
+            }
+        }
+
+        /// <summary>
         /// An if-else expression.
         /// </summary>
         public class If : Expression
