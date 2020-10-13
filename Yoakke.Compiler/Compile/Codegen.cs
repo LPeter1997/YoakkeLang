@@ -540,7 +540,7 @@ namespace Yoakke.Compiler.Compile
             }
 
             case Expression.Unary ury when ury.Operator == Expression.UnaryOp.Dereference:
-                return Builder.Load(Lvalue(ury.Operand));
+                return VisitNonNull(ury.Operand);
 
             case Expression.Subscript sub:
             {
@@ -550,9 +550,6 @@ namespace Yoakke.Compiler.Compile
                 var index = VisitNonNull(sub.Index);
                 return Builder.Add(array, index);
             }
-
-            case Expression.Call call:
-                return VisitNonNull(call);
 
             default: throw new NotImplementedException();
             }

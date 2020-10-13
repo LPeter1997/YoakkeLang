@@ -431,5 +431,22 @@ namespace Yoakke.Lir.Tests
             b.Ret(b.Load(g));
             TestOnAllBackends(b, Type.I32.NewValue(3745));
         }
+
+        [TestMethod]
+        public void GlobalStorageAsAddress()
+        {
+            var b = GetBuilder();
+            var g = b.DefineGlobal("foo", Type.I32);
+
+            var entry = b.CurrentProc;
+            var get_addr = b.DefineProc("get_addr");
+            get_addr.Return = new Type.Ptr(Type.I32);
+            b.Ret(g);
+
+            b.CurrentProc = entry;
+            b.Store(b.Call(get_addr, new List<Value> { }), Type.I32.NewValue(5));
+            b.Ret(b.Load(g));
+            TestOnAllBackends(b, Type.I32.NewValue(5));
+        }
     }
 }
