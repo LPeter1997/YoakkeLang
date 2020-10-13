@@ -65,8 +65,7 @@ namespace Yoakke.Syntax.Ast
             Expression.If            i => Visit(i),
             Expression.While         w => Visit(w),
             Expression.Binary        b => Visit(b),
-            Expression.Prefix        p => Visit(p),
-            Expression.Postfix       p => Visit(p),
+            Expression.Unary         u => Visit(u),
             Expression.DotPath       d => Visit(d),
 
             _ => throw new NotImplementedException(),
@@ -190,15 +189,9 @@ namespace Yoakke.Syntax.Ast
             return default;
         }
 
-        protected virtual T? Visit(Expression.Prefix pre)
+        protected virtual T? Visit(Expression.Unary ury)
         {
-            Visit(pre.Operand);
-            return default;
-        }
-
-        protected virtual T? Visit(Expression.Postfix post)
-        {
-            Visit(post.Operand);
+            Visit(ury.Operand);
             return default;
         }
 

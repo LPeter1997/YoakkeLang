@@ -291,35 +291,4 @@ namespace Yoakke.Syntax
         /// </summary>
         KwReturn,
     }
-
-    public static class TokenTypeExtensions
-    {
-        /// <summary>
-        /// Checks if the <see cref="TokenType"/> is some kind of compound assignment ('@=') operator.
-        /// </summary>
-        /// <param name="tokenType">The <see cref="TokenType"/> to check.</param>
-        /// <returns>True, if the <see cref="TokenType"/> is a compound assignment operator.</returns>
-        public static bool IsCompoundAssignment(this TokenType tokenType) =>
-            IsCompoundAssignment(tokenType, out var _);
-
-        /// <summary>
-        /// Checks if the <see cref="TokenType"/> is some kind of compound assignment ('@=') operator.
-        /// </summary>
-        /// <param name="tokenType">The <see cref="TokenType"/> to check.</param>
-        /// <param name="binOp">The binary operator that corresponds to the compound one.</param>
-        /// <returns>True, if the <see cref="TokenType"/> is a compound assignment operator.</returns>
-        public static bool IsCompoundAssignment(this TokenType tokenType, out TokenType binOp)
-        {
-            binOp = tokenType switch
-            {
-                TokenType.AddAssign => TokenType.Add,
-                TokenType.SubtractAssign => TokenType.Subtract,
-                TokenType.MultiplyAssign => TokenType.Multiply,
-                TokenType.DivideAssign => TokenType.Divide,
-                TokenType.ModuloAssign => TokenType.Modulo,
-                _ => TokenType.Unknown,
-            };
-            return binOp != TokenType.Unknown;
-        }
-    }
 }

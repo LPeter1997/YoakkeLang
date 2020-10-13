@@ -16,6 +16,16 @@ namespace Yoakke.Syntax.Ast
     partial class Expression
     {
         /// <summary>
+        /// The type of literals.
+        /// </summary>
+        public enum LiteralType
+        {
+            Integer,
+            Bool,
+            String,
+        }
+
+        /// <summary>
         /// Some literal token, like an integer, bool or string.
         /// </summary>
         public class Literal : Expression
@@ -23,13 +33,13 @@ namespace Yoakke.Syntax.Ast
             /// <summary>
             /// The type of the literal.
             /// </summary>
-            public readonly TokenType Type;
+            public readonly LiteralType Type;
             /// <summary>
             /// The literal value.
             /// </summary>
             public readonly string Value;
 
-            public Literal(ParseTree.Node? parseTreeNode, TokenType type, string value)
+            public Literal(ParseTree.Node? parseTreeNode, LiteralType type, string value)
                 : base(parseTreeNode)
             {
                 Type = type;
@@ -346,6 +356,38 @@ namespace Yoakke.Syntax.Ast
         }
 
         /// <summary>
+        /// The different binary operator kinds.
+        /// </summary>
+        public enum BinaryOperator
+        {
+            // Basic arithmetic
+            Add, Subtract, Multiply, Divide, Modulo,
+            // Relations
+            Equals, NotEquals, Greater, Less, GreaterEqual, LessEqual,
+            // Bitwise
+            BitAnd, BitOr, BitXor,
+            // Shift
+            LeftShift, RightShift,
+            // Logical
+            And, Or,
+            // Assignment
+            Assign,
+            AddAssign, SubtractAssign, MultiplyAssign, DivideAssign, ModuloAssign,
+        }
+
+        /// <summary>
+        /// The compound binary operators and their corredponding primitive operators.
+        /// </summary>
+        public static IDictionary<BinaryOperator, BinaryOperator> CompoundBinaryOperators = new Dictionary<BinaryOperator, BinaryOperator>
+        {
+            { BinaryOperator.AddAssign     , BinaryOperator.Add      },
+            { BinaryOperator.SubtractAssign, BinaryOperator.Subtract },
+            { BinaryOperator.MultiplyAssign, BinaryOperator.Multiply },
+            { BinaryOperator.DivideAssign  , BinaryOperator.Divide   },
+            { BinaryOperator.ModuloAssign  , BinaryOperator.Modulo   },
+        };
+
+        /// <summary>
         /// A binary operation.
         /// </summary>
         public class Binary : Expression
@@ -357,13 +399,13 @@ namespace Yoakke.Syntax.Ast
             /// <summary>
             /// The operator kind.
             /// </summary>
-            public readonly TokenType Operator;
+            public readonly BinaryOperator Operator;
             /// <summary>
             /// The right-hand side of the operation.
             /// </summary>
             public readonly Expression Right;
 
-            public Binary(ParseTree.Node? parseTreeNode, Expression left, TokenType op, Expression right)
+            public Binary(ParseTree.Node? parseTreeNode, Expression left, BinaryOperator op, Expression right)
                 : base(parseTreeNode)
             {
                 Left = left;
@@ -373,46 +415,35 @@ namespace Yoakke.Syntax.Ast
         }
 
         /// <summary>
-        /// A prefix operation.
+        /// The different unary operator kinds.
         /// </summary>
-        public class Prefix : Expression
+        public enum UnaryOperator
         {
-            /// <summary>
-            /// The operator kind.
-            /// </summary>
-            public readonly TokenType Operator;
-            /// <summary>
-            /// The operand.
-            /// </summary>
-            public readonly Expression Operand;
-
-            public Prefix(ParseTree.Node? parseTreeNode, TokenType op, Expression operand)
-                : base(parseTreeNode)
-            {
-                Operator = op;
-                Operand = operand;
-            }
+            // +, -, !
+            Ponote, Negate, Not,
+            // *, &, ~
+            PointerType, AddressOf, Dereference,
         }
 
         /// <summary>
-        /// A postfix operation.
+        /// A unary operation.
         /// </summary>
-        public class Postfix : Expression
+        public class Unary : Expression
         {
+            /// <summary>
+            /// The operator kind.
+            /// </summary>
+            public readonly UnaryOperator Operator;
             /// <summary>
             /// The operand.
             /// </summary>
             public readonly Expression Operand;
-            /// <summary>
-            /// The operator kind.
-            /// </summary>
-            public readonly TokenType Operator;
 
-            public Postfix(ParseTree.Node? parseTreeNode, Expression operand, TokenType op)
+            public Unary(ParseTree.Node? parseTreeNode, UnaryOperator op, Expression operand)
                 : base(parseTreeNode)
             {
-                Operand = operand;
                 Operator = op;
+                Operand = operand;
             }
         }
 

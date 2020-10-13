@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace Yoakke.Syntax
 {
@@ -57,7 +58,7 @@ namespace Yoakke.Syntax
         {
             ParseTree.Expression.Literal lit => lit.Token.Type == TokenType.Identifier
                 ? new Ast.Expression.Identifier(lit, lit.Token.Value)
-                : new Ast.Expression.Literal(lit, lit.Token.Type, lit.Token.Value),
+                : new Ast.Expression.Literal(lit, ToLiteralType(lit.Token.Type), lit.Token.Value),
 
             ParseTree.Expression.ArrayType aty =>
                 new Ast.Expression.ArrayType(aty, Convert(aty.Length), Convert(aty.ElementType)),
@@ -95,13 +96,23 @@ namespace Yoakke.Syntax
                 new Ast.Expression.While(whil, Convert(whil.Condition), Convert(whil.Body)),
 
             ParseTree.Expression.Binary bin =>
-                new Ast.Expression.Binary(bin, Convert(bin.Left), bin.Operator.Type, Convert(bin.Right)),
+                new Ast.Expression.Binary(
+                    bin, 
+                    Convert(bin.Left), 
+                    ToBinaryOperator(bin.Operator.Type), 
+                    Convert(bin.Right)),
 
             ParseTree.Expression.Prefix pre =>
-                new Ast.Expression.Prefix(pre, pre.Operator.Type, Convert(pre.Operand)),
+                new Ast.Expression.Unary(
+                    pre, 
+                    ToPrefixUnaryOperator(pre.Operator.Type), 
+                    Convert(pre.Operand)),
 
             ParseTree.Expression.Postfix post =>
-                new Ast.Expression.Postfix(post, Convert(post.Operand), post.Operator.Type),
+                new Ast.Expression.Unary(
+                    post,
+                    ToPostfixUnaryOperator(post.Operator.Type),
+                    Convert(post.Operand)),
 
             ParseTree.Expression.DotPath dot =>
                 new Ast.Expression.DotPath(dot, Convert(dot.Left), dot.Right.Value),
@@ -138,5 +149,54 @@ namespace Yoakke.Syntax
             }
             return new Ast.Expression.If(iff, cond, then, els);
         }
+
+        private static Ast.Expression.LiteralType ToLiteralType(TokenType tokenType) => tokenType switch
+        {
+            TokenType.IntLiteral => Ast.Expression.LiteralType.Integer,
+            TokenType.KwTrue => Ast.Expression.LiteralType.Bool,
+            TokenType.KwFalse => Ast.Expression.LiteralType.Bool,
+            TokenType.StringLiteral => Ast.Expression.LiteralType.String,
+            _ => throw new NotImplementedException(),
+        };
+
+        private static Ast.Expression.BinaryOperator ToBinaryOperator(TokenType tokenType) => tokenType switch
+        {
+            TokenType.Assign         => Ast.Expression.BinaryOperator.Assign        ,
+            TokenType.AddAssign      => Ast.Expression.BinaryOperator.AddAssign     , 
+            TokenType.SubtractAssign => Ast.Expression.BinaryOperator.SubtractAssign,
+            TokenType.MultiplyAssign => Ast.Expression.BinaryOperator.MultiplyAssign, 
+            TokenType.DivideAssign   => Ast.Expression.BinaryOperator.DivideAssign  , 
+            TokenType.ModuloAssign   => Ast.Expression.BinaryOperator.ModuloAssign  ,
+            TokenType.Or             => Ast.Expression.BinaryOperator.Or            ,
+            TokenType.And            => Ast.Expression.BinaryOperator.And           ,
+            TokenType.Equal          => Ast.Expression.BinaryOperator.Equals        , 
+            TokenType.NotEqual       => Ast.Expression.BinaryOperator.NotEquals     ,
+            TokenType.Greater        => Ast.Expression.BinaryOperator.Greater       , 
+            TokenType.GreaterEqual   => Ast.Expression.BinaryOperator.GreaterEqual  , 
+            TokenType.Less           => Ast.Expression.BinaryOperator.Less          , 
+            TokenType.LessEqual      => Ast.Expression.BinaryOperator.LessEqual     ,
+            TokenType.Add            => Ast.Expression.BinaryOperator.Add           , 
+            TokenType.Subtract       => Ast.Expression.BinaryOperator.Subtract      ,
+            TokenType.Multiply       => Ast.Expression.BinaryOperator.Multiply      , 
+            TokenType.Divide         => Ast.Expression.BinaryOperator.Divide        , 
+            TokenType.Modulo         => Ast.Expression.BinaryOperator.Modulo        ,
+            _                        => throw new NotImplementedException()         ,
+        };
+
+        private static Ast.Expression.UnaryOperator ToPrefixUnaryOperator(TokenType tokenType) => tokenType switch
+        {
+            TokenType.Add      => Ast.Expression.UnaryOperator.Ponote     ,
+            TokenType.Subtract => Ast.Expression.UnaryOperator.Negate     ,
+            TokenType.Multiply => Ast.Expression.UnaryOperator.PointerType,
+            TokenType.Bitand   => Ast.Expression.UnaryOperator.AddressOf  ,
+            TokenType.Not      => Ast.Expression.UnaryOperator.Not        ,
+            _                  => throw new NotImplementedException()     ,
+        };
+
+        private static Ast.Expression.UnaryOperator ToPostfixUnaryOperator(TokenType tokenType) => tokenType switch
+        {
+            TokenType.Bitnot => Ast.Expression.UnaryOperator.Dereference,
+            _ => throw new NotImplementedException(),
+        };
     }
 }
