@@ -60,8 +60,8 @@ namespace Yoakke.Compiler.Compile
                 {
                     var tagType = ((Lir.Values.Value.User)array.Values[0]).Payload;
                     var ctorTypes = array.Values.Skip(1);
-                    if (   tagType is Expression.Prefix prefix 
-                        && prefix.Operator == Syntax.TokenType.Multiply)
+                    if (   tagType is Expression.Unary ury 
+                        && ury.Operator == Expression.UnaryOperator.PointerType)
                     {
                         return new Semantic.Type.Ptr(ToSemanticType(ctorTypes.First()));
                     }

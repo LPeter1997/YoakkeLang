@@ -234,7 +234,8 @@ namespace Yoakke.Compiler.Compile
         protected override object? Visit(Expression.Binary bin)
         {
             base.Visit(bin);
-            if (bin.Operator == TokenType.Assign || bin.Operator.IsCompoundAssignment())
+            if (   bin.Operator == Expression.BinaryOperator.Assign 
+                || Expression.CompoundBinaryOperators.ContainsKey(bin.Operator))
             {
                 // For assignment the sides must match
                 var leftType = System.TypeOf(bin.Left);
@@ -252,22 +253,16 @@ namespace Yoakke.Compiler.Compile
             return null;
         }
 
-        protected override object? Visit(Expression.Prefix pre)
+        protected override object? Visit(Expression.Unary ury)
         {
-            base.Visit(pre);
+            base.Visit(ury);
             // TODO: Implement everything
             // For now we assume correct usage
-            return null;
-        }
-
-        protected override object? Visit(Expression.Postfix post)
-        {
-            base.Visit(post);
-            switch (post.Operator)
+            switch (ury.Operator)
             {
-            case TokenType.Bitnot:
+            case Expression.UnaryOperator.Dereference:
             {
-                var subType = System.TypeOf(post.Operand);
+                var subType = System.TypeOf(ury.Operand);
                 if (!(subType is Type.Ptr))
                 {
                     // TODO
@@ -276,7 +271,11 @@ namespace Yoakke.Compiler.Compile
             }
             break;
 
-            default: throw new NotImplementedException();
+            default:
+            { 
+                // TODO
+            }
+            break;
             }
             return null;
         }

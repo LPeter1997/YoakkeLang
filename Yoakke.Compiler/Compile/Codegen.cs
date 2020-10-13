@@ -292,10 +292,8 @@ namespace Yoakke.Compiler.Compile
 
         protected override Value? Visit(Expression.Literal lit) => lit.Type switch
         {
-            TokenType.IntLiteral => Lir.Types.Type.I32.NewValue(int.Parse(lit.Value)),
-            TokenType.KwTrue => Lir.Types.Type.I32.NewValue(1),
-            TokenType.KwFalse => Lir.Types.Type.I32.NewValue(0),
-
+            Expression.LiteralType.Integer => Lir.Types.Type.I32.NewValue(int.Parse(lit.Value)),
+            Expression.LiteralType.Bool => Lir.Types.Type.I32.NewValue(lit.Value == "true" ? 1 : 0),
             _ => throw new NotImplementedException(),
         };
 
@@ -318,7 +316,7 @@ namespace Yoakke.Compiler.Compile
 
         protected override Value? Visit(Expression.Binary bin)
         {
-            if (bin.Operator == TokenType.Assign)
+            if (bin.Operator == Expression.BinaryOperator.Assign)
             {
                 var left = Lvalue(bin.Left);
                 var right = VisitNonNull(bin.Right);
@@ -326,7 +324,7 @@ namespace Yoakke.Compiler.Compile
                 Builder.Store(left, right);
                 return null;
             }
-            else if (bin.Operator.IsCompoundAssignment(out var op))
+            else if (Expression.CompoundBinaryOperators.TryGetValue(bin.Operator, out var op))
             {
                 // TODO: Do proper type-checking, for now we blindly assume builtin operations
                 // Here we need to handle the case when there's a user-defined operator!
@@ -335,22 +333,22 @@ namespace Yoakke.Compiler.Compile
                 var right = VisitNonNull(bin.Right);
                 var result = op switch
                 {
-                    TokenType.Add => Builder.Add(left, right),
-                    TokenType.Subtract => Builder.Sub(left, right),
-                    TokenType.Multiply => Builder.Mul(left, right),
-                    TokenType.Divide => Builder.Div(left, right),
-                    TokenType.Modulo => Builder.Mod(left, right),
+                    Expression.BinaryOperator.Add => Builder.Add(left, right),
+                    Expression.BinaryOperator.Subtract => Builder.Sub(left, right),
+                    Expression.BinaryOperator.Multiply => Builder.Mul(left, right),
+                    Expression.BinaryOperator.Divide => Builder.Div(left, right),
+                    Expression.BinaryOperator.Modulo => Builder.Mod(left, right),
 
                     _ => throw new NotImplementedException(),
                 };
                 Builder.Store(leftPlace, result);
                 return null;
             }
-            else if (bin.Operator == TokenType.And || bin.Operator == TokenType.Or)
+            else if (bin.Operator == Expression.BinaryOperator.And || bin.Operator == Expression.BinaryOperator.Or)
             {
                 // TODO: Do proper type-checking, for now we blindly assume builtin operations
                 // NOTE: Different case as these are lazy operators
-                if (bin.Operator == TokenType.And)
+                if (bin.Operator == Expression.BinaryOperator.And)
                 {
                     return Builder.LazyAnd(b => VisitNonNull(bin.Left), b => VisitNonNull(bin.Right));
                 }
@@ -367,54 +365,54 @@ namespace Yoakke.Compiler.Compile
                 var right = VisitNonNull(bin.Right);
                 return bin.Operator switch
                 {
-                    TokenType.Add      => Builder.Add(left, right),
-                    TokenType.Subtract => Builder.Sub(left, right),
-                    TokenType.Multiply => Builder.Mul(left, right),
-                    TokenType.Divide   => Builder.Div(left, right),
-                    TokenType.Modulo   => Builder.Mod(left, right),
+                    Expression.BinaryOperator.Add      => Builder.Add(left, right),
+                    Expression.BinaryOperator.Subtract => Builder.Sub(left, right),
+                    Expression.BinaryOperator.Multiply => Builder.Mul(left, right),
+                    Expression.BinaryOperator.Divide   => Builder.Div(left, right),
+                    Expression.BinaryOperator.Modulo   => Builder.Mod(left, right),
 
-                    TokenType.LeftShift  => Builder.Shl(left, right),
-                    TokenType.RightShift => Builder.Shr(left, right),
+                    Expression.BinaryOperator.LeftShift  => Builder.Shl(left, right),
+                    Expression.BinaryOperator.RightShift => Builder.Shr(left, right),
 
-                    TokenType.Bitand => Builder.BitAnd(left, right),
-                    TokenType.Bitor  => Builder.BitOr(left, right),
-                    TokenType.Bitxor => Builder.BitXor(left, right),
+                    Expression.BinaryOperator.BitAnd => Builder.BitAnd(left, right),
+                    Expression.BinaryOperator.BitOr  => Builder.BitOr(left, right),
+                    Expression.BinaryOperator.BitXor => Builder.BitXor(left, right),
 
-                    TokenType.Equal        => Builder.CmpEq(left, right),
-                    TokenType.NotEqual     => Builder.CmpNe(left, right),
-                    TokenType.Greater      => Builder.CmpGr(left, right),
-                    TokenType.Less         => Builder.CmpLe(left, right),
-                    TokenType.GreaterEqual => Builder.CmpGrEq(left, right),
-                    TokenType.LessEqual    => Builder.CmpLeEq(left, right),
+                    Expression.BinaryOperator.Equals       => Builder.CmpEq(left, right),
+                    Expression.BinaryOperator.NotEquals    => Builder.CmpNe(left, right),
+                    Expression.BinaryOperator.Greater      => Builder.CmpGr(left, right),
+                    Expression.BinaryOperator.Less         => Builder.CmpLe(left, right),
+                    Expression.BinaryOperator.GreaterEqual => Builder.CmpGrEq(left, right),
+                    Expression.BinaryOperator.LessEqual    => Builder.CmpLeEq(left, right),
 
                     _ => throw new NotImplementedException(),
                 };
             }
         }
 
-        protected override Value? Visit(Expression.Prefix pre)
+        protected override Value? Visit(Expression.Unary ury)
         {
-            switch (pre.Operator)
+            switch (ury.Operator)
             {
-            case TokenType.Add:
+            case Expression.UnaryOperator.Ponote:
                 // No-op for numbers
-                return VisitNonNull(pre.Operand);
+                return VisitNonNull(ury.Operand);
 
-            case TokenType.Subtract:
+            case Expression.UnaryOperator.Negate:
             {
                 // Find the integer type
-                var intType = (Lir.Types.Type.Int)((Semantic.Type.Prim)TypeOf(pre.Operand)).Type;
+                var intType = (Lir.Types.Type.Int)((Semantic.Type.Prim)TypeOf(ury.Operand)).Type;
                 Debug.Assert(intType.Signed);
                 // Multiply by -1
-                var sub = VisitNonNull(pre.Operand);
+                var sub = VisitNonNull(ury.Operand);
                 return Builder.Mul(sub, intType.NewValue(-1));
             }
 
-            case TokenType.Not:
+            case Expression.UnaryOperator.Not:
             {
                 // Either bitwise or bool not
-                var subType = TypeOf(pre.Operand);
-                var sub = VisitNonNull(pre.Operand);
+                var subType = TypeOf(ury.Operand);
+                var sub = VisitNonNull(ury.Operand);
                 if (subType.Equals(Semantic.Type.Bool))
                 {
                     // Bool-not
@@ -429,32 +427,24 @@ namespace Yoakke.Compiler.Compile
             }
 
             // Address-of
-            case TokenType.Bitand: return Lvalue(pre.Operand);
+            case Expression.UnaryOperator.AddressOf: 
+                return Lvalue(ury.Operand);
 
             // Pointer type construction
-            case TokenType.Multiply:
+            case Expression.UnaryOperator.PointerType:
             {
                 // The first element will be pointer to this expression
                 // The second one will be the subtype
                 var arrayValues = new List<Value>();
-                arrayValues.Add(new Value.User(pre));
-                arrayValues.Add(VisitNonNull(pre.Operand));
+                arrayValues.Add(new Value.User(ury));
+                arrayValues.Add(VisitNonNull(ury.Operand));
                 var arraySpace = Builder.InitArray(Lir.Types.Type.User_, arrayValues.ToArray());
                 // We cast it to a singular user type
                 return Builder.Cast(Lir.Types.Type.User_, Builder.Load(arraySpace));
             }
 
-            default: throw new NotImplementedException();
-            }
-        }
-
-        protected override Value? Visit(Expression.Postfix post)
-        {
-            switch (post.Operator)
-            {
-            // Dereference
-            case TokenType.Bitnot:
-                return Builder.Load(VisitNonNull(post.Operand));
+            case Expression.UnaryOperator.Dereference:
+                return Builder.Load(VisitNonNull(ury.Operand));
 
             default: throw new NotImplementedException();
             }
@@ -547,8 +537,8 @@ namespace Yoakke.Compiler.Compile
                 return Builder.ElementPtr(left, index);
             }
 
-            case Expression.Postfix postfix when postfix.Operator == TokenType.Bitnot:
-                return Builder.Load(Lvalue(postfix.Operand));
+            case Expression.Unary ury when ury.Operator == Expression.UnaryOperator.Dereference:
+                return Builder.Load(Lvalue(ury.Operand));
 
             default: throw new NotImplementedException();
             }

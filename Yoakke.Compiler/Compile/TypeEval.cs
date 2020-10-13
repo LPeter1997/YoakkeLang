@@ -36,8 +36,8 @@ namespace Yoakke.Compiler.Compile
 
         protected override Type? Visit(Expression.Literal lit) => lit.Type switch
         {
-            TokenType.IntLiteral => Type.I32,
-            TokenType.KwTrue or TokenType.KwFalse => Type.Bool,
+            Expression.LiteralType.Integer => Type.I32,
+            Expression.LiteralType.Bool => Type.Bool,
             _ => throw new NotImplementedException(),
         };
 
@@ -96,53 +96,46 @@ namespace Yoakke.Compiler.Compile
         protected override Type? Visit(Expression.Binary bin)
         {
             // TODO: Just a basic assumption for now
-            if (bin.Operator == TokenType.Assign || bin.Operator.IsCompoundAssignment())
+            if (   bin.Operator == Expression.BinaryOperator.Assign 
+                || Expression.CompoundBinaryOperators.ContainsKey(bin.Operator))
             {
                 return Type.Unit;
             }
 
             switch (bin.Operator)
             {
-            case TokenType.And:
-            case TokenType.Or:
-            case TokenType.Less:
-            case TokenType.LessEqual:
-            case TokenType.Greater:
-            case TokenType.GreaterEqual:
-            case TokenType.Equal:
-            case TokenType.NotEqual:
+            case Expression.BinaryOperator.And:
+            case Expression.BinaryOperator.Or:
+            case Expression.BinaryOperator.Less:
+            case Expression.BinaryOperator.LessEqual:
+            case Expression.BinaryOperator.Greater:
+            case Expression.BinaryOperator.GreaterEqual:
+            case Expression.BinaryOperator.Equals:
+            case Expression.BinaryOperator.NotEquals:
                 return Type.Bool;
 
             default: return TypeOf(bin.Left);
             }
         }
 
-        protected override Type? Visit(Expression.Prefix pre)
+        protected override Type? Visit(Expression.Unary ury)
         {
-            switch (pre.Operator)
+            switch (ury.Operator)
             {
-            case TokenType.Add:
-            case TokenType.Subtract:
-            case TokenType.Not:
-                return TypeOf(pre.Operand);
+            case Expression.UnaryOperator.Ponote:
+            case Expression.UnaryOperator.Negate:
+            case Expression.UnaryOperator.Not:
+                return TypeOf(ury.Operand);
 
-            case TokenType.Bitand:
-                return new Type.Ptr(TypeOf(pre.Operand));
+            case Expression.UnaryOperator.AddressOf:
+                return new Type.Ptr(TypeOf(ury.Operand));
 
-            case TokenType.Multiply:
+            case Expression.UnaryOperator.PointerType:
                 return Type.Type_;
 
-            default: throw new NotImplementedException();
-            }
-        }
-
-        protected override Type? Visit(Expression.Postfix post)
-        {
-            switch (post.Operator)
+            case Expression.UnaryOperator.Dereference:
             {
-            case TokenType.Bitnot:
-            {
-                var ptrType = (Type.Ptr)TypeOf(post.Operand);
+                var ptrType = (Type.Ptr)TypeOf(ury.Operand);
                 return ptrType.Subtype;
             }
 

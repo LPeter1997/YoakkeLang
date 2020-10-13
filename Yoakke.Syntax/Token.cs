@@ -168,11 +168,11 @@ namespace Yoakke.Syntax
         /// <summary>
         /// '=='.
         /// </summary>
-        Equal,
+        Equals,
         /// <summary>
         /// '!='.
         /// </summary>
-        NotEqual,
+        NotEquals,
         /// <summary>
         /// '&&'.
         /// </summary>

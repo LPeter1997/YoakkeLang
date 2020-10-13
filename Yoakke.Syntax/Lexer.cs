@@ -110,7 +110,7 @@ namespace Yoakke.Syntax
                 if (Peek(1) == '>') return MakeToken(TokenType.Arrow, 2);
                 return MakeToken(TokenType.Subtract, 1);
             case '=':
-                if (Peek(1) == '=') return MakeToken(TokenType.Equal, 2);
+                if (Peek(1) == '=') return MakeToken(TokenType.Equals, 2);
                 return MakeToken(TokenType.Assign, 1);
             case '+':
                 if (Peek(1) == '=') return MakeToken(TokenType.AddAssign, 2);
@@ -135,7 +135,7 @@ namespace Yoakke.Syntax
                 if (Peek(1) == '<') return MakeToken(TokenType.LeftShift, 2);
                 return MakeToken(TokenType.Less, 1);
             case '!':
-                if (Peek(1) == '=') return MakeToken(TokenType.NotEqual, 2);
+                if (Peek(1) == '=') return MakeToken(TokenType.NotEquals, 2);
                 return MakeToken(TokenType.Not, 1);
             case '&':
                 if (Peek(1) == '&') return MakeToken(TokenType.And, 2);

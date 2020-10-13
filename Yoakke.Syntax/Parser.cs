@@ -70,7 +70,7 @@ namespace Yoakke.Syntax
                 TokenType.MultiplyAssign, TokenType.DivideAssign, TokenType.ModuloAssign),
             Precedence.Left(TokenType.Or),
             Precedence.Left(TokenType.And),
-            Precedence.Left(TokenType.Equal, TokenType.NotEqual),
+            Precedence.Left(TokenType.Equals, TokenType.NotEquals),
             Precedence.Left(TokenType.Greater, TokenType.GreaterEqual, TokenType.Less, TokenType.LessEqual),
             Precedence.Left(TokenType.Add, TokenType.Subtract),
             Precedence.Left(TokenType.Multiply, TokenType.Divide, TokenType.Modulo),
