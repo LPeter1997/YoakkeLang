@@ -36,8 +36,8 @@ namespace Yoakke.Compiler.Compile
 
         protected override Type? Visit(Expression.Literal lit) => lit.Type switch
         {
-            Expression.LiteralType.Integer => Type.I32,
-            Expression.LiteralType.Bool => Type.Bool,
+            Expression.LitType.Integer => Type.I32,
+            Expression.LitType.Bool => Type.Bool,
             _ => throw new NotImplementedException(),
         };
 
@@ -96,7 +96,7 @@ namespace Yoakke.Compiler.Compile
         protected override Type? Visit(Expression.Binary bin)
         {
             // TODO: Just a basic assumption for now
-            if (   bin.Operator == Expression.BinaryOperator.Assign 
+            if (   bin.Operator == Expression.BinOp.Assign 
                 || Expression.CompoundBinaryOperators.ContainsKey(bin.Operator))
             {
                 return Type.Unit;
@@ -104,14 +104,14 @@ namespace Yoakke.Compiler.Compile
 
             switch (bin.Operator)
             {
-            case Expression.BinaryOperator.And:
-            case Expression.BinaryOperator.Or:
-            case Expression.BinaryOperator.Less:
-            case Expression.BinaryOperator.LessEqual:
-            case Expression.BinaryOperator.Greater:
-            case Expression.BinaryOperator.GreaterEqual:
-            case Expression.BinaryOperator.Equals:
-            case Expression.BinaryOperator.NotEquals:
+            case Expression.BinOp.And:
+            case Expression.BinOp.Or:
+            case Expression.BinOp.Less:
+            case Expression.BinOp.LessEqual:
+            case Expression.BinOp.Greater:
+            case Expression.BinOp.GreaterEqual:
+            case Expression.BinOp.Equals:
+            case Expression.BinOp.NotEquals:
                 return Type.Bool;
 
             default: return TypeOf(bin.Left);
@@ -122,18 +122,18 @@ namespace Yoakke.Compiler.Compile
         {
             switch (ury.Operator)
             {
-            case Expression.UnaryOperator.Ponote:
-            case Expression.UnaryOperator.Negate:
-            case Expression.UnaryOperator.Not:
+            case Expression.UnaryOp.Ponote:
+            case Expression.UnaryOp.Negate:
+            case Expression.UnaryOp.Not:
                 return TypeOf(ury.Operand);
 
-            case Expression.UnaryOperator.AddressOf:
+            case Expression.UnaryOp.AddressOf:
                 return new Type.Ptr(TypeOf(ury.Operand));
 
-            case Expression.UnaryOperator.PointerType:
+            case Expression.UnaryOp.PointerType:
                 return Type.Type_;
 
-            case Expression.UnaryOperator.Dereference:
+            case Expression.UnaryOp.Dereference:
             {
                 var ptrType = (Type.Ptr)TypeOf(ury.Operand);
                 return ptrType.Subtype;

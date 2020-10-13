@@ -292,8 +292,8 @@ namespace Yoakke.Compiler.Compile
 
         protected override Value? Visit(Expression.Literal lit) => lit.Type switch
         {
-            Expression.LiteralType.Integer => Lir.Types.Type.I32.NewValue(int.Parse(lit.Value)),
-            Expression.LiteralType.Bool => Lir.Types.Type.I32.NewValue(lit.Value == "true" ? 1 : 0),
+            Expression.LitType.Integer => Lir.Types.Type.I32.NewValue(int.Parse(lit.Value)),
+            Expression.LitType.Bool => Lir.Types.Type.I32.NewValue(lit.Value == "true" ? 1 : 0),
             _ => throw new NotImplementedException(),
         };
 
@@ -316,7 +316,7 @@ namespace Yoakke.Compiler.Compile
 
         protected override Value? Visit(Expression.Binary bin)
         {
-            if (bin.Operator == Expression.BinaryOperator.Assign)
+            if (bin.Operator == Expression.BinOp.Assign)
             {
                 var left = Lvalue(bin.Left);
                 var right = VisitNonNull(bin.Right);
@@ -333,22 +333,22 @@ namespace Yoakke.Compiler.Compile
                 var right = VisitNonNull(bin.Right);
                 var result = op switch
                 {
-                    Expression.BinaryOperator.Add => Builder.Add(left, right),
-                    Expression.BinaryOperator.Subtract => Builder.Sub(left, right),
-                    Expression.BinaryOperator.Multiply => Builder.Mul(left, right),
-                    Expression.BinaryOperator.Divide => Builder.Div(left, right),
-                    Expression.BinaryOperator.Modulo => Builder.Mod(left, right),
+                    Expression.BinOp.Add => Builder.Add(left, right),
+                    Expression.BinOp.Subtract => Builder.Sub(left, right),
+                    Expression.BinOp.Multiply => Builder.Mul(left, right),
+                    Expression.BinOp.Divide => Builder.Div(left, right),
+                    Expression.BinOp.Modulo => Builder.Mod(left, right),
 
                     _ => throw new NotImplementedException(),
                 };
                 Builder.Store(leftPlace, result);
                 return null;
             }
-            else if (bin.Operator == Expression.BinaryOperator.And || bin.Operator == Expression.BinaryOperator.Or)
+            else if (bin.Operator == Expression.BinOp.And || bin.Operator == Expression.BinOp.Or)
             {
                 // TODO: Do proper type-checking, for now we blindly assume builtin operations
                 // NOTE: Different case as these are lazy operators
-                if (bin.Operator == Expression.BinaryOperator.And)
+                if (bin.Operator == Expression.BinOp.And)
                 {
                     return Builder.LazyAnd(b => VisitNonNull(bin.Left), b => VisitNonNull(bin.Right));
                 }
@@ -365,25 +365,25 @@ namespace Yoakke.Compiler.Compile
                 var right = VisitNonNull(bin.Right);
                 return bin.Operator switch
                 {
-                    Expression.BinaryOperator.Add      => Builder.Add(left, right),
-                    Expression.BinaryOperator.Subtract => Builder.Sub(left, right),
-                    Expression.BinaryOperator.Multiply => Builder.Mul(left, right),
-                    Expression.BinaryOperator.Divide   => Builder.Div(left, right),
-                    Expression.BinaryOperator.Modulo   => Builder.Mod(left, right),
+                    Expression.BinOp.Add      => Builder.Add(left, right),
+                    Expression.BinOp.Subtract => Builder.Sub(left, right),
+                    Expression.BinOp.Multiply => Builder.Mul(left, right),
+                    Expression.BinOp.Divide   => Builder.Div(left, right),
+                    Expression.BinOp.Modulo   => Builder.Mod(left, right),
 
-                    Expression.BinaryOperator.LeftShift  => Builder.Shl(left, right),
-                    Expression.BinaryOperator.RightShift => Builder.Shr(left, right),
+                    Expression.BinOp.LeftShift  => Builder.Shl(left, right),
+                    Expression.BinOp.RightShift => Builder.Shr(left, right),
 
-                    Expression.BinaryOperator.BitAnd => Builder.BitAnd(left, right),
-                    Expression.BinaryOperator.BitOr  => Builder.BitOr(left, right),
-                    Expression.BinaryOperator.BitXor => Builder.BitXor(left, right),
+                    Expression.BinOp.BitAnd => Builder.BitAnd(left, right),
+                    Expression.BinOp.BitOr  => Builder.BitOr(left, right),
+                    Expression.BinOp.BitXor => Builder.BitXor(left, right),
 
-                    Expression.BinaryOperator.Equals       => Builder.CmpEq(left, right),
-                    Expression.BinaryOperator.NotEquals    => Builder.CmpNe(left, right),
-                    Expression.BinaryOperator.Greater      => Builder.CmpGr(left, right),
-                    Expression.BinaryOperator.Less         => Builder.CmpLe(left, right),
-                    Expression.BinaryOperator.GreaterEqual => Builder.CmpGrEq(left, right),
-                    Expression.BinaryOperator.LessEqual    => Builder.CmpLeEq(left, right),
+                    Expression.BinOp.Equals       => Builder.CmpEq(left, right),
+                    Expression.BinOp.NotEquals    => Builder.CmpNe(left, right),
+                    Expression.BinOp.Greater      => Builder.CmpGr(left, right),
+                    Expression.BinOp.Less         => Builder.CmpLe(left, right),
+                    Expression.BinOp.GreaterEqual => Builder.CmpGrEq(left, right),
+                    Expression.BinOp.LessEqual    => Builder.CmpLeEq(left, right),
 
                     _ => throw new NotImplementedException(),
                 };
@@ -394,11 +394,11 @@ namespace Yoakke.Compiler.Compile
         {
             switch (ury.Operator)
             {
-            case Expression.UnaryOperator.Ponote:
+            case Expression.UnaryOp.Ponote:
                 // No-op for numbers
                 return VisitNonNull(ury.Operand);
 
-            case Expression.UnaryOperator.Negate:
+            case Expression.UnaryOp.Negate:
             {
                 // Find the integer type
                 var intType = (Lir.Types.Type.Int)((Semantic.Type.Prim)TypeOf(ury.Operand)).Type;
@@ -408,7 +408,7 @@ namespace Yoakke.Compiler.Compile
                 return Builder.Mul(sub, intType.NewValue(-1));
             }
 
-            case Expression.UnaryOperator.Not:
+            case Expression.UnaryOp.Not:
             {
                 // Either bitwise or bool not
                 var subType = TypeOf(ury.Operand);
@@ -427,11 +427,11 @@ namespace Yoakke.Compiler.Compile
             }
 
             // Address-of
-            case Expression.UnaryOperator.AddressOf: 
+            case Expression.UnaryOp.AddressOf: 
                 return Lvalue(ury.Operand);
 
             // Pointer type construction
-            case Expression.UnaryOperator.PointerType:
+            case Expression.UnaryOp.PointerType:
             {
                 // The first element will be pointer to this expression
                 // The second one will be the subtype
@@ -443,7 +443,7 @@ namespace Yoakke.Compiler.Compile
                 return Builder.Cast(Lir.Types.Type.User_, Builder.Load(arraySpace));
             }
 
-            case Expression.UnaryOperator.Dereference:
+            case Expression.UnaryOp.Dereference:
                 return Builder.Load(VisitNonNull(ury.Operand));
 
             default: throw new NotImplementedException();
@@ -537,7 +537,7 @@ namespace Yoakke.Compiler.Compile
                 return Builder.ElementPtr(left, index);
             }
 
-            case Expression.Unary ury when ury.Operator == Expression.UnaryOperator.Dereference:
+            case Expression.Unary ury when ury.Operator == Expression.UnaryOp.Dereference:
                 return Builder.Load(Lvalue(ury.Operand));
 
             default: throw new NotImplementedException();

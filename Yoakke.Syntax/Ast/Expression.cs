@@ -18,7 +18,7 @@ namespace Yoakke.Syntax.Ast
         /// <summary>
         /// The type of literals.
         /// </summary>
-        public enum LiteralType
+        public enum LitType
         {
             Integer,
             Bool,
@@ -33,13 +33,13 @@ namespace Yoakke.Syntax.Ast
             /// <summary>
             /// The type of the literal.
             /// </summary>
-            public readonly LiteralType Type;
+            public readonly LitType Type;
             /// <summary>
             /// The literal value.
             /// </summary>
             public readonly string Value;
 
-            public Literal(ParseTree.Node? parseTreeNode, LiteralType type, string value)
+            public Literal(ParseTree.Node? parseTreeNode, LitType type, string value)
                 : base(parseTreeNode)
             {
                 Type = type;
@@ -358,7 +358,7 @@ namespace Yoakke.Syntax.Ast
         /// <summary>
         /// The different binary operator kinds.
         /// </summary>
-        public enum BinaryOperator
+        public enum BinOp
         {
             // Basic arithmetic
             Add, Subtract, Multiply, Divide, Modulo,
@@ -378,13 +378,13 @@ namespace Yoakke.Syntax.Ast
         /// <summary>
         /// The compound binary operators and their corredponding primitive operators.
         /// </summary>
-        public static IDictionary<BinaryOperator, BinaryOperator> CompoundBinaryOperators = new Dictionary<BinaryOperator, BinaryOperator>
+        public static IDictionary<BinOp, BinOp> CompoundBinaryOperators = new Dictionary<BinOp, BinOp>
         {
-            { BinaryOperator.AddAssign     , BinaryOperator.Add      },
-            { BinaryOperator.SubtractAssign, BinaryOperator.Subtract },
-            { BinaryOperator.MultiplyAssign, BinaryOperator.Multiply },
-            { BinaryOperator.DivideAssign  , BinaryOperator.Divide   },
-            { BinaryOperator.ModuloAssign  , BinaryOperator.Modulo   },
+            { BinOp.AddAssign     , BinOp.Add      },
+            { BinOp.SubtractAssign, BinOp.Subtract },
+            { BinOp.MultiplyAssign, BinOp.Multiply },
+            { BinOp.DivideAssign  , BinOp.Divide   },
+            { BinOp.ModuloAssign  , BinOp.Modulo   },
         };
 
         /// <summary>
@@ -399,13 +399,13 @@ namespace Yoakke.Syntax.Ast
             /// <summary>
             /// The operator kind.
             /// </summary>
-            public readonly BinaryOperator Operator;
+            public readonly BinOp Operator;
             /// <summary>
             /// The right-hand side of the operation.
             /// </summary>
             public readonly Expression Right;
 
-            public Binary(ParseTree.Node? parseTreeNode, Expression left, BinaryOperator op, Expression right)
+            public Binary(ParseTree.Node? parseTreeNode, Expression left, BinOp op, Expression right)
                 : base(parseTreeNode)
             {
                 Left = left;
@@ -417,7 +417,7 @@ namespace Yoakke.Syntax.Ast
         /// <summary>
         /// The different unary operator kinds.
         /// </summary>
-        public enum UnaryOperator
+        public enum UnaryOp
         {
             // +, -, !
             Ponote, Negate, Not,
@@ -433,13 +433,13 @@ namespace Yoakke.Syntax.Ast
             /// <summary>
             /// The operator kind.
             /// </summary>
-            public readonly UnaryOperator Operator;
+            public readonly UnaryOp Operator;
             /// <summary>
             /// The operand.
             /// </summary>
             public readonly Expression Operand;
 
-            public Unary(ParseTree.Node? parseTreeNode, UnaryOperator op, Expression operand)
+            public Unary(ParseTree.Node? parseTreeNode, UnaryOp op, Expression operand)
                 : base(parseTreeNode)
             {
                 Operator = op;

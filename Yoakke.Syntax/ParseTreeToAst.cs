@@ -150,52 +150,52 @@ namespace Yoakke.Syntax
             return new Ast.Expression.If(iff, cond, then, els);
         }
 
-        private static Ast.Expression.LiteralType ToLiteralType(TokenType tokenType) => tokenType switch
+        private static Ast.Expression.LitType ToLiteralType(TokenType tokenType) => tokenType switch
         {
-            TokenType.IntLiteral => Ast.Expression.LiteralType.Integer,
-            TokenType.KwTrue => Ast.Expression.LiteralType.Bool,
-            TokenType.KwFalse => Ast.Expression.LiteralType.Bool,
-            TokenType.StringLiteral => Ast.Expression.LiteralType.String,
+            TokenType.IntLiteral => Ast.Expression.LitType.Integer,
+            TokenType.KwTrue => Ast.Expression.LitType.Bool,
+            TokenType.KwFalse => Ast.Expression.LitType.Bool,
+            TokenType.StringLiteral => Ast.Expression.LitType.String,
             _ => throw new NotImplementedException(),
         };
 
-        private static Ast.Expression.BinaryOperator ToBinaryOperator(TokenType tokenType) => tokenType switch
+        private static Ast.Expression.BinOp ToBinaryOperator(TokenType tokenType) => tokenType switch
         {
-            TokenType.Assign         => Ast.Expression.BinaryOperator.Assign        ,
-            TokenType.AddAssign      => Ast.Expression.BinaryOperator.AddAssign     , 
-            TokenType.SubtractAssign => Ast.Expression.BinaryOperator.SubtractAssign,
-            TokenType.MultiplyAssign => Ast.Expression.BinaryOperator.MultiplyAssign, 
-            TokenType.DivideAssign   => Ast.Expression.BinaryOperator.DivideAssign  , 
-            TokenType.ModuloAssign   => Ast.Expression.BinaryOperator.ModuloAssign  ,
-            TokenType.Or             => Ast.Expression.BinaryOperator.Or            ,
-            TokenType.And            => Ast.Expression.BinaryOperator.And           ,
-            TokenType.Equals         => Ast.Expression.BinaryOperator.Equals        , 
-            TokenType.NotEquals      => Ast.Expression.BinaryOperator.NotEquals     ,
-            TokenType.Greater        => Ast.Expression.BinaryOperator.Greater       , 
-            TokenType.GreaterEqual   => Ast.Expression.BinaryOperator.GreaterEqual  , 
-            TokenType.Less           => Ast.Expression.BinaryOperator.Less          , 
-            TokenType.LessEqual      => Ast.Expression.BinaryOperator.LessEqual     ,
-            TokenType.Add            => Ast.Expression.BinaryOperator.Add           , 
-            TokenType.Subtract       => Ast.Expression.BinaryOperator.Subtract      ,
-            TokenType.Multiply       => Ast.Expression.BinaryOperator.Multiply      , 
-            TokenType.Divide         => Ast.Expression.BinaryOperator.Divide        , 
-            TokenType.Modulo         => Ast.Expression.BinaryOperator.Modulo        ,
+            TokenType.Assign         => Ast.Expression.BinOp.Assign        ,
+            TokenType.AddAssign      => Ast.Expression.BinOp.AddAssign     , 
+            TokenType.SubtractAssign => Ast.Expression.BinOp.SubtractAssign,
+            TokenType.MultiplyAssign => Ast.Expression.BinOp.MultiplyAssign, 
+            TokenType.DivideAssign   => Ast.Expression.BinOp.DivideAssign  , 
+            TokenType.ModuloAssign   => Ast.Expression.BinOp.ModuloAssign  ,
+            TokenType.Or             => Ast.Expression.BinOp.Or            ,
+            TokenType.And            => Ast.Expression.BinOp.And           ,
+            TokenType.Equals         => Ast.Expression.BinOp.Equals        , 
+            TokenType.NotEquals      => Ast.Expression.BinOp.NotEquals     ,
+            TokenType.Greater        => Ast.Expression.BinOp.Greater       , 
+            TokenType.GreaterEqual   => Ast.Expression.BinOp.GreaterEqual  , 
+            TokenType.Less           => Ast.Expression.BinOp.Less          , 
+            TokenType.LessEqual      => Ast.Expression.BinOp.LessEqual     ,
+            TokenType.Add            => Ast.Expression.BinOp.Add           , 
+            TokenType.Subtract       => Ast.Expression.BinOp.Subtract      ,
+            TokenType.Multiply       => Ast.Expression.BinOp.Multiply      , 
+            TokenType.Divide         => Ast.Expression.BinOp.Divide        , 
+            TokenType.Modulo         => Ast.Expression.BinOp.Modulo        ,
             _                        => throw new NotImplementedException()         ,
         };
 
-        private static Ast.Expression.UnaryOperator ToPrefixUnaryOperator(TokenType tokenType) => tokenType switch
+        private static Ast.Expression.UnaryOp ToPrefixUnaryOperator(TokenType tokenType) => tokenType switch
         {
-            TokenType.Add      => Ast.Expression.UnaryOperator.Ponote     ,
-            TokenType.Subtract => Ast.Expression.UnaryOperator.Negate     ,
-            TokenType.Multiply => Ast.Expression.UnaryOperator.PointerType,
-            TokenType.Bitand   => Ast.Expression.UnaryOperator.AddressOf  ,
-            TokenType.Not      => Ast.Expression.UnaryOperator.Not        ,
+            TokenType.Add      => Ast.Expression.UnaryOp.Ponote     ,
+            TokenType.Subtract => Ast.Expression.UnaryOp.Negate     ,
+            TokenType.Multiply => Ast.Expression.UnaryOp.PointerType,
+            TokenType.Bitand   => Ast.Expression.UnaryOp.AddressOf  ,
+            TokenType.Not      => Ast.Expression.UnaryOp.Not        ,
             _                  => throw new NotImplementedException()     ,
         };
 
-        private static Ast.Expression.UnaryOperator ToPostfixUnaryOperator(TokenType tokenType) => tokenType switch
+        private static Ast.Expression.UnaryOp ToPostfixUnaryOperator(TokenType tokenType) => tokenType switch
         {
-            TokenType.Bitnot => Ast.Expression.UnaryOperator.Dereference,
+            TokenType.Bitnot => Ast.Expression.UnaryOp.Dereference,
             _ => throw new NotImplementedException(),
         };
     }

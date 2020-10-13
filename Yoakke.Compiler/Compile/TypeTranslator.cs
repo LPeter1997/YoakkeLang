@@ -61,7 +61,7 @@ namespace Yoakke.Compiler.Compile
                     var tagType = ((Lir.Values.Value.User)array.Values[0]).Payload;
                     var ctorTypes = array.Values.Skip(1);
                     if (   tagType is Expression.Unary ury 
-                        && ury.Operator == Expression.UnaryOperator.PointerType)
+                        && ury.Operator == Expression.UnaryOp.PointerType)
                     {
                         return new Semantic.Type.Ptr(ToSemanticType(ctorTypes.First()));
                     }

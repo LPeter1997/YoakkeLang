@@ -234,7 +234,7 @@ namespace Yoakke.Compiler.Compile
         protected override object? Visit(Expression.Binary bin)
         {
             base.Visit(bin);
-            if (   bin.Operator == Expression.BinaryOperator.Assign 
+            if (   bin.Operator == Expression.BinOp.Assign 
                 || Expression.CompoundBinaryOperators.ContainsKey(bin.Operator))
             {
                 // For assignment the sides must match
@@ -260,7 +260,7 @@ namespace Yoakke.Compiler.Compile
             // For now we assume correct usage
             switch (ury.Operator)
             {
-            case Expression.UnaryOperator.Dereference:
+            case Expression.UnaryOp.Dereference:
             {
                 var subType = System.TypeOf(ury.Operand);
                 if (!(subType is Type.Ptr))
