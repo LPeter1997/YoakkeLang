@@ -1,6 +1,11 @@
 
+var x: i32;
+
+const get_value = proc() -> *i32 {
+    &x
+};
+
 const main = proc() -> i32 {
-    var arr: [5]i32;
-    arr[0] = 24;
-    arr[0]
+    get_value()~ = 5;
+    x
 };

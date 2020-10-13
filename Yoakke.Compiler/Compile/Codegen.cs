@@ -309,9 +309,11 @@ namespace Yoakke.Compiler.Compile
 
         protected override Value? Visit(Expression.Subscript sub)
         {
-            // TODO
-            //var array = VisitNonNull(sub.Array);
-            throw new NotImplementedException();
+            var arrayType = (Semantic.Type.Array)TypeOf(sub.Array);
+            var elementType = TranslateToLirType(arrayType.ElementType);
+            var array = Builder.Cast(new Lir.Types.Type.Ptr(elementType), Lvalue(sub.Array));
+            var index = VisitNonNull(sub.Index);
+            return Builder.Load(Builder.Add(array, index));
         }
 
         protected override Value? Visit(Expression.Binary bin)
@@ -486,7 +488,7 @@ namespace Yoakke.Compiler.Compile
             // The third will be the array element type
             var arrayValues = new List<Value>();
             arrayValues.Add(new Value.User(aty));
-            arrayValues.Add(VisitNonNull(aty.Length));
+            arrayValues.Add(Builder.Cast(Lir.Types.Type.User_, VisitNonNull(aty.Length)));
             arrayValues.Add(VisitNonNull(aty.ElementType));
             var arraySpace = Builder.InitArray(Lir.Types.Type.User_, arrayValues.ToArray());
             // We cast it to a singular user type
@@ -539,6 +541,18 @@ namespace Yoakke.Compiler.Compile
 
             case Expression.Unary ury when ury.Operator == Expression.UnaryOp.Dereference:
                 return Builder.Load(Lvalue(ury.Operand));
+
+            case Expression.Subscript sub:
+            {
+                var arrayType = (Semantic.Type.Array)TypeOf(sub.Array);
+                var elementType = TranslateToLirType(arrayType.ElementType);
+                var array = Builder.Cast(new Lir.Types.Type.Ptr(elementType), Lvalue(sub.Array));
+                var index = VisitNonNull(sub.Index);
+                return Builder.Add(array, index);
+            }
+
+            case Expression.Call call:
+                return VisitNonNull(call);
 
             default: throw new NotImplementedException();
             }

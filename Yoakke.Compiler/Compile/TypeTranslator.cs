@@ -68,7 +68,7 @@ namespace Yoakke.Compiler.Compile
                     if (tagType is Expression.ArrayType)
                     {
                         var ctorValues = ctorTypes.ToList();
-                        var length = (Lir.Values.Value.Int)ctorValues[0];
+                        var length = (Lir.Values.Value.Int)((Lir.Values.Value.User)ctorValues[0]).Payload;
                         var elementType = ToSemanticType(ctorValues[1]);
                         return new Semantic.Type.Array(elementType, (int)length.Value);
                     }
