@@ -361,16 +361,86 @@ namespace Yoakke.C.Syntax.Cpp
 
         private void ExpandUserMacro(UserMacro macro, MacroCall call)
         {
+            // Any argument expansion
+            IList<Token> GetExpansion(ref int i)
+            {
+                var left = GetPrefixExpansion(ref i);
+                if (macro.Substitution.Count > i && macro.Substitution[i].Type == TokenType.HashHash)
+                {
+                    ++i;
+                    var right = GetPrefixExpansion(ref i);
+                    // TODO: Concat last from left and first from right
+                    // TODO
+                    throw new NotImplementedException();
+                }
+                else
+                {
+                    return left;
+                }
+            }
+
+            // An element with a possible '#' before
+            IList<Token> GetPrefixExpansion(ref int i)
+            {
+                var peek = macro.Substitution[i];
+                if (peek.Type == TokenType.Hash)
+                {
+                    ++i;
+                    var tokens = GetAtomicExpansion(ref i, out bool expanded);
+                    if (!expanded)
+                    {
+                        // TODO
+                        throw new NotImplementedException("'#' requires a macro arg!");
+                    }
+                    return new List<Token> { Stringify(tokens) };
+                }
+                else
+                {
+                    return GetAtomicExpansion(ref i, out bool _);
+                }
+            }
+
+            // A single element that's either an argument or a literal token to paste
+            IList<Token> GetAtomicExpansion(ref int i, out bool expanded)
+            {
+                var element = macro.Substitution[i++];
+                if (call.Arguments.TryGetValue(element.Value, out var sub))
+                {
+                    expanded = true;
+                    return sub;
+                }
+                else
+                {
+                    expanded = false;
+                    return new List<Token> { element };
+                }
+            }
+
             if (macro.NeedsParens)
             {
-                // TODO
-                throw new NotImplementedException();
+                for (int i = 0; i < macro.Substitution.Count;)
+                {
+                    var expanded = GetExpansion(ref i);
+                    source.PushFront(expanded);
+                }
             }
             else
             {
                 // Just simply dump it
                 source.PushFront(macro.Substitution);
             }
+        }
+
+        private static Token Stringify(IList<Token> tokens)
+        {
+            // TODO
+            throw new NotImplementedException();
+        }
+
+        private static Token Concat(Token left, Token right)
+        {
+            // TODO
+            throw new NotImplementedException();
         }
 
         // Parsers /////////////////////////////////////////////////////////////
@@ -463,7 +533,8 @@ namespace Yoakke.C.Syntax.Cpp
                     if (!Match(TokenType.CloseParen))
                     {
                         flatArgumentList.Add(ParseMacroArg());
-                        while (!Match(TokenType.CloseParen)) flatArgumentList.Add(ParseMacroArg());
+                        while (Match(TokenType.Comma)) flatArgumentList.Add(ParseMacroArg());
+                        Expect(TokenType.CloseParen);
                     }
                     // Now we have the flat argument list, we need to make it into a dictionary
                     if (macro.Parameters.Count == 1 && flatArgumentList.Count == 0)
