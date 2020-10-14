@@ -418,11 +418,13 @@ namespace Yoakke.C.Syntax.Cpp
 
             if (macro.NeedsParens)
             {
+                var expansion = new List<Token>();
                 for (int i = 0; i < macro.Substitution.Count;)
                 {
                     var expanded = GetExpansion(ref i);
-                    source.PushFront(expanded);
+                    expansion.AddRange(expanded);
                 }
+                source.PushFront(expansion);
             }
             else
             {
@@ -433,8 +435,26 @@ namespace Yoakke.C.Syntax.Cpp
 
         private static Token Stringify(IList<Token> tokens)
         {
-            // TODO
-            throw new NotImplementedException();
+            Debug.Assert(tokens.Count > 0);
+
+            var sb = new StringBuilder();
+            for (int i = 0; i < tokens.Count; ++i)
+            {
+                if (i > 0 && tokens[i - 1].LogicalSpan.End != tokens[i].LogicalSpan.Start)
+                {
+                    // There is spacing in betweeh
+                    sb.Append(' ');
+                }
+                sb.Append(tokens[i].Value);
+            }
+            // We need to escape the quotations
+            sb.Replace("\"", "\\\"");
+            // Surround with quotes
+            sb.Insert(0, '"');
+            sb.Append('"');
+            var physicalSpan = new Span(tokens.First().PhysicalSpan, tokens.Last().PhysicalSpan);
+            var logicalSpan = new Span(tokens.First().LogicalSpan, tokens.Last().LogicalSpan);
+            return new Token(physicalSpan, logicalSpan, TokenType.StringLiteral, sb.ToString());
         }
 
         private static Token Concat(Token left, Token right)
@@ -484,6 +504,11 @@ namespace Yoakke.C.Syntax.Cpp
                 var depth = 0;
                 while (true)
                 {
+                    // NOTE: Do we want to keep expanding after each token?
+                    // Or do we want to just do that after each expansion
+                    // Expand for safety
+                    ExpandUpcoming();
+
                     var peek = Peek();
                     // Open parens increase depth
                     if (peek.Type == TokenType.OpenParen) ++depth;
@@ -496,12 +521,7 @@ namespace Yoakke.C.Syntax.Cpp
                     }
                     // A comma on depth 0 means next argument in call
                     else if (peek.Type == TokenType.Comma && depth == 0) break;
-                    // If we are here, we need the next token
-                    // NOTE: Do we want to keep expanding after each token?
-                    // Or do we want to just do that after each expansion
-                    // Expand for safety
-                    ExpandUpcoming();
-                    // Consume the upcoming token
+                    // If we are here, we need the next token, consume it
                     result.Add(Consume());
                 }
                 return result;

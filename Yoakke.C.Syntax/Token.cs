@@ -45,6 +45,9 @@ namespace Yoakke.C.Syntax
         /// <returns>The derived <see cref="Token"/>.</returns>
         public Token Derive(TokenType type, string value) =>
             new Token(PhysicalSpan, LogicalSpan, type, value);
+
+        // TODO: Debug
+        public override string ToString() => $"'{Value}'";
     }
 
     /// <summary>
