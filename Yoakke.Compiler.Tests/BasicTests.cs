@@ -378,5 +378,20 @@ const entry = proc() -> i32 {
 ";
             TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(462));
         }
+
+        [TestMethod]
+        public void BasicArrays()
+        {
+            string src = @"
+const entry = proc() -> i32 {
+    var arr: [3]i32;
+    arr[0] = 5;
+    arr[1] = 38;
+    arr[2] = 16;
+    arr[0] + arr[1] - arr[2]
+};
+";
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(27));
+        }
     }
 }

@@ -1,11 +1,8 @@
 
-var x: i32;
-
-const get_ptr = proc() -> *i32 {
-    &x
-};
-
 const main = proc() -> i32 {
-    get_ptr()~ = 462;
-    x
+    var arr: [3]i32;
+    arr[0] = 5;
+    arr[1] = 38;
+    arr[2] = 16;
+    arr[0] + arr[1] - arr[2]
 };
