@@ -87,8 +87,11 @@ namespace Yoakke.Compiler
             // We need to refactor out expansion (and parsing) mechanism to work everywhere, not just in the main parser module
             var src = File.ReadAllText("C:/TMP/SDL2/include/SDL.h");
             var ppTokens = C.Syntax.Lexer.Lex(CppTextReader.Process(src));
-            var pp = new PreProcessor();
+            var pp = new PreProcessor("C:/TMP/SDL2/include/SDL.h");
             pp.AddIncludePath("C:/TMP/SDL2/include");
+            pp.AddIncludePath(@"c:\Program Files (x86)\Microsoft Visual Studio\2019\Community\SDK\ScopeCppSDK\vc15\SDK\include\ucrt");
+            pp.AddIncludePath(@"c:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include");
+            pp.Define("WIN32", new UserMacro(false, false, new string[] { }, new C.Syntax.Token[] { }));
             foreach (var t in pp.Process(ppTokens))
             {
                 Console.WriteLine($"'{t.Value}' - {t.Type}");

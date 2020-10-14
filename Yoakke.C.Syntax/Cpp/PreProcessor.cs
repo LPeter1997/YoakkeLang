@@ -18,6 +18,14 @@ namespace Yoakke.C.Syntax.Cpp
     /// </summary>
     public class PreProcessor
     {
+        // State that is shared in a single processing
+        private class State
+        {
+            public IDictionary<string, Macro> Macros { get; set; } = new Dictionary<string, Macro>();
+            public IList<string> IncludePaths { get; set; } = new List<string>();
+            public ISet<string> PragmaOncedFiles { get; set; } = new HashSet<string>();
+        }
+
         // Helper for control flow
         private struct ControlFlow
         {
@@ -27,21 +35,26 @@ namespace Yoakke.C.Syntax.Cpp
             public bool Satisfied { get; set; }
         }
 
+        private string root;
+        private string fullPath;
+        private State state;
         private PeekBuffer<Token> source = new PeekBuffer<Token>(Enumerable.Empty<Token>());
-        private Dictionary<string, Macro> macros = new Dictionary<string, Macro>();
         private Stack<ControlFlow> controlStack = new Stack<ControlFlow>();
-        private List<string> includePaths = new List<string>();
 
-        private PreProcessor(string rootPath)
+        private PreProcessor(string fileName, State state)
         {
+            fullPath = Path.GetFullPath(fileName);
+#pragma warning disable CS8601 // Possible null reference assignment.
+            root = Path.GetDirectoryName(fullPath);
+            Debug.Assert(root != null);
+#pragma warning restore CS8601 // Possible null reference assignment.
+            this.state = state;
             // We keep the top-level
             controlStack.Push(new ControlFlow { Keep = true, Satisfied = true });
-            // Always search the current path
-            AddIncludePath(".");
         }
 
-        public PreProcessor()
-            : this(".")
+        public PreProcessor(string fileName)
+            : this(fileName, new State())
         {
         }
 
@@ -49,27 +62,27 @@ namespace Yoakke.C.Syntax.Cpp
         /// Adds an include path to search for include files.
         /// </summary>
         /// <param name="path">The path to search for includes.</param>
-        public void AddIncludePath(string path) => includePaths.Add(path);
+        public void AddIncludePath(string path) => state.IncludePaths.Add(path);
 
         /// <summary>
         /// Defines a <see cref="Macro"/>.
         /// </summary>
         /// <param name="name">The name to define.</param>
         /// <param name="macro">The <see cref="Macro"/> to assiciate the name with.</param>
-        public void Define(string name, Macro macro) => macros[name] = macro;
+        public void Define(string name, Macro macro) => state.Macros[name] = macro;
 
         /// <summary>
         /// Undefines a <see cref="Macro"/>.
         /// </summary>
         /// <param name="name">The name to undefine.</param>
-        public void Undefine(string name) => macros.Remove(name);
+        public void Undefine(string name) => state.Macros.Remove(name);
 
         /// <summary>
         /// True, if the given <see cref="Macro"/> is defined.
         /// </summary>
         /// <param name="name">The name to search for.</param>
         /// <returns>True, if a <see cref="Macro"/> is defined under the given name.</returns>
-        public bool IsDefined(string name) => macros.ContainsKey(name);
+        public bool IsDefined(string name) => state.Macros.ContainsKey(name);
 
         /// <summary>
         /// Pre-processes the whole input.
@@ -79,20 +92,19 @@ namespace Yoakke.C.Syntax.Cpp
         public IEnumerable<Token> Process(IEnumerable<Token> tokens)
         {
             source = new PeekBuffer<Token>(tokens);
-            while (true)
-            {
-                var t = Next();
-                yield return t;
-                if (t.Type == TokenType.End) break;
-            }
+            return All();
         }
 
-        private Token Next()
+        private IEnumerable<Token> All()
         {
             while (true)
             {
                 // Terminate immediately on EOF
-                if (Peek().Type == TokenType.End) return Consume();
+                if (Peek().Type == TokenType.End)
+                {
+                    yield return Consume();
+                    break;
+                }
                 // Check control flow and any directive that's related to control-flow
                 var control = controlStack.Peek();
                 if (ParseDirective(out var directiveName, out var directiveArgs))
@@ -108,7 +120,7 @@ namespace Yoakke.C.Syntax.Cpp
                     else
                     {
                         // We care about all directives
-                        HandleDirective(directiveName, directiveArgs);
+                        foreach (var t in HandleDirective(directiveName, directiveArgs)) yield return t;
                     }
                 }
                 else
@@ -121,27 +133,34 @@ namespace Yoakke.C.Syntax.Cpp
                     }
                     // We keep everything here
                     // TODO: Parse macro call
-                    return Consume();
+                    yield return Consume();
                 }
             }
         }
 
-        private void HandleDirective(string name, IList<Token> arguments)
+        private IEnumerable<Token> HandleDirective(string name, IList<Token> arguments)
         {
             if (IsControlFlowDirective(name))
             {
                 HandleControlFlowDirective(name, arguments);
-                return;
+                return Enumerable.Empty<Token>();
             }
             switch (name)
             {
             case "define": 
                 HandleMacroDefinition(arguments);
-                break;
+                return Enumerable.Empty<Token>();
+
+            case "undef":
+                HandleUndef(arguments);
+                return Enumerable.Empty<Token>();
 
             case "include":
-                HandleInclude(arguments);
-                break;
+                return HandleInclude(arguments);
+
+            case "pragma":
+                HandlePragma(arguments);
+                return Enumerable.Empty<Token>();
 
             default: throw new NotImplementedException($"Unknown directive '{name}'!");
             }
@@ -213,7 +232,9 @@ namespace Yoakke.C.Syntax.Cpp
             bool needsParens = false;
             bool isVariadic = false;
             var parameters = new List<string>();
-            if (Match(TokenType.OpenParen))
+            // NOTE: The macro name needs to touch the open paren!
+            if (Match(TokenType.OpenParen, out var openParen) 
+            && macroName.LogicalSpan.End == openParen.LogicalSpan.Start)
             {
                 // A macro with arguments
                 needsParens = true;
@@ -221,12 +242,24 @@ namespace Yoakke.C.Syntax.Cpp
                 throw new NotImplementedException();
             }
             // The remaining things are expansion
-            var expansion = source.Buffer.ToList();
+            var expansion = new List<Token>();
+            while (!source.IsEnd) expansion.Add(Consume());
             var userMacro = new UserMacro(needsParens, isVariadic, parameters.ToArray(), expansion.ToArray());
             Define(macroName.Value, userMacro);
         });
 
-        private void HandleInclude(IList<Token> arguments)
+        private void HandleUndef(IList<Token> arguments)
+        {
+            if (arguments.Count == 0 || !IsIdent(arguments[0]))
+            {
+                // TODO
+                throw new NotImplementedException("Expected an identifier!");
+            }
+            var macroName = arguments[0].Value;
+            Undefine(macroName);
+        }
+
+        private IEnumerable<Token> HandleInclude(IList<Token> arguments)
         {
             if (arguments.Count == 0 || arguments[0].Type != TokenType.StringLiteral)
             {
@@ -236,24 +269,39 @@ namespace Yoakke.C.Syntax.Cpp
             var includeFileName = arguments[0].Value;
             includeFileName = includeFileName.Substring(1, includeFileName.Length - 2);
             // Search include paths
-            foreach (var includePath in includePaths)
+            foreach (var includePath in state.IncludePaths.Prepend(root))
             {
-                var filePath = Path.Combine(includePath, includeFileName);
+                var filePath = Path.GetFullPath(Path.Combine(includePath, includeFileName));
                 if (!File.Exists(filePath)) continue;
                 // We found the file to include
-                // We just insert all of the tokens into the peek buffer
-
-                // TODO: We need to modify the include paths!
-                // While we are processing the new tokens, '.' is relative to _that_ file!
+                // Check if it's pragma onced
+                if (state.PragmaOncedFiles.Contains(filePath))
+                {
+                    // Yes, let's skip it
+                    return Enumerable.Empty<Token>();
+                }
+                // Create a sub-processor at the new root
                 var sourceText = new StreamReader(filePath).AsCharEnumerable();
-                var tokensToInsert = Lexer.Lex(CppTextReader.Process(sourceText));
-                source.PushFront(tokensToInsert);
-
-                return;
+                var tokensToPreProcess = Lexer.Lex(CppTextReader.Process(sourceText));
+                var pp = new PreProcessor(filePath, state);
+                return pp.Process(tokensToPreProcess);
             }
 
             // TODO
             throw new NotImplementedException($"Can't find include '{includeFileName}'!");
+        }
+
+        private void HandlePragma(IList<Token> arguments)
+        {
+            if (arguments.Count > 0 && arguments[0].Value == "once")
+            {
+                state.PragmaOncedFiles.Add(fullPath);
+            }
+            else
+            {
+                // TODO
+                throw new NotImplementedException();
+            }
         }
 
         private bool EvaluateCondition(IList<Token> tokens) => SwitchSource(tokens, () =>
@@ -304,7 +352,7 @@ namespace Yoakke.C.Syntax.Cpp
         public bool ParseMacroCall([MaybeNullWhen(false)] out MacroCall call)
         {
             var peek = Peek();
-            if (IsIdent(peek) && macros.TryGetValue(peek.Value, out var macro))
+            if (IsIdent(peek) && state.Macros.TryGetValue(peek.Value, out var macro))
             {
                 // We need to fill these out
                 var callSiteIdent = peek;
