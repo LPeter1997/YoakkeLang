@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -133,10 +134,15 @@ namespace Yoakke.C.Syntax.Cpp
                         continue;
                     }
                     // We keep everything here
-                    // TODO: Parse macro call
+                    ExpandUpcoming();
                     yield return Consume();
                 }
             }
+        }
+
+        private void ExpandUpcoming()
+        {
+            if (ParseMacroCall(out var call)) ExpandMacro(call);
         }
 
         private IEnumerable<Token> HandleDirective(string name, IList<Token> arguments)
@@ -341,6 +347,32 @@ namespace Yoakke.C.Syntax.Cpp
             return result;
         });
 
+        private void ExpandMacro(MacroCall call)
+        {
+            switch (call.Macro)
+            {
+            case UserMacro um:
+                ExpandUserMacro(um, call);
+                break;
+
+            default: throw new NotImplementedException();
+            }
+        }
+
+        private void ExpandUserMacro(UserMacro macro, MacroCall call)
+        {
+            if (macro.NeedsParens)
+            {
+                // TODO
+                throw new NotImplementedException();
+            }
+            else
+            {
+                // Just simply dump it
+                source.PushFront(macro.Substitution);
+            }
+        }
+
         // Parsers /////////////////////////////////////////////////////////////
 
         private bool ParseDirective(
@@ -374,8 +406,37 @@ namespace Yoakke.C.Syntax.Cpp
             return false;
         }
 
-        public bool ParseMacroCall([MaybeNullWhen(false)] out MacroCall call)
+        private bool ParseMacroCall([MaybeNullWhen(false)] out MacroCall call)
         {
+            IList<Token> ParseMacroArg()
+            {
+                var result = new List<Token>();
+                var depth = 0;
+                while (true)
+                {
+                    var peek = Peek();
+                    // Open parens increase depth
+                    if (peek.Type == TokenType.OpenParen) ++depth;
+                    else if (peek.Type == TokenType.CloseParen)
+                    {
+                        // Close parens on depth 0 means end of call
+                        if (depth == 0) break;
+                        // Otherwise we are nested, elevate the level
+                        --depth;
+                    }
+                    // A comma on depth 0 means next argument in call
+                    else if (peek.Type == TokenType.Comma && depth == 0) break;
+                    // If we are here, we need the next token
+                    // NOTE: Do we want to keep expanding after each token?
+                    // Or do we want to just do that after each expansion
+                    // Expand for safety
+                    ExpandUpcoming();
+                    // Consume the upcoming token
+                    result.Add(Consume());
+                }
+                return result;
+            }
+
             var peek = Peek();
             if (IsIdent(peek) && state.Macros.TryGetValue(peek.Value, out var macro))
             {
@@ -397,8 +458,47 @@ namespace Yoakke.C.Syntax.Cpp
                     // We are committed to calling the macro
                     Consume(2);
                     // From now on call errors are real hard errors
-                    // TODO
-                    throw new NotImplementedException("TODO");
+                    // Parse arguments
+                    var flatArgumentList = new List<IList<Token>>();
+                    if (!Match(TokenType.CloseParen))
+                    {
+                        flatArgumentList.Add(ParseMacroArg());
+                        while (!Match(TokenType.CloseParen)) flatArgumentList.Add(ParseMacroArg());
+                    }
+                    // Now we have the flat argument list, we need to make it into a dictionary
+                    if (macro.Parameters.Count == 1 && flatArgumentList.Count == 0)
+                    {
+                        // Edge-case where we called MACRO() and the macro needs a single parameter
+                        // In this case we interpret it as a single, empty argument
+                        flatArgumentList.Add(new List<Token>());
+                    }
+                    // Check if we have enough arguments
+                    if (flatArgumentList.Count < macro.Parameters.Count)
+                    {
+                        // TODO
+                        throw new NotImplementedException("Not enough macro arguments for call!");
+                    }
+                    // Assign the fix ones to names
+                    int argIndex = 0;
+                    for (; argIndex < macro.Parameters.Count; ++argIndex)
+                    {
+                        args[macro.Parameters[argIndex]] = flatArgumentList[argIndex];
+                    }
+                    // Check if we need variadic args
+                    if (!macro.IsVariadic && flatArgumentList.Count != macro.Parameters.Count)
+                    {
+                        // TODO
+                        throw new NotImplementedException("Too many args for non-variadic macro call!");
+                    }
+                    if (macro.IsVariadic)
+                    {
+                        // Assign all the remaining macros into __VA_ARGS__
+                        var vaArgs = flatArgumentList.Skip(argIndex).SelectMany(l => l).ToList();
+                        args["__VA_ARGS__"] = vaArgs;
+                    }
+                    // Construct the call
+                    call = new MacroCall(macro, callSiteIdent, args);
+                    return true;
                 }
             }
             call = null;

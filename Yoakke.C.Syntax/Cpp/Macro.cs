@@ -56,9 +56,6 @@ namespace Yoakke.C.Syntax.Cpp
         /// The fixed, named list of parameters.
         /// </summary>
         public abstract IReadOnlyList<string> Parameters { get; }
-
-        // TODO: Doc
-        public abstract void Expand(PreProcessor pp, MacroCall call);
     }
 
     /// <summary>
@@ -69,8 +66,8 @@ namespace Yoakke.C.Syntax.Cpp
         public override bool NeedsParens { get; }
         public override bool IsVariadic { get; }
         public override IReadOnlyList<string> Parameters { get; }
-
-        private IReadOnlyList<Token> substitution;
+        // TODO: Doc
+        public IReadOnlyList<Token> Substitution;
 
         // TODO: Doc
         public UserMacro(
@@ -82,12 +79,7 @@ namespace Yoakke.C.Syntax.Cpp
             NeedsParens = needsParens;
             IsVariadic = isVariadic;
             Parameters = parameters;
-            this.substitution = substitution;
-        }
-
-        public override void Expand(PreProcessor pp, MacroCall call)
-        {
-            throw new NotImplementedException();
+            Substitution = substitution;
         }
     }
 }

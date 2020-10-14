@@ -92,7 +92,7 @@ namespace Yoakke.Compiler
             pp.AddIncludePath(@"c:\Program Files (x86)\Microsoft Visual Studio\2019\Community\SDK\ScopeCppSDK\vc15\SDK\include\ucrt");
             pp.AddIncludePath(@"c:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include");
             pp.Define("WIN32", new UserMacro(false, false, new string[] { }, new C.Syntax.Token[] { }));
-            foreach (var t in pp.Process(ppTokens))
+            foreach (var t in pp.Process(ppTokens).Take(1000))
             {
                 Console.WriteLine($"'{t.Value}' - {t.Type}");
             }
