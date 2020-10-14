@@ -363,14 +363,14 @@ namespace Yoakke.C.Syntax
             // Char literal
             if (ch == '\'' || (ch == 'L' && Peek(1) == '\''))
             {
+                // NOTE: We just consume everything, even multi-char literals
                 int len = ch == '\'' ? 1 : 2;
-                if (Peek(len) == '\\') ++len;
-                // Consume character inside
-                ++len;
-                if (Peek(len) != '\'')
+                while (true)
                 {
-                    // TODO
-                    throw new NotImplementedException("Unclosed character literal!");
+                    if (Peek(len) == '\\') ++len;
+                    // Consume character inside
+                    ++len;
+                    if (Peek(len) == '\'') break;
                 }
                 // NOTE: len + 1 because the last quote is not counted!
                 return MakeToken(TokenType.CharLiteral, len + 1);

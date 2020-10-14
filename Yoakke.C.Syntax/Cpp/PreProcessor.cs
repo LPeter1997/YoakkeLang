@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -228,6 +229,19 @@ namespace Yoakke.C.Syntax.Cpp
 
         private void HandleMacroDefinition(IList<Token> arguments) => SwitchSource(arguments, () =>
         {
+            string ParseMacroParam(out bool isVariadic)
+            {
+                isVariadic = false;
+                if (Match(TokenType.Identifier, out var ident)) return ident.Value;
+                if (Match(TokenType.Ellipsis))
+                {
+                    isVariadic = true;
+                    return "__VA_ARGS__";
+                }
+                // TODO
+                throw new NotImplementedException();
+            }
+
             var macroName = Expect(TokenType.Identifier);
             bool needsParens = false;
             bool isVariadic = false;
@@ -238,8 +252,13 @@ namespace Yoakke.C.Syntax.Cpp
             {
                 // A macro with arguments
                 needsParens = true;
-                // TODO
-                throw new NotImplementedException();
+                if (!Match(TokenType.CloseParen))
+                {
+                    // We have parameters, parse the first one
+                    parameters.Add(ParseMacroParam(out isVariadic));
+                    while (!isVariadic && Match(TokenType.Comma)) parameters.Add(ParseMacroParam(out isVariadic));
+                    Expect(TokenType.CloseParen);
+                }
             }
             // The remaining things are expansion
             var expansion = new List<Token>();
@@ -284,7 +303,7 @@ namespace Yoakke.C.Syntax.Cpp
                 var sourceText = new StreamReader(filePath).AsCharEnumerable();
                 var tokensToPreProcess = Lexer.Lex(CppTextReader.Process(sourceText));
                 var pp = new PreProcessor(filePath, state);
-                return pp.Process(tokensToPreProcess);
+                return pp.Process(tokensToPreProcess).SkipLast(1);
             }
 
             // TODO
@@ -293,14 +312,20 @@ namespace Yoakke.C.Syntax.Cpp
 
         private void HandlePragma(IList<Token> arguments)
         {
-            if (arguments.Count > 0 && arguments[0].Value == "once")
+            if (arguments.Count == 0)
+            {
+                // TODO
+                throw new NotImplementedException("Pragma without args!");
+            }
+            var pragmaName = arguments[0].Value;
+            if (pragmaName == "once")
             {
                 state.PragmaOncedFiles.Add(fullPath);
             }
             else
             {
-                // TODO
-                throw new NotImplementedException();
+                // TODO: Unknown pragma
+                Console.WriteLine($"Unknown pragma: {pragmaName}");
             }
         }
 
@@ -401,9 +426,9 @@ namespace Yoakke.C.Syntax.Cpp
             TokenType.Add, TokenType.Subtract, TokenType.Not, TokenType.Bitnot,
         };
 
-        private int ParseExpression() => ParseBinaryExpression();
+        private long ParseExpression() => ParseBinaryExpression();
 
-        private int ParseBinaryExpression(int precedence = 0)
+        private long ParseBinaryExpression(int precedence = 0)
         {
             if (precedence >= precedenceTable.Length) return ParsePrefixExpression();
 
@@ -418,7 +443,7 @@ namespace Yoakke.C.Syntax.Cpp
             return left;
         }
 
-        private int ParsePrefixExpression()
+        private long ParsePrefixExpression()
         {
             if (prefixOps.Contains(Peek().Type))
             {
@@ -432,7 +457,7 @@ namespace Yoakke.C.Syntax.Cpp
             }
         }
 
-        private int ParseAtomicExpression()
+        private long ParseAtomicExpression()
         {
             if (Match("defined"))
             {
@@ -457,25 +482,37 @@ namespace Yoakke.C.Syntax.Cpp
             }
             if (Match(TokenType.IntLiteral, out var intLit))
             {
-                return int.Parse(intLit.Value);
+                return ParseIntLiteral(intLit.Value);
             }
             // TODO
             throw new NotImplementedException();
         }
 
-        private static int PerformBinaryOperation(TokenType op, int left, int right) => op switch
+        private static long PerformBinaryOperation(TokenType op, long left, long right) => op switch
         {
             TokenType.Or => (left != 0 || right != 0) ? 1 : 0,
             TokenType.And => (left == 0 || right == 0) ? 0 : 1,
+            TokenType.Equal => (left == right) ? 1 : 0,
+            TokenType.NotEqual => (left != right) ? 1 : 0,
+            TokenType.Greater => (left > right) ? 1 : 0,
             TokenType.GreaterEqual => (left >= right) ? 1 : 0,
+            TokenType.Less => (left < right) ? 1 : 0,
+            TokenType.LessEqual => (left <= right) ? 1 : 0,
             _ => throw new NotImplementedException(),
         };
 
-        private static int PerformPrefixOperation(TokenType op, int n) => op switch
+        private static long PerformPrefixOperation(TokenType op, long n) => op switch
         {
             TokenType.Not => (n == 0) ? 1 : 0,
             _ => throw new NotImplementedException(),
         };
+
+        private static long ParseIntLiteral(string intLit)
+        {
+            if (intLit.EndsWith('L')) intLit = intLit.Substring(0, intLit.Length - 1);
+            if (intLit.StartsWith("0x")) return Convert.ToInt32(intLit, 16);
+            return int.Parse(intLit);
+        }
 
         // Primitives //////////////////////////////////////////////////////////
 
