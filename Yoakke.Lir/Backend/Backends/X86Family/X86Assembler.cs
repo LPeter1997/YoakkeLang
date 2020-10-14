@@ -315,7 +315,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 var target = CompileToAddress(store.Target);
                 var value = CompileValue(store.Value);
                 var address = registerPool.Allocate(DataWidth.dword);
-                WriteInstr(store.Target is Global ? X86Op.Lea : X86Op.Mov, address, target);
+                WriteInstr(X86Op.Mov, address, target);
                 WriteCopy(address, value);
             }
             break;
@@ -327,8 +327,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 var targetAddr = registerPool.Allocate(DataWidth.dword);
                 var sourceAddr = registerPool.Allocate(DataWidth.dword);
                 WriteInstr(X86Op.Lea, targetAddr, target);
-                var op = (load.Source is Global || load.Source is Const) ? X86Op.Lea : X86Op.Mov;
-                WriteInstr(op, sourceAddr, source);
+                WriteInstr(X86Op.Mov, sourceAddr, source);
                 WriteMemcopy(targetAddr, sourceAddr, SizeOf(load.Result));
             }
             break;
@@ -720,7 +719,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         private Operand CompileToAddress(Value value)
         {
             var res = CompileSingleValue(value, true);
-            Debug.Assert(res is Operand.Address || res is Operand.Symbol);
+            //Debug.Assert(res is Operand.Address || res is Operand.Symbol);
             return res;
         }
 
@@ -757,47 +756,16 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 return result.ToArray();
             }
 
-            // NOTE: Global and symbol are the same
-            case Const constant:
+            case Const:
+            case Global:
             {
-                var symName = GetSymbolName(constant);
-                if (asLvalue)
-                {
-                    var addr = new Operand.Symbol(symName, 0);
-                    return Ops(addr);
-                }
-                // Non-lvalue
-                var fullSize = SizeOf(constant.UnderlyingType);
-                int offset = 0;
-                var result = SplitData(fullSize, dataSize =>
-                {
-                    var width = DataWidth.GetFromSize(dataSize);
-                    var newAddr = new Operand.Symbol(symName, offset);
-                    offset += dataSize;
-                    return new Operand.Indirect(width, newAddr);
-                });
-                return Ops(result.ToArray());
-            }
-
-            case Global glob:
-            {
-                var symName = GetSymbolName(glob);
-                if (asLvalue)
-                {
-                    var addr = new Operand.Symbol(symName, 0);
-                    return Ops(addr);
-                }
-                // Non-lvalue
-                var fullSize = SizeOf(glob.UnderlyingType);
-                int offset = 0;
-                var result = SplitData(fullSize, dataSize =>
-                {
-                    var width = DataWidth.GetFromSize(dataSize);
-                    var newAddr = new Operand.Symbol(symName, offset);
-                    offset += dataSize;
-                    return new Operand.Indirect(width, newAddr);
-                });
-                return Ops(result.ToArray());
+                var symName = GetSymbolName((ISymbol)value);
+                var addr = new Operand.Symbol(symName, 0);
+                //if (asLvalue) return Ops(addr);
+                // Non-lvalue, load address
+                var result = registerPool.Allocate(DataWidth.dword);
+                WriteInstr(X86Op.Lea, result, addr);
+                return Ops(result);
             }
 
             case ISymbol sym:
