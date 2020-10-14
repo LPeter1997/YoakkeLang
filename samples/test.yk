@@ -1,11 +1,11 @@
 
 var x: i32;
 
-const get_value = proc() -> *i32 {
+const get_ptr = proc() -> *i32 {
     &x
 };
 
 const main = proc() -> i32 {
-    get_value()~ = 5;
+    get_ptr()~ = 462;
     x
 };

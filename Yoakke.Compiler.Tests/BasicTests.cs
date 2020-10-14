@@ -362,5 +362,21 @@ const entry = proc() -> i32 {
 ";
             TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(-3));
         }
+
+        [TestMethod]
+        public void PointerFromGlobal()
+        {
+            string src = @"
+var x: i32;
+const get_ptr = proc() -> *i32 {
+    &x
+};
+const entry = proc() -> i32 {
+    get_ptr()~ = 462;
+    x
+};
+";
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(462));
+        }
     }
 }
