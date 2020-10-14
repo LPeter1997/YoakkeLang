@@ -15,7 +15,7 @@ namespace Yoakke.DataStructures
         /// The underlying buffer.
         /// Guaranteed to hold all the peeked elements since the last consumption.
         /// </summary>
-        public IList<T> Buffer => buffer;
+        public IReadOnlyList<T> Buffer => buffer;
         /// <summary>
         /// True, if the buffer is out of elements to consume.
         /// </summary>
@@ -41,6 +41,12 @@ namespace Yoakke.DataStructures
             : this(elements.GetEnumerator())
         {
         }
+
+        /// <summary>
+        /// Inserts elements to the beginnning of the buffer.
+        /// </summary>
+        /// <param name="elements">The elements to insert.</param>
+        public void PushFront(IEnumerable<T> elements) => buffer.InsertRange(0, elements);
 
         /// <summary>
         /// Consumes the next element in the buffer.
