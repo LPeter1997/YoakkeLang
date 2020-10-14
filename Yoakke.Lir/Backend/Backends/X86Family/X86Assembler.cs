@@ -732,8 +732,8 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
 
         private Operand[] CompileValue(Value value, bool asLvalue = false)
         {
-            Operand Lit(DataWidth dw, object obj) => new Operand.Literal(dw, obj);
-            Operand[] Ops(params Operand[] ops) => ops;
+            static Operand Lit(DataWidth dw, object obj) => new Operand.Literal(dw, obj);
+            static Operand[] Ops(params Operand[] ops) => ops;
 
             switch (value)
             {
