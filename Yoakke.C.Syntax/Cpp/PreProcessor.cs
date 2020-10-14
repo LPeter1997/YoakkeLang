@@ -26,6 +26,7 @@ namespace Yoakke.C.Syntax.Cpp
             public IDictionary<string, Macro> Macros { get; set; } = new Dictionary<string, Macro>();
             public IList<string> IncludePaths { get; set; } = new List<string>();
             public ISet<string> PragmaOncedFiles { get; set; } = new HashSet<string>();
+            public ISet<Macro> DisabledMacros { get; set; } = new HashSet<Macro>();
         }
 
         // Helper for control flow
@@ -104,7 +105,7 @@ namespace Yoakke.C.Syntax.Cpp
                 // Terminate immediately on EOF
                 if (Peek().Type == TokenType.End)
                 {
-                    yield return Consume();
+                    yield return Peek();
                     break;
                 }
                 // Check control flow and any directive that's related to control-flow
@@ -134,15 +135,21 @@ namespace Yoakke.C.Syntax.Cpp
                         continue;
                     }
                     // We keep everything here
-                    ExpandUpcoming();
-                    yield return Consume();
+                    foreach (var t in ExpandUpcoming()) yield return t;
                 }
             }
         }
 
-        private void ExpandUpcoming()
+        private IEnumerable<Token> ExpandUpcoming()
         {
-            if (ParseMacroCall(out var call)) ExpandMacro(call);
+            if (ParseMacroCall(out var call))
+            {
+                foreach (var t in ExpandMacro(call)) yield return t;
+            }
+            else
+            {
+                yield return Consume();
+            }
         }
 
         private IEnumerable<Token> HandleDirective(string name, IList<Token> arguments)
@@ -253,9 +260,11 @@ namespace Yoakke.C.Syntax.Cpp
             bool isVariadic = false;
             var parameters = new List<string>();
             // NOTE: The macro name needs to touch the open paren!
-            if (Match(TokenType.OpenParen, out var openParen) 
-            && macroName.LogicalSpan.End == openParen.LogicalSpan.Start)
+            var peek = Peek();
+            if (peek.Type == TokenType.OpenParen && macroName.LogicalSpan.End == peek.LogicalSpan.Start)
             {
+                // Eat open paren
+                Consume();
                 // A macro with arguments
                 needsParens = true;
                 if (!Match(TokenType.CloseParen))
@@ -331,7 +340,7 @@ namespace Yoakke.C.Syntax.Cpp
             else
             {
                 // TODO: Unknown pragma
-                Console.WriteLine($"Unknown pragma: {pragmaName}");
+                //Console.WriteLine($"Unknown pragma: {pragmaName}");
             }
         }
 
@@ -347,19 +356,13 @@ namespace Yoakke.C.Syntax.Cpp
             return result;
         });
 
-        private void ExpandMacro(MacroCall call)
+        private IEnumerable<Token> ExpandMacro(MacroCall call) => call.Macro switch
         {
-            switch (call.Macro)
-            {
-            case UserMacro um:
-                ExpandUserMacro(um, call);
-                break;
+            UserMacro um => ExpandUserMacro(um, call),
+            _ => throw new NotImplementedException(),
+        };
 
-            default: throw new NotImplementedException();
-            }
-        }
-
-        private void ExpandUserMacro(UserMacro macro, MacroCall call)
+        private IEnumerable<Token> ExpandUserMacro(UserMacro macro, MacroCall call)
         {
             // Any argument expansion
             IList<Token> GetExpansion(ref int i)
@@ -369,9 +372,10 @@ namespace Yoakke.C.Syntax.Cpp
                 {
                     ++i;
                     var right = GetPrefixExpansion(ref i);
-                    // TODO: Concat last from left and first from right
-                    // TODO
-                    throw new NotImplementedException();
+                    var leftLast = left.Last();
+                    var rightFirst = right.First();
+                    var middle = Concat(leftLast, rightFirst);
+                    return left.SkipLast(1).Append(middle).Concat(right.Skip(1)).ToList();
                 }
                 else
                 {
@@ -416,6 +420,7 @@ namespace Yoakke.C.Syntax.Cpp
                 }
             }
 
+            IEnumerable<Token> result;
             if (macro.NeedsParens)
             {
                 var expansion = new List<Token>();
@@ -424,13 +429,21 @@ namespace Yoakke.C.Syntax.Cpp
                     var expanded = GetExpansion(ref i);
                     expansion.AddRange(expanded);
                 }
-                source.PushFront(expansion);
+                result = expansion;
             }
             else
             {
                 // Just simply dump it
-                source.PushFront(macro.Substitution);
+                result = macro.Substitution;
             }
+            // Disable the macro while we do the sub-expansion
+            // TODO: Kinda inefficient but OK for now
+            state.DisabledMacros.Add(macro);
+            var cpp = new PreProcessor(fullPath, state);
+            var actualResult = cpp.Process(result).ToList();
+            //actualResult.RemoveAt(actualResult.Count - 1);
+            state.DisabledMacros.Remove(macro);
+            return actualResult;
         }
 
         private static Token Stringify(IList<Token> tokens)
@@ -459,8 +472,13 @@ namespace Yoakke.C.Syntax.Cpp
 
         private static Token Concat(Token left, Token right)
         {
-            // TODO
-            throw new NotImplementedException();
+            var tokens = Lexer.Lex(left.Value + right.Value).ToList();
+            if (tokens.Count != 2)
+            {
+                // TODO
+                throw new NotImplementedException("Tokens don't make a single one pasted");
+            }
+            return tokens[0];
         }
 
         // Parsers /////////////////////////////////////////////////////////////

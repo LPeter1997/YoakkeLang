@@ -92,10 +92,12 @@ namespace Yoakke.Compiler
             pp.AddIncludePath(@"c:\Program Files (x86)\Microsoft Visual Studio\2019\Community\SDK\ScopeCppSDK\vc15\SDK\include\ucrt");
             pp.AddIncludePath(@"c:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include");
             pp.Define("WIN32", new UserMacro(false, false, new string[] { }, new C.Syntax.Token[] { }));
-            foreach (var t in pp.Process(ppTokens).Take(1000))
+            var output = new StreamWriter(new FileStream("out.txt", FileMode.OpenOrCreate));
+            foreach (var t in pp.Process(ppTokens))
             {
-                Console.WriteLine($"'{t.Value}' - {t.Type}");
+                output.WriteLine(t.Value);
             }
+            output.Close();
 #endif
         }
     }
