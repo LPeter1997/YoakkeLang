@@ -393,5 +393,18 @@ const entry = proc() -> i32 {
 ";
             TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(27));
         }
+
+        [TestMethod]
+        public void OutOfOrderGlobal()
+        {
+            string src = @"
+const entry = proc() -> i32 {
+    x
+};
+
+var x = 72;
+";
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(72));
+        }
     }
 }
