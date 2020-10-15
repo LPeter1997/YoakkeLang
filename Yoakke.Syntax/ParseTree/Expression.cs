@@ -133,15 +133,25 @@ namespace Yoakke.Syntax.ParseTree
             /// </summary>
             public readonly IReadOnlyList<Field> Fields;
             /// <summary>
+            /// The <see cref="Declaration"/>s.
+            /// </summary>
+            public readonly IReadOnlyList<Declaration> Declarations;
+            /// <summary>
             /// The '}'.
             /// </summary>
             public readonly Token CloseBrace;
 
-            public StructType(Token kwStruct, Token openBrace, IReadOnlyList<Field> fields, Token closeBrace)
+            public StructType(
+                Token kwStruct, 
+                Token openBrace, 
+                IReadOnlyList<Field> fields,
+                IReadOnlyList<Declaration> declarations,
+                Token closeBrace)
             {
                 KwStruct = kwStruct;
                 OpenBrace = openBrace;
                 Fields = fields;
+                Declarations = declarations;
                 CloseBrace = closeBrace;
             }
         }

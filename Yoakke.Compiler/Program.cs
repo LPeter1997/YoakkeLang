@@ -23,7 +23,7 @@ namespace Yoakke.Compiler
     {
         static void Main(string[] args)
         {
-#if false
+#if true
             var srcPath = @"../../../../../samples/test.yk";
             // Syntax
             var src = File.ReadAllText(srcPath);
@@ -38,7 +38,7 @@ namespace Yoakke.Compiler
             //Console.WriteLine(prg.Dump());
             Console.WriteLine(ast.Dump());
 
-#if true
+#if false
             // Semantics
             // TODO: Maye this should also be part of the dependency system?
             // Probably yes!

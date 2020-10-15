@@ -68,7 +68,11 @@ namespace Yoakke.Syntax
                 new Expression.ArrayType(aty.ParseTreeNode, Desugar(aty.Length), Desugar(aty.ElementType)),
 
             Expression.StructType sty =>
-                new Expression.StructType(sty.ParseTreeNode, sty.KwStruct, sty.Fields.Select(Desugar).ToArray()),
+                new Expression.StructType(
+                    sty.ParseTreeNode, 
+                    sty.KwStruct, 
+                    sty.Fields.Select(Desugar).ToArray(), 
+                    sty.Declarations.Select(Desugar).ToArray()),
 
             Expression.StructValue sval =>
                 new Expression.StructValue(

@@ -496,15 +496,25 @@ namespace Yoakke.Syntax
             var structKw = Expect(TokenType.KwStruct);
             var openBrace = Expect(TokenType.OpenBrace);
 
+            var declarations = new List<Declaration>();
             var fields = new List<Expression.StructType.Field>();
 
             Token? closeBrace = null;
             while (!Match(TokenType.CloseBrace, out closeBrace))
             {
-                fields.Add(ParseStructTypeField());
+                var peek = Peek();
+                if (peek.Type == TokenType.KwConst || peek.Type == TokenType.KwVar)
+                {
+                    declarations.Add(ParseDefinition());
+                    continue;
+                }
+                else
+                {
+                    fields.Add(ParseStructTypeField());
+                }
             }
 
-            return new Expression.StructType(structKw, openBrace, fields.ToArray(), closeBrace);
+            return new Expression.StructType(structKw, openBrace, fields.ToArray(), declarations, closeBrace);
         }
 
         private Expression.StructType.Field ParseStructTypeField()

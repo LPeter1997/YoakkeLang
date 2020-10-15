@@ -121,12 +121,21 @@ namespace Yoakke.Syntax.Ast
             /// The <see cref="Field"/>s of the struct type.
             /// </summary>
             public readonly IReadOnlyList<Field> Fields;
+            /// <summary>
+            /// The list of <see cref="Declaration"/>s in the definition.
+            /// </summary>
+            public readonly IReadOnlyList<Statement> Declarations;
 
-            public StructType(ParseTree.Node? parseTreeNode, Token kwStruct, IReadOnlyList<Field> fields)
+            public StructType(
+                ParseTree.Node? parseTreeNode, 
+                Token kwStruct, 
+                IReadOnlyList<Field> fields,
+                IReadOnlyList<Statement> declarations)
                 : base(parseTreeNode)
             {
                 KwStruct = kwStruct;
                 Fields = fields;
+                Declarations = declarations;
             }
         }
 

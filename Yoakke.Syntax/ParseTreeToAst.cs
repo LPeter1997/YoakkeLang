@@ -64,7 +64,11 @@ namespace Yoakke.Syntax
                 new Ast.Expression.ArrayType(aty, Convert(aty.Length), Convert(aty.ElementType)),
 
             ParseTree.Expression.StructType sty => 
-                new Ast.Expression.StructType(sty, sty.KwStruct, sty.Fields.Select(Convert).ToArray()),
+                new Ast.Expression.StructType(
+                    sty, 
+                    sty.KwStruct, 
+                    sty.Fields.Select(Convert).ToArray(),
+                    sty.Declarations.Select(Convert).ToArray()),
 
             ParseTree.Expression.StructValue sval =>
                 new Ast.Expression.StructValue(sval, Convert(sval.Type), sval.Fields.Select(Convert).ToArray()),

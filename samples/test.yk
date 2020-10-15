@@ -1,8 +1,14 @@
 
+const Math = struct {
+    var unit = 1;
+
+    const increment = proc(x: i32) -> i32 { x + unit };
+
+    const abs = proc(x: i32) -> i32 {
+        if x > 0 { x } else { -x }
+    };
+};
+
 const main = proc() -> i32 {
-    var arr: [3]i32;
-    arr[0] = 5;
-    arr[1] = 38;
-    arr[2] = 16;
-    arr[0] + arr[1] - arr[2]
+    Math.increment(Math.abs(-16))
 };
