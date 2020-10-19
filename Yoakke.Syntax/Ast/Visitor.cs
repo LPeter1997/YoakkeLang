@@ -122,6 +122,7 @@ namespace Yoakke.Syntax.Ast
         protected virtual T? Visit(Expression.StructType sty)
         {
             foreach (var field in sty.Fields) Visit(field);
+            foreach (var decl in sty.Declarations) Visit(decl);
             return default;
         }
 
