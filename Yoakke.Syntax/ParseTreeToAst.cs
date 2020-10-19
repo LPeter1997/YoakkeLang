@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -9,6 +10,21 @@ namespace Yoakke.Syntax
     /// </summary>
     public static class ParseTreeToAst
     {
+        // NOTE: Reordering globals like this is OK for now but we might want to do it at symbol resolution
+        // to be able to resolve more hairy cases like globals depending on globals defined later and such
+
+        private class StatementComparer : IComparer<Ast.Statement>
+        {
+            public static readonly StatementComparer Default = new StatementComparer();
+
+            public int Compare(Ast.Statement? x, Ast.Statement? y)
+            {
+                var s1val = x is Ast.Statement.Var ? 0 : 1;
+                var s2val = y is Ast.Statement.Var ? 0 : 1;
+                return s1val - s2val;
+            }
+        }
+
         /// <summary>
         /// Converts the parse-tree file to an AST file.
         /// </summary>
@@ -25,15 +41,17 @@ namespace Yoakke.Syntax
         public static Ast.Statement Convert(ParseTree.Statement stmt) => stmt switch
         {
             ParseTree.Declaration.File file => 
-                new Ast.Declaration.File(file, file.Declarations.Select(Convert).ToArray()),
+                new Ast.Declaration.File(
+                    file, 
+                    // Reorder globals
+                    file.Declarations.Select(Convert).OrderBy(s => s, StatementComparer.Default).ToArray()),
 
             ParseTree.Declaration.Definition def => def.Keyword.Type == TokenType.KwConst
                 ? new Ast.Declaration.Const(
                     def, 
                     def.Name.Value, 
                     ConvertNullable(def.Type), 
-                    Convert(def.Value ?? throw new NotImplementedException())
-                    )
+                    Convert(def.Value ?? throw new NotImplementedException()))
                 : new Ast.Statement.Var(
                     def,
                     def.Name.Value,
@@ -68,7 +86,8 @@ namespace Yoakke.Syntax
                     sty, 
                     sty.KwStruct, 
                     sty.Fields.Select(Convert).ToArray(),
-                    sty.Declarations.Select(Convert).ToArray()),
+                    // Reorder globals
+                    sty.Declarations.Select(Convert).OrderBy(s => s, StatementComparer.Default).ToArray()),
 
             ParseTree.Expression.StructValue sval =>
                 new Ast.Expression.StructValue(sval, Convert(sval.Type), sval.Fields.Select(Convert).ToArray()),
