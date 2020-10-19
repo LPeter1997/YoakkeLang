@@ -122,7 +122,7 @@ namespace Yoakke.Lir.Tests
             var prg = parser.ParseFile();
             Assert.AreEqual(0, syntaxStatus.Errors.Count);
             var ast = ParseTreeToAst.Convert(prg);
-            ast = Desugaring.Desugar(ast);
+            ast = new Desugaring().Desugar(ast);
 
             var symTab = new SymbolTable();
             // TODO: Move builtin def to somewhere internal

@@ -37,6 +37,10 @@ namespace Yoakke.Syntax.Ast
             Declaration.File  f => Visit(f),
             Declaration.Const c => Visit(c),
 
+            Expression.StructType.Field f => Visit(f),
+
+            Expression.ProcSignature.Parameter p => Visit(p),
+
             _ => throw new NotImplementedException(),
         };
 
@@ -46,6 +50,8 @@ namespace Yoakke.Syntax.Ast
             Statement.Var         v => Visit(v),
             Statement.Return      r => Visit(r),
             Statement.Expression_ e => Visit(e),
+
+            Expression.StructValue.Field f => Visit(f),
 
             _ => throw new NotImplementedException(),
         };

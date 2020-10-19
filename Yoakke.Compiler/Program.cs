@@ -33,7 +33,7 @@ namespace Yoakke.Compiler
             var parser = new Parser(tokens, syntaxStatus);
             var prg = parser.ParseFile();
             var ast = ParseTreeToAst.Convert(prg);
-            ast = Desugaring.Desugar(ast);
+            ast = new Desugaring().Desugar(ast);
 
             //Console.WriteLine(prg.Dump());
             Console.WriteLine(ast.Dump());

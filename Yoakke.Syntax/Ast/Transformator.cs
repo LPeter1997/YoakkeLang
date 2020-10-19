@@ -18,19 +18,19 @@ namespace Yoakke.Syntax.Ast
         /// </summary>
         /// <param name="decl">The <see cref="Declaration"/> to transform.</param>
         /// <returns>The transformed <see cref="Declaration"/>.</returns>
-        public Declaration Transform(Declaration decl) => (Declaration)VisitNonNull(decl);
+        protected Declaration Transform(Declaration decl) => (Declaration)VisitNonNull(decl);
         /// <summary>
         /// Transforms a <see cref="Statement"/>.
         /// </summary>
         /// <param name="decl">The <see cref="Statement"/> to transform.</param>
         /// <returns>The transformed <see cref="Statement"/>.</returns>
-        public Statement Transform(Statement stmt) => (Statement)VisitNonNull(stmt);
+        protected Statement Transform(Statement stmt) => (Statement)VisitNonNull(stmt);
         /// <summary>
         /// Transforms an <see cref="Expression"/>.
         /// </summary>
         /// <param name="decl">The <see cref="Expression"/> to transform.</param>
         /// <returns>The transformed <see cref="Expression"/>.</returns>
-        public Expression Transform(Expression expr) => (Expression)VisitNonNull(expr);
+        protected Expression Transform(Expression expr) => (Expression)VisitNonNull(expr);
 
         protected Expression? TransformNullable(Expression? expr) => expr == null ? null : Transform(expr);
 
