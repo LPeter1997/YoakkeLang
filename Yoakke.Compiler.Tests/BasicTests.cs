@@ -406,5 +406,37 @@ var x = 72;
 ";
             TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(72));
         }
+
+        [TestMethod]
+        public void AssociatedConstantProcedure()
+        {
+            string src = @"
+const Math = struct {
+    const abs = proc(x: i32) -> i32 {
+        if x > 0 { x } else { -x }
+    };
+};
+const entry = proc() -> i32 {
+    Math.abs(-15)
+};
+
+";
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(15));
+        }
+
+        [TestMethod]
+        public void AssociatedConstantGlobal()
+        {
+            string src = @"
+const Math = struct {
+    var x = 7;
+};
+const entry = proc() -> i32 {
+    Math.x
+};
+
+";
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(7));
+        }
     }
 }

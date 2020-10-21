@@ -1,0 +1,15 @@
+// This is the prelude library for Yoakke, defining essential types.
+
+// Represents a continuous portion of memory.
+const Slice = proc(T: type) -> type {
+    struct {
+        data: *T;
+        len: u32;
+    }
+}
+
+// C interop.
+const @c = struct {
+    // C string.
+    const str = Slice(u8);
+};

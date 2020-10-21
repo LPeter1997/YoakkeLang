@@ -65,11 +65,6 @@ namespace Yoakke.Compiler.Compile
             TypeCheck(file);
             // If the type-checking succeeded, we can compile
             Visit(file);
-            // We close the prelude function
-            if (Builder.Assembly.Prelude != null)
-            {
-                Builder.WithPrelude(b => b.Ret());
-            }
             return Builder.Assembly;
         }
 

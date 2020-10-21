@@ -1,12 +1,10 @@
 
 const Math = struct {
-    var x = 6;
-
     const abs = proc(x: i32) -> i32 {
         if x > 0 { x } else { -x }
     };
 };
 
 const main = proc() -> i32 {
-    Math.x
+    Math.abs(-15)
 };

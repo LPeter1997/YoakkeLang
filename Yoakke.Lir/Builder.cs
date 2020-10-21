@@ -209,10 +209,21 @@ namespace Yoakke.Lir
                 {
                     Assembly.Prelude = DefineProc("prelude");
                 }
+                else
                 // Set it as the current procedure
                 CurrentProc = Assembly.Prelude;
+                // If the last instruction was a 'ret', delete it
+                {
+                    var instructions = CurrentBasicBlock.Instructions;
+                    if (instructions.Count > 0 && instructions.Last() is Instr.Ret)
+                    {
+                        instructions.RemoveAt(instructions.Count - 1);
+                    }
+                }
                 // Allow the user to do the things inside
                 action(this);
+                // Add back the return instruction
+                Ret();
             });
 
         /// <summary>
