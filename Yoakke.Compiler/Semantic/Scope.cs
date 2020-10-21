@@ -38,6 +38,10 @@ namespace Yoakke.Compiler.Semantic
         /// The parent of this <see cref="Scope"/>. Null, if this is the root.
         /// </summary>
         public readonly Scope? Parent;
+        /// <summary>
+        /// The defined <see cref="Symbol"/>s in this <see cref="Scope"/>.
+        /// </summary>
+        public IEnumerable<Symbol> Symbols => symbols.Values;
 
         private Dictionary<string, Symbol> symbols = new Dictionary<string, Symbol>();
 

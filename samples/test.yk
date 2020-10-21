@@ -1,15 +1,4 @@
 
-const Slice = proc(T: type) -> type {
-    struct {
-        data: *T;
-        len: u32;
-    }
-};
-
-const @c = struct {
-    const str = Slice(u8);
-};
-
 const foo = proc(x: @c.str) {};
 
 const main = proc() -> i32 {

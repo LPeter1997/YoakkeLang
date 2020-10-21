@@ -24,25 +24,25 @@ namespace Yoakke.Compiler
         static void Main(string[] args)
         {
 #if true
-            var srcPath = @"../../../../../samples/test.yk";
-            // Syntax
-            var src = File.ReadAllText(srcPath);
-            var srcFile = new SourceFile(srcPath, src);
-            var syntaxStatus = new SyntaxStatus();
-            var tokens = Lexer.Lex(srcFile, syntaxStatus);
-            var parser = new Parser(tokens, syntaxStatus);
-            var prg = parser.ParseFile();
-            var ast = ParseTreeToAst.Convert(prg);
-            ast = new Desugaring().Desugar(ast);
+            // TODO: Maye this should also be part of the dependency system?
+            // Probably yes!
+            var symTab = new SymbolTable();
+            // We inject prelude here
+            {
+                var preludeAst = LoadFileAst(@"../../../../../stdlib/prelude.yk");
+                new DefineScope(symTab).Define(preludeAst);
+                new DeclareSymbol(symTab).Declare(preludeAst);
+                new ResolveSymbol(symTab).Resolve(preludeAst);
+            }
+
+            var ast = LoadFileAst(@"../../../../../samples/test.yk");
 
             //Console.WriteLine(prg.Dump());
             Console.WriteLine(ast.Dump());
 
-#if true
             // Semantics
             // TODO: Maye this should also be part of the dependency system?
             // Probably yes!
-            var symTab = new SymbolTable();
             new DefineScope(symTab).Define(ast);
             new DeclareSymbol(symTab).Declare(ast);
             new ResolveSymbol(symTab).Resolve(ast);
@@ -76,8 +76,6 @@ namespace Yoakke.Compiler
                 OutputPath = "C:/TMP/program.exe",
             };
             toolchain.Compile(build);
-#endif
-
 #else
             // TODO: We need to expand arguments
             // We need to refactor out expansion (and parsing) mechanism to work everywhere, not just in the main parser module
@@ -95,6 +93,19 @@ namespace Yoakke.Compiler
             }
             output.Close();
 #endif
+        }
+
+        private static Declaration.File LoadFileAst(string path)
+        {
+            var src = File.ReadAllText(path);
+            var srcFile = new SourceFile(path, src);
+            var syntaxStatus = new SyntaxStatus();
+            var tokens = Lexer.Lex(srcFile, syntaxStatus);
+            var parser = new Parser(tokens, syntaxStatus);
+            var prg = parser.ParseFile();
+            var ast = ParseTreeToAst.Convert(prg);
+            ast = new Desugaring().Desugar(ast);
+            return ast;
         }
     }
 }
