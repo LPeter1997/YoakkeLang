@@ -1,6 +1,8 @@
 
-const foo = proc(x: @c.str) {};
+//const puts = @extern("puts", proc(*u8) -> i32);
 
-const main = proc() -> i32 {
-    0
+const main = proc() -> u32 {
+    var text = "Hello, World!";
+    //puts(text.data);
+    text.len
 };

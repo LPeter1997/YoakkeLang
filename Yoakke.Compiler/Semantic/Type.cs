@@ -172,7 +172,7 @@ namespace Yoakke.Compiler.Semantic
             public override int GetHashCode() =>
                 HashCode.Combine(typeof(Struct), KwStruct, Fields);
             public override string ToString() =>
-                $"struct {string.Join("; ", Fields.Select(kv => $"{kv.Key}: {kv.Value}"))}";
+                $"struct {{ {string.Join("; ", Fields.Select(kv => $"{kv.Key}: {kv.Value}"))} }}";
         }
 
         /// <summary>
