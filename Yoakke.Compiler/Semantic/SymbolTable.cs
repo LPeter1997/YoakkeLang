@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Yoakke.Lir.Values;
 using Yoakke.Syntax;
 using Yoakke.Syntax.Ast;
 
@@ -33,6 +34,28 @@ namespace Yoakke.Compiler.Semantic
         public SymbolTable()
         {
             CurrentScope = GlobalScope;
+            DefineBuiltinPrimitives();
+        }
+
+        private void DefineBuiltinPrimitives()
+        {
+            void DefineBuiltinType(Type type)
+            {
+                Debug.Assert(type is Type.Prim);
+                this.DefineBuiltinType(type.ToString(), type);
+            }
+
+            DefineBuiltinType(Type.Type_);
+
+            DefineBuiltinType(Type.I8);
+            DefineBuiltinType(Type.I16);
+            DefineBuiltinType(Type.I32);
+            DefineBuiltinType(Type.I64);
+            DefineBuiltinType(Type.U8);
+            DefineBuiltinType(Type.U16);
+            DefineBuiltinType(Type.U32);
+            DefineBuiltinType(Type.U64);
+            DefineBuiltinType(Type.Bool);
         }
 
         /// <summary>
@@ -61,6 +84,14 @@ namespace Yoakke.Compiler.Semantic
         {
             containingScope[node] = CurrentScope;
         }
+
+        // TODO: Doc
+        public void DefineBuiltinType(string name, Type type) =>
+            DefineBuiltin(name, Type.Type_, new Value.User(type));
+
+        // TODO: Doc
+        public void DefineBuiltin(string name, Type type, Value value) =>
+            GlobalScope.Define(new Symbol.Const(name, type, value));
 
         /// <summary>
         /// Defines a <see cref="Symbol"/> for the given <see cref="Node"/>.

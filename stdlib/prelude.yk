@@ -6,7 +6,7 @@ const Slice = proc(T: type) -> type {
         data: *T;
         len: u32;
     }
-}
+};
 
 // C interop.
 const @c = struct {

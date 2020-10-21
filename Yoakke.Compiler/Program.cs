@@ -43,10 +43,6 @@ namespace Yoakke.Compiler
             // TODO: Maye this should also be part of the dependency system?
             // Probably yes!
             var symTab = new SymbolTable();
-            symTab.GlobalScope.Define(new Symbol.Const("i32", Semantic.Type.Type_, new Value.User(Semantic.Type.I32)));
-            symTab.GlobalScope.Define(new Symbol.Const("i64", Semantic.Type.Type_, new Value.User(Semantic.Type.I64)));
-            symTab.GlobalScope.Define(new Symbol.Const("bool", Semantic.Type.Type_, new Value.User(Semantic.Type.Bool)));
-            symTab.GlobalScope.Define(new Symbol.Const("type", Semantic.Type.Type_, new Value.User(Semantic.Type.Type_)));
             new DefineScope(symTab).Define(ast);
             new DeclareSymbol(symTab).Declare(ast);
             new ResolveSymbol(symTab).Resolve(ast);

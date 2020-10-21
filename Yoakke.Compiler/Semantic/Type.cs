@@ -13,8 +13,15 @@ namespace Yoakke.Compiler.Semantic
     /// </summary>
     public abstract partial class Type : IEquatable<Type>
     {
+        public static readonly Type U8  = new Prim("u8" , Lir.Types.Type.U8);
+        public static readonly Type U16 = new Prim("u16", Lir.Types.Type.U16);
+        public static readonly Type U32 = new Prim("u32", Lir.Types.Type.U32);
+        public static readonly Type U64 = new Prim("u64", Lir.Types.Type.U64);
+        public static readonly Type I8  = new Prim("i8" , Lir.Types.Type.I8);
+        public static readonly Type I16 = new Prim("i16", Lir.Types.Type.I16);
         public static readonly Type I32 = new Prim("i32", Lir.Types.Type.I32);
         public static readonly Type I64 = new Prim("i64", Lir.Types.Type.I64);
+
         public static readonly Type Bool = new Prim("bool", Lir.Types.Type.I32);
         // NOTE: For now it will do
         public static readonly Type Unit = new Prim("unit", Lir.Types.Type.Void_);
@@ -30,6 +37,8 @@ namespace Yoakke.Compiler.Semantic
 
         public abstract bool Equals(Type? other);
         public abstract override int GetHashCode();
+
+        public abstract override string ToString();
     }
 
     partial class Type
@@ -62,6 +71,7 @@ namespace Yoakke.Compiler.Semantic
             public override bool Equals(Type? other) => 
                 other is Prim p && Name == p.Name && Type.Equals(p.Type);
             public override int GetHashCode() => HashCode.Combine(typeof(Prim), Name, Type);
+            public override string ToString() => Name;
         }
 
         /// <summary>
@@ -88,6 +98,7 @@ namespace Yoakke.Compiler.Semantic
                 && Subtype.Equals(p.Subtype);
             public override int GetHashCode() =>
                 HashCode.Combine(typeof(Ptr), Subtype);
+            public override string ToString() => $"*{Subtype}";
         }
 
         /// <summary>
@@ -121,6 +132,8 @@ namespace Yoakke.Compiler.Semantic
                 && Return.Equals(p.Return);
             public override int GetHashCode() =>
                 HashCode.Combine(typeof(Proc), Parameters, Return);
+            public override string ToString() => 
+                $"proc({string.Join(",", Parameters)}) -> {Return}";
         }
 
         /// <summary>
@@ -158,6 +171,8 @@ namespace Yoakke.Compiler.Semantic
                 && Fields.Equals(s.Fields);
             public override int GetHashCode() =>
                 HashCode.Combine(typeof(Struct), KwStruct, Fields);
+            public override string ToString() =>
+                $"struct {string.Join("; ", Fields.Select(kv => $"{kv.Key}: {kv.Value}"))}";
         }
 
         /// <summary>
@@ -191,6 +206,7 @@ namespace Yoakke.Compiler.Semantic
                 && Length == a.Length;
             public override int GetHashCode() =>
                 HashCode.Combine(typeof(Array), ElementType, Length);
+            public override string ToString() => $"[{Length}]{ElementType}";
         }
     }
 }

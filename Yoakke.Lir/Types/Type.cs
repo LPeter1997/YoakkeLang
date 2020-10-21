@@ -10,8 +10,12 @@ namespace Yoakke.Lir.Types
     {
         public static readonly Void Void_ = new Void();
         public static readonly User User_ = new User();
+        public static readonly Int U8  = new Int(false, 8);
+        public static readonly Int U16 = new Int(false, 16);
         public static readonly Int U32 = new Int(false, 32);
         public static readonly Int U64 = new Int(false, 64);
+        public static readonly Int I8  = new Int(true, 8);
+        public static readonly Int I16 = new Int(true, 16);
         public static readonly Int I32 = new Int(true, 32);
         public static readonly Int I64 = new Int(true, 64);
 
