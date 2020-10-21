@@ -22,7 +22,6 @@ namespace Yoakke.Compiler.Compile
         public IDependencySystem System { get; }
         public Builder Builder { get; }
 
-        private TypeTranslator typeTranslator;
         private Dictionary<Expression.Proc, Proc> compiledProcs;
         private Dictionary<Symbol, Value> variablesToRegisters;
         private string? nameHint;
@@ -31,7 +30,6 @@ namespace Yoakke.Compiler.Compile
         {
             System = system;
             Builder = builder;
-            typeTranslator = new TypeTranslator();
             variablesToRegisters = new Dictionary<Symbol, Value>();
             compiledProcs = new Dictionary<Expression.Proc, Proc>();
         }
@@ -50,7 +48,8 @@ namespace Yoakke.Compiler.Compile
         private Value EvaluateConst(Declaration.Const constDecl) => System.EvaluateConst(constDecl);
         private Value EvaluateConst(Symbol.Const constSym) => System.EvaluateConst(constSym);
         private Semantic.Type EvaluateType(Expression expression) => System.EvaluateType(expression);
-        private int FieldIndex(Semantic.Type sty, string name) => typeTranslator.FieldIndex(sty, name);
+        private TypeTranslator TypeTranslator => System.TypeTranslator;
+        private int FieldIndex(Semantic.Type sty, string name) => TypeTranslator.FieldIndex(sty, name);
 
         // Public interface ////////////////////////////////////////////////////
 
@@ -94,7 +93,7 @@ namespace Yoakke.Compiler.Compile
 
         // Actual code-generation //////////////////////////////////////////////
 
-        private Lir.Types.Type TranslateToLirType(Semantic.Type type) => typeTranslator.ToLirType(type, Builder);
+        private Lir.Types.Type TranslateToLirType(Semantic.Type type) => TypeTranslator.ToLirType(type, Builder);
 
         protected override Value? Visit(Declaration.Const cons) => EvaluateConst(cons);
 
@@ -456,7 +455,28 @@ namespace Yoakke.Compiler.Compile
         {
             var leftType = TypeOf(dot.Left);
             var left = VisitNonNull(dot.Left);
-            if (leftType is Semantic.Type.Struct sty)
+            if (leftType.Equals(Semantic.Type.Type_))
+            {
+                // Static member access
+                var leftValue = System.EvaluateType(dot.Left);
+                Debug.Assert(leftValue.DefinedScope != null);
+                var symbol = leftValue.DefinedScope.Reference(dot.Right);
+                // TODO: Duplication with identifier!
+                // Check what kind of symbol it is
+                if (symbol is Symbol.Var)
+                {
+                    // Handle the variable
+                    var reg = variablesToRegisters[symbol];
+                    // Load the value
+                    return Builder.Load(reg);
+                }
+                else
+                {
+                    var constSymbol = (Symbol.Const)symbol;
+                    return EvaluateConst(constSymbol);
+                }
+            }
+            else if (leftType is Semantic.Type.Struct sty)
             {
                 // Since we need a pointer, we need to write the struct to memory
                 var leftSpace = Builder.Alloc(TranslateToLirType(leftType));
@@ -497,6 +517,11 @@ namespace Yoakke.Compiler.Compile
 
         protected override Value? Visit(Expression.StructType sty)
         {
+            // NOTE: For now we just compile everything inside
+            // Later we'll need to clone stuff and capture the actual locals to support associated constants
+            // for generics
+            foreach (var decl in sty.Declarations) Visit(decl);
+
             // For struct types we create an array of N+1 user types, where N is the number of fields
             // The first element will be pointer to this expression
             // The rest are the actual field types

@@ -1,17 +1,12 @@
 
-// const Math = struct {
-//     var unit = 1;
+const Math = struct {
+    var x = 6;
 
-//     const increment = proc(x: i32) -> i32 { x + unit };
-
-//     const abs = proc(x: i32) -> i32 {
-//         if x > 0 { x } else { -x }
-//     };
-// };
-
-const main = proc() -> i32 {
-    //Math.increment(Math.abs(-16))
-    x
+    const abs = proc(x: i32) -> i32 {
+        if x > 0 { x } else { -x }
+    };
 };
 
-var x: i32 = 2643;
+const main = proc() -> i32 {
+    Math.x
+};

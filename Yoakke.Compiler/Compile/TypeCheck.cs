@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
@@ -178,15 +179,30 @@ namespace Yoakke.Compiler.Compile
         {
             base.Visit(dot);
             var leftType = System.TypeOf(dot.Left);
-            if (!(leftType is Type.Struct structType))
+            if (leftType.Equals(Type.Type_))
             {
-                // TODO
-                throw new NotImplementedException("Can't access element of non-struct type!");
+                // Static member access, we need the type value itself
+                var leftValue = System.EvaluateType(dot.Left);
+                if (leftValue.DefinedScope == null)
+                {
+                    // TODO
+                    throw new NotImplementedException();
+                }
+                leftValue.DefinedScope.Reference(dot.Right);
             }
-            if (!(structType.Fields.ContainsKey(dot.Right)))
+            else if (leftType is Type.Struct structType)
+            {
+                // Field access
+                if (!(structType.Fields.ContainsKey(dot.Right)))
+                {
+                    // TODO
+                    throw new NotImplementedException($"Non-existing field '{dot.Right}'!");
+                }
+            }
+            else
             {
                 // TODO
-                throw new NotImplementedException($"Non-existing field '{dot.Right}'!");
+                throw new NotImplementedException();
             }
             return null;
         }

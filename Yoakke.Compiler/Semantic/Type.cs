@@ -21,6 +21,11 @@ namespace Yoakke.Compiler.Semantic
         // Special thing
         public static readonly Type Type_ = new Prim("type", Lir.Types.Type.User_);
 
+        /// <summary>
+        /// The <see cref="Scope"/> this <see cref="Type"/> defines for associated members.
+        /// </summary>
+        public virtual Scope? DefinedScope => null;
+
         public override bool Equals(object? obj) => obj is Type ty && Equals(ty);
 
         public abstract bool Equals(Type? other);
@@ -132,15 +137,19 @@ namespace Yoakke.Compiler.Semantic
             /// </summary>
             public readonly IValueDictionary<string, Type> Fields;
 
+            public override Scope? DefinedScope { get; }
+
             /// <summary>
             /// Initializes a new <see cref="Struct"/>.
             /// </summary>
             /// <param name="kwStruct">The 'struct' <see cref="Token"/>.</param>
             /// <param name="fields">The names to field <see cref="Type"/>s dictionary.</param>
-            public Struct(Token kwStruct, IValueDictionary<string, Type> fields)
+            /// <param name="definedScope">The <see cref="Scope"/> this struct type defines.</param>
+            public Struct(Token kwStruct, IValueDictionary<string, Type> fields, Scope? definedScope)
             {
                 KwStruct = kwStruct;
                 Fields = fields;
+                DefinedScope = definedScope;
             }
 
             public override bool Equals(Type? other) =>

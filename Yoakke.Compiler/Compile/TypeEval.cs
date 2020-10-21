@@ -44,22 +44,7 @@ namespace Yoakke.Compiler.Compile
         protected override Type? Visit(Expression.Identifier ident)
         {
             var symbol = System.SymbolTable.ReferredSymbol(ident);
-            if (symbol is Symbol.Const constSym)
-            {
-                if (constSym.Type != null) return constSym.Type;
-                Debug.Assert(constSym.Definition != null);
-                var definition = (Declaration.Const)constSym.Definition;
-                return TypeOf(definition.Value);
-            }
-            else if (symbol is Symbol.Var varSym)
-            {
-                Debug.Assert(varSym.Type != null);
-                return varSym.Type;
-            }
-            else
-            {
-                throw new NotImplementedException();
-            }
+            return TypeOfSymbol(symbol);
         }
 
         protected override Type? Visit(Expression.Proc proc)
@@ -148,8 +133,45 @@ namespace Yoakke.Compiler.Compile
 
         protected override Type? Visit(Expression.DotPath dot)
         {
-            var leftType = (Type.Struct)TypeOf(dot.Left);
-            return leftType.Fields[dot.Right];
+            var leftType = TypeOf(dot.Left);
+            if (leftType.Equals(Type.Type_))
+            {
+                // Static member access
+                var leftValue = System.EvaluateType(dot.Left);
+                Debug.Assert(leftValue.DefinedScope != null);
+                var referredSymbol = leftValue.DefinedScope.Reference(dot.Right);
+                return TypeOfSymbol(referredSymbol);
+            }
+            else if (leftType is Type.Struct structType)
+            {
+                // Field access
+                return structType.Fields[dot.Right];
+            }
+            else
+            {
+                // TODO
+                throw new NotImplementedException();
+            }
+        }
+
+        private Type TypeOfSymbol(Symbol symbol)
+        {
+            if (symbol is Symbol.Const constSym)
+            {
+                if (constSym.Type != null) return constSym.Type;
+                Debug.Assert(constSym.Definition != null);
+                var definition = (Declaration.Const)constSym.Definition;
+                return TypeOf(definition.Value);
+            }
+            else if (symbol is Symbol.Var varSym)
+            {
+                Debug.Assert(varSym.Type != null);
+                return varSym.Type;
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

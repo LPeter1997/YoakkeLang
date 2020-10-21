@@ -16,6 +16,7 @@ namespace Yoakke.Compiler.Compile
     {
         public SymbolTable SymbolTable { get; }
         public Builder Builder { get; }
+        public TypeTranslator TypeTranslator { get; }
 
         public Assembly? Compile(Declaration.File file, BuildStatus status);
         public void TypeCheck(Node node);

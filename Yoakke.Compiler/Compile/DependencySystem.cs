@@ -23,6 +23,7 @@ namespace Yoakke.Compiler.Compile
     {
         public SymbolTable SymbolTable { get; }
         public Builder Builder => codegen.Builder;
+        public TypeTranslator TypeTranslator { get; }
 
         private Codegen codegen;
         private TypeEval typeEval;
@@ -33,6 +34,7 @@ namespace Yoakke.Compiler.Compile
         public DependencySystem(SymbolTable symbolTable)
         {
             SymbolTable = symbolTable;
+            TypeTranslator = new TypeTranslator(this);
             codegen = new Codegen(this);
             typeEval = new TypeEval(this);
             typeCheck = new TypeCheck(this);

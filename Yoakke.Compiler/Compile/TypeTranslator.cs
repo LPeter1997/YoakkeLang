@@ -12,7 +12,14 @@ namespace Yoakke.Compiler.Compile
     // TODO: Doc the whole thing
     public class TypeTranslator
     {
+        public IDependencySystem System { get; }
+
         private Dictionary<(Semantic.Type, string), int> fieldIndices = new Dictionary<(Semantic.Type, string), int>();
+
+        public TypeTranslator(IDependencySystem system)
+        {
+            System = system;
+        }
 
         public Lir.Types.Type ToLirType(Semantic.Type type, Lir.Builder builder) => type switch
         {
@@ -51,7 +58,7 @@ namespace Yoakke.Compiler.Compile
 
         public int FieldIndex(Semantic.Type type, string fieldName) => fieldIndices[(type, fieldName)];
 
-        public static Semantic.Type ToSemanticType(Lir.Values.Value value)
+        public Semantic.Type ToSemanticType(Lir.Values.Value value)
         {
             if (value is Lir.Values.Value.User user)
             {
@@ -74,13 +81,20 @@ namespace Yoakke.Compiler.Compile
                     }
                     if (tagType is Expression.StructType structType)
                     {
+                        // NOTE: This will not be correct for generics!
+                        Semantic.Scope? scope = null;
+                        if (structType.Declarations.Count > 0)
+                        {
+                            scope = System.SymbolTable.ContainingScope(structType.Declarations.First());
+                        }
                         return new Semantic.Type.Struct(
                             structType.KwStruct,
                             structType.Fields
                                 .Select(field => field.Name)
                                 .Zip(ctorTypes.Select(ToSemanticType))
                                 .ToDictionary(kv => kv.First, kv => kv.Second)
-                                .AsValueDictionary());
+                                .AsValueDictionary(),
+                            scope);
                     }
                 }
             }
