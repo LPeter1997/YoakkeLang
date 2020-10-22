@@ -434,9 +434,24 @@ const Math = struct {
 const entry = proc() -> i32 {
     Math.x
 };
-
 ";
             TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(7));
         }
+
+        /*
+         * TODO: Load prelude for test env too!
+         * This would require us to have prelude in a standardized location.
+        [TestMethod]
+        public void StringLiteralLength()
+        {
+            string src = @"
+const entry = proc() -> i32 {
+    var x = ""Hello, World!"";
+    x.len
+};
+";
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(13));
+        }
+        */
     }
 }
