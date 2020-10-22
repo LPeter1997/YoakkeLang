@@ -50,6 +50,7 @@ namespace Yoakke.Compiler.Compile
         private Semantic.Type EvaluateType(Expression expression) => System.EvaluateType(expression);
         private TypeTranslator TypeTranslator => System.TypeTranslator;
         private int FieldIndex(Semantic.Type sty, string name) => TypeTranslator.FieldIndex(sty, name);
+        private Lir.Types.Type TranslateToLirType(Semantic.Type type) => TypeTranslator.ToLirType(type, Builder);
 
         // Public interface ////////////////////////////////////////////////////
 
@@ -88,23 +89,13 @@ namespace Yoakke.Compiler.Compile
 
         // Actual code-generation //////////////////////////////////////////////
 
-        private Lir.Types.Type TranslateToLirType(Semantic.Type type) => TypeTranslator.ToLirType(type, Builder);
-
         protected override Value? Visit(Declaration.Const cons) => EvaluateConst(cons);
 
         protected override Value? Visit(Statement.Var var)
         {
-            // Figure out variable type
-            Semantic.Type type;
-            if (var.Value != null)
-            {
-                type = TypeOf(var.Value);
-            }
-            else
-            {
-                Debug.Assert(var.Type != null);
-                type = EvaluateType(var.Type);
-            }
+            var symbol = (Symbol.Var)SymbolTable.DefinedSymbol(var);
+            Debug.Assert(symbol.Type != null);
+            var type = symbol.Type;
             // Globals and locals are very different
             Value varSpace;
             if (SymbolTable.IsGlobal(var))
@@ -134,7 +125,6 @@ namespace Yoakke.Compiler.Compile
                 }
             }
             // Associate with symbol
-            var symbol = SymbolTable.DefinedSymbol(var);
             variablesToRegisters.Add(symbol, varSpace);
             return null;
         }
