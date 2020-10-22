@@ -528,14 +528,14 @@ namespace Yoakke.Lir.Runtime
                     var fieldValue = ReadMemory(ref bytes, field);
                     fields.Add(fieldValue);
                 }
-                return new StructValue(struc, fields);
+                return new Value.Struct(struc, fields);
             }
 
             case Type.Array array:
             {
                 var fields = new ValueList<Value>();
                 for (int i = 0; i < array.Size; ++i) fields.Add(ReadMemory(ref bytes, array.Subtype));
-                return new ArrayValue(array, fields);
+                return new Value.Array(array, fields);
             }
 
             case Type.User:
@@ -588,13 +588,13 @@ namespace Yoakke.Lir.Runtime
             }
             break;
 
-            case StructValue s:
+            case Value.Struct s:
             {
                 foreach (var field in s.Values) WriteMemory(ref bytes, field);
             }
             break;
 
-            case ArrayValue a:
+            case Value.Array a:
             {
                 foreach (var field in a.Values) WriteMemory(ref bytes, field);
             }

@@ -63,7 +63,7 @@ namespace Yoakke.Compiler.Compile
             if (value is Lir.Values.Value.User user)
             {
                 if (user.Payload is Semantic.Type type) return type;
-                if (user.Payload is Lir.Runtime.ArrayValue array)
+                if (user.Payload is Lir.Values.Value.Array array)
                 {
                     var tagType = ((Lir.Values.Value.User)array.Values[0]).Payload;
                     var ctorTypes = array.Values.Skip(1);
