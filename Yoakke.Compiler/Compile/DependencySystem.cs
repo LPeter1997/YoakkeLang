@@ -110,5 +110,32 @@ namespace Yoakke.Compiler.Compile
             var value = Evaluate(expression);
             return TypeTranslator.ToSemanticType(value);
         }
+
+        public Value ReferToConst(params string[] pieces)
+        {
+            // TODO: Hackish but works
+            var path = MakePathExpression(pieces);
+            return Evaluate(path);
+        }
+
+        public Type ReferToConstType(params string[] pieces)
+        {
+            var value = ReferToConst(pieces);
+            return TypeTranslator.ToSemanticType(value);
+        }
+
+        private Expression MakePathExpression(params string[] pieces)
+        {
+            Debug.Assert(pieces.Length > 0);
+            Expression result = new Expression.Identifier(null, pieces[0]);
+            foreach (var piece in pieces.Skip(1))
+            {
+                result = new Expression.DotPath(null, result, piece);
+            }
+            new DefineScope(SymbolTable).Define(result);
+            new DeclareSymbol(SymbolTable).Declare(result);
+            new ResolveSymbol(SymbolTable).Resolve(result);
+            return result;
+        }
     }
 }

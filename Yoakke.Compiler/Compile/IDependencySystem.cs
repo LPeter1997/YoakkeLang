@@ -25,5 +25,8 @@ namespace Yoakke.Compiler.Compile
         public Value EvaluateConst(Declaration.Const constDecl);
         public Value EvaluateConst(Symbol.Const constSym);
         public Type EvaluateType(Expression expression);
+
+        public Value ReferToConst(params string[] pieces);
+        public Type ReferToConstType(params string[] pieces);
     }
 }

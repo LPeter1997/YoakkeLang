@@ -10,8 +10,12 @@ using Type = Yoakke.Lir.Types.Type;
 
 namespace Yoakke.Lir.Runtime
 {
+    // TODO: Should probably publish this then properly along with StructValue
+
     // NOTE: We made this public just because of user values
     // Should not be used while generating code
+
+    // NOTE: Also made it public because of strings
     public class ArrayValue : Value
     {
         public readonly IValueList<Value> Values;

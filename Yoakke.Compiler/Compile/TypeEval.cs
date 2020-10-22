@@ -38,6 +38,7 @@ namespace Yoakke.Compiler.Compile
         {
             Expression.LitType.Integer => Type.I32,
             Expression.LitType.Bool => Type.Bool,
+            Expression.LitType.String => System.ReferToConstType("@c", "str"),
             _ => throw new NotImplementedException(),
         };
 
