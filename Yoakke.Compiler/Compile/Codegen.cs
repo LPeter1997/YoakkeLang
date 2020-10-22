@@ -155,7 +155,7 @@ namespace Yoakke.Compiler.Compile
                 nameHint = null;
                 // Add it to the cache here to get ready for recursion
                 compiledProcs.Add(proc, procVal);
-                // Dow now we make every procedure public
+                // For now we make every procedure public
                 procVal.Visibility = Visibility.Public;
                 // We need the return type
                 var returnType = Semantic.Type.Unit;
@@ -259,19 +259,7 @@ namespace Yoakke.Compiler.Compile
         {
             // Get the referred symbol
             var symbol = SymbolTable.ReferredSymbol(ident);
-            // Check what kind of symbol it is
-            if (symbol is Symbol.Var)
-            {
-                // Handle the variable
-                var reg = variablesToRegisters[symbol];
-                // Load the value
-                return Builder.Load(reg);
-            }
-            else
-            {
-                var constSymbol = (Symbol.Const)symbol;
-                return EvaluateConst(constSymbol);
-            }
+            return CompileSymbol(symbol);
         }
 
         protected override Value? Visit(Expression.Literal lit) => lit.Type switch
@@ -446,20 +434,7 @@ namespace Yoakke.Compiler.Compile
                 var leftValue = System.EvaluateType(dot.Left);
                 Debug.Assert(leftValue.DefinedScope != null);
                 var symbol = leftValue.DefinedScope.Reference(dot.Right);
-                // TODO: Duplication with identifier!
-                // Check what kind of symbol it is
-                if (symbol is Symbol.Var)
-                {
-                    // Handle the variable
-                    var reg = variablesToRegisters[symbol];
-                    // Load the value
-                    return Builder.Load(reg);
-                }
-                else
-                {
-                    var constSymbol = (Symbol.Const)symbol;
-                    return EvaluateConst(constSymbol);
-                }
+                return CompileSymbol(symbol);
             }
             else if (leftType is Semantic.Type.Struct sty)
             {
@@ -529,6 +504,22 @@ namespace Yoakke.Compiler.Compile
                     key: FieldIndex(structType, field.Name), 
                     value: VisitNonNull(field.Value))));
             return Builder.Load(structSpace);
+        }
+
+        private Value CompileSymbol(Symbol symbol)
+        {
+            if (symbol is Symbol.Var)
+            {
+                // Handle the variable
+                var reg = variablesToRegisters[symbol];
+                // Load the value
+                return Builder.Load(reg);
+            }
+            else
+            {
+                var constSymbol = (Symbol.Const)symbol;
+                return EvaluateConst(constSymbol);
+            }
         }
 
         private Value Lvalue(Expression expression)
