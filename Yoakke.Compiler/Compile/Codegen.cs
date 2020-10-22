@@ -25,6 +25,7 @@ namespace Yoakke.Compiler.Compile
         private Dictionary<Expression.Proc, Proc> compiledProcs;
         private Dictionary<Symbol, Value> variablesToRegisters;
         private string? nameHint;
+        private int constCnt;
 
         public Codegen(IDependencySystem system, Builder builder)
         {
@@ -105,7 +106,7 @@ namespace Yoakke.Compiler.Compile
                 if (var.Value != null)
                 {
                     // Assign initial value in the startup code
-                    Builder.WithPrelude(b => 
+                    Builder.WithPrelude(b =>
                     {
                         var initialValue = VisitNonNull(var.Value);
                         b.Store(varSpace, initialValue);
@@ -266,8 +267,38 @@ namespace Yoakke.Compiler.Compile
         {
             Expression.LitType.Integer => Lir.Types.Type.I32.NewValue(int.Parse(lit.Value)),
             Expression.LitType.Bool => Lir.Types.Type.I32.NewValue(lit.Value == "true" ? 1 : 0),
+            Expression.LitType.String => CompileStringLit(lit.Value),
             _ => throw new NotImplementedException(),
         };
+
+        private Value CompileStringLit(string str)
+        {
+            // Cut off quotes
+            str = str.Substring(1, str.Length - 2);
+            // TODO: Escape
+            // Null-terminate
+            str += '\0';
+            // Encode as UTF8
+            var utf8bytes = Encoding.UTF8.GetBytes(str);
+            // Convert to lir type and value
+            var arrayType = new Lir.Types.Type.Array(Lir.Types.Type.U8, utf8bytes.Length);
+            var arrayValue = new Value.Array(
+                arrayType, 
+                utf8bytes.Select(b => (Value)Lir.Types.Type.U8.NewValue(b)).ToList().AsValueList());
+            // Define the new constant
+            var constant = Builder.DefineConst($"yk_str_const_{constCnt++}", arrayValue);
+            // Figure out the struct type
+            var structType = System.ReferToConstType("@c", "str");
+            var lirStructType = TranslateToLirType(structType);
+            // Instantiate the struct
+            var structSpace = Builder.InitStruct(lirStructType, new KeyValuePair<int, Value>[] 
+            { 
+                new KeyValuePair<int, Value>(0, Builder.Cast(new Lir.Types.Type.Ptr(Lir.Types.Type.U8), constant)),
+                new KeyValuePair<int, Value>(1, Lir.Types.Type.U32.NewValue(utf8bytes.Length - 1)),
+            });
+            // Load it
+            return Builder.Load(structSpace);
+        }
 
         protected override Value? Visit(Expression.Call call)
         {
