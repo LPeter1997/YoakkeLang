@@ -883,7 +883,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             return ReturnMethod.Address;
         }
 
-        private byte[] ToByteArray(Value value) => value switch
+        private static byte[] ToByteArray(Value value) => value switch
         {
             Value.Int i => i.Value.AsSpan().ToArray(),
             Value.Array a => a.Values.SelectMany(v => ToByteArray(v)).ToArray(),
