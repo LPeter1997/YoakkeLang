@@ -109,27 +109,5 @@ namespace Yoakke.Compiler.Semantic
             {
             }
         }
-
-        /// <summary>
-        /// An intrinsic <see cref="Symbol"/>.
-        /// </summary>
-        public class Intrinsic : Symbol
-        {
-            /// <summary>
-            /// The <see cref="IIntrinsic"/> the <see cref="Symbol"/> wraps.
-            /// </summary>
-            public readonly IIntrinsic Intr;
-
-            /// <summary>
-            /// Initializes a new <see cref="Intrinsic"/>.
-            /// </summary>
-            /// <param name="name">The name of the <see cref="Intrinsic"/>.</param>
-            /// <param name="intr">The <see cref="IIntrinsic"/> implementation.</param>
-            public Intrinsic(string name, IIntrinsic intr)
-                : base(null, name)
-            {
-                Intr = intr;
-            }
-        }
     }
 }

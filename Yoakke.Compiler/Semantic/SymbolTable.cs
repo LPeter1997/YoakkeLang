@@ -63,7 +63,8 @@ namespace Yoakke.Compiler.Semantic
 
         private void DefineBuiltinIntrinsics()
         {
-            DefineBuiltin("@extern", new ExternIntrinsic());
+            // TODO
+            //DefineBuiltin("@extern", new ExternIntrinsic());
         }
 
         /// <summary>
@@ -100,10 +101,6 @@ namespace Yoakke.Compiler.Semantic
         // TODO: Doc
         public void DefineBuiltin(string name, Type type, Value value) =>
             GlobalScope.Define(new Symbol.Const(name, type, value));
-
-        // TODO: Doc
-        public void DefineBuiltin(string name, IIntrinsic intr) =>
-            GlobalScope.Define(new Symbol.Intrinsic(name, intr));
 
         /// <summary>
         /// Defines a <see cref="Symbol"/> for the given <see cref="Node"/>.

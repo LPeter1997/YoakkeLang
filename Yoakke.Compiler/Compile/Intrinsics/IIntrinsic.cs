@@ -6,7 +6,7 @@ using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;
 using Yoakke.Syntax.Ast;
 
-namespace Yoakke.Compiler.Compile
+namespace Yoakke.Compiler.Compile.Intrinsics
 {
     /// <summary>
     /// Represents some compiler intrinsic value.
