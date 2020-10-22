@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Yoakke.Compiler.Compile;
+using Yoakke.Compiler.Compile.Intrinsics;
 using Yoakke.Lir.Values;
 using Yoakke.Syntax;
 using Yoakke.Syntax.Ast;
@@ -35,6 +37,7 @@ namespace Yoakke.Compiler.Semantic
         {
             CurrentScope = GlobalScope;
             DefineBuiltinPrimitives();
+            DefineBuiltinIntrinsics();
         }
 
         private void DefineBuiltinPrimitives()
@@ -56,6 +59,11 @@ namespace Yoakke.Compiler.Semantic
             DefineBuiltinType(Type.U32);
             DefineBuiltinType(Type.U64);
             DefineBuiltinType(Type.Bool);
+        }
+
+        private void DefineBuiltinIntrinsics()
+        {
+            DefineBuiltin("@extern", new ExternIntrinsic());
         }
 
         /// <summary>
@@ -92,6 +100,10 @@ namespace Yoakke.Compiler.Semantic
         // TODO: Doc
         public void DefineBuiltin(string name, Type type, Value value) =>
             GlobalScope.Define(new Symbol.Const(name, type, value));
+
+        // TODO: Doc
+        public void DefineBuiltin(string name, IIntrinsic intr) =>
+            GlobalScope.Define(new Symbol.Intrinsic(name, intr));
 
         /// <summary>
         /// Defines a <see cref="Symbol"/> for the given <see cref="Node"/>.

@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;
+using Yoakke.Syntax.Ast;
 
 namespace Yoakke.Compiler.Compile
 {
@@ -18,6 +19,6 @@ namespace Yoakke.Compiler.Compile
         /// <param name="system">The <see cref="IDependencySystem"/>.</param>
         /// <param name="args">The arguments passed in for the intrinsic.</param>
         /// <returns>The <see cref="Value"/> the intrinsic evaluates to using the given arguments.</returns>
-        public Value Evaluate(IDependencySystem system, IList<Value> args);
+        public Value Evaluate(IDependencySystem system, IList<Expression> args);
     }
 }

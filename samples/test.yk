@@ -1,5 +1,5 @@
 
-//const puts = @extern("puts", proc(*u8) -> i32);
+const puts = @extern("puts", proc(*u8) -> i32);
 
 const main = proc() -> u32 {
     var text = "Hello, World!";
