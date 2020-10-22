@@ -886,6 +886,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         private byte[] ToByteArray(Value value) => value switch
         {
             Value.Int i => i.Value.AsSpan().ToArray(),
+            Value.Array a => a.Values.SelectMany(v => ToByteArray(v)).ToArray(),
             _ => throw new NotImplementedException(),
         };
 
