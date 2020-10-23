@@ -1,8 +1,6 @@
 
-const puts = @extern("puts", proc(*u8) -> i32);
+const math = @import("math.yk");
 
 const main = proc() -> u32 {
-    var text = "Hello, World!";
-    //puts(text.data);
-    text.len
+    math.abs(-24)
 };
