@@ -42,6 +42,10 @@ namespace Yoakke.Lir.Backend
         /// </summary>
         public ICodePass? CodePass { get; set; }
         /// <summary>
+        /// The external binaries to link.
+        /// </summary>
+        public readonly ISet<string> ExternalBinaries = new HashSet<string>();
+        /// <summary>
         /// Any extra information the build needs to carry.
         /// </summary>
         public readonly IDictionary<string, object> Extra = new Dictionary<string, object>();

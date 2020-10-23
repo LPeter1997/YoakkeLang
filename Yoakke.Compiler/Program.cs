@@ -24,9 +24,27 @@ namespace Yoakke.Compiler
         static void Main(string[] args)
         {
 #if true
+            var symTab = new SymbolTable();
+            var system = new DependencySystem(symTab);
+
+            // TODO: Temporary
+            /*symTab.DefineBuiltin(
+                "puts",
+                new Semantic.Type.Proc(new ValueList<Semantic.Type> { new Semantic.Type.Ptr(Semantic.Type.U8) }, Semantic.Type.I32),
+                system.Builder.DefineExtern(
+                    "puts",
+                    new Lir.Types.Type.Proc(Lir.CallConv.Cdecl, Lir.Types.Type.I32, new ValueList<Lir.Types.Type> { new Lir.Types.Type.Ptr(Lir.Types.Type.U8) }),
+                    "libucrt.lib"));*/
+            symTab.DefineBuiltin(
+                "abs",
+                new Semantic.Type.Proc(new ValueList<Semantic.Type> { Semantic.Type.I32 }, Semantic.Type.I32),
+                system.Builder.DefineExtern(
+                    "abs",
+                    new Lir.Types.Type.Proc(Lir.CallConv.Cdecl, Lir.Types.Type.I32, new ValueList<Lir.Types.Type> { Lir.Types.Type.I32 }),
+                    "libucrt.lib"));
+
             // TODO: Maye this should also be part of the dependency system?
             // Probably yes!
-            var symTab = new SymbolTable();
             // We inject prelude here
             {
                 var preludeAst = LoadFileAst(@"../../../../../stdlib/prelude.yk");
@@ -49,7 +67,7 @@ namespace Yoakke.Compiler
 
             // Compilation
             //var system = new DependencySystem(symTab);
-            var system = new DependencySystem(symTab);
+            
             var buildStatus = new BuildStatus();
             var asm = system.Compile(ast, buildStatus);
             foreach (var err in buildStatus.Errors)
@@ -63,9 +81,11 @@ namespace Yoakke.Compiler
             Console.WriteLine("\n");
 
             // Run in the VM
+#if false
             var vm = new VirtualMachine(asm);
             var result = vm.Execute("main", new Value[] { });
             Console.WriteLine($"Result: {result}");
+#endif
 
             // Build an exe
             var toolchain = Toolchains.All().First();
@@ -75,7 +95,17 @@ namespace Yoakke.Compiler
                 IntermediatesDirectory = "C:/TMP/program_build",
                 OutputPath = "C:/TMP/program.exe",
             };
+            build.ExternalBinaries.Add("libvcruntime.lib");
+            build.ExternalBinaries.Add("libcmt.lib");
             toolchain.Compile(build);
+            if (build.HasErrors)
+            {
+                Console.WriteLine("Build error!");
+                foreach (var err in build.Status.Errors)
+                {
+                    Console.WriteLine(err.GetErrorMessage());
+                }
+            }
 #else
             // TODO: We need to expand arguments
             // We need to refactor out expansion (and parsing) mechanism to work everywhere, not just in the main parser module

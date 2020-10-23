@@ -22,7 +22,11 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
             var entry = build.OutputKind == OutputKind.Executable 
                 ? $"/ENTRY:\"{build.CheckedAssembly.EntryPoint.Name}\"" 
                 : string.Empty;
-            var publicSymbols = build.CheckedAssembly.Symbols.Where(sym => sym.Visibility == Visibility.Public);
+            var publicSymbols = build
+                .CheckedAssembly
+                .Symbols
+                .Where(sym => !(sym is Extern))
+                .Where(sym => sym.Visibility == Visibility.Public);
             var exports = string.Join(' ', publicSymbols.Select(sym => $"/EXPORT:\"{sym.Name}\""));
             var outputKindFlag = GetOutputKindFlag(build.OutputKind);
             var targetMachineId = GetTargetMachineId(build.TargetTriplet);
@@ -30,7 +34,8 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
             // Binaries to pass
             var extraFiles = GetExtraFiles(build.OutputKind);
             var objectFile = $"\"{(string)build.Extra["objectFile"]}\"";
-            var extraBinaries = string.Join(' ', build.CheckedAssembly.BinaryReferences.Select(r => $"\"{r}\""));
+            var extraBinaries = string.Join(' ', 
+                build.CheckedAssembly.BinaryReferences.Concat(build.ExternalBinaries).Select(r => $"\"{r}\""));
             var allFiles = $"{objectFile} {extraFiles} {extraBinaries}";
 
             // Library paths
@@ -39,7 +44,7 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
             var winucrtLibPath = Path.Combine(WindowsSdk, "Lib", WindowsSdkVersion, "ucrt", targetMachineId);
             var allLibPaths = $"/LIBPATH:\"{msvcLibPath}\" /LIBPATH:\"{winumLibPath}\" /LIBPATH:\"{winucrtLibPath}\"";
 
-            var arguments = $"/NOLOGO /SUBSYSTEM:CONSOLE {allLibPaths} {outputKindFlag} {exports} /MACHINE:{targetMachineId} {entry} /OUT:\"{build.OutputPath}\" {allFiles}";
+            var arguments = $"/NOLOGO /SAFESEH:NO /SUBSYSTEM:CONSOLE {allLibPaths} {outputKindFlag} {exports} /MACHINE:{targetMachineId} {entry} /OUT:\"{build.OutputPath}\" {allFiles}";
             // Run it
             InvokeWithEnvironment("LINK.exe", arguments, build);
         }

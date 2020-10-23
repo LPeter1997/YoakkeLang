@@ -34,7 +34,7 @@ namespace Yoakke.Lir
 
         public override string ToValueString() => Name;
         public override string ToString() =>
-            $"extern {Type} {Name} [source = \"{Path}\"]";
+            $"extern {Type.ToTypeString()} {Name} [source = \"{Path}\"]";
         public override bool Equals(Value? other) => ReferenceEquals(this, other);
         public override int GetHashCode() => HashCode.Combine(typeof(Extern), Name);
         // NOTE: Makes no sense to clone this

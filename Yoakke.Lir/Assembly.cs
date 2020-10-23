@@ -85,7 +85,8 @@ namespace Yoakke.Lir
         /// Returns all of the distinct external binary references in this <see cref="Assembly"/>.
         /// </summary>
         public IEnumerable<string> BinaryReferences =>
-            Externals.Select(e => Path.GetFullPath(e.Path)).Distinct();
+            // TODO: They should be distinct by absolute path?
+            Externals.Select(e => e.Path).Distinct();
 
         internal Assembly(UncheckedAssembly uncheckedAssembly)
         {
