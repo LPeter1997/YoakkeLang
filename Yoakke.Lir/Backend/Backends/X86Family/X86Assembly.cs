@@ -11,7 +11,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         /// <summary>
         /// The list of externals this <see cref="X86Assembly"/> contains.
         /// </summary>
-        public readonly IList<string> Externals = new List<string>();
+        public readonly IList<X86Extern> Externals = new List<X86Extern>();
         /// <summary>
         /// The list of constants this <see cref="X86Assembly"/> contains.
         /// </summary>
@@ -24,6 +24,27 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         /// The list of procedures this <see cref="X86Assembly"/> contains.
         /// </summary>
         public readonly IList<X86Proc> Procedures = new List<X86Proc>();
+    }
+
+    /// <summary>
+    /// An X86 external.
+    /// </summary>
+    public class X86Extern
+    {
+        /// <summary>
+        /// The name of this <see cref="X86Extern"/>.
+        /// </summary>
+        public readonly string Name;
+        /// <summary>
+        /// True, if it's an external procedure.
+        /// </summary>
+        public readonly bool IsProc;
+
+        public X86Extern(string name, bool isProc)
+        {
+            Name = name;
+            IsProc = isProc;
+        }
     }
 
     /// <summary>

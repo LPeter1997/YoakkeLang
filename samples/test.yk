@@ -1,4 +1,5 @@
 
 const main = proc() -> i32 {
-    abs(-4)
+    puts("Hello, World!".data);
+    0
 };

@@ -57,9 +57,9 @@ namespace Yoakke.Lir.Backend.Backends
             foreach (var p in assembly.Procedures) CompileProc(p);
         }
 
-        private void DeclareExtern(string name)
+        private void DeclareExtern(X86Extern ext)
         {
-            code.AppendLine($"EXTERN {name} : PTR");
+            code.AppendLine($"EXTERN {ext.Name} : {(ext.IsProc ? "PROC" : "PTR")}");
         }
 
         private void DeclareGlobal(X86Global global)

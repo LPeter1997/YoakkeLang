@@ -65,7 +65,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         private void CompileExternal(Extern external)
         {
             var symName = GetSymbolName(external);
-            result.Externals.Add(symName);
+            result.Externals.Add(new X86Extern(symName, external.Type is Type.Proc));
         }
 
         private void CompileConstant(Const constant)

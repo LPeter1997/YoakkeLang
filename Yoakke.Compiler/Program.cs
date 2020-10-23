@@ -28,13 +28,13 @@ namespace Yoakke.Compiler
             var system = new DependencySystem(symTab);
 
             // TODO: Temporary
-            /*symTab.DefineBuiltin(
+            symTab.DefineBuiltin(
                 "puts",
                 new Semantic.Type.Proc(new ValueList<Semantic.Type> { new Semantic.Type.Ptr(Semantic.Type.U8) }, Semantic.Type.I32),
                 system.Builder.DefineExtern(
                     "puts",
                     new Lir.Types.Type.Proc(Lir.CallConv.Cdecl, Lir.Types.Type.I32, new ValueList<Lir.Types.Type> { new Lir.Types.Type.Ptr(Lir.Types.Type.U8) }),
-                    "libucrt.lib"));*/
+                    "libucrt.lib"));
             symTab.DefineBuiltin(
                 "abs",
                 new Semantic.Type.Proc(new ValueList<Semantic.Type> { Semantic.Type.I32 }, Semantic.Type.I32),

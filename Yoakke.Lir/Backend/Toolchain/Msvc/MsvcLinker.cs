@@ -19,9 +19,9 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
         {
             Debug.Assert(build.CheckedAssembly != null);
             // Construct the command
-            var entry = build.OutputKind == OutputKind.Executable 
+            /*var entry = build.OutputKind == OutputKind.Executable 
                 ? $"/ENTRY:\"{build.CheckedAssembly.EntryPoint.Name}\"" 
-                : string.Empty;
+                : string.Empty;*/
             var publicSymbols = build
                 .CheckedAssembly
                 .Symbols
@@ -44,7 +44,7 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
             var winucrtLibPath = Path.Combine(WindowsSdk, "Lib", WindowsSdkVersion, "ucrt", targetMachineId);
             var allLibPaths = $"/LIBPATH:\"{msvcLibPath}\" /LIBPATH:\"{winumLibPath}\" /LIBPATH:\"{winucrtLibPath}\"";
 
-            var arguments = $"/NOLOGO /SAFESEH:NO /SUBSYSTEM:CONSOLE {allLibPaths} {outputKindFlag} {exports} /MACHINE:{targetMachineId} {entry} /OUT:\"{build.OutputPath}\" {allFiles}";
+            var arguments = $"/NOLOGO /SUBSYSTEM:CONSOLE {allLibPaths} {outputKindFlag} {exports} /MACHINE:{targetMachineId} /OUT:\"{build.OutputPath}\" {allFiles}";
             // Run it
             InvokeWithEnvironment("LINK.exe", arguments, build);
         }
