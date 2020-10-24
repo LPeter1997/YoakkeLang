@@ -124,13 +124,13 @@ namespace Yoakke.Lir.Tests
             var ast = ParseTreeToAst.Convert(prg);
             ast = new Desugaring().Desugar(ast);
 
-            var symTab = new SymbolTable();
+            var system = new DependencySystem("../../../../../stdlib");
+            var symTab = system.SymbolTable;
             new DefineScope(symTab).Define(ast);
             new DeclareSymbol(symTab).Declare(ast);
             new ResolveSymbol(symTab).Resolve(ast);
 
             // Compilation
-            var system = new DependencySystem(symTab);
             var buildStatus = new BuildStatus();
             var asm = system.Compile(ast, buildStatus);
             Assert.AreEqual(0, buildStatus.Errors.Count);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ using Yoakke.Lir.Status;
 using Yoakke.Lir.Values;
 using Yoakke.Syntax;
 using Yoakke.Syntax.Ast;
+using Yoakke.Text;
 using Type = Yoakke.Compiler.Semantic.Type;
 
 namespace Yoakke.Compiler.Compile
@@ -21,6 +23,8 @@ namespace Yoakke.Compiler.Compile
     /// </summary>
     public class DependencySystem : IDependencySystem
     {
+        public string StandardLibraryPath { get; }
+
         public SymbolTable SymbolTable { get; }
         public Builder Builder => codegen.Builder;
         public TypeTranslator TypeTranslator { get; }
@@ -31,13 +35,55 @@ namespace Yoakke.Compiler.Compile
 
         private HashSet<Proc> tempEval = new HashSet<Proc>();
 
-        public DependencySystem(SymbolTable symbolTable)
+        public DependencySystem(string standardLibraryPath)
         {
-            SymbolTable = symbolTable;
+            StandardLibraryPath = standardLibraryPath;
+
+            SymbolTable = new SymbolTable(this);
             TypeTranslator = new TypeTranslator(this);
             codegen = new Codegen(this);
             typeEval = new TypeEval(this);
             typeCheck = new TypeCheck(this);
+
+            SymbolTable.DefineBuiltinPrimitives();
+            // Load prelude
+            {
+                var preludeAst = LoadAst("prelude.yk");
+                new DefineScope(SymbolTable).Define(preludeAst);
+                new DeclareSymbol(SymbolTable).Declare(preludeAst);
+                new ResolveSymbol(SymbolTable).Resolve(preludeAst);
+            }
+            SymbolTable.DefineBuiltinIntrinsics();
+        }
+
+        public Declaration.File LoadAst(string path)
+        {
+            path = GetFilePath(path);
+            // To AST
+            var src = File.ReadAllText(path);
+            var srcFile = new SourceFile(path, src);
+            var syntaxStatus = new SyntaxStatus();
+            var tokens = Lexer.Lex(srcFile, syntaxStatus);
+            var parser = new Parser(tokens, syntaxStatus);
+            var prg = parser.ParseFile();
+            var ast = ParseTreeToAst.Convert(prg);
+            ast = new Desugaring().Desugar(ast);
+            return ast;
+        }
+
+        private string GetFilePath(string path)
+        {
+            if (!File.Exists(path))
+            {
+                var stlPath = Path.Combine(StandardLibraryPath, path);
+                if (!File.Exists(stlPath))
+                {
+                    // TODO
+                    throw new NotImplementedException();
+                }
+                return stlPath;
+            }
+            return path;
         }
 
         public Assembly? Compile(Declaration.File file, BuildStatus status)

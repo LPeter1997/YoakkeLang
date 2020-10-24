@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Yoakke.Compiler.Semantic;
+using Yoakke.Lir.Runtime;
 using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;
 using Yoakke.Syntax.Ast;
@@ -14,8 +15,10 @@ namespace Yoakke.Compiler.Compile.Intrinsics
     /// <summary>
     /// Base for compiler intrinsic values.
     /// </summary>
-    public abstract class Intrinsic
+    public abstract class Intrinsic : IUserProc
     {
+        public abstract Lir.Types.Type ReturnType { get; }
+
         /// <summary>
         /// The <see cref="IDependencySystem"/>.
         /// </summary>
@@ -34,11 +37,6 @@ namespace Yoakke.Compiler.Compile.Intrinsics
             System = system;
         }
 
-        /// <summary>
-        /// Evaluates the intrinsic to a <see cref="Value"/>.
-        /// </summary>
-        /// <param name="args">The arguments passed in for the intrinsic.</param>
-        /// <returns>The <see cref="Value"/> the intrinsic evaluates to using the given arguments.</returns>
-        public abstract Value Evaluate(IList<Expression> args);
+        public abstract Value Execute(VirtualMachine vm, IEnumerable<Value> args);
     }
 }

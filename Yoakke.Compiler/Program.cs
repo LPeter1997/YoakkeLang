@@ -24,11 +24,11 @@ namespace Yoakke.Compiler
         static void Main(string[] args)
         {
 #if true
-            var symTab = new SymbolTable();
-            var system = new DependencySystem(symTab);
+            var system = new DependencySystem("../../../../../stdlib");
+            var symTab = system.SymbolTable;
 
             // TODO: Temporary
-            symTab.DefineBuiltin(
+            /*symTab.DefineBuiltin(
                 "puts",
                 new Semantic.Type.Proc(new ValueList<Semantic.Type> { new Semantic.Type.Ptr(Semantic.Type.U8) }, Semantic.Type.I32),
                 system.Builder.DefineExtern(
@@ -41,19 +41,9 @@ namespace Yoakke.Compiler
                 system.Builder.DefineExtern(
                     "abs",
                     new Lir.Types.Type.Proc(Lir.CallConv.Cdecl, Lir.Types.Type.I32, new ValueList<Lir.Types.Type> { Lir.Types.Type.I32 }),
-                    "libucrt.lib"));
+                    "libucrt.lib"));*/
 
-            // TODO: Maye this should also be part of the dependency system?
-            // Probably yes!
-            // We inject prelude here
-            {
-                var preludeAst = LoadFileAst(@"../../../../../stdlib/prelude.yk");
-                new DefineScope(symTab).Define(preludeAst);
-                new DeclareSymbol(symTab).Declare(preludeAst);
-                new ResolveSymbol(symTab).Resolve(preludeAst);
-            }
-
-            var ast = LoadFileAst(@"../../../../../samples/test.yk");
+            var ast = system.LoadAst(@"../../../../../samples/test.yk");
 
             //Console.WriteLine(prg.Dump());
             Console.WriteLine(ast.Dump());
@@ -95,8 +85,8 @@ namespace Yoakke.Compiler
                 IntermediatesDirectory = "C:/TMP/program_build",
                 OutputPath = "C:/TMP/program.exe",
             };
-            build.ExternalBinaries.Add("libvcruntime.lib");
-            build.ExternalBinaries.Add("libcmt.lib");
+            //build.ExternalBinaries.Add("libvcruntime.lib");
+            //build.ExternalBinaries.Add("libcmt.lib");
             toolchain.Compile(build);
             if (build.HasErrors)
             {
@@ -123,19 +113,6 @@ namespace Yoakke.Compiler
             }
             output.Close();
 #endif
-        }
-
-        private static Declaration.File LoadFileAst(string path)
-        {
-            var src = File.ReadAllText(path);
-            var srcFile = new SourceFile(path, src);
-            var syntaxStatus = new SyntaxStatus();
-            var tokens = Lexer.Lex(srcFile, syntaxStatus);
-            var parser = new Parser(tokens, syntaxStatus);
-            var prg = parser.ParseFile();
-            var ast = ParseTreeToAst.Convert(prg);
-            ast = new Desugaring().Desugar(ast);
-            return ast;
         }
     }
 }

@@ -14,9 +14,13 @@ namespace Yoakke.Compiler.Compile
     // TODO: Doc the whole thing
     public interface IDependencySystem
     {
+        public string StandardLibraryPath { get; }
+
         public SymbolTable SymbolTable { get; }
         public Builder Builder { get; }
         public TypeTranslator TypeTranslator { get; }
+
+        public Declaration.File LoadAst(string path);
 
         public Assembly? Compile(Declaration.File file, BuildStatus status);
         public void TypeCheck(Node node);

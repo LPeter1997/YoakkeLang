@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Yoakke.DataStructures;
+using Yoakke.Lir.Runtime;
 using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;
 using Yoakke.Syntax.Ast;
@@ -16,6 +17,7 @@ namespace Yoakke.Compiler.Compile.Intrinsics
     /// </summary>
     public class ImportIntrinsic : Intrinsic
     {
+        public override Lir.Types.Type ReturnType { get; }
         public override Type Type { get; }
 
         public ImportIntrinsic(IDependencySystem system)
@@ -23,9 +25,10 @@ namespace Yoakke.Compiler.Compile.Intrinsics
         {
             var stringType = System.ReferToConstType("@c", "str");
             Type = new Type.Proc(new ValueList<Type> { stringType }, Type.Type_);
+            ReturnType = Lir.Types.Type.User_;
         }
 
-        public override Value Evaluate(IList<Expression> args)
+        public override Value Execute(VirtualMachine vm, IEnumerable<Value> args)
         {
             throw new NotImplementedException();
         }

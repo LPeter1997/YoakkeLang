@@ -18,6 +18,10 @@ namespace Yoakke.Compiler.Semantic
     public class SymbolTable
     {
         /// <summary>
+        /// The <see cref="IDependencySystem"/>.
+        /// </summary>
+        public IDependencySystem System { get; }
+        /// <summary>
         /// The global <see cref="Scope"/>.
         /// </summary>
         public readonly Scope GlobalScope = new Scope(ScopeKind.None, null);
@@ -33,14 +37,14 @@ namespace Yoakke.Compiler.Semantic
         /// <summary>
         /// Initializes a new <see cref="SymbolTable"/>.
         /// </summary>
-        public SymbolTable()
+        /// <param name="system">The <see cref="IDependencySystem"/>.</param>
+        public SymbolTable(IDependencySystem system)
         {
+            System = system;
             CurrentScope = GlobalScope;
-            DefineBuiltinPrimitives();
-            DefineBuiltinIntrinsics();
         }
 
-        private void DefineBuiltinPrimitives()
+        internal void DefineBuiltinPrimitives()
         {
             void DefineBuiltinType(Type type)
             {
@@ -61,10 +65,9 @@ namespace Yoakke.Compiler.Semantic
             DefineBuiltinType(Type.Bool);
         }
 
-        private void DefineBuiltinIntrinsics()
+        internal void DefineBuiltinIntrinsics()
         {
-            // TODO
-            //DefineBuiltin("@extern", new ExternIntrinsic());
+            DefineBuiltin("@import", new ImportIntrinsic(System));
         }
 
         /// <summary>
@@ -101,6 +104,10 @@ namespace Yoakke.Compiler.Semantic
         // TODO: Doc
         public void DefineBuiltin(string name, Type type, Value value) =>
             GlobalScope.Define(new Symbol.Const(name, type, value));
+
+        // TODO: Doc
+        public void DefineBuiltin(string name, Intrinsic intr) =>
+            GlobalScope.Define(new Symbol.Const(name, intr.Type, new Value.User(intr)));
 
         /// <summary>
         /// Defines a <see cref="Symbol"/> for the given <see cref="Node"/>.
