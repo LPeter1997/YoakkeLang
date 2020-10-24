@@ -190,6 +190,12 @@ namespace Yoakke.Lir.Runtime
                     var arguments = call.Arguments.Select(Unwrap);
                     Call(proc, arguments);
                 }
+                else if (called is Value.User user && user.Payload is IUserProc userProc)
+                {
+                    var arguments = call.Arguments.Select(Unwrap);
+                    StackFrame[call.Result] = userProc.Execute(this, arguments);
+                    ++instructionPointer;
+                }
                 else
                 {
                     // TODO: Check if function type, is function pointer...

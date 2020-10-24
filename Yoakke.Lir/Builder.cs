@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Yoakke.DataStructures;
 using Yoakke.Lir.Instructions;
+using Yoakke.Lir.Runtime;
 using Yoakke.Lir.Values;
 using Type = Yoakke.Lir.Types.Type;
 
@@ -275,12 +276,30 @@ namespace Yoakke.Lir
         /// <returns>The return <see cref="Value"/> of the call.</returns>
         public Value Call(Value procedure, IList<Value> arguments)
         {
+            // Special case for user procedures
+            if (procedure is Value.User userValue && userValue.Payload is IUserProc userProc)
+            {
+                return Call(userProc, arguments);
+            }
             if (!(procedure.Type is Type.Proc procType))
             {
                 throw new ArgumentException("The procedure value must be of a procedure type!", nameof(procedure));
             }
             var resultReg = AllocateRegister(procType.Return);
             AddInstr(new Instr.Call(resultReg, procedure, arguments));
+            return resultReg;
+        }
+
+        /// <summary>
+        /// Adds a new <see cref="Instr.Call"/> to an <see cref="IUserProc"/>.
+        /// </summary>
+        /// <param name="userProc">The <see cref="IUserProc"/> to call.</param>
+        /// <param name="arguments">The arguments to call the procedure with.</param>
+        /// <returns>The return <see cref="Value"/> of the call.</returns>
+        public Value Call(IUserProc userProc, IList<Value> arguments)
+        {
+            var resultReg = AllocateRegister(userProc.ReturnType);
+            AddInstr(new Instr.Call(resultReg, new Value.User(userProc), arguments));
             return resultReg;
         }
 

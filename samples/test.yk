@@ -1,5 +1,6 @@
 
+const math = @import("math.yk");
+
 const main = proc() -> i32 {
-    puts("Hello, World!".data);
-    0
+    math.abs(-42)
 };
