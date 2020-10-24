@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Yoakke.DataStructures;
 using Yoakke.Lir.Instructions;
 using Yoakke.Lir.Types;
@@ -171,6 +172,39 @@ namespace Yoakke.Lir.Runtime
             Call(proc, arguments);
             while (callStack.Count > 0) ExecuteCycle();
             return returnValue;
+        }
+
+        /// <summary>
+        /// Reads a <see cref="Value"/> from memory.
+        /// </summary>
+        /// <param name="ptr">The pointer to read from.</param>
+        /// <returns>The read <see cref="Value"/>.</returns>
+        public Value ReadFromMemory(Value ptr)
+        {
+            if (!(ptr is PtrValue ptrValue))
+            {
+                throw new ArgumentException("Must read from a pointer value!", nameof(ptr));
+            }
+            return ReadPtr(ptrValue);
+        }
+
+        /// <summary>
+        /// Reads an UTF-8 encoded string from memory.
+        /// </summary>
+        /// <param name="ptr">The pointer to read from.</param>
+        /// <param name="length">The length of the string to read (in bytes).</param>
+        /// <returns>The read string</returns>
+        public string ReadUtf8FromMemory(Value ptr, int length)
+        {
+            if (!(ptr is PtrValue ptrValue))
+            {
+                throw new ArgumentException("Must read from a pointer value!", nameof(ptr));
+            }
+            var arrayType = new Type.Array(Type.U8, length);
+            var arrayValue = (Value.Array)ReadFromMemory(ptrValue.OffsetBy(0, arrayType));
+            // Convert to bytes
+            var bytes = arrayValue.Values.Select(v => (byte)((Value.Int)v).Value).ToArray();
+            return Encoding.UTF8.GetString(bytes);
         }
 
         private void ExecuteCycle()

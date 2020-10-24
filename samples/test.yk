@@ -2,5 +2,5 @@
 const math = @import("math.yk");
 
 const main = proc() -> i32 {
-    math.abs(-42)
+    math.max(43, 623)
 };

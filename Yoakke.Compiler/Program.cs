@@ -71,7 +71,7 @@ namespace Yoakke.Compiler
             Console.WriteLine("\n");
 
             // Run in the VM
-#if false
+#if true
             var vm = new VirtualMachine(asm);
             var result = vm.Execute("main", new Value[] { });
             Console.WriteLine($"Result: {result}");
@@ -85,8 +85,9 @@ namespace Yoakke.Compiler
                 IntermediatesDirectory = "C:/TMP/program_build",
                 OutputPath = "C:/TMP/program.exe",
             };
-            //build.ExternalBinaries.Add("libvcruntime.lib");
-            //build.ExternalBinaries.Add("libcmt.lib");
+            build.ExternalBinaries.Add("libvcruntime.lib");
+            build.ExternalBinaries.Add("libcmt.lib");
+            build.ExternalBinaries.Add("kernel32.lib");
             toolchain.Compile(build);
             if (build.HasErrors)
             {
