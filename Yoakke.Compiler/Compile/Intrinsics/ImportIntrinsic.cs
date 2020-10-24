@@ -34,6 +34,7 @@ namespace Yoakke.Compiler.Compile.Intrinsics
             var fileName = GetFileName(vm, args);
             // TODO: Skip if already imported?
             // This could be part of the system so it could just return the proper scope to wrap
+            // Or the intrinsic itself could cache already loaded in values
             // Load in file
             var ast = System.LoadAst(fileName);
             // We need to create a struct type that contains the constants in the file

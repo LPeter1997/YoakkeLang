@@ -67,7 +67,7 @@ namespace Yoakke.Compiler.Compile
                 {
                     var tagType = ((Lir.Values.Value.User)array.Values[0]).Payload;
                     var ctorTypes = array.Values.Skip(1);
-                    if (   tagType is Expression.Unary ury 
+                    if (tagType is Expression.Unary ury
                         && ury.Operator == Expression.UnaryOp.PointerType)
                     {
                         return new Semantic.Type.Ptr(ToSemanticType(ctorTypes.First()));
@@ -95,6 +95,14 @@ namespace Yoakke.Compiler.Compile
                                 .ToDictionary(kv => kv.First, kv => kv.Second)
                                 .AsValueDictionary(),
                             scope);
+                    }
+                    if (tagType is Expression.ProcSignature procSign)
+                    {
+                        var paramTypes = ctorTypes.SkipLast(1);
+                        var retType = ctorTypes.Last();
+                        return new Semantic.Type.Proc(
+                            paramTypes.Select(ToSemanticType).ToList().AsValueList(),
+                            ToSemanticType(retType));
                     }
                 }
             }

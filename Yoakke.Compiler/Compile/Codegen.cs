@@ -487,9 +487,28 @@ namespace Yoakke.Compiler.Compile
 
         protected override Value? Visit(Expression.ProcSignature sign)
         {
-            // TODO: Now we can properly construct types (like structs)
-            // No reason to avoid this!
-            throw new NotImplementedException();
+            // The first element will be a pointer to this expression
+            // From the second it's the parameter types
+            // Finally the return type
+            var arrayValues = new List<Value>();
+            arrayValues.Add(new Value.User(sign));
+            foreach (var param in sign.Parameters)
+            {
+                arrayValues.Add(Builder.Cast(Lir.Types.Type.User_, VisitNonNull(param.Type)));
+            }
+            if (sign.Return == null)
+            {
+                // Implicit void return type
+                arrayValues.Add(new Value.User(Semantic.Type.Unit));
+            }
+            else
+            {
+                // Explicit return type
+                arrayValues.Add(VisitNonNull(sign.Return));
+            }
+            var arraySpace = Builder.InitArray(Lir.Types.Type.User_, arrayValues.ToArray());
+            // We cast it to a singular user type
+            return Builder.Cast(Lir.Types.Type.User_, Builder.Load(arraySpace));
         }
 
         protected override Value? Visit(Expression.ArrayType aty)
