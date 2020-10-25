@@ -35,7 +35,7 @@
 		"builtin_types": {
 			"patterns": [{
 				"name": "storage.type.yoakke",
-				"match": "\\b(struct|trait|proc|type|i8|i16|i32|i64|u8|u16|u32|u64|bool)\\b"
+				"match": "\\b(struct|trait|proc|type|unit|i8|i16|i32|i64|u8|u16|u32|u64|bool)\\b"
 			}]
 		},
 		"intrinsic_procedures": {

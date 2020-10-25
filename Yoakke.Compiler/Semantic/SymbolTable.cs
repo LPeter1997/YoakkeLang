@@ -56,6 +56,7 @@ namespace Yoakke.Compiler.Semantic
 
             DefineBuiltinType(Type.Type_);
 
+            DefineBuiltinType(Type.Unit);
             DefineBuiltinType(Type.I8);
             DefineBuiltinType(Type.I16);
             DefineBuiltinType(Type.I32);

@@ -159,11 +159,8 @@ namespace Yoakke.Compiler.Compile
                 // For now we make every procedure public
                 procVal.Visibility = Visibility.Public;
                 // We need the return type
-                var returnType = Semantic.Types.Type.Unit;
-                if (proc.Signature.Return != null)
-                {
-                    returnType = EvaluateType(proc.Signature.Return);
-                }
+                Debug.Assert(proc.Signature.Return != null);
+                var returnType = EvaluateType(proc.Signature.Return);
                 procVal.Return = TranslateToLirType(returnType);
                 // We need to compile parameters
                 foreach (var param in proc.Signature.Parameters)
@@ -495,16 +492,9 @@ namespace Yoakke.Compiler.Compile
             var paramTypes = sign.Parameters
                 .Select(p => Builder.Cast(Lir.Types.Type.User_, VisitNonNull(p.Type)));
             arrayValues.AddRange(paramTypes);
-            if (sign.Return == null)
-            {
-                // Implicit void return type
-                arrayValues.Add(new Value.User(Semantic.Types.Type.Unit));
-            }
-            else
-            {
-                // Explicit return type
-                arrayValues.Add(VisitNonNull(sign.Return));
-            }
+            // Return type
+            Debug.Assert(sign.Return != null);
+            arrayValues.Add(VisitNonNull(sign.Return));
             var arraySpace = Builder.InitArray(Lir.Types.Type.User_, arrayValues.ToArray());
             // We cast it to a singular user type
             return Builder.Cast(Lir.Types.Type.User_, Builder.Load(arraySpace));

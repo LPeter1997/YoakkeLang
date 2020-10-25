@@ -124,8 +124,8 @@ namespace Yoakke.Compiler.Compile
                 symbol.Type = System.EvaluateType(param.Type);
             }
             // Deduce return type
-            var returnType = Type.Unit;
-            if (proc.Signature.Return != null) returnType = System.EvaluateType(proc.Signature.Return);
+            Debug.Assert(proc.Signature.Return != null);
+            var returnType = System.EvaluateType(proc.Signature.Return);
             // We type-check with this return type
             WithCurrentProcReturnType(returnType, () => Visit(proc.Body));
             return null;

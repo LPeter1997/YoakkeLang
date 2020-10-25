@@ -39,6 +39,14 @@ namespace Yoakke.Syntax
         /// <returns>The desugared <see cref="Expression"/>.</returns>
         public Expression Desugar(Expression expression) => Transform(expression);
 
+        protected override Node? Visit(Expression.ProcSignature sign) =>
+            new Expression.ProcSignature(
+                sign.ParseTreeNode,
+                sign.Parameters.Select(Transform).ToArray(),
+                sign.Return == null
+                    ? new Expression.Identifier(null, "unit")
+                    : sign.Return);
+
         protected override Node? Visit(Expression.Proc proc) =>
             new Expression.Proc(
                 proc.ParseTreeNode,
