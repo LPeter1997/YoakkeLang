@@ -1,10 +1,5 @@
 
-const Foo = struct {
-    var x: [5]i32;
-    const bar = 0;
-    const baz = proc(x: i32) {};
-};
-
+const id = proc(T: type, x: T) -> T { x };
 
 const main = proc() -> i32 {
     0

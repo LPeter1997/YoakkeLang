@@ -99,7 +99,7 @@ namespace Yoakke.Compiler.Compile
             var type = symbol.Type;
             // Globals and locals are very different
             Value varSpace;
-            if (SymbolTable.IsGlobal(var))
+            if (symbol.Kind == Symbol.VarKind.Global)
             {
                 // Global variable
                 varSpace = Builder.DefineGlobal(var.Name, TranslateToLirType(type));

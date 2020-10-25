@@ -38,7 +38,7 @@ namespace Yoakke.Compiler.Semantic
         protected override object? Visit(Statement.Var var)
         {
             base.Visit(var);
-            symbolTable.DefineSymbol(var, new Symbol.Var(var));
+            symbolTable.DefineSymbol(var, new Symbol.Var(var, symbolTable.IsGlobal(var)));
             return null;
         }
 

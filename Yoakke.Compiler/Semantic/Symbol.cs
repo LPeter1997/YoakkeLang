@@ -82,6 +82,25 @@ namespace Yoakke.Compiler.Semantic
         }
 
         /// <summary>
+        /// The kinds of <see cref="Var"/> <see cref="Symbol"/>s.
+        /// </summary>
+        public enum VarKind
+        {
+            /// <summary>
+            /// A local variable.
+            /// </summary>
+            Local,
+            /// <summary>
+            /// A parameter variable.
+            /// </summary>
+            Param,
+            /// <summary>
+            /// A global variable.
+            /// </summary>
+            Global,
+        }
+
+        /// <summary>
         /// A variable <see cref="Symbol"/>.
         /// </summary>
         public class Var : Symbol
@@ -89,16 +108,26 @@ namespace Yoakke.Compiler.Semantic
             private static int unnamedCnt = 0;
 
             /// <summary>
+            /// The <see cref="VarKind"/> of this <see cref="Var"/>.
+            /// </summary>
+            public readonly VarKind Kind;
+            /// <summary>
             /// The <see cref="Type"/> of this <see cref="Var"/>.
             /// </summary>
             public Type? Type { get; set; }
 
+            private Var(Node? definition, string name, VarKind kind)
+                : base(definition, name)
+            {
+                Kind = kind;
+            }
+
             /// <summary>
-            /// Initializes a new <see cref="Var"/>.
+            /// Initializes a new parameter <see cref="Var"/>.
             /// </summary>
             /// <param name="param">The parameter definition.</param>
             public Var(Expression.ProcSignature.Parameter param)
-                : base(param, param.Name ?? $"unnamed_{unnamedCnt++}")
+                : this(param, param.Name ?? $"unnamed_{unnamedCnt++}", VarKind.Param)
             {
             }
 
@@ -106,8 +135,9 @@ namespace Yoakke.Compiler.Semantic
             /// Initializes a new <see cref="Var"/>.
             /// </summary>
             /// <param name="definition">The variable definition statement.</param>
-            public Var(Statement.Var definition)
-                : base(definition, definition.Name)
+            /// <param name="isGlobal">True, if this is a global variable.</param>
+            public Var(Statement.Var definition, bool isGlobal)
+                : this(definition, definition.Name, isGlobal ? VarKind.Global : VarKind.Local)
             {
             }
         }
