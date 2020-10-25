@@ -114,7 +114,7 @@ namespace Yoakke.DataStructures
         /// <param name="amount">The amount to peek forward. 0 is the next element.</param>
         /// <param name="default">The default element to return if there's no element to peek.</param>
         /// <returns>The peeked element, or the default.</returns>
-        public T PeekOrDefault(int amount = 0, T @default = default)
+        public T? PeekOrDefault(int amount = 0, T @default = default)
         {
             if (TryPeek(out var peeked, amount)) return peeked;
             return @default;
@@ -169,7 +169,7 @@ namespace Yoakke.DataStructures
         /// </summary>
         /// <param name="default">The default to return in case there was no consumed element.</param>
         /// <returns>The last consumed or the default.</returns>
-        public T PrevOrDefault(T @default = default)
+        public T? PrevOrDefault(T @default = default)
         {
             if (!TryPrev(out var prev)) return @default;
             return prev;

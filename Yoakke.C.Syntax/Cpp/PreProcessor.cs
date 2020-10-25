@@ -763,7 +763,12 @@ namespace Yoakke.C.Syntax.Cpp
         }
 
         private static readonly Token DefaultToken = new Token(new Span(), new Span(), TokenType.End, string.Empty);
-        private Token Peek(int amount = 0) => source.PeekOrDefault(amount, DefaultToken);
+        private Token Peek(int amount = 0)
+        {
+            var p = source.PeekOrDefault(amount, DefaultToken);
+            Debug.Assert(p != null);
+            return p;
+        }
         private Token Consume() => source.Consume();
         private void Consume(int amount) => source.Consume(amount);
 
