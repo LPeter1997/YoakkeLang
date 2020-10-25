@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Yoakke.DataStructures;
 
@@ -15,11 +16,11 @@ namespace Yoakke.Lir.Types
             public readonly Type Return;
             public readonly IValueList<Type> Parameters;
 
-            public Proc(CallConv callConv, Type ret, IValueList<Type> parameters)
+            public Proc(CallConv callConv, Type ret, IList<Type> parameters)
             {
                 CallConv = callConv;
                 Return = ret;
-                Parameters = parameters;
+                Parameters = parameters.AsValueList();
             }
 
             public override string ToTypeString() => 

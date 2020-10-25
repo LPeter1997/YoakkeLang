@@ -6,6 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Yoakke.DataStructures;
 using Yoakke.Syntax.Ast;
+using SemaType = Yoakke.Compiler.Semantic.Types.Type;
+using LirType = Yoakke.Lir.Types.Type;
+using Yoakke.Lir.Values;
 
 namespace Yoakke.Compiler.Compile
 {
@@ -14,38 +17,38 @@ namespace Yoakke.Compiler.Compile
     {
         public IDependencySystem System { get; }
 
-        private Dictionary<(Semantic.Types.Type, string), int> fieldIndices = new Dictionary<(Semantic.Types.Type, string), int>();
+        private Dictionary<(SemaType, string), int> fieldIndices = new Dictionary<(SemaType, string), int>();
 
         public TypeTranslator(IDependencySystem system)
         {
             System = system;
         }
 
-        public Lir.Types.Type ToLirType(Semantic.Types.Type type) => type switch
+        public LirType ToLirType(SemaType type) => type switch
         {
-            Semantic.Types.Type.Prim prim => prim.Type,
+            SemaType.Prim prim => prim.Type,
 
-            Semantic.Types.Type.Ptr ptr => new Lir.Types.Type.Ptr(ToLirType(ptr.Subtype)),
+            SemaType.Ptr ptr => new LirType.Ptr(ToLirType(ptr.Subtype)),
 
-            Semantic.Types.Type.Proc proc =>
-                new Lir.Types.Type.Proc(
+            SemaType.Proc proc =>
+                new LirType.Proc(
                     Lir.CallConv.Cdecl,
                     ToLirType(proc.Return),
-                    proc.Parameters.Select(param => ToLirType(param.Type)).ToList().AsValueList()),
-            
-            Semantic.Types.Type.Struct struc => ToLirStruct(struc),
+                    proc.Parameters.Select(param => ToLirType(param.Type)).ToList()),
 
-            Semantic.Types.Type.Array array => 
-                new Lir.Types.Type.Array(
+            SemaType.Struct struc => ToLirStruct(struc),
+
+            SemaType.Array array => 
+                new LirType.Array(
                     ToLirType(array.ElementType),
                     array.Length),
             
             _ => throw new NotImplementedException(),
         };
 
-        private Lir.Types.Type ToLirStruct(Semantic.Types.Type.Struct struc)
+        private LirType ToLirStruct(SemaType.Struct struc)
         {
-            var fields = new List<Lir.Types.Type>();
+            var fields = new List<LirType>();
             int counter = 0;
             foreach (var field in struc.Fields)
             {
@@ -56,28 +59,28 @@ namespace Yoakke.Compiler.Compile
             return System.Builder.DefineStruct(fields);
         }
 
-        public int FieldIndex(Semantic.Types.Type type, string fieldName) => fieldIndices[(type, fieldName)];
+        public int FieldIndex(SemaType type, string fieldName) => fieldIndices[(type, fieldName)];
 
-        public Semantic.Types.Type ToSemanticType(Lir.Values.Value value)
+        public SemaType ToSemanticType(Lir.Values.Value value)
         {
-            if (value is Lir.Values.Value.User user)
+            if (value is Value.User user)
             {
-                if (user.Payload is Semantic.Types.Type type) return type;
-                if (user.Payload is Lir.Values.Value.Array array)
+                if (user.Payload is SemaType type) return type;
+                if (user.Payload is Value.Array array)
                 {
-                    var tagType = ((Lir.Values.Value.User)array.Values[0]).Payload;
+                    var tagType = ((Value.User)array.Values[0]).Payload;
                     var ctorTypes = array.Values.Skip(1);
                     if (tagType is Expression.Unary ury
                         && ury.Operator == Expression.UnaryOp.PointerType)
                     {
-                        return new Semantic.Types.Type.Ptr(ToSemanticType(ctorTypes.First()));
+                        return new SemaType.Ptr(ToSemanticType(ctorTypes.First()));
                     }
                     if (tagType is Expression.ArrayType)
                     {
                         var ctorValues = ctorTypes.ToList();
-                        var length = (Lir.Values.Value.Int)((Lir.Values.Value.User)ctorValues[0]).Payload;
+                        var length = (Value.Int)((Value.User)ctorValues[0]).Payload;
                         var elementType = ToSemanticType(ctorValues[1]);
-                        return new Semantic.Types.Type.Array(elementType, (int)length.Value);
+                        return new SemaType.Array(elementType, (int)length.Value);
                     }
                     if (tagType is Expression.StructType structType)
                     {
@@ -87,7 +90,7 @@ namespace Yoakke.Compiler.Compile
                         {
                             scope = System.SymbolTable.ContainingScope(structType.Declarations.First());
                         }
-                        return new Semantic.Types.Type.Struct(
+                        return new SemaType.Struct(
                             structType.KwStruct,
                             structType.Fields
                                 .Select(field => field.Name)
@@ -100,19 +103,12 @@ namespace Yoakke.Compiler.Compile
                     {
                         var paramTypes = ctorTypes.SkipLast(1);
                         var retType = ctorTypes.Last();
-                        return new Semantic.Types.Type.Proc(
-                            paramTypes.Select(p => 
-                            { 
-                                if (p is Lir.Values.Value.User user && user.Payload is Lir.Values.Value.Array arr)
-                                {
-                                    var name = (string)((Lir.Values.Value.User)arr.Values[0]).Payload;
-                                    var ty = ToSemanticType(arr.Values[1]);
-                                    return new Semantic.Types.Type.Proc.Param(name, ty);
-                                }
-                                else
-                                {
-                                    return new Semantic.Types.Type.Proc.Param(null, ToSemanticType(p));
-                                }
+                        return new SemaType.Proc(
+                            paramTypes.Zip(procSign.Parameters).Select(ppair => 
+                            {
+                                var pName = ppair.Second.Name;
+                                var pType = ToSemanticType(ppair.First);
+                                return new SemaType.Proc.Param(pName, pType);
                             }).ToList().AsValueList(),
                             ToSemanticType(retType));
                     }

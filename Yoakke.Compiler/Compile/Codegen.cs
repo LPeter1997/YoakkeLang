@@ -489,24 +489,12 @@ namespace Yoakke.Compiler.Compile
         {
             // The first element will be a pointer to this expression
             // From the second it's the parameter types
-            // Every parameter type can be a pair of string and type or just a type
             // Finally the return type
             var arrayValues = new List<Value>();
             arrayValues.Add(new Value.User(sign));
-            foreach (var param in sign.Parameters)
-            {
-                var paramType = VisitNonNull(param.Type);
-                if (param.Name != null)
-                {
-                    var paramArray = Builder.InitArray(Lir.Types.Type.User_, 
-                        new Value[] { new Value.User(param.Name), Builder.Cast(Lir.Types.Type.User_, paramType) });
-                    arrayValues.Add(Builder.Cast(Lir.Types.Type.User_, Builder.Load(paramArray)));
-                }
-                else
-                {
-                    arrayValues.Add(Builder.Cast(Lir.Types.Type.User_, paramType));
-                }
-            }
+            var paramTypes = sign.Parameters
+                .Select(p => Builder.Cast(Lir.Types.Type.User_, VisitNonNull(p.Type)));
+            arrayValues.AddRange(paramTypes);
             if (sign.Return == null)
             {
                 // Implicit void return type
