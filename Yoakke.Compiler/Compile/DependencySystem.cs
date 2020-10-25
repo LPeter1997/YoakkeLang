@@ -157,6 +157,12 @@ namespace Yoakke.Compiler.Compile
             return TypeTranslator.ToSemanticType(value);
         }
 
+        public Type ReferToConstTypeOf(params string[] pieces)
+        {
+            var path = MakePathExpression(pieces);
+            return TypeOf(path);
+        }
+
         public Value ReferToConst(params string[] pieces)
         {
             // TODO: Hackish but works

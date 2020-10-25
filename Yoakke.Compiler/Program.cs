@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http.Headers;
@@ -57,7 +58,17 @@ namespace Yoakke.Compiler
 
             // Compilation
             //var system = new DependencySystem(symTab);
-            
+
+#if true
+            // Type-query loop
+            while (true)
+            {
+                var input = Console.ReadLine()?.Trim().Split('.').Select(x => x.Trim()).ToArray();
+                Debug.Assert(input != null);
+                var sym = system.ReferToConstTypeOf(input);
+                Console.WriteLine(sym);
+            }
+#else
             var buildStatus = new BuildStatus();
             var asm = system.Compile(ast, buildStatus);
             foreach (var err in buildStatus.Errors)
@@ -97,6 +108,7 @@ namespace Yoakke.Compiler
                     Console.WriteLine(err.GetErrorMessage());
                 }
             }
+#endif
 #else
             // TODO: We need to expand arguments
             // We need to refactor out expansion (and parsing) mechanism to work everywhere, not just in the main parser module

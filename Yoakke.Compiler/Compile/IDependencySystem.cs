@@ -30,6 +30,8 @@ namespace Yoakke.Compiler.Compile
         public Value EvaluateConst(Symbol.Const constSym);
         public Type EvaluateType(Expression expression);
 
+        // TODO: Naming is horrible
+        public Type ReferToConstTypeOf(params string[] pieces);
         public Value ReferToConst(params string[] pieces);
         public Type ReferToConstType(params string[] pieces);
     }
