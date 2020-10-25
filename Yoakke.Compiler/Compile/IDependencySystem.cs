@@ -8,6 +8,7 @@ using Yoakke.Lir.Status;
 using Yoakke.Lir.Values;
 using Yoakke.Syntax;
 using Yoakke.Syntax.Ast;
+using Yoakke.Compiler.Semantic.Types;
 
 namespace Yoakke.Compiler.Compile
 {

@@ -14,7 +14,7 @@ using Yoakke.Lir.Values;
 using Yoakke.Syntax;
 using Yoakke.Syntax.Ast;
 using Yoakke.Text;
-using Type = Yoakke.Compiler.Semantic.Type;
+using Type = Yoakke.Compiler.Semantic.Types.Type;
 
 namespace Yoakke.Compiler.Compile
 {

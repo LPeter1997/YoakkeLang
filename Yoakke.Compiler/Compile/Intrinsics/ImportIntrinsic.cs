@@ -9,7 +9,7 @@ using Yoakke.Lir.Runtime;
 using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;
 using Yoakke.Syntax.Ast;
-using Type = Yoakke.Compiler.Semantic.Type;
+using Type = Yoakke.Compiler.Semantic.Types.Type;
 
 namespace Yoakke.Compiler.Compile.Intrinsics
 {
@@ -25,7 +25,7 @@ namespace Yoakke.Compiler.Compile.Intrinsics
             : base(system)
         {
             var stringType = System.ReferToConstType("@c", "str");
-            Type = new Type.Proc(new ValueList<Type> { stringType }, Type.Type_);
+            Type = new Type.Proc(new ValueList<Type.Proc.Param>{ new Type.Proc.Param(null, stringType) }, Type.Type_);
             ReturnType = Lir.Types.Type.User_;
         }
 

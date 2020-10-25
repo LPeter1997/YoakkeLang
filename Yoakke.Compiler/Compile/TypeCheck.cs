@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Yoakke.Compiler.Semantic;
 using Yoakke.Syntax;
 using Yoakke.Syntax.Ast;
-using Type = Yoakke.Compiler.Semantic.Type;
+using Type = Yoakke.Compiler.Semantic.Types.Type;
 
 namespace Yoakke.Compiler.Compile
 {
@@ -219,7 +219,7 @@ namespace Yoakke.Compiler.Compile
             }
             // Check if arguments match
             var argTypes = call.Arguments.Select(arg => System.TypeOf(arg));
-            if (!procType.Parameters.SequenceEqual(argTypes))
+            if (!procType.Parameters.Select(p => p.Type).SequenceEqual(argTypes))
             {
                 // TODO
                 throw new NotImplementedException("Call argument types mismatch!");

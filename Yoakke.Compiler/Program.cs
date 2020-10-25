@@ -47,7 +47,7 @@ namespace Yoakke.Compiler
             var ast = system.LoadAst(@"../../../../../samples/test.yk");
 
             //Console.WriteLine(prg.Dump());
-            Console.WriteLine(ast.Dump());
+            //Console.WriteLine(ast.Dump());
 
             // Semantics
             // TODO: Maye this should also be part of the dependency system?

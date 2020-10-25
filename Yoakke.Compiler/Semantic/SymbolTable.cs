@@ -9,6 +9,8 @@ using Yoakke.Compiler.Compile.Intrinsics;
 using Yoakke.Lir.Values;
 using Yoakke.Syntax;
 using Yoakke.Syntax.Ast;
+using Yoakke.Compiler.Semantic.Types;
+using Type = Yoakke.Compiler.Semantic.Types.Type;
 
 namespace Yoakke.Compiler.Semantic
 {

@@ -45,13 +45,13 @@ namespace Yoakke.Compiler.Compile
         private SymbolTable SymbolTable => System.SymbolTable;
 
         private void TypeCheck(Node node) => System.TypeCheck(node);
-        private Semantic.Type TypeOf(Expression expression) => System.TypeOf(expression);
+        private Semantic.Types.Type TypeOf(Expression expression) => System.TypeOf(expression);
         private Value EvaluateConst(Declaration.Const constDecl) => System.EvaluateConst(constDecl);
         private Value EvaluateConst(Symbol.Const constSym) => System.EvaluateConst(constSym);
-        private Semantic.Type EvaluateType(Expression expression) => System.EvaluateType(expression);
+        private Semantic.Types.Type EvaluateType(Expression expression) => System.EvaluateType(expression);
         private TypeTranslator TypeTranslator => System.TypeTranslator;
-        private int FieldIndex(Semantic.Type sty, string name) => TypeTranslator.FieldIndex(sty, name);
-        private Lir.Types.Type TranslateToLirType(Semantic.Type type) => TypeTranslator.ToLirType(type, Builder);
+        private int FieldIndex(Semantic.Types.Type sty, string name) => TypeTranslator.FieldIndex(sty, name);
+        private Lir.Types.Type TranslateToLirType(Semantic.Types.Type type) => TypeTranslator.ToLirType(type, Builder);
 
         // Public interface ////////////////////////////////////////////////////
 
@@ -159,7 +159,7 @@ namespace Yoakke.Compiler.Compile
                 // For now we make every procedure public
                 procVal.Visibility = Visibility.Public;
                 // We need the return type
-                var returnType = Semantic.Type.Unit;
+                var returnType = Semantic.Types.Type.Unit;
                 if (proc.Signature.Return != null)
                 {
                     returnType = EvaluateType(proc.Signature.Return);
@@ -186,7 +186,7 @@ namespace Yoakke.Compiler.Compile
                 // Now we can compile the body
                 Visit(proc.Body);
                 // Add a return, if there's none and the return-type is unit
-                if (!Builder.CurrentBasicBlock.EndsInBranch && returnType.Equals(Semantic.Type.Unit))
+                if (!Builder.CurrentBasicBlock.EndsInBranch && returnType.Equals(Semantic.Types.Type.Unit))
                 {
                     Builder.Ret();
                 }
@@ -215,7 +215,7 @@ namespace Yoakke.Compiler.Compile
             else
             {
                 var retType = TypeOf(iff);
-                if (retType.Equals(Semantic.Type.Unit))
+                if (retType.Equals(Semantic.Types.Type.Unit))
                 {
                     // There is no return value
                     Builder.IfThenElse(
@@ -312,7 +312,7 @@ namespace Yoakke.Compiler.Compile
 
         protected override Value? Visit(Expression.Subscript sub)
         {
-            var arrayType = (Semantic.Type.Array)TypeOf(sub.Array);
+            var arrayType = (Semantic.Types.Type.Array)TypeOf(sub.Array);
             var elementType = TranslateToLirType(arrayType.ElementType);
             var array = Builder.Cast(new Lir.Types.Type.Ptr(elementType), Lvalue(sub.Array));
             var index = VisitNonNull(sub.Index);
@@ -406,7 +406,7 @@ namespace Yoakke.Compiler.Compile
             case Expression.UnaryOp.Negate:
             {
                 // Find the integer type
-                var intType = (Lir.Types.Type.Int)((Semantic.Type.Prim)TypeOf(ury.Operand)).Type;
+                var intType = (Lir.Types.Type.Int)((Semantic.Types.Type.Prim)TypeOf(ury.Operand)).Type;
                 Debug.Assert(intType.Signed);
                 // Multiply by -1
                 var sub = VisitNonNull(ury.Operand);
@@ -418,10 +418,10 @@ namespace Yoakke.Compiler.Compile
                 // Either bitwise or bool not
                 var subType = TypeOf(ury.Operand);
                 var sub = VisitNonNull(ury.Operand);
-                if (subType.Equals(Semantic.Type.Bool))
+                if (subType.Equals(Semantic.Types.Type.Bool))
                 {
                     // Bool-not
-                    var intType = (Lir.Types.Type.Int)((Semantic.Type.Prim)subType).Type;
+                    var intType = (Lir.Types.Type.Int)((Semantic.Types.Type.Prim)subType).Type;
                     return Builder.BitXor(sub, intType.NewValue(1));
                 }
                 else
@@ -459,7 +459,7 @@ namespace Yoakke.Compiler.Compile
         {
             var leftType = TypeOf(dot.Left);
             var left = VisitNonNull(dot.Left);
-            if (leftType.Equals(Semantic.Type.Type_))
+            if (leftType.Equals(Semantic.Types.Type.Type_))
             {
                 // Static member access
                 var leftValue = System.EvaluateType(dot.Left);
@@ -467,7 +467,7 @@ namespace Yoakke.Compiler.Compile
                 var symbol = leftValue.DefinedScope.Reference(dot.Right);
                 return CompileSymbol(symbol);
             }
-            else if (leftType is Semantic.Type.Struct sty)
+            else if (leftType is Semantic.Types.Type.Struct sty)
             {
                 // Since we need a pointer, we need to write the struct to memory
                 var leftSpace = Builder.Alloc(TranslateToLirType(leftType));
@@ -489,17 +489,28 @@ namespace Yoakke.Compiler.Compile
         {
             // The first element will be a pointer to this expression
             // From the second it's the parameter types
+            // Every parameter type can be a pair of string and type or just a type
             // Finally the return type
             var arrayValues = new List<Value>();
             arrayValues.Add(new Value.User(sign));
             foreach (var param in sign.Parameters)
             {
-                arrayValues.Add(Builder.Cast(Lir.Types.Type.User_, VisitNonNull(param.Type)));
+                var paramType = VisitNonNull(param.Type);
+                if (param.Name != null)
+                {
+                    var paramArray = Builder.InitArray(Lir.Types.Type.User_, 
+                        new Value[] { new Value.User(param.Name), Builder.Cast(Lir.Types.Type.User_, paramType) });
+                    arrayValues.Add(Builder.Cast(Lir.Types.Type.User_, Builder.Load(paramArray)));
+                }
+                else
+                {
+                    arrayValues.Add(Builder.Cast(Lir.Types.Type.User_, paramType));
+                }
             }
             if (sign.Return == null)
             {
                 // Implicit void return type
-                arrayValues.Add(new Value.User(Semantic.Type.Unit));
+                arrayValues.Add(new Value.User(Semantic.Types.Type.Unit));
             }
             else
             {
@@ -584,7 +595,7 @@ namespace Yoakke.Compiler.Compile
 
             case Expression.DotPath dotPath:
             {
-                var leftType = (Semantic.Type.Struct)TypeOf(dotPath.Left);
+                var leftType = (Semantic.Types.Type.Struct)TypeOf(dotPath.Left);
                 var left = Lvalue(dotPath.Left);
                 var index = FieldIndex(leftType, dotPath.Right);
                 return Builder.ElementPtr(left, index);
@@ -595,7 +606,7 @@ namespace Yoakke.Compiler.Compile
 
             case Expression.Subscript sub:
             {
-                var arrayType = (Semantic.Type.Array)TypeOf(sub.Array);
+                var arrayType = (Semantic.Types.Type.Array)TypeOf(sub.Array);
                 var elementType = TranslateToLirType(arrayType.ElementType);
                 var array = Builder.Cast(new Lir.Types.Type.Ptr(elementType), Lvalue(sub.Array));
                 var index = VisitNonNull(sub.Index);

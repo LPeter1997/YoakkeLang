@@ -10,7 +10,7 @@ using Yoakke.Compiler.Semantic;
 using Yoakke.DataStructures;
 using Yoakke.Syntax;
 using Yoakke.Syntax.Ast;
-using Type = Yoakke.Compiler.Semantic.Type;
+using Type = Yoakke.Compiler.Semantic.Types.Type;
 
 namespace Yoakke.Compiler.Compile
 {
@@ -48,17 +48,8 @@ namespace Yoakke.Compiler.Compile
             return TypeOfSymbol(symbol);
         }
 
-        protected override Type? Visit(Expression.Proc proc)
-        {
-            var signature = proc.Signature;
-            // Evaluate parameter types
-            var paramTypes = signature.Parameters.Select(param => System.EvaluateType(param.Type));
-            // Evaluate return type, default to unit, if none provided
-            var returnType = Type.Unit;
-            if (signature.Return != null) returnType = System.EvaluateType(signature.Return);
-            // Construct the procedure type
-            return new Type.Proc(paramTypes.ToList().AsValueList(), returnType);
-        }
+        protected override Type? Visit(Expression.Proc proc) =>
+            System.EvaluateType(proc.Signature);
 
         protected override Type? Visit(Expression.If iff) => TypeOf(iff.Then);
 

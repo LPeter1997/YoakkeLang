@@ -2,7 +2,7 @@
 const Foo = struct {
     var x: [5]i32;
     const bar = 0;
-    const baz = proc() {};
+    const baz = proc(x: i32) {};
 };
 
 
