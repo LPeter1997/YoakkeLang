@@ -45,13 +45,7 @@ namespace Yoakke.Compiler.Semantic
         protected override object? Visit(Expression.Proc proc)
         {
             Visit(proc.Signature);
-            // Declare each parameter
-            foreach (var param in proc.Signature.Parameters)
-            {
-                if (param.Name == null) continue;
-
-                symbolTable.DefineSymbol(param, new Symbol.Var(param));
-            }
+            // NOTE: Parameters are already declared
             Visit(proc.Body);
             return null;
         }

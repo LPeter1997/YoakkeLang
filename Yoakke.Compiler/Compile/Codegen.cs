@@ -547,12 +547,23 @@ namespace Yoakke.Compiler.Compile
 
         private Value CompileSymbol(Symbol symbol)
         {
-            if (symbol is Symbol.Var)
+            if (symbol is Symbol.Var varSym)
             {
-                // Handle the variable
-                var reg = variablesToRegisters[symbol];
-                // Load the value
-                return Builder.Load(reg);
+                if (variablesToRegisters.TryGetValue(symbol, out var reg))
+                {
+                    // Load the value
+                    return Builder.Load(reg);
+                }
+                else if (varSym.Kind == Symbol.VarKind.Param)
+                {
+                    // Dependent read
+                    return new Value.User(new Semantic.Types.Type.Dependent(varSym));
+                }
+                else
+                {
+                    // TODO
+                    throw new NotImplementedException();
+                }
             }
             else
             {

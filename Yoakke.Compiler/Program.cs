@@ -59,7 +59,7 @@ namespace Yoakke.Compiler
             // Compilation
             //var system = new DependencySystem(symTab);
 
-#if true
+#if false
             // Type-query loop
             while (true)
             {

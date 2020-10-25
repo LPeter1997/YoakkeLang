@@ -75,7 +75,7 @@ namespace Yoakke.Compiler.Semantic.Types
             public override int GetHashCode() =>
                 HashCode.Combine(typeof(Proc), Parameters, Return);
             public override string ToString() =>
-                $"proc({string.Join(",", Parameters)}) -> {Return}";
+                $"proc({string.Join(", ", Parameters)}) -> {Return}";
         }
     }
 }

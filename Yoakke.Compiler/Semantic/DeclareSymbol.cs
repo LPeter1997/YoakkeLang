@@ -41,5 +41,12 @@ namespace Yoakke.Compiler.Semantic
             symbolTable.DefineSymbol(cons, new Symbol.Const(cons));
             return null;
         }
+
+        protected override object? Visit(Expression.ProcSignature.Parameter param)
+        {
+            base.Visit(param);
+            symbolTable.DefineSymbol(param, new Symbol.Var(param));
+            return null;
+        }
     }
 }
