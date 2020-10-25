@@ -25,7 +25,7 @@ namespace Yoakke.Compiler.Compile.Intrinsics
             : base(system)
         {
             var stringType = System.ReferToConstType("@c", "str");
-            Type = new Type.Proc(new ValueList<Type.Proc.Param>{ new Type.Proc.Param(null, stringType) }, Type.Type_);
+            Type = new Type.Proc(new List<Type.Proc.Param>{ new Type.Proc.Param(null, stringType) }, Type.Type_);
             ReturnType = Lir.Types.Type.User_;
         }
 
@@ -50,7 +50,7 @@ namespace Yoakke.Compiler.Compile.Intrinsics
             // Create the new type
             var moduleType = new Type.Struct(
                 new Syntax.Token(new Text.Span(), Syntax.TokenType.KwStruct, "struct"),
-                new ValueDictionary<string, Type>(),
+                new Dictionary<string, Type>(),
                 structScope);
             // Wrap it, return it
             return new Value.User(moduleType);

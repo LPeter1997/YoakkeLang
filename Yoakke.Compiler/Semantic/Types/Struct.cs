@@ -32,10 +32,10 @@ namespace Yoakke.Compiler.Semantic.Types
             /// <param name="kwStruct">The 'struct' <see cref="Token"/>.</param>
             /// <param name="fields">The names to field <see cref="Type"/>s dictionary.</param>
             /// <param name="definedScope">The <see cref="Scope"/> this struct type defines.</param>
-            public Struct(Token kwStruct, IValueDictionary<string, Type> fields, Scope? definedScope)
+            public Struct(Token kwStruct, IDictionary<string, Type> fields, Scope? definedScope)
             {
                 KwStruct = kwStruct;
-                Fields = fields;
+                Fields = fields.AsValueDictionary();
                 DefinedScope = definedScope;
             }
 

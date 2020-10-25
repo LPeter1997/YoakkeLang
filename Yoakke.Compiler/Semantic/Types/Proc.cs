@@ -62,9 +62,9 @@ namespace Yoakke.Compiler.Semantic.Types
             /// </summary>
             /// <param name="parameters">The list of parameters.</param>
             /// <param name="ret">The return <see cref="Type"/>.</param>
-            public Proc(IValueList<Param> parameters, Type ret)
+            public Proc(IList<Param> parameters, Type ret)
             {
-                Parameters = parameters;
+                Parameters = parameters.AsValueList();
                 Return = ret;
             }
 

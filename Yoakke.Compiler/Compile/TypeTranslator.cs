@@ -95,8 +95,7 @@ namespace Yoakke.Compiler.Compile
                             structType.Fields
                                 .Select(field => field.Name)
                                 .Zip(ctorTypes.Select(ToSemanticType))
-                                .ToDictionary(kv => kv.First, kv => kv.Second)
-                                .AsValueDictionary(),
+                                .ToDictionary(kv => kv.First, kv => kv.Second),
                             scope);
                     }
                     if (tagType is Expression.ProcSignature procSign)
@@ -109,7 +108,7 @@ namespace Yoakke.Compiler.Compile
                                 var pName = ppair.Second.Name;
                                 var pType = ToSemanticType(ppair.First);
                                 return new SemaType.Proc.Param(pName, pType);
-                            }).ToList().AsValueList(),
+                            }).ToList(),
                             ToSemanticType(retType));
                     }
                 }
