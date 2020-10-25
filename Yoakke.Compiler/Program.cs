@@ -60,6 +60,7 @@ namespace Yoakke.Compiler
             //var system = new DependencySystem(symTab);
 
 #if false
+            system.TypeCheck(ast);
             // Type-query loop
             while (true)
             {

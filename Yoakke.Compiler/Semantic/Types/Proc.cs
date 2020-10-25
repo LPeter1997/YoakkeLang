@@ -76,6 +76,16 @@ namespace Yoakke.Compiler.Semantic.Types
                 HashCode.Combine(typeof(Proc), Parameters, Return);
             public override string ToString() =>
                 $"proc({string.Join(", ", Parameters)}) -> {Return}";
+
+            /// <summary>
+            /// Collects all dependent elements in the signature.
+            /// </summary>
+            /// <returns>An <see cref="IEnumerable{Dependent}"/> of the dependent elements.</returns>
+            public IEnumerable<Dependent> DependentTypes() => Parameters
+                .Select(p => p.Type)
+                .Append(Return)
+                .Where(t => t is Dependent)
+                .Select(t => (Dependent)t);
         }
     }
 }

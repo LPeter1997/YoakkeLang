@@ -42,6 +42,9 @@ namespace Yoakke.Compiler.Compile
                 new LirType.Array(
                     ToLirType(array.ElementType),
                     array.Length),
+
+            // NOTE: Edge-case
+            SemaType.Dependent => LirType.User_,
             
             _ => throw new NotImplementedException(),
         };

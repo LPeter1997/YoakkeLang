@@ -90,7 +90,17 @@ namespace Yoakke.Compiler.Compile
 
         // Actual code-generation //////////////////////////////////////////////
 
-        protected override Value? Visit(Declaration.Const cons) => EvaluateConst(cons);
+        protected override Value? Visit(Declaration.Const cons)
+        {
+            var constType = System.TypeOf(cons.Value);
+            if (constType is Semantic.Types.Type.Proc procType && procType.DependentTypes().Any())
+            {
+                // We don't compile this, contains dependent types
+                return null;
+            }
+            EvaluateConst(cons);
+            return null;
+        }
 
         protected override Value? Visit(Statement.Var var)
         {
