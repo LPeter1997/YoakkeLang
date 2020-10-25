@@ -51,7 +51,7 @@ namespace Yoakke.Compiler.Compile
         private Semantic.Types.Type EvaluateType(Expression expression) => System.EvaluateType(expression);
         private TypeTranslator TypeTranslator => System.TypeTranslator;
         private int FieldIndex(Semantic.Types.Type sty, string name) => TypeTranslator.FieldIndex(sty, name);
-        private Lir.Types.Type TranslateToLirType(Semantic.Types.Type type) => TypeTranslator.ToLirType(type, Builder);
+        private Lir.Types.Type TranslateToLirType(Semantic.Types.Type type) => TypeTranslator.ToLirType(type);
 
         // Public interface ////////////////////////////////////////////////////
 

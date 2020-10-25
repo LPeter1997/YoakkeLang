@@ -21,39 +21,39 @@ namespace Yoakke.Compiler.Compile
             System = system;
         }
 
-        public Lir.Types.Type ToLirType(Semantic.Types.Type type, Lir.Builder builder) => type switch
+        public Lir.Types.Type ToLirType(Semantic.Types.Type type) => type switch
         {
             Semantic.Types.Type.Prim prim => prim.Type,
 
-            Semantic.Types.Type.Ptr ptr => new Lir.Types.Type.Ptr(ToLirType(ptr.Subtype, builder)),
+            Semantic.Types.Type.Ptr ptr => new Lir.Types.Type.Ptr(ToLirType(ptr.Subtype)),
 
             Semantic.Types.Type.Proc proc =>
                 new Lir.Types.Type.Proc(
                     Lir.CallConv.Cdecl,
-                    ToLirType(proc.Return, builder),
-                    proc.Parameters.Select(param => ToLirType(param.Type, builder)).ToList().AsValueList()),
+                    ToLirType(proc.Return),
+                    proc.Parameters.Select(param => ToLirType(param.Type)).ToList().AsValueList()),
             
-            Semantic.Types.Type.Struct struc => ToLirStruct(struc, builder),
+            Semantic.Types.Type.Struct struc => ToLirStruct(struc),
 
             Semantic.Types.Type.Array array => 
                 new Lir.Types.Type.Array(
-                    ToLirType(array.ElementType, builder),
+                    ToLirType(array.ElementType),
                     array.Length),
             
             _ => throw new NotImplementedException(),
         };
 
-        private Lir.Types.Type ToLirStruct(Semantic.Types.Type.Struct struc, Lir.Builder builder)
+        private Lir.Types.Type ToLirStruct(Semantic.Types.Type.Struct struc)
         {
             var fields = new List<Lir.Types.Type>();
             int counter = 0;
             foreach (var field in struc.Fields)
             {
                 fieldIndices[(struc, field.Key)] = counter;
-                fields.Add(ToLirType(field.Value, builder));
+                fields.Add(ToLirType(field.Value));
                 ++counter;
             }
-            return builder.DefineStruct(fields);
+            return System.Builder.DefineStruct(fields);
         }
 
         public int FieldIndex(Semantic.Types.Type type, string fieldName) => fieldIndices[(type, fieldName)];
