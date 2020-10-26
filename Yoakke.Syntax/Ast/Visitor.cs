@@ -13,16 +13,21 @@ namespace Yoakke.Syntax.Ast
     /// <typeparam name="T">The result type of the visitation.</typeparam>
     public abstract class Visitor<T>
     {
+        [DebuggerStepThrough]
         protected T VisitNonNull(Declaration declaration) => AssertNonNull(Visit(declaration));
+        [DebuggerStepThrough]
         protected T VisitNonNull(Statement statement) => AssertNonNull(Visit(statement));
+        [DebuggerStepThrough]
         protected T VisitNonNull(Expression expression) => AssertNonNull(Visit(expression));
 
+        [DebuggerStepThrough]
         private static T AssertNonNull(T? value)
         {
             Debug.Assert(value != null);
             return value;
         }
 
+        [DebuggerStepThrough]
         protected virtual T? Visit(Node node) => node switch
         {
             Declaration d => Visit(d),
@@ -32,6 +37,7 @@ namespace Yoakke.Syntax.Ast
             _ => throw new NotImplementedException(),
         };
 
+        [DebuggerStepThrough]
         protected virtual T? Visit(Declaration declaration) => declaration switch
         {
             Declaration.File  f => Visit(f),
@@ -44,6 +50,7 @@ namespace Yoakke.Syntax.Ast
             _ => throw new NotImplementedException(),
         };
 
+        [DebuggerStepThrough]
         protected virtual T? Visit(Statement statement) => statement switch
         {
             Declaration           d => Visit(d),
@@ -56,6 +63,7 @@ namespace Yoakke.Syntax.Ast
             _ => throw new NotImplementedException(),
         };
 
+        [DebuggerStepThrough]
         protected virtual T? Visit(Expression expression) => expression switch
         {
             Expression.Literal       l => Visit(l),
@@ -77,6 +85,7 @@ namespace Yoakke.Syntax.Ast
             _ => throw new NotImplementedException(),
         };
 
+        [DebuggerStepThrough]
         private T? VisitNullable(Expression? expression)
         {
             if (expression != null) return Visit(expression);
