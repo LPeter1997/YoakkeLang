@@ -87,17 +87,23 @@ namespace Yoakke.Compiler.Compile
                     }
                     if (tagType is Expression.StructType structType)
                     {
-                        // NOTE: This will not be correct for generics!
                         Semantic.Scope? scope = null;
                         if (structType.Declarations.Count > 0)
                         {
                             scope = System.SymbolTable.ContainingScope(structType.Declarations.First());
                         }
+                        var symbols = (Value.Array)((Value.User)ctorTypes.First()).Payload;
+                        foreach (var symbolAndValuePair in symbols.Values.Select(v => (Value.Array)((Value.User)v).Payload))
+                        {
+                            var symbol = (Semantic.Symbol.Var)((Value.User)symbolAndValuePair.Values[0]).Payload;
+                            var symbolValue = symbolAndValuePair.Values[1];
+                            // TODO: add to some new scope
+                        }
                         return new SemaType.Struct(
                             structType.KwStruct,
                             structType.Fields
                                 .Select(field => field.Name)
-                                .Zip(ctorTypes.Select(ToSemanticType))
+                                .Zip(ctorTypes.Skip(1).Select(ToSemanticType))
                                 .ToDictionary(kv => kv.First, kv => kv.Second),
                             scope);
                     }

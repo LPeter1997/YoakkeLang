@@ -528,15 +528,22 @@ namespace Yoakke.Compiler.Compile
         {
             var refSymbols = new CollectLocalRefs(System).Collect(sty);
 
-            // Later we'll need to clone stuff and capture the actual locals to support associated constants
-            // for generics
-            foreach (var decl in sty.Declarations) Visit(decl);
-
             // For struct types we create an array of N+1 user types, where N is the number of fields
             // The first element will be pointer to this expression
+            // The second is an array of pair of (variable symbol, value) used
             // The rest are the actual field types
             var arrayValues = new List<Value>();
             arrayValues.Add(new Value.User(sty));
+            // Evaluate and store ref-ed symbols
+            var refSymbolValues = new List<Value>();
+            foreach (var symbol in refSymbols)
+            {
+                // Pair of symbol, value of symbol
+                var pair = new Value[] { new Value.User(symbol), Builder.Cast(Lir.Types.Type.User_, CompileSymbol(symbol)) };
+                var subarray = Builder.InitArray(Lir.Types.Type.User_, pair);
+                refSymbolValues.Add(Builder.Cast(Lir.Types.Type.User_, Builder.Load(subarray)));
+            }
+            arrayValues.Add(Builder.Cast(Lir.Types.Type.User_, Builder.Load(Builder.InitArray(Lir.Types.Type.User_, refSymbolValues.ToArray()))));
             foreach (var field in sty.Fields) arrayValues.Add(VisitNonNull(field.Type));
             var arraySpace = Builder.InitArray(Lir.Types.Type.User_, arrayValues.ToArray());
             // We cast it to a singular user type
