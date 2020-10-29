@@ -1,11 +1,10 @@
 
-const Node = proc(T: type) -> type {
+const Id = proc(T: type) -> type {
     struct {
-        next: *Node(T);
+        const id = proc(x: T) -> T { x };
     }
 };
 
 const main = proc() -> i32 {
-    var n = Node(i32) {};
-    0
+    Id(i32).id(345)
 };

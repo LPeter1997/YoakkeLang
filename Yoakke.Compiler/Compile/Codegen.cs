@@ -526,7 +526,8 @@ namespace Yoakke.Compiler.Compile
 
         protected override Value? Visit(Expression.StructType sty)
         {
-            // NOTE: For now we just compile everything inside
+            var refSymbols = new CollectLocalRefs(System).Collect(sty);
+
             // Later we'll need to clone stuff and capture the actual locals to support associated constants
             // for generics
             foreach (var decl in sty.Declarations) Visit(decl);
