@@ -6,5 +6,6 @@ const Id = proc(T: type) -> type {
 };
 
 const main = proc() -> i32 {
+    var x = Id(bool).id(4);
     Id(i32).id(345)
 };
