@@ -438,20 +438,32 @@ const entry = proc() -> i32 {
             TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(7));
         }
 
-        /*
-         * TODO: Load prelude for test env too!
-         * This would require us to have prelude in a standardized location.
         [TestMethod]
         public void StringLiteralLength()
         {
             string src = @"
-const entry = proc() -> i32 {
+const entry = proc() -> u32 {
     var x = ""Hello, World!"";
     x.len
 };
 ";
-            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(13));
+            TestOnAllBackends<Func<UInt32>>(src, Type.U32.NewValue(13));
         }
-        */
+
+        [TestMethod]
+        public void AssociatedGenericConstant()
+        {
+            string src = @"
+const Id = proc(T: type) -> type {
+    struct {
+        const id = proc(x: T) -> T { x };
+    }
+};
+const entry = proc() -> i32 {
+    Id(i32).id(345)
+};
+";
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(345));
+        }
     }
 }

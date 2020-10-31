@@ -1,11 +1,7 @@
 
-const Id = proc(T: type) -> type {
-    struct {
-        const id = proc(x: T) -> T { x };
-    }
+const Math = struct {
+    var x = 7;
 };
-
-const main = proc() -> i32 {
-    var x = Id(bool).id(4);
-    Id(i32).id(345)
+const entry = proc() -> i32 {
+    Math.x
 };

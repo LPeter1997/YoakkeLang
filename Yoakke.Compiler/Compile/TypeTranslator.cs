@@ -115,6 +115,10 @@ namespace Yoakke.Compiler.Compile
                                 new DefineScope(System.SymbolTable).Define(decl);
                                 new DeclareSymbol(System.SymbolTable).Declare(decl);
                                 new ResolveSymbol(System.SymbolTable).Resolve(decl);
+                                // TODO: We screw upp associated constants with cloning!
+                                // It was kind of a bad system anyway, so it's no biggie it's broken
+                                // For now we type-check here to avoid crashing the test-suite
+                                System.TypeCheck(decl);
                             }
                         }
                         return new SemaType.Struct(
