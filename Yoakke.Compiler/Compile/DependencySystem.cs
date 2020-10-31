@@ -90,8 +90,6 @@ namespace Yoakke.Compiler.Compile
         public Assembly? Compile(Declaration.File file, BuildStatus status)
         {
             var asm = codegen.Generate(file);
-            // TODO: Hack for now until we can run code-passes on unchecked assemblies
-            RemoveUnusedUserCalls(asm);
             // Erase the temporaries and things that have user-types in them
             asm.Procedures = asm.Procedures
                 .Except(tempEval)
@@ -104,38 +102,6 @@ namespace Yoakke.Compiler.Compile
                 return null;
             }
             return checkedAsm;
-        }
-
-        // TODO: This is a hack, should be able to do with a code-pass
-        private void RemoveUnusedUserCalls(UncheckedAssembly asm)
-        {
-            foreach (var proc in asm.Procedures)
-            {
-                var usedResults = proc
-                    .BasicBlocks
-                    .SelectMany(bb => bb.Instructions)
-                    .SelectMany(ins => ins is ValueInstr vi ? vi.InstrArgs.Skip(1) : ins.InstrArgs)
-                    .Where(arg => arg is Register)
-                    .Select(arg => ((Register)arg).Index)
-                    .ToHashSet();
-                foreach (var bb in proc.BasicBlocks)
-                {
-                    for (int i = 0; i < bb.Instructions.Count;)
-                    {
-                        var ins = bb.Instructions[i];
-                        if (   ins is Instr.Call call 
-                            && call.Result.Type.Equals(Lir.Types.Type.User_)
-                            && !usedResults.Contains(call.Result.Index))
-                        {
-                            bb.Instructions.RemoveAt(i);
-                        }
-                        else
-                        {
-                            ++i;
-                        }
-                    }
-                }
-            }
         }
 
         public Type TypeOf(Expression expression) => typeEval.TypeOf(expression);

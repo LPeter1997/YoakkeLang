@@ -465,7 +465,6 @@ namespace Yoakke.Compiler.Compile
         protected override Value? Visit(Expression.DotPath dot)
         {
             var leftType = TypeOf(dot.Left);
-            var left = VisitNonNull(dot.Left);
             if (leftType.Equals(Semantic.Types.Type.Type_))
             {
                 // Static member access
@@ -476,6 +475,7 @@ namespace Yoakke.Compiler.Compile
             }
             else if (leftType is Semantic.Types.Type.Struct sty)
             {
+                var left = VisitNonNull(dot.Left);
                 // Since we need a pointer, we need to write the struct to memory
                 var leftSpace = Builder.Alloc(TranslateToLirType(leftType));
                 Builder.Store(leftSpace, left);
