@@ -30,7 +30,7 @@ namespace Yoakke.Compiler.Semantic
         /// <summary>
         /// The current <see cref="Scope"/> we are working in.
         /// </summary>
-        public Scope CurrentScope { get; private set; }
+        public Scope CurrentScope { get; set; }
 
         private readonly Dictionary<Node, Scope> containingScope = new Dictionary<Node, Scope>();
         private readonly Dictionary<Node, Symbol> definedSymbol = new Dictionary<Node, Symbol>();
@@ -77,10 +77,7 @@ namespace Yoakke.Compiler.Semantic
         /// Pushes a new <see cref="Scope"/> to be the current <see cref="Scope"/>.
         /// </summary>
         /// <param name="scopeTag">The <see cref="ScopeKind"/> of the new <see cref="Scope"/>.</param>
-        public void PushScope(ScopeKind scopeKind)
-        {
-            CurrentScope = new Scope(scopeKind, CurrentScope);
-        }
+        public void PushScope(ScopeKind scopeKind) => CurrentScope = new Scope(scopeKind, CurrentScope);
 
         /// <summary>
         /// Pops the current <see cref="Scope"/>, making it's parent the current one.
@@ -95,10 +92,7 @@ namespace Yoakke.Compiler.Semantic
         /// Assigns the current <see cref="Scope"/> for the given <see cref="Node"/>.
         /// </summary>
         /// <param name="node">The <see cref="Node"/> to assign the current <see cref="Scope"/> for.</param>
-        public void AssignCurrentScope(Node node)
-        {
-            containingScope[node] = CurrentScope;
-        }
+        public void AssignCurrentScope(Node node) => containingScope[node] = CurrentScope;
 
         // TODO: Doc
         public void DefineBuiltinType(string name, Type type) =>

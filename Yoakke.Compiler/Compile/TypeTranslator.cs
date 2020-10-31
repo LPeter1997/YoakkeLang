@@ -9,6 +9,8 @@ using Yoakke.Syntax.Ast;
 using SemaType = Yoakke.Compiler.Semantic.Types.Type;
 using LirType = Yoakke.Lir.Types.Type;
 using Yoakke.Lir.Values;
+using Yoakke.Syntax;
+using Yoakke.Compiler.Semantic;
 
 namespace Yoakke.Compiler.Compile
 {
@@ -87,17 +89,33 @@ namespace Yoakke.Compiler.Compile
                     }
                     if (tagType is Expression.StructType structType)
                     {
+                        // Inner scope
                         Semantic.Scope? scope = null;
                         if (structType.Declarations.Count > 0)
                         {
                             scope = System.SymbolTable.ContainingScope(structType.Declarations.First());
                         }
+                        // Do the new surrounding scope thing
+                        var containingScope = System.SymbolTable.ContainingScope(structType);
+                        var newSurroundingScope = new Semantic.Scope(Semantic.ScopeKind.Struct, containingScope);
                         var symbols = (Value.Array)((Value.User)ctorTypes.First()).Payload;
                         foreach (var symbolAndValuePair in symbols.Values.Select(v => (Value.Array)((Value.User)v).Payload))
                         {
                             var symbol = (Semantic.Symbol.Var)((Value.User)symbolAndValuePair.Values[0]).Payload;
                             var symbolValue = symbolAndValuePair.Values[1];
-                            // TODO: add to some new scope
+                            Debug.Assert(symbol.Type != null);
+                            newSurroundingScope.Define(new Semantic.Symbol.Const(symbol.Name, symbol.Type, symbolValue));
+                        }
+                        {
+                            var cloner = new Cloner();
+                            var decls = structType.Declarations.Select(cloner.Clone).ToList();
+                            System.SymbolTable.CurrentScope = newSurroundingScope;
+                            foreach (var decl in decls)
+                            {
+                                new DefineScope(System.SymbolTable).Define(decl);
+                                new DeclareSymbol(System.SymbolTable).Declare(decl);
+                                new ResolveSymbol(System.SymbolTable).Resolve(decl);
+                            }
                         }
                         return new SemaType.Struct(
                             structType.KwStruct,
@@ -105,7 +123,7 @@ namespace Yoakke.Compiler.Compile
                                 .Select(field => field.Name)
                                 .Zip(ctorTypes.Skip(1).Select(ToSemanticType))
                                 .ToDictionary(kv => kv.First, kv => kv.Second),
-                            scope);
+                            newSurroundingScope);
                     }
                     if (tagType is Expression.ProcSignature procSign)
                     {
