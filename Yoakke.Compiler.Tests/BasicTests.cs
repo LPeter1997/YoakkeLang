@@ -481,5 +481,16 @@ const Id = proc(T: type) -> type {
 ";
             TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(345));
         }
+
+        [TestMethod]
+        public void AnonymousFunctionCalledInline()
+        {
+            string src = @"
+const entry = proc() -> i32 {
+    (proc(x: i32) -> i32 { x })(12)
+};
+";
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(12));
+        }
     }
 }

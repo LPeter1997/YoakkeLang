@@ -98,8 +98,9 @@ namespace Yoakke.Compiler
                 OutputPath = "C:/TMP/program.exe",
             };
             build.ExternalBinaries.Add("libvcruntime.lib");
-            build.ExternalBinaries.Add("libcmt.lib");
-            build.ExternalBinaries.Add("kernel32.lib");
+            build.ExternalBinaries.Add("msvcrt.lib");
+            //build.ExternalBinaries.Add("libcmt.lib");
+            //build.ExternalBinaries.Add("kernel32.lib");
             toolchain.Compile(build);
             if (build.HasErrors)
             {

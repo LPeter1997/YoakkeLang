@@ -1,10 +1,4 @@
 
 const main = proc() -> i32 {
-    identity(i32).identity(3)
-};
-
-const identity = proc(T: type) -> type {
-    struct {
-        const identity = proc(x: T) -> T { x };
-    }
+    (proc(x: i32) -> i32 { x })(12)
 };
