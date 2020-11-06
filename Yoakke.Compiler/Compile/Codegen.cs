@@ -19,11 +19,17 @@ namespace Yoakke.Compiler.Compile
     // TODO: Doc the whole thing
     public class Codegen : Visitor<Value>
     {
+        private class ProcContext
+        {
+            public IDictionary<Symbol, Value> Variables { get; set; } = new Dictionary<Symbol, Value>();
+        }
+
         public IDependencySystem System { get; }
         public Builder Builder { get; }
 
-        private Dictionary<Expression.Proc, Proc> compiledProcs;
-        private Dictionary<Symbol, Value> variablesToRegisters;
+        private Dictionary<Expression.Proc, Proc> compiledProcs = new Dictionary<Expression.Proc, Proc>();
+        private ProcContext globalContext = new ProcContext();
+        private ProcContext context = new ProcContext();
         private string? nameHint;
         private int constCnt;
 
@@ -31,8 +37,6 @@ namespace Yoakke.Compiler.Compile
         {
             System = system;
             Builder = builder;
-            variablesToRegisters = new Dictionary<Symbol, Value>();
-            compiledProcs = new Dictionary<Expression.Proc, Proc>();
         }
 
         public Codegen(IDependencySystem system)
@@ -74,7 +78,7 @@ namespace Yoakke.Compiler.Compile
         {
             TypeCheck(expr);
             Proc? procValue = null;
-            Builder.WithSubcontext(b =>
+            WithSubcontext(() =>
             {
                 procValue = Builder.DefineProc($"expr_eval_{Builder.Assembly.Procedures.Count}");
                 // We need the return type
@@ -86,6 +90,15 @@ namespace Yoakke.Compiler.Compile
             });
             Debug.Assert(procValue != null);
             return procValue;
+        }
+
+        [DebuggerStepThrough]
+        private void WithSubcontext(Action action)
+        {
+            var oldContext = context;
+            context = new ProcContext();
+            Builder.WithSubcontext(v => action());
+            context = oldContext;
         }
 
         // Actual code-generation //////////////////////////////////////////////
@@ -122,6 +135,8 @@ namespace Yoakke.Compiler.Compile
                         b.Store(varSpace, initialValue);
                     });
                 }
+                // Associate with symbol
+                globalContext.Variables.Add(symbol, varSpace);
             }
             else
             {
@@ -134,9 +149,9 @@ namespace Yoakke.Compiler.Compile
                     var value = VisitNonNull(var.Value);
                     Builder.Store(varSpace, value);
                 }
+                // Associate with symbol
+                context.Variables.Add(symbol, varSpace);
             }
-            // Associate with symbol
-            variablesToRegisters.Add(symbol, varSpace);
             return null;
         }
 
@@ -160,7 +175,7 @@ namespace Yoakke.Compiler.Compile
         {
             // It it's cached, just return that
             if (compiledProcs.TryGetValue(proc, out var procVal)) return procVal;
-            Builder.WithSubcontext(b =>
+            WithSubcontext(() =>
             {
                 procVal = Builder.DefineProc(nameHint ?? $"unnamed_proc_{Builder.Assembly.Procedures.Count}");
                 nameHint = null;
@@ -187,7 +202,7 @@ namespace Yoakke.Compiler.Compile
                     {
                         // It has a symbol, we store the allocated space associated
                         var symbol = SymbolTable.DefinedSymbol(param);
-                        variablesToRegisters.Add(symbol, paramSpace);
+                        context.Variables.Add(symbol, paramSpace);
                     }
                 }
                 // Now we can compile the body
@@ -567,7 +582,12 @@ namespace Yoakke.Compiler.Compile
         {
             if (symbol is Symbol.Var varSym)
             {
-                if (variablesToRegisters.TryGetValue(symbol, out var reg))
+                if (globalContext.Variables.TryGetValue(symbol, out var globReg))
+                {
+                    // Load the value
+                    return Builder.Load(globReg);
+                }
+                else if (context.Variables.TryGetValue(symbol, out var reg))
                 {
                     // Load the value
                     return Builder.Load(reg);
@@ -597,7 +617,8 @@ namespace Yoakke.Compiler.Compile
             case Expression.Identifier ident:
             {
                 var symbol = SymbolTable.ReferredSymbol(ident);
-                return variablesToRegisters[symbol];
+                if (globalContext.Variables.TryGetValue(symbol, out var globalReg)) return globalReg;
+                return context.Variables[symbol];
             }
 
             case Expression.DotPath dotPath:
