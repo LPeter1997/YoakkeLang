@@ -465,5 +465,21 @@ const entry = proc() -> i32 {
 ";
             TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(345));
         }
+
+        [TestMethod]
+        public void AssociatedGenericConstantReverse()
+        {
+            string src = @"
+const entry = proc() -> i32 {
+    Id(i32).id(345)
+};
+const Id = proc(T: type) -> type {
+    struct {
+        const id = proc(x: T) -> T { x };
+    }
+};
+";
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(345));
+        }
     }
 }

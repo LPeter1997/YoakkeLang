@@ -1,10 +1,10 @@
 
-const Id = proc(T: type) -> type {
-    struct {
-        const id = proc(x: T) -> T { x };
-    }
+const main = proc() -> i32 {
+    identity(i32).identity(3)
 };
 
-const main = proc() -> i32 {
-    Id(i32).id(345)
+const identity = proc(T: type) -> type {
+    struct {
+        const identity = proc(x: T) -> T { x };
+    }
 };
