@@ -4,7 +4,6 @@
 	"patterns": [
 		{ "include": "#keywords" },
 		{ "include": "#line_comment" },
-		{ "include": "#nested_comment" },
 		{ "include": "#builtin_types" },
 		{ "include": "#intrinsic_procedures" },
 		{ "include": "#strings" },
@@ -23,14 +22,6 @@
 			"name": "comment.line.double-slash.yoakke",
 			"begin": "//",
       		"end": "$"
-		},
-		"nested_comment": {
-			"name": "comment.block.yoakke",
-			"begin": "/\\*",
-			"end": "\\*/",
-			"patterns": [
-				{ "include": "#nested_comment" }
-			]
 		},
 		"builtin_types": {
 			"patterns": [{

@@ -67,6 +67,8 @@ namespace Yoakke.Compiler.Compile
             var parseTreeNode = (Syntax.ParseTree.Declaration.File?)file.ParseTreeNode;
             var fileName = parseTreeNode?.Name ?? "unnamed";
             Builder.Assembly.Name = fileName;
+            // Desugar dependent calls
+            file = new ElimDependentCalls(System).Elim(file);
             // For something to be compiled, it has to be type-checked
             TypeCheck(file);
             // If the type-checking succeeded, we can compile
