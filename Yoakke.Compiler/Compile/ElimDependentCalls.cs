@@ -11,7 +11,7 @@ using Type = Yoakke.Compiler.Semantic.Types.Type;
 namespace Yoakke.Compiler.Compile
 {
     // TODO: Doc
-    public class ElimDependentCalls : Transformator
+    public class ElimDependentCalls
     {
         public IDependencySystem System { get; }
 
@@ -20,24 +20,24 @@ namespace Yoakke.Compiler.Compile
             System = system;
         }
 
-        public Declaration.File Elim(Declaration.File file) => (Declaration.File)Transform(file);
-
-        protected override Node? Visit(Expression.Identifier ident) =>
-            new Expression.Identifier(ident.ParseTreeNode, ident.Name);
-
-        protected override Node? Visit(Expression.Proc proc)
+        public Expression Elim(Expression.Proc proc)
         {
             var procType = (Type.Proc)System.TypeOf(proc);
             if (procType.DependentTypes().Any())
             {
                 // Separate dependent args from dependee ones
                 var dependeeSymbols = procType.DependentTypes().Select(dt => (Symbol)dt.Symbol).ToHashSet();
-                var dependeeArgs = proc.Signature.Parameters
-                    .Where(p => dependeeSymbols.Contains(System.SymbolTable.DefinedSymbol(p)))
+                var dependeeArgsWithIndices = proc.Signature.Parameters
+                    .Select((p, i) => (Param: p, Index: i))
+                    .Where(pi => dependeeSymbols.Contains(System.SymbolTable.DefinedSymbol(pi.Param)))
                     .ToList();
-                var dependentArgs = proc.Signature.Parameters
-                    .Where(p => !dependeeArgs.Contains(p))
+                var dependentArgsWithIndices = proc.Signature.Parameters
+                    .Select((p, i) => (Param: p, Index: i))
+                    .Except(dependeeArgsWithIndices)
                     .ToList();
+
+                var dependeeArgs = dependeeArgsWithIndices.Select(pi => pi.Param).ToArray();
+                var dependentArgs = dependentArgsWithIndices.Select(pi => pi.Param).ToArray();
 
                 /*
                 Desugar
@@ -58,7 +58,7 @@ namespace Yoakke.Compiler.Compile
                     null,
                     new Expression.ProcSignature(
                         null,
-                        dependeeArgs.Select(Transform).ToArray(),
+                        dependeeArgs,
                         new Expression.Identifier(null, "type")),
                     new Expression.StructType(
                         null,
@@ -74,9 +74,9 @@ namespace Yoakke.Compiler.Compile
                                     null,
                                     new Expression.ProcSignature(
                                         null,
-                                        dependentArgs.Select(Transform).ToArray(),
-                                        TransformNullable(proc.Signature.Return)),
-                                    Transform(proc.Body)))
+                                        dependentArgs,
+                                        proc.Signature.Return),
+                                    proc.Body))
                         }));
 
                 new DefineScope(System.SymbolTable).Define(result);
@@ -87,7 +87,7 @@ namespace Yoakke.Compiler.Compile
             }
             else
             {
-                return base.Visit(proc);
+                return proc;
             }
         }
     }

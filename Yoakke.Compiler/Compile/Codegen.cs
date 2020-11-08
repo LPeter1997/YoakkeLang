@@ -27,6 +27,7 @@ namespace Yoakke.Compiler.Compile
         public IDependencySystem System { get; }
         public Builder Builder { get; }
 
+        private ElimDependentCalls elimDepCalls;
         private Dictionary<Expression.Proc, Proc> compiledProcs = new Dictionary<Expression.Proc, Proc>();
         private ProcContext globalContext = new ProcContext();
         private ProcContext context = new ProcContext();
@@ -37,6 +38,7 @@ namespace Yoakke.Compiler.Compile
         {
             System = system;
             Builder = builder;
+            elimDepCalls = new ElimDependentCalls(system);
         }
 
         public Codegen(IDependencySystem system)
@@ -67,8 +69,6 @@ namespace Yoakke.Compiler.Compile
             var parseTreeNode = (Syntax.ParseTree.Declaration.File?)file.ParseTreeNode;
             var fileName = parseTreeNode?.Name ?? "unnamed";
             Builder.Assembly.Name = fileName;
-            // Desugar dependent calls
-            file = new ElimDependentCalls(System).Elim(file);
             // For something to be compiled, it has to be type-checked
             TypeCheck(file);
             // If the type-checking succeeded, we can compile
@@ -175,6 +175,9 @@ namespace Yoakke.Compiler.Compile
 
         protected override Value? Visit(Expression.Proc proc)
         {
+            // TODO: Don't call here and save result, this is just for debugging
+            elimDepCalls.Elim(proc);
+
             // It it's cached, just return that
             if (compiledProcs.TryGetValue(proc, out var procVal)) return procVal;
             WithSubcontext(() =>
