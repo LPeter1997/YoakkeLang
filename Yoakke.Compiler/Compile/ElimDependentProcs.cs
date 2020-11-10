@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,16 +12,37 @@ using Type = Yoakke.Compiler.Semantic.Types.Type;
 namespace Yoakke.Compiler.Compile
 {
     // TODO: Doc
-    public class ElimDependentCalls
+    public class DependentProcArgs
+    {
+        public readonly IList<int> DependeeArgs;
+        public readonly IList<int> DependentArgs;
+
+        public DependentProcArgs(IList<int> dependeeInds, IList<int> dependentInds)
+        {
+            DependeeArgs = dependeeInds;
+            DependentArgs = dependentInds;
+        }
+    }
+
+    // TODO: Doc
+    public class ElimDependentProcs : Transformator
     {
         public IDependencySystem System { get; }
 
-        public ElimDependentCalls(IDependencySystem system)
+        public readonly IDictionary<Expression.Proc, DependentProcArgs> ProcArgMaps 
+            = new Dictionary<Expression.Proc, DependentProcArgs>();
+
+        public ElimDependentProcs(IDependencySystem system)
         {
             System = system;
         }
 
-        public Expression Elim(Expression.Proc proc)
+        public Declaration.File Elim(Declaration.File file) => (Declaration.File)VisitNonNull(file);
+
+        protected override Node? Visit(Expression.Identifier ident) =>
+            new Expression.Identifier(ident.ParseTreeNode, ident.Name);
+
+        protected override Expression Visit(Expression.Proc proc)
         {
             var procType = (Type.Proc)System.TypeOf(proc);
             if (procType.DependentTypes().Any())
@@ -38,6 +60,10 @@ namespace Yoakke.Compiler.Compile
 
                 var dependeeArgs = dependeeArgsWithIndices.Select(pi => pi.Param).ToArray();
                 var dependentArgs = dependentArgsWithIndices.Select(pi => pi.Param).ToArray();
+
+                var description = new DependentProcArgs(
+                    dependeeArgsWithIndices.Select(pi => pi.Index).ToList(),
+                    dependentArgsWithIndices.Select(pi => pi.Index).ToList());
 
                 /*
                 Desugar
@@ -58,7 +84,7 @@ namespace Yoakke.Compiler.Compile
                     null,
                     new Expression.ProcSignature(
                         null,
-                        dependeeArgs,
+                        dependeeArgs.Select(Transform).ToArray(),
                         new Expression.Identifier(null, "type")),
                     new Expression.StructType(
                         null,
@@ -74,20 +100,21 @@ namespace Yoakke.Compiler.Compile
                                     null,
                                     new Expression.ProcSignature(
                                         null,
-                                        dependentArgs,
-                                        proc.Signature.Return),
-                                    proc.Body))
+                                        dependentArgs.Select(Transform).ToArray(),
+                                        TransformNullable(proc.Signature.Return)),
+                                    Transform(proc.Body)))
                         }));
 
-                new DefineScope(System.SymbolTable).Define(result);
-                new DeclareSymbol(System.SymbolTable).Declare(result);
-                new ResolveSymbol(System.SymbolTable).Resolve(result);
+                ProcArgMaps.Add(result, description);
 
                 return result;
             }
             else
             {
-                return proc;
+                return new Expression.Proc(
+                    proc.ParseTreeNode,
+                    (Expression.ProcSignature)Transform(proc.Signature),
+                    Transform(proc.Body));
             }
         }
     }
