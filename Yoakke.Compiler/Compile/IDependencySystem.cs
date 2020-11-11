@@ -35,5 +35,8 @@ namespace Yoakke.Compiler.Compile
         public Type ReferToConstTypeOf(params string[] pieces);
         public Value ReferToConst(params string[] pieces);
         public Type ReferToConstType(params string[] pieces);
+
+        // TODO: Hack
+        public void ResetSymbolTable();
     }
 }

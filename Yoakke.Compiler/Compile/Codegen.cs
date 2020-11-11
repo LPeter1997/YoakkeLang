@@ -69,22 +69,7 @@ namespace Yoakke.Compiler.Compile
             var parseTreeNode = (Syntax.ParseTree.Declaration.File?)file.ParseTreeNode;
             var fileName = parseTreeNode?.Name ?? "unnamed";
             Builder.Assembly.Name = fileName;
-            var deps = new CollectDependencies(System);
-            deps.Collect(file);
-            foreach (var p in deps.ProcDesugar)
-            {
-                Console.WriteLine(p.Key.Dump());
-                Console.WriteLine("=>");
-                Console.WriteLine(p.Value.Dump());
-                Console.WriteLine("====");
-            }
-            foreach (var p in deps.CallDesugar)
-            {
-                Console.WriteLine(p.Key.Dump());
-                Console.WriteLine("=>");
-                Console.WriteLine(p.Value.Dump());
-                Console.WriteLine("====");
-            }
+            file = new ElimDependencies(System).Elim(file);
             // Eliminate dependent procedures
             //file = elimDepProcs.Elim(file);
             /*new DefineScope(SymbolTable).Define(file);

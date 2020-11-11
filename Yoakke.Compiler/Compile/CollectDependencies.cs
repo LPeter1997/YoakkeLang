@@ -6,20 +6,27 @@ using System.Text;
 using System.Threading.Tasks;
 using Yoakke.Compiler.Semantic;
 using Yoakke.Compiler.Semantic.Types;
+using Yoakke.Syntax;
 using Yoakke.Syntax.Ast;
 using Type = Yoakke.Compiler.Semantic.Types.Type;
 
 namespace Yoakke.Compiler.Compile
 {
     // TODO: Doc
+    public class DependencyMap
+    {
+        public readonly IDictionary<Expression.Proc, Expression.Proc> ProcDesugar
+            = new Dictionary<Expression.Proc, Expression.Proc>();
+        public readonly IDictionary<Expression.Call, Expression.Call> CallDesugar
+            = new Dictionary<Expression.Call, Expression.Call>();
+    }
+
+    // TODO: Doc
     public class CollectDependencies : Visitor<object>
     {
         public IDependencySystem System { get; }
 
-        public readonly IDictionary<Expression.Proc, Expression.Proc> ProcDesugar 
-            = new Dictionary<Expression.Proc, Expression.Proc>();
-        public readonly IDictionary<Expression.Call, Expression.Call> CallDesugar
-            = new Dictionary<Expression.Call, Expression.Call>();
+        public readonly DependencyMap DependencyMap = new DependencyMap();
 
         public CollectDependencies(IDependencySystem system)
         {
@@ -59,29 +66,33 @@ namespace Yoakke.Compiler.Compile
                             .Select(i => proc.Signature.Parameters[i])
                             .ToArray(),
                         new Expression.Identifier(null, "type")),
-                    new Expression.StructType(
+                    new Expression.Block(
                         null,
-                        new Syntax.Token(new Text.Span(), Syntax.TokenType.KwStruct, "struct"),
-                        new Expression.StructType.Field[] { },
-                        new Statement[]
-                        {
-                            new Declaration.Const(
-                                null,
-                                "f",
-                                null,
-                                new Expression.Proc(
+                        new Statement[] { },
+                        new Expression.StructType(
+                            null,
+                            new Syntax.Token(new Text.Span(), Syntax.TokenType.KwStruct, "struct"),
+                            new Expression.StructType.Field[] { },
+                            new Statement[]
+                            {
+                                new Declaration.Const(
                                     null,
-                                    new Expression.ProcSignature(
+                                    "f",
+                                    null,
+                                    new Expression.Proc(
                                         null,
-                                        dependency.DependentIndices
-                                            .Concat(dependency.IndependentIndices)
-                                            .Select(i => proc.Signature.Parameters[i])
-                                            .ToArray(),
-                                        proc.Signature.Return),
-                                    proc.Body))
-                        }));
+                                        new Expression.ProcSignature(
+                                            null,
+                                            dependency.DependentIndices
+                                                .Concat(dependency.IndependentIndices)
+                                                .Select(i => proc.Signature.Parameters[i])
+                                                .ToArray(),
+                                            proc.Signature.Return),
+                                        proc.Body))
+                            })));
+                result = (Expression.Proc)new Desugaring().Desugar(result);
 
-                ProcDesugar.Add(proc, result);
+                DependencyMap.ProcDesugar.Add(proc, result);
             }
             return null;
         }
@@ -118,7 +129,7 @@ namespace Yoakke.Compiler.Compile
                             .Select(i => call.Arguments[i])
                             .ToArray());
 
-                    CallDesugar.Add(call, result);
+                    DependencyMap.CallDesugar.Add(call, result);
                 }
             }
             return null;

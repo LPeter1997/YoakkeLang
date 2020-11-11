@@ -26,7 +26,7 @@ namespace Yoakke.Compiler.Compile
     {
         public string StandardLibraryPath { get; }
 
-        public SymbolTable SymbolTable { get; }
+        public SymbolTable SymbolTable { get; private set; }
         public Builder Builder => codegen.Builder;
         public TypeTranslator TypeTranslator { get; }
 
@@ -189,6 +189,21 @@ namespace Yoakke.Compiler.Compile
             new DeclareSymbol(SymbolTable).Declare(result);
             new ResolveSymbol(SymbolTable).Resolve(result);
             return result;
+        }
+
+        // TODO: Hack
+        public void ResetSymbolTable()
+        {
+            SymbolTable = new SymbolTable(this);
+            SymbolTable.DefineBuiltinPrimitives();
+            // Load prelude
+            {
+                var preludeAst = LoadAst("prelude.yk");
+                new DefineScope(SymbolTable).Define(preludeAst);
+                new DeclareSymbol(SymbolTable).Declare(preludeAst);
+                new ResolveSymbol(SymbolTable).Resolve(preludeAst);
+            }
+            SymbolTable.DefineBuiltinIntrinsics();
         }
     }
 }
