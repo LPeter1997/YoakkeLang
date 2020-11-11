@@ -27,7 +27,7 @@ namespace Yoakke.Compiler.Compile
         public IDependencySystem System { get; }
         public Builder Builder { get; }
 
-        private ElimDependentProcs elimDepProcs;
+        private CollectDependencies elimDepProcs;
         private Dictionary<Expression.Proc, Proc> compiledProcs = new Dictionary<Expression.Proc, Proc>();
         private ProcContext globalContext = new ProcContext();
         private ProcContext context = new ProcContext();
@@ -38,7 +38,7 @@ namespace Yoakke.Compiler.Compile
         {
             System = system;
             Builder = builder;
-            elimDepProcs = new ElimDependentProcs(system);
+            elimDepProcs = new CollectDependencies(system);
         }
 
         public Codegen(IDependencySystem system)
@@ -69,6 +69,22 @@ namespace Yoakke.Compiler.Compile
             var parseTreeNode = (Syntax.ParseTree.Declaration.File?)file.ParseTreeNode;
             var fileName = parseTreeNode?.Name ?? "unnamed";
             Builder.Assembly.Name = fileName;
+            var deps = new CollectDependencies(System);
+            deps.Collect(file);
+            foreach (var p in deps.ProcDesugar)
+            {
+                Console.WriteLine(p.Key.Dump());
+                Console.WriteLine("=>");
+                Console.WriteLine(p.Value.Dump());
+                Console.WriteLine("====");
+            }
+            foreach (var p in deps.CallDesugar)
+            {
+                Console.WriteLine(p.Key.Dump());
+                Console.WriteLine("=>");
+                Console.WriteLine(p.Value.Dump());
+                Console.WriteLine("====");
+            }
             // Eliminate dependent procedures
             //file = elimDepProcs.Elim(file);
             /*new DefineScope(SymbolTable).Define(file);
