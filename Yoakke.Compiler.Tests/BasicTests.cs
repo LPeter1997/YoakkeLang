@@ -492,5 +492,42 @@ const entry = proc() -> i32 {
 ";
             TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(12));
         }
+
+        [TestMethod]
+        public void DependentCall()
+        {
+            string src = @"
+const identity = proc(T: type, x: T) -> T { x };
+const entry = proc() -> i32 {
+    identity(i32, 532)
+};
+";
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(532));
+        }
+
+        [TestMethod]
+        public void DependentCallOutOfOrder()
+        {
+            string src = @"
+const entry = proc() -> i32 {
+    identity(i32, 532)
+};
+const identity = proc(T: type, x: T) -> T { x };
+";
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(532));
+        }
+
+        [TestMethod]
+        public void EmulatedDependentCall()
+        {
+            string src = @"
+const entry = proc() -> i32 {
+    (proc(T: type) -> type {
+        struct { const f = proc(x: T) -> T { x }; }
+    })(i32).f(532)
+};
+";
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(532));
+        }
     }
 }
