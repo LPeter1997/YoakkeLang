@@ -70,11 +70,10 @@ namespace Yoakke.Compiler.Compile
             var fileName = parseTreeNode?.Name ?? "unnamed";
             Builder.Assembly.Name = fileName;
             // Eliminate dependent procedures
-            file = elimDepProcs.Elim(file);
-            Console.WriteLine(file.Dump());
-            new DefineScope(SymbolTable).Define(file);
+            //file = elimDepProcs.Elim(file);
+            /*new DefineScope(SymbolTable).Define(file);
             new DeclareSymbol(SymbolTable).Declare(file);
-            new ResolveSymbol(SymbolTable).Resolve(file);
+            new ResolveSymbol(SymbolTable).Resolve(file);*/
             // For something to be compiled, it has to be type-checked
             TypeCheck(file);
             // If the type-checking succeeded, we can compile
@@ -114,7 +113,7 @@ namespace Yoakke.Compiler.Compile
         protected override Value? Visit(Declaration.Const cons)
         {
             var constType = System.TypeOf(cons.Value);
-            if (constType is Semantic.Types.Type.Proc procType && procType.DependentTypes().Any())
+            if (constType is Semantic.Types.Type.Proc procType && procType.GetDependency() != null)
             {
                 // We don't compile this, contains dependent types
                 return null;

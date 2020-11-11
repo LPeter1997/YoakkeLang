@@ -136,9 +136,9 @@ namespace Yoakke.Compiler.Compile
                         return new SemaType.Proc(
                             paramTypes.Zip(procSign.Parameters).Select(ppair => 
                             {
-                                var pName = ppair.Second.Name;
+                                var pSym = System.SymbolTable.DefinedSymbol(ppair.Second);
                                 var pType = ToSemanticType(ppair.First);
-                                return new SemaType.Proc.Param(pName, pType);
+                                return new SemaType.Proc.Param(pSym, pType);
                             }).ToList(),
                             ToSemanticType(retType));
                     }

@@ -24,8 +24,9 @@ namespace Yoakke.Compiler.Compile.Intrinsics
         public ImportIntrinsic(IDependencySystem system)
             : base(system)
         {
+            var paramSymbol = new Symbol.Var(null, "path", Symbol.VarKind.Param);
             var stringType = System.ReferToConstType("@c", "str");
-            Type = new Type.Proc(new List<Type.Proc.Param>{ new Type.Proc.Param(null, stringType) }, Type.Type_);
+            Type = new Type.Proc(new List<Type.Proc.Param>{ new Type.Proc.Param(paramSymbol, stringType) }, Type.Type_);
             ReturnType = Lir.Types.Type.User_;
         }
 

@@ -116,7 +116,8 @@ namespace Yoakke.Compiler.Semantic
             /// </summary>
             public Type? Type { get; set; }
 
-            private Var(Node? definition, string name, VarKind kind)
+            // TODO: Doc
+            public Var(Node? definition, string name, VarKind kind)
                 : base(definition, name)
             {
                 Kind = kind;

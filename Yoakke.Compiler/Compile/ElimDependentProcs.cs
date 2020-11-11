@@ -45,9 +45,11 @@ namespace Yoakke.Compiler.Compile
         protected override Expression Visit(Expression.Proc proc)
         {
             var procType = (Type.Proc)System.TypeOf(proc);
-            if (procType.DependentTypes().Any())
+            var dependency = procType.GetDependency();
+            if (dependency != null)
             {
                 // Separate dependent args from dependee ones
+#if false
                 var dependeeSymbols = procType.DependentTypes().Select(dt => (Symbol)dt.Symbol).ToHashSet();
                 var dependeeArgsWithIndices = proc.Signature.Parameters
                     .Select((p, i) => (Param: p, Index: i))
@@ -108,6 +110,8 @@ namespace Yoakke.Compiler.Compile
                 ProcArgMaps.Add(result, description);
 
                 return result;
+#endif
+                throw new NotImplementedException();
             }
             else
             {

@@ -14,15 +14,33 @@ namespace Yoakke.Compiler.Semantic.Types
         /// </summary>
         public class Proc : Type
         {
+            // TODO: Doc
+            public class Dependency
+            {
+                public readonly IReadOnlyList<int> DependeeIndices;
+                public readonly IReadOnlyList<int> IndependentIndices;
+                public readonly IReadOnlyList<int> DependentIndices;
+
+                public Dependency(
+                    IReadOnlyList<int> dependee, 
+                    IReadOnlyList<int> independent, 
+                    IReadOnlyList<int> dependent)
+                {
+                    DependeeIndices = dependee;
+                    IndependentIndices = independent;
+                    DependentIndices = dependent;
+                }
+            }
+
             /// <summary>
             /// The parameter of a <see cref="Proc"/>.
             /// </summary>
             public class Param : IEquatable<Param>
             {
                 /// <summary>
-                /// Parameter name, if any.
+                /// Parameter <see cref="Symbol"/>.
                 /// </summary>
-                public readonly string? Name;
+                public readonly Symbol Symbol;
                 /// <summary>
                 /// Parameter <see cref="Type"/>.
                 /// </summary>
@@ -31,21 +49,19 @@ namespace Yoakke.Compiler.Semantic.Types
                 /// <summary>
                 /// Initializes a new <see cref="Param"/>.
                 /// </summary>
-                /// <param name="name">The name of the parameter.</param>
+                /// <param name="symbol">The <see cref="Symbol"/> of the parameter.</param>
                 /// <param name="type">The <see cref="Type"/> of the parameter.</param>
-                public Param(string? name, Type type)
+                public Param(Symbol symbol, Type type)
                 {
-                    Name = name;
+                    Symbol = symbol;
                     Type = type;
                 }
 
                 public override bool Equals(object? obj) => obj is Param p && Equals(p);
-                // NOTE: We don't count 'Name' on purpose
+                // NOTE: We don't count 'Symbol' on purpose
                 public bool Equals(Param? other) =>  other != null && other.Type.Equals(Type);
                 public override int GetHashCode() => HashCode.Combine(Type);
-                public override string ToString() => Name == null
-                    ? Type.ToString()
-                    : $"{Name}: {Type}";
+                public override string ToString() => $"{Symbol.Name}: {Type}";
             }
 
             /// <summary>
@@ -77,15 +93,36 @@ namespace Yoakke.Compiler.Semantic.Types
             public override string ToString() =>
                 $"proc({string.Join(", ", Parameters)}) -> {Return}";
 
-            /// <summary>
-            /// Collects all dependent elements in the signature.
-            /// </summary>
-            /// <returns>An <see cref="IEnumerable{Dependent}"/> of the dependent elements.</returns>
-            public IEnumerable<Dependent> DependentTypes() => Parameters
-                .Select(p => p.Type)
-                .Append(Return)
-                .Where(t => t is Dependent)
-                .Select(t => (Dependent)t);
+            // TODO: Doc
+            public Dependency? GetDependency()
+            {
+                var dependentSymbols = Parameters
+                    .Select(p => p.Type)
+                    .Append(Return)
+                    .Where(t => t is Dependent)
+                    .Select(t => (Symbol)((Dependent)t).Symbol)
+                    .ToHashSet();
+                if (dependentSymbols.Count == 0) return null;
+
+                var paramsWithIndices = Parameters.Select((p, i) => (Param: p, Index: i));
+                var dependeeParams = paramsWithIndices
+                    .Where(pi => dependentSymbols.Contains(pi.Param.Symbol))
+                    .Select(pi => pi.Index)
+                    .ToArray();
+                var dependentParams = paramsWithIndices
+                    .Where(pi => pi.Param.Type is Dependent)
+                    .Select(pi => pi.Index)
+                    .ToArray();
+                var independentParams = paramsWithIndices
+                    .Select(pi => pi.Index)
+                    .Where(i => !dependeeParams.Contains(i) && !dependentParams.Contains(i))
+                    .ToArray();
+
+                return new Dependency(
+                    dependeeParams,
+                    independentParams,
+                    dependentParams);
+            }
         }
     }
 }

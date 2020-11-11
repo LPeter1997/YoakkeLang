@@ -3,6 +3,7 @@ const identity = proc(T: type, x: T) -> T { x };
 
 const main = proc() -> i32 {
     identity(i32, 123)
+
     // (proc(T: type) -> type {
     //     struct { const identity = proc(x: T) -> T { x }; }
     // })(i32).identity(3)
