@@ -138,7 +138,6 @@ namespace Yoakke.Compiler.Compile
             // Check if there's a pre-stored value, if not, evaluate it
             if (symbol.Value == null)
             {
-                codegen.HintName(constDecl.Name);
                 symbol.Value = Evaluate(constDecl.Value);
             }
             return symbol.Value;

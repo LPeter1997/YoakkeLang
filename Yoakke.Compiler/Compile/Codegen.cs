@@ -27,18 +27,17 @@ namespace Yoakke.Compiler.Compile
         public IDependencySystem System { get; }
         public Builder Builder { get; }
 
-        private CollectDependencies elimDepProcs;
         private Dictionary<Expression.Proc, Proc> compiledProcs = new Dictionary<Expression.Proc, Proc>();
+        private NameContext nameContext = new NameContext();
         private ProcContext globalContext = new ProcContext();
         private ProcContext context = new ProcContext();
-        private string? nameHint;
         private int constCnt;
+        private int nameCnt;
 
         public Codegen(IDependencySystem system, Builder builder)
         {
             System = system;
             Builder = builder;
-            elimDepProcs = new CollectDependencies(system);
         }
 
         public Codegen(IDependencySystem system)
@@ -61,8 +60,6 @@ namespace Yoakke.Compiler.Compile
 
         // Public interface ////////////////////////////////////////////////////
 
-        public void HintName(string name) => nameHint = name;
-
         public UncheckedAssembly Generate(Declaration.File file)
         {
             // Rename the assembly
@@ -70,6 +67,7 @@ namespace Yoakke.Compiler.Compile
             var fileName = parseTreeNode?.Name ?? "unnamed";
             Builder.Assembly.Name = fileName;
             file = new ElimDependencies(System).Elim(file);
+            nameContext.NameAll(file);
             // Eliminate dependent procedures
             //file = elimDepProcs.Elim(file);
             /*new DefineScope(SymbolTable).Define(file);
@@ -185,8 +183,7 @@ namespace Yoakke.Compiler.Compile
             if (compiledProcs.TryGetValue(proc, out var procVal)) return procVal;
             WithSubcontext(() =>
             {
-                procVal = Builder.DefineProc(nameHint ?? $"unnamed_proc_{Builder.Assembly.Procedures.Count}");
-                nameHint = null;
+                procVal = Builder.DefineProc(GetName(proc));
                 // Add it to the cache here to get ready for recursion
                 compiledProcs.Add(proc, procVal);
                 // For now we make every procedure public
@@ -651,6 +648,12 @@ namespace Yoakke.Compiler.Compile
 
             default: throw new NotImplementedException();
             }
+        }
+
+        private string GetName(Node node)
+        {
+            if (nameContext.Names.TryGetValue(node, out var name)) return name;
+            return $"unnamed_sym_{nameCnt++}";
         }
     }
 }
