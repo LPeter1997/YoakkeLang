@@ -1,5 +1,8 @@
 
-const main = proc() -> u32 {
-    var x = "Hello, World!";
-    x.len
+const identity = proc(T: type, x: T) -> T { x };
+
+const main = proc() -> i32 {
+    var x = identity(i32, 1); // x: i32 = 1
+    var y = identity(bool, true); // y: bool = true
+    0
 };
