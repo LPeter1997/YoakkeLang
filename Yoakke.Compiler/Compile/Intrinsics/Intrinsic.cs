@@ -38,5 +38,7 @@ namespace Yoakke.Compiler.Compile.Intrinsics
         }
 
         public abstract Value Execute(VirtualMachine vm, IEnumerable<Value> args);
+
+        public virtual string NonDependentDesugar() => throw new NotSupportedException();
     }
 }

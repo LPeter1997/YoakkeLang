@@ -65,6 +65,10 @@ namespace Yoakke.Compiler.Semantic.Types
             }
 
             /// <summary>
+            /// True, if this is an intrinsic procedure type and should be handled specially.
+            /// </summary>
+            public readonly bool IsIntrinsic;
+            /// <summary>
             /// The list of parameters.
             /// </summary>
             public readonly IValueList<Param> Parameters;
@@ -76,12 +80,24 @@ namespace Yoakke.Compiler.Semantic.Types
             /// <summary>
             /// Initializes a new <see cref="Proc"/>.
             /// </summary>
+            /// <param name="isIntrinsic">True, if this is an instrinsic procedure type.</param>
+            /// <param name="parameters">The list of parameters.</param>
+            /// <param name="ret">The return <see cref="Type"/>.</param>
+            public Proc(bool isIntrinsic, IList<Param> parameters, Type ret)
+            {
+                IsIntrinsic = isIntrinsic;
+                Parameters = parameters.AsValueList();
+                Return = ret;
+            }
+
+            /// <summary>
+            /// Initializes a new <see cref="Proc"/>.
+            /// </summary>
             /// <param name="parameters">The list of parameters.</param>
             /// <param name="ret">The return <see cref="Type"/>.</param>
             public Proc(IList<Param> parameters, Type ret)
+                : this(false, parameters, ret)
             {
-                Parameters = parameters.AsValueList();
-                Return = ret;
             }
 
             public override bool Equals(Type? other) =>

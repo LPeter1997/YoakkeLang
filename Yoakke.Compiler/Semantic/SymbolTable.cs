@@ -71,6 +71,7 @@ namespace Yoakke.Compiler.Semantic
         internal void DefineBuiltinIntrinsics()
         {
             DefineBuiltin("@import", new ImportIntrinsic(System));
+            DefineBuiltin("@extern", new ExternIntrinsic(System));
         }
 
         /// <summary>

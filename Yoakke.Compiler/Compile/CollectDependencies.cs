@@ -4,8 +4,10 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Yoakke.Compiler.Compile.Intrinsics;
 using Yoakke.Compiler.Semantic;
 using Yoakke.Compiler.Semantic.Types;
+using Yoakke.Lir.Values;
 using Yoakke.Syntax;
 using Yoakke.Syntax.Ast;
 using Type = Yoakke.Compiler.Semantic.Types.Type;
@@ -113,13 +115,24 @@ namespace Yoakke.Compiler.Compile
                         f(dependee args...).f(independent args..., dependent args...)
                     */
 
+                    Expression callProcedure;
+                    if (procType.IsIntrinsic)
+                    {
+                        var intrinsic = (Intrinsic)((Value.User)System.Evaluate(call.Procedure)).Payload;
+                        callProcedure = new Expression.Identifier(null, intrinsic.NonDependentDesugar());
+                    }
+                    else
+                    {
+                        callProcedure = call.Procedure;
+                    }
+
                     var result = new Expression.Call(
                         null,
                         new Expression.DotPath(
                             null,
                             new Expression.Call(
                                 null,
-                                call.Procedure,
+                                callProcedure,
                                 dependency.DependeeIndices
                                     .Select(i => call.Arguments[i])
                                     .ToArray()),

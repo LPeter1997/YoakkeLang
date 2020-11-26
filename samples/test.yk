@@ -1,8 +1,7 @@
 
-const identity = proc(T: type, x: T) -> T { x };
+const puts: proc(*u8) -> i32 = @extern("puts", proc(*u8) -> i32);
 
 const main = proc() -> i32 {
-    var x = identity(i32, 1); // x: i32 = 1
-    var y = identity(bool, true); // y: bool = true
+    puts("Hello".data);
     0
 };
