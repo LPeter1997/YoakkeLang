@@ -84,9 +84,18 @@ namespace Yoakke.Lir
             .ToString()
             .Trim();
 
+        // TODO: Doc
+        public IEnumerable<Extern> FindAllExternalsUsed() => Procedures
+            .SelectMany(p => p.BasicBlocks)
+            .SelectMany(bb => bb.Instructions)
+            .SelectMany(ins => ins.InstrArgs)
+            .OfType<Extern>();
+
         public Assembly Check(BuildStatus status)
         {
             Validate(status);
+            // TODO: This should be done elsewhere, but add externals
+            Externals = Externals.Concat(FindAllExternalsUsed()).Distinct().ToList();
             return new Assembly(this);
         }
 

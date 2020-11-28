@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -84,9 +85,16 @@ namespace Yoakke.Lir
         /// <summary>
         /// Returns all of the distinct external binary references in this <see cref="Assembly"/>.
         /// </summary>
-        public IEnumerable<string> BinaryReferences =>
-            // TODO: They should be distinct by absolute path?
-            Externals.Select(e => e.Path).Distinct();
+        // TODO: They should be distinct by absolute path?
+        public IEnumerable<string> BinaryReferences => Externals
+            .Select(e => e.Path)
+            .Where(e => e != null)
+            .Select(e => 
+            { 
+                Debug.Assert(e != null); 
+                return e; 
+            })
+            .Distinct();
 
         internal Assembly(UncheckedAssembly uncheckedAssembly)
         {

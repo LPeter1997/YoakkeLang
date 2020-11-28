@@ -14,10 +14,12 @@ namespace Yoakke.Lir
         public string Name { get; }
         public Visibility Visibility { get; set; } = Visibility.Public;
 
+        // TODO: Do we even want this nullable?
+        // We did it because of @extern
         /// <summary>
         /// The path of the binary the symbol originates from.
         /// </summary>
-        public readonly string Path;
+        public readonly string? Path;
 
         /// <summary>
         /// Initializes a new <see cref="Extern"/>.
@@ -25,7 +27,7 @@ namespace Yoakke.Lir
         /// <param name="name">The name of the external symbol.</param>
         /// <param name="type">The <see cref="Type"/> of the external symbol.</param>
         /// <param name="path">The path of the binary the symbol originates from.</param>
-        public Extern(string name, Type type, string path)
+        public Extern(string name, Type type, string? path)
         {
             Name = name;
             Type = type;
@@ -34,7 +36,7 @@ namespace Yoakke.Lir
 
         public override string ToValueString() => Name;
         public override string ToString() =>
-            $"extern {Type.ToTypeString()} {Name} [source = \"{Path}\"]";
+            $"extern {Type.ToTypeString()} {Name}{(Path == null ? string.Empty : $" [source = \"{Path}\"]")}";
         public override bool Equals(Value? other) => ReferenceEquals(this, other);
         public override int GetHashCode() => HashCode.Combine(typeof(Extern), Name);
         // NOTE: Makes no sense to clone this
