@@ -1,8 +1,5 @@
 
-const List = struct {
-    next: *List;
-};
-
-const main = proc() -> i32 {
-    0
+const main = proc() -> u32 {
+    var x = "Hello, World!";
+    x.len
 };

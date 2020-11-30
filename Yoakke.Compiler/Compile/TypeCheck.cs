@@ -219,7 +219,8 @@ namespace Yoakke.Compiler.Compile
             }
             // Check if arguments match
             var argTypes = call.Arguments.Select(arg => System.TypeOf(arg));
-            if (!procType.Parameters.Select(p => p.Type).SequenceEqual(argTypes))
+            var paramTypes = procType.Parameters.Select(p => p.Type);
+            if (!paramTypes.SequenceEqual(argTypes))
             {
                 // TODO
                 throw new NotImplementedException("Call argument types mismatch!");

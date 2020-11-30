@@ -466,10 +466,10 @@ namespace Yoakke.Compiler.Compile
             case Expression.UnaryOp.PointerType:
             {
                 // The first element will be pointer to this expression
-                // The second one will be the subtype
+                // The second one will be the subtype's expression for laziness
                 var arrayValues = new List<Value>();
                 arrayValues.Add(new Value.User(ury));
-                arrayValues.Add(VisitNonNull(ury.Operand));
+                arrayValues.Add(new Value.User(ury.Operand));
                 var arraySpace = Builder.InitArray(Lir.Types.Type.User_, arrayValues.ToArray());
                 // We cast it to a singular user type
                 return Builder.Cast(Lir.Types.Type.User_, Builder.Load(arraySpace));

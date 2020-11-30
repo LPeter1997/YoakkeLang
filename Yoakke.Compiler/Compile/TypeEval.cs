@@ -105,7 +105,7 @@ namespace Yoakke.Compiler.Compile
                 return TypeOf(ury.Operand);
 
             case Expression.UnaryOp.AddressOf:
-                return new Type.Ptr(TypeOf(ury.Operand));
+                return new Type.Ptr(new DataStructures.Lazy<Type>(() => TypeOf(ury.Operand)));
 
             case Expression.UnaryOp.PointerType:
                 return Type.Type_;
@@ -113,7 +113,7 @@ namespace Yoakke.Compiler.Compile
             case Expression.UnaryOp.Dereference:
             {
                 var ptrType = (Type.Ptr)TypeOf(ury.Operand);
-                return ptrType.Subtype;
+                return ptrType.Subtype.Value;
             }
 
             default: throw new NotImplementedException();
