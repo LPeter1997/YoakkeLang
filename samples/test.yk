@@ -1,7 +1,8 @@
 
-const puts: proc(*u8) -> i32 = @extern("puts", proc(*u8) -> i32);
+const List = struct {
+    next: *List;
+};
 
 const main = proc() -> i32 {
-    puts("Hello".data);
     0
 };
