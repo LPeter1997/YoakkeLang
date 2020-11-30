@@ -529,5 +529,35 @@ const entry = proc() -> i32 {
 ";
             TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(532));
         }
+
+        [TestMethod]
+        public void GenericPointers()
+        {
+            string src = @"
+const ptr = proc(T: type) -> type {
+    *T
+};
+const entry = proc() -> i32 {
+    var x = 123;
+    var y: ptr(i32) = &x;
+    y~
+};
+";
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(123));
+        }
+
+        [TestMethod]
+        public void RecursiveTypesCompile()
+        {
+            string src = @"
+const A = struct {
+    next: *A;
+};
+const entry = proc() -> i32 {
+    0
+};
+";
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(0));
+        }
     }
 }

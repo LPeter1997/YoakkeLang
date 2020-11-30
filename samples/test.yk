@@ -1,5 +1,10 @@
 
-const main = proc() -> u32 {
-    var x = "Hello, World!";
-    x.len
+const ptr = proc(T: type) -> type {
+    *T
+};
+
+const main = proc() -> i32 {
+    var x = 123;
+    var y: ptr(i32) = &x;
+    y~
 };
