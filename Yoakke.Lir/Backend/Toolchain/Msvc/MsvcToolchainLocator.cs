@@ -88,8 +88,14 @@ echo %WindowsSDKLibVersion%";
                 }
             };
             var outputBuilder = new StringBuilder();
-            proc.OutputDataReceived += (_, e) => outputBuilder.AppendLine(e.Data);
-            proc.ErrorDataReceived += (_, e) => outputBuilder.AppendLine(e.Data);
+            proc.OutputDataReceived += (_, e) =>
+            {
+                if (!string.IsNullOrEmpty(e.Data)) outputBuilder.AppendLine(e.Data);
+            };
+            proc.ErrorDataReceived += (_, e) =>
+            {
+                if (!string.IsNullOrEmpty(e.Data)) outputBuilder.AppendLine(e.Data);
+            };
             proc.Start();
             proc.BeginOutputReadLine();
             proc.BeginErrorReadLine();
@@ -97,7 +103,7 @@ echo %WindowsSDKLibVersion%";
             // Remove the file
             File.Delete(batchFileName);
             // Extract the two lines
-            var lines = outputBuilder.ToString().Trim().Split(Environment.NewLine);
+            var lines = outputBuilder.ToString().Split(Environment.NewLine);
             if (lines.Length < 2) return false;
             sdkDir = lines[0].Trim();
             sdkVer = lines[1].Trim();
