@@ -97,7 +97,7 @@ echo %WindowsSDKLibVersion%";
             // Remove the file
             File.Delete(batchFileName);
             // Extract the two lines
-            var lines = outputBuilder.ToString().Split(Environment.NewLine);
+            var lines = outputBuilder.ToString().Trim().Split(Environment.NewLine);
             if (lines.Length < 2) return false;
             sdkDir = lines[0].Trim();
             sdkVer = lines[1].Trim();
