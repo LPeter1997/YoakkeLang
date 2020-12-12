@@ -78,8 +78,15 @@ namespace Yoakke.Compiler.Compile
                     if (tagType is Expression.Unary ury
                         && ury.Operator == Expression.UnaryOp.PointerType)
                     {
-                        var subexpr = (Expression)((Value.User)ctorTypes.First()).Payload;
-                        return new SemaType.Ptr(new DataStructures.Lazy<SemaType>(() => System.EvaluateType(subexpr)));
+                        var payload = ((Value.User)ctorTypes.First()).Payload;
+                        if (payload is Expression subexpr)
+                        {
+                            return new SemaType.Ptr(new DataStructures.Lazy<SemaType>(() => System.EvaluateType(subexpr)));
+                        }
+                        else
+                        {
+                            return new SemaType.Ptr(new DataStructures.Lazy<SemaType>(() => ToSemanticType(ctorTypes.First())));
+                        }
                     }
                     if (tagType is Expression.ArrayType)
                     {
