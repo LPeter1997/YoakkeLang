@@ -14,12 +14,12 @@ Here are some samples for how the language looks. These already work and compile
 
 ```rs
 const sum = proc(a: i32, b: i32) -> i32 {
-	var s = 0;
-	while a < b {
-		s += a;
-		a += 1;
-	}
-	s
+    var s = 0;
+    while a < b {
+        s += a;
+        a += 1;
+    }
+    s
 };
 ```
 
@@ -27,7 +27,7 @@ const sum = proc(a: i32, b: i32) -> i32 {
 
 ```rs
 const fib = proc(n: i32) -> i32 {
-	if n < 2 { 1 } else { fib(n - 1) + fib(n - 2) }
+    if n < 2 { 1 } else { fib(n - 1) + fib(n - 2) }
 };
 ```
 
@@ -48,7 +48,7 @@ const main = proc() -> i32 {
 
 ```rs
 const get_type = proc(b: bool) -> type {
-	if b { i32 } else { u32 }
+    if b { i32 } else { u32 }
 };
 ```
 
@@ -56,10 +56,10 @@ const get_type = proc(b: bool) -> type {
 
 ```rs
 const Vector2 = proc(T: type) -> type {
-	struct {
-		x: T;
-		y: T;
-	}
+    struct {
+        x: T;
+        y: T;
+    }
 };
 ```
 
