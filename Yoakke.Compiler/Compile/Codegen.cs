@@ -501,7 +501,6 @@ namespace Yoakke.Compiler.Compile
             {
                 // Static member access
                 var leftValue = System.EvaluateType(dot.Left);
-                Debug.Assert(leftValue.DefinedScope != null);
                 var symbol = leftValue.DefinedScope.Reference(dot.Right);
                 return CompileSymbol(symbol);
             }

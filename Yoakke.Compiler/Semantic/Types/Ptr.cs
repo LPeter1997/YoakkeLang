@@ -23,6 +23,7 @@ namespace Yoakke.Compiler.Semantic.Types
             /// </summary>
             /// <param name="subtype">The subtype that the pointer points to.</param>
             public Ptr(Lazy<Type> subtype)
+                : base(new Scope(ScopeKind.Struct, null))
             {
                 Subtype = subtype;
             }

@@ -24,19 +24,17 @@ namespace Yoakke.Compiler.Semantic.Types
             /// </summary>
             public readonly IValueDictionary<string, Type> Fields;
 
-            public override Scope? DefinedScope { get; }
-
             /// <summary>
             /// Initializes a new <see cref="Struct"/>.
             /// </summary>
+            /// <param name="definedScope">The <see cref="Scope"/> this struct type defines.</param>
             /// <param name="kwStruct">The 'struct' <see cref="Token"/>.</param>
             /// <param name="fields">The names to field <see cref="Type"/>s dictionary.</param>
-            /// <param name="definedScope">The <see cref="Scope"/> this struct type defines.</param>
-            public Struct(Token kwStruct, IDictionary<string, Type> fields, Scope? definedScope)
+            public Struct(Scope definedScope, Token kwStruct, IDictionary<string, Type> fields)
+                : base(definedScope)
             {
                 KwStruct = kwStruct;
                 Fields = fields.AsValueDictionary();
-                DefinedScope = definedScope;
             }
 
             public override bool Equals(Type? other) =>

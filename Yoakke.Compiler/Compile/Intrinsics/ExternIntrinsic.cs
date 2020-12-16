@@ -81,9 +81,9 @@ namespace Yoakke.Compiler.Compile.Intrinsics
                 System.SymbolTable.PopScope();
                 // Create the new type
                 var moduleType = new Type.Struct(
+                    structScope,
                     new Syntax.Token(new Text.Span(), Syntax.TokenType.KwStruct, "struct"),
-                    new Dictionary<string, Type>(),
-                    structScope);
+                    new Dictionary<string, Type>());
                 // Wrap it, return it
                 return new Value.User(moduleType);
             }

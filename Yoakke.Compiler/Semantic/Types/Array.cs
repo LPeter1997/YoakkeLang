@@ -28,6 +28,7 @@ namespace Yoakke.Compiler.Semantic.Types
             /// <param name="elementType">The element type.</param>
             /// <param name="length">The length of the array.</param>
             public Array(Type elementType, int length)
+                : base(new Scope(ScopeKind.Struct, null))
             {
                 ElementType = elementType;
                 Length = length;

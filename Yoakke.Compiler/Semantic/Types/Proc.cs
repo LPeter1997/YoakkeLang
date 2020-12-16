@@ -84,6 +84,7 @@ namespace Yoakke.Compiler.Semantic.Types
             /// <param name="parameters">The list of parameters.</param>
             /// <param name="ret">The return <see cref="Type"/>.</param>
             public Proc(bool isIntrinsic, IList<Param> parameters, Type ret)
+                : base(new Scope(ScopeKind.Struct, null))
             {
                 IsIntrinsic = isIntrinsic;
                 Parameters = parameters.AsValueList();

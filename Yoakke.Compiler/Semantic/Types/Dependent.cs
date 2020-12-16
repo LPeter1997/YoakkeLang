@@ -23,6 +23,7 @@ namespace Yoakke.Compiler.Semantic.Types
             /// </summary>
             /// <param name="symbol">The <see cref="Symbol.Var"/> the dependency is caused by.</param>
             public Dependent(Symbol.Var symbol)
+                : base(new Scope(ScopeKind.Struct, null))
             {
                 Symbol = symbol;
             }

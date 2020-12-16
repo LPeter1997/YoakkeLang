@@ -29,7 +29,16 @@ namespace Yoakke.Compiler.Semantic.Types
         /// <summary>
         /// The <see cref="Scope"/> this <see cref="Type"/> defines for associated members.
         /// </summary>
-        public virtual Scope? DefinedScope => null;
+        public Scope DefinedScope { get; }
+
+        /// <summary>
+        /// Initializes a new <see cref="Type"/>.
+        /// </summary>
+        /// <param name="definedScope">The <see cref="Scope"/> this type defines associated members in.</param>
+        public Type(Scope definedScope)
+        {
+            DefinedScope = definedScope;
+        }
 
         public override bool Equals(object? obj) => obj is Type t && Equals(t);
         public abstract bool Equals(Type? other);

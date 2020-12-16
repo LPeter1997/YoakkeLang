@@ -130,7 +130,6 @@ namespace Yoakke.Compiler.Compile
             {
                 // Static member access
                 var leftValue = System.EvaluateType(dot.Left);
-                Debug.Assert(leftValue.DefinedScope != null);
                 var referredSymbol = leftValue.DefinedScope.Reference(dot.Right);
                 return TypeOfSymbol(referredSymbol);
             }

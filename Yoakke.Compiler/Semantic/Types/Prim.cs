@@ -28,6 +28,7 @@ namespace Yoakke.Compiler.Semantic.Types
             /// <param name="name">The name identifier.</param>
             /// <param name="type">The Lir <see cref="Type"/> to wrap.</param>
             public Prim(string name, Lir.Types.Type type)
+                : base(new Scope(ScopeKind.Struct, null))
             {
                 Name = name;
                 Type = type;

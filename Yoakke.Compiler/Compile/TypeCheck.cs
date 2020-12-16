@@ -183,11 +183,6 @@ namespace Yoakke.Compiler.Compile
             {
                 // Static member access, we need the type value itself
                 var leftValue = System.EvaluateType(dot.Left);
-                if (leftValue.DefinedScope == null)
-                {
-                    // TODO
-                    throw new NotImplementedException();
-                }
                 leftValue.DefinedScope.Reference(dot.Right);
             }
             else if (leftType is Type.Struct structType)

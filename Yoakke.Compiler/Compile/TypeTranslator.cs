@@ -128,12 +128,12 @@ namespace Yoakke.Compiler.Compile
                             }
                         }
                         return new SemaType.Struct(
+                            newSurroundingScope,
                             structType.KwStruct,
                             structType.Fields
                                 .Select(field => field.Name)
                                 .Zip(ctorTypes.Skip(1).Select(ToSemanticType))
-                                .ToDictionary(kv => kv.First, kv => kv.Second),
-                            newSurroundingScope);
+                                .ToDictionary(kv => kv.First, kv => kv.Second));
                     }
                     if (tagType is Expression.ProcSignature procSign)
                     {
