@@ -28,9 +28,7 @@ namespace Yoakke.Compiler.Compile
             dependencyMap = collector.DependencyMap;
             var result = (Declaration.File)Transform(file);
             System.ResetSymbolTable();
-            new DefineScope(System.SymbolTable).Define(result);
-            new DeclareSymbol(System.SymbolTable).Declare(result);
-            new ResolveSymbol(System.SymbolTable).Resolve(result);
+            SymbolResolution.Resolve(System.SymbolTable, result);
             //Console.WriteLine(result.Dump());
             return result;
         }

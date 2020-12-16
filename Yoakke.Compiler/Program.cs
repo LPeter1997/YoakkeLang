@@ -52,9 +52,7 @@ namespace Yoakke.Compiler
             // Semantics
             // TODO: Maye this should also be part of the dependency system?
             // Probably yes!
-            new DefineScope(symTab).Define(ast);
-            new DeclareSymbol(symTab).Declare(ast);
-            new ResolveSymbol(symTab).Resolve(ast);
+            SymbolResolution.Resolve(symTab, ast);
 
             // Compilation
             //var system = new DependencySystem(symTab);

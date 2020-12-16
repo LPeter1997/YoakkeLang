@@ -1,10 +1,9 @@
 
-const ptr = proc(T: type) -> type {
-    *T
+const modify = proc(x: *i32) {
+    x~ = 24;
 };
-
 const main = proc() -> i32 {
-    var x = 123;
-    var y: ptr(i32) = &x;
-    y~
+    var x = 0;
+    modify(&x);
+    x
 };

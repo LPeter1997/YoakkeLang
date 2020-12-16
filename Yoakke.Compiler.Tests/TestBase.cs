@@ -126,9 +126,7 @@ namespace Yoakke.Lir.Tests
 
             var system = new DependencySystem("../../../../../stdlib");
             var symTab = system.SymbolTable;
-            new DefineScope(symTab).Define(ast);
-            new DeclareSymbol(symTab).Declare(ast);
-            new ResolveSymbol(symTab).Resolve(ast);
+            SymbolResolution.Resolve(symTab, ast);
 
             // Compilation
             var buildStatus = new BuildStatus();

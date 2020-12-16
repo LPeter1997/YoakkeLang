@@ -120,9 +120,7 @@ namespace Yoakke.Compiler.Compile
                             System.SymbolTable.CurrentScope = newSurroundingScope;
                             foreach (var decl in decls)
                             {
-                                new DefineScope(System.SymbolTable).Define(decl);
-                                new DeclareSymbol(System.SymbolTable).Declare(decl);
-                                new ResolveSymbol(System.SymbolTable).Resolve(decl);
+                                SymbolResolution.Resolve(System.SymbolTable, decl);
                                 // TODO: We screw upp associated constants with cloning!
                                 // It was kind of a bad system anyway, so it's no biggie it's broken
                                 // For now we type-check here to avoid crashing the test-suite

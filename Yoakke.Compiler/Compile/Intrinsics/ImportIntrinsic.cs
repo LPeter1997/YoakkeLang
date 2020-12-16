@@ -43,9 +43,7 @@ namespace Yoakke.Compiler.Compile.Intrinsics
             System.SymbolTable.PushScope(Semantic.ScopeKind.Struct);
             var structScope = System.SymbolTable.CurrentScope;
             // Define things
-            new DefineScope(System.SymbolTable).Define(ast);
-            new DeclareSymbol(System.SymbolTable).Declare(ast);
-            new ResolveSymbol(System.SymbolTable).Resolve(ast);
+            SymbolResolution.Resolve(System.SymbolTable, ast);
             // Pop scope
             System.SymbolTable.PopScope();
             // Create the new type

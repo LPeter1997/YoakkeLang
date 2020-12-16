@@ -50,9 +50,7 @@ namespace Yoakke.Compiler.Compile
             // Load prelude
             {
                 var preludeAst = LoadAst("prelude.yk");
-                new DefineScope(SymbolTable).Define(preludeAst);
-                new DeclareSymbol(SymbolTable).Declare(preludeAst);
-                new ResolveSymbol(SymbolTable).Resolve(preludeAst);
+                SymbolResolution.Resolve(SymbolTable, preludeAst);
             }
             SymbolTable.DefineBuiltinIntrinsics();
         }
@@ -184,9 +182,7 @@ namespace Yoakke.Compiler.Compile
             {
                 result = new Expression.DotPath(null, result, piece);
             }
-            new DefineScope(SymbolTable).Define(result);
-            new DeclareSymbol(SymbolTable).Declare(result);
-            new ResolveSymbol(SymbolTable).Resolve(result);
+            SymbolResolution.Resolve(SymbolTable, result);
             return result;
         }
 
@@ -198,9 +194,7 @@ namespace Yoakke.Compiler.Compile
             // Load prelude
             {
                 var preludeAst = LoadAst("prelude.yk");
-                new DefineScope(SymbolTable).Define(preludeAst);
-                new DeclareSymbol(SymbolTable).Declare(preludeAst);
-                new ResolveSymbol(SymbolTable).Resolve(preludeAst);
+                SymbolResolution.Resolve(SymbolTable, preludeAst);
             }
             SymbolTable.DefineBuiltinIntrinsics();
         }
