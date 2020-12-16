@@ -561,7 +561,7 @@ namespace Yoakke.Compiler.Compile
             var wasInStruct = inStruct;
             inStruct = true;
 
-            var refSymbols = new CollectLocalRefs(System).Collect(sty);
+            var refSymbols = CollectLocalRefs.Collect(System.SymbolTable, sty);
 
             // For struct types we create an array of N+1 user types, where N is the number of fields
             // The first element will be pointer to this expression
