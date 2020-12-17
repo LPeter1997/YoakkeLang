@@ -11,14 +11,15 @@ namespace Yoakke.Compiler.Semantic
     // TODO: Doc
     public class NameContext : Visitor<object?>
     {
-        private Dictionary<object, string> allocatedNames = new Dictionary<object, string>();
+        private Dictionary<object, string> assignedNames = new Dictionary<object, string>();
+        private HashSet<string> allocatedNames = new HashSet<string>();
         private Stack<string> currentName = new Stack<string>();
 
         public void NameAll(Declaration.File file) => Visit(file);
 
         public string NameOf(object obj)
         {
-            if (allocatedNames.TryGetValue(obj, out var value)) return value;
+            if (assignedNames.TryGetValue(obj, out var value)) return value;
             return AllocateName(obj, "unnamed");
         }
 
@@ -62,9 +63,10 @@ namespace Yoakke.Compiler.Semantic
 
         private bool TryAllocateName(object obj, string name)
         {
-            if (!allocatedNames.ContainsKey(name))
+            if (!allocatedNames.Contains(name))
             {
-                allocatedNames[obj] = name;
+                assignedNames[obj] = name;
+                allocatedNames.Add(name);
                 return true;
             }
             return false;

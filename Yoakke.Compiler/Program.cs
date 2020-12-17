@@ -81,7 +81,7 @@ namespace Yoakke.Compiler
             Console.WriteLine("\n");
 
             // Run in the VM
-#if true
+#if false
             var vm = new VirtualMachine(asm);
             var result = vm.Execute("main", new Value[] { });
             Console.WriteLine($"Result: {result}");

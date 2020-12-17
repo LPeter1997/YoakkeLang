@@ -1,8 +1,7 @@
 
-const Math = struct {
-    var x = 7;
-};
+const puts = @extern("puts", proc(*u8) -> i32);
 
 const main = proc() -> i32 {
-    Math.x
+    puts("Hello".data);
+    0
 };
