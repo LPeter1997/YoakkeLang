@@ -30,7 +30,7 @@ namespace Yoakke.Compiler.Compile
         {
             SemaType.Prim prim => prim.Type,
 
-            SemaType.Ptr ptr => new LirType.Ptr(ToLirType(ptr.Subtype.Value)),
+            SemaType.Ptr ptr => new LirType.Ptr(ToLirType(ptr.Subtype)),
 
             SemaType.Proc proc =>
                 new LirType.Proc(
@@ -78,14 +78,7 @@ namespace Yoakke.Compiler.Compile
                     && ury.Operator == Expression.UnaryOp.PointerType)
                 {
                     var payload = ((Value.User)ctorTypes.First()).Payload;
-                    if (payload is Expression subexpr)
-                    {
-                        return new SemaType.Ptr(new DataStructures.Lazy<SemaType>(() => System.EvaluateType(subexpr)));
-                    }
-                    else
-                    {
-                        return new SemaType.Ptr(new DataStructures.Lazy<SemaType>(() => ToSemanticType(ctorTypes.First())));
-                    }
+                    return new SemaType.Ptr(ToSemanticType(ctorTypes.First()));
                 }
                 if (tagType is Expression.ArrayType)
                 {

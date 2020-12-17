@@ -33,7 +33,6 @@ namespace Yoakke.Compiler.Compile
         private NameContext nameContext = new NameContext();
         private ProcContext globalContext = new ProcContext();
         private ProcContext context = new ProcContext();
-        private bool inStruct;
 
         public Codegen(IDependencySystem system, Builder builder)
         {
@@ -463,19 +462,10 @@ namespace Yoakke.Compiler.Compile
             case Expression.UnaryOp.PointerType:
             {
                 // The first element will be pointer to this expression
-                // The second one will be the subtype's expression for laziness, evaluated operand for eager alt.
+                // The second one will be the subtype
                 var arrayValues = new List<Value>();
                 arrayValues.Add(new Value.User(ury));
-                if (inStruct)
-                {
-                    // Lazy
-                    arrayValues.Add(new Value.User(ury.Operand));
-                }
-                else
-                {
-                    // Eager
-                    arrayValues.Add(VisitNonNull(ury.Operand));
-                }
+                arrayValues.Add(VisitNonNull(ury.Operand));
                 var arraySpace = Builder.InitArray(Lir.Types.Type.User_, arrayValues.ToArray());
                 // We cast it to a singular user type
                 return Builder.Cast(Lir.Types.Type.User_, Builder.Load(arraySpace));
@@ -551,9 +541,6 @@ namespace Yoakke.Compiler.Compile
 
         protected override Value? Visit(Expression.StructType sty)
         {
-            var wasInStruct = inStruct;
-            inStruct = true;
-
             var refSymbols = CollectLocalRefs.Collect(System.SymbolTable, sty);
 
             // For struct types we create an array of N+1 user types, where N is the number of fields
@@ -574,8 +561,6 @@ namespace Yoakke.Compiler.Compile
             arrayValues.Add(Builder.Cast(Lir.Types.Type.User_, Builder.Load(Builder.InitArray(Lir.Types.Type.User_, refSymbolValues.ToArray()))));
             foreach (var field in sty.Fields) arrayValues.Add(VisitNonNull(field.Type));
             var arraySpace = Builder.InitArray(Lir.Types.Type.User_, arrayValues.ToArray());
-
-            inStruct = wasInStruct;
 
             // We cast it to a singular user type
             return Builder.Cast(Lir.Types.Type.User_, Builder.Load(arraySpace));
