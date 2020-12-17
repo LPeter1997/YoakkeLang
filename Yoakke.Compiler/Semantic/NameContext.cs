@@ -48,7 +48,7 @@ namespace Yoakke.Compiler.Semantic
         private string ComposeName()
         {
             Debug.Assert(currentName.Count > 0);
-            return string.Join('.', currentName);
+            return string.Join('.', currentName.Reverse());
         }
 
         private string AllocateName(object obj, string suggestion)

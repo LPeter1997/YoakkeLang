@@ -582,5 +582,20 @@ const entry = proc() -> i32 {
 ";
             TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(654));
         }
+
+        [TestMethod]
+        public void NestedProcedure()
+        {
+            string src = @"
+const foo = proc() -> i32 {
+    const bar = proc() -> i32 { 153 };
+    bar();
+};
+const entry = proc() -> i32 {
+    foo()
+};
+";
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(153));
+        }
     }
 }

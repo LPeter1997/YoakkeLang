@@ -97,6 +97,7 @@ namespace Yoakke.Compiler
             };
             build.ExternalBinaries.Add("libvcruntime.lib");
             build.ExternalBinaries.Add("msvcrt.lib");
+            build.ExternalBinaries.Add("legacy_stdio_definitions.lib");
             //build.ExternalBinaries.Add("libcmt.lib");
             //build.ExternalBinaries.Add("kernel32.lib");
             toolchain.Compile(build);
