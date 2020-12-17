@@ -33,8 +33,6 @@ namespace Yoakke.Compiler.Compile
         private NameContext nameContext = new NameContext();
         private ProcContext globalContext = new ProcContext();
         private ProcContext context = new ProcContext();
-        private int constCnt;
-        private int nameCnt;
         private bool inStruct;
 
         public Codegen(IDependencySystem system, Builder builder)
@@ -186,7 +184,7 @@ namespace Yoakke.Compiler.Compile
             if (compiledProcs.TryGetValue(proc, out var procVal)) return procVal;
             WithSubcontext(() =>
             {
-                procVal = Builder.DefineProc(GetName(proc));
+                procVal = Builder.DefineProc(nameContext.NameOf(proc));
                 // Add it to the cache here to get ready for recursion
                 compiledProcs.Add(proc, procVal);
                 // For now we make every procedure public
@@ -316,7 +314,7 @@ namespace Yoakke.Compiler.Compile
                 arrayType, 
                 utf8bytes.Select(b => (Value)Lir.Types.Type.U8.NewValue(b)).ToList().AsValueList());
             // Define the new constant
-            var constant = Builder.DefineConst($"yk_str_const_{constCnt++}", arrayValue);
+            var constant = Builder.DefineConst(nameContext.NameOf(str), arrayValue);
             // Figure out the struct type
             var structType = System.ReferToConstType("@c", "str");
             var lirStructType = TranslateToLirType(structType);
@@ -665,12 +663,6 @@ namespace Yoakke.Compiler.Compile
 
             default: throw new NotImplementedException();
             }
-        }
-
-        private string GetName(Node node)
-        {
-            if (nameContext.Names.TryGetValue(node, out var name)) return name;
-            return $"unnamed_sym_{nameCnt++}";
         }
     }
 }
