@@ -292,6 +292,13 @@ namespace Yoakke.Compiler.Compile
             return null;
         }
 
+        protected override object? Visit(Expression.StructType sty)
+        {
+            // NOTE: We don't visit declarations here to avoid recursion
+            foreach (var field in sty.Fields) Visit(field);
+            return null;
+        }
+
         protected override object? Visit(Expression.StructValue sval)
         {
             base.Visit(sval);

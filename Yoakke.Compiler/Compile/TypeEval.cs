@@ -156,6 +156,11 @@ namespace Yoakke.Compiler.Compile
             }
             else if (symbol is Symbol.Var varSym)
             {
+                if (varSym.Type == null)
+                {
+                    Debug.Assert(varSym.Definition != null);
+                    System.TypeCheck((Statement.Var)varSym.Definition);
+                }
                 Debug.Assert(varSym.Type != null);
                 return varSym.Type;
             }
