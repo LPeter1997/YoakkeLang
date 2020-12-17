@@ -559,7 +559,7 @@ namespace Yoakke.Compiler.Compile
                 refSymbolValues.Add(Builder.Cast(Lir.Types.Type.User_, Builder.Load(subarray)));
             }
             arrayValues.Add(Builder.Cast(Lir.Types.Type.User_, Builder.Load(Builder.InitArray(Lir.Types.Type.User_, refSymbolValues.ToArray()))));
-            foreach (var field in sty.Fields) arrayValues.Add(VisitNonNull(field.Type));
+            //foreach (var field in sty.Fields) arrayValues.Add(VisitNonNull(field.Type));
             var arraySpace = Builder.InitArray(Lir.Types.Type.User_, arrayValues.ToArray());
 
             // We cast it to a singular user type

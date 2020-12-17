@@ -44,7 +44,8 @@ namespace Yoakke.DataStructures
             this.initializer = initializer;
         }
 
-        public override bool Equals(object? obj) => Value.Equals(obj);
+        public override bool Equals(object? obj) => 
+            obj is Lazy<T> lazy ? Value.Equals(lazy.Value) : Value.Equals(obj);
         public override int GetHashCode() => Value.GetHashCode();
 
         public override string? ToString() => Value.ToString();

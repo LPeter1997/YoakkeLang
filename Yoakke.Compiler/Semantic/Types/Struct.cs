@@ -22,7 +22,7 @@ namespace Yoakke.Compiler.Semantic.Types
             /// <summary>
             /// The names to field <see cref="Type"/>s.
             /// </summary>
-            public readonly IValueDictionary<string, Type> Fields;
+            public readonly IValueDictionary<string, DataStructures.Lazy<Type>> Fields;
 
             /// <summary>
             /// Initializes a new <see cref="Struct"/>.
@@ -30,7 +30,7 @@ namespace Yoakke.Compiler.Semantic.Types
             /// <param name="definedScope">The <see cref="Scope"/> this struct type defines.</param>
             /// <param name="kwStruct">The 'struct' <see cref="Token"/>.</param>
             /// <param name="fields">The names to field <see cref="Type"/>s dictionary.</param>
-            public Struct(Scope definedScope, Token kwStruct, IDictionary<string, Type> fields)
+            public Struct(Scope definedScope, Token kwStruct, IDictionary<string, DataStructures.Lazy<Type>> fields)
                 : base(definedScope)
             {
                 KwStruct = kwStruct;

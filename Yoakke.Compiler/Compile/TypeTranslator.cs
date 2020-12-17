@@ -58,7 +58,7 @@ namespace Yoakke.Compiler.Compile
             foreach (var field in struc.Fields)
             {
                 fieldIndices[(struc, field.Key)] = counter;
-                fields.Add(ToLirType(field.Value));
+                fields.Add(ToLirType(field.Value.Value));
                 ++counter;
             }
             return System.Builder.DefineStruct(fields);
@@ -106,8 +106,8 @@ namespace Yoakke.Compiler.Compile
                         Debug.Assert(symbol.Type != null);
                         newSurroundingScope.Define(new Semantic.Symbol.Const(symbol.Name, symbol.Type, symbolValue));
                     }
+                    var cloner = new Cloner();
                     {
-                        var cloner = new Cloner();
                         var decls = structType.Declarations.Select(cloner.Clone).ToList();
                         System.SymbolTable.CurrentScope = newSurroundingScope;
                         foreach (var decl in decls)
@@ -123,9 +123,14 @@ namespace Yoakke.Compiler.Compile
                         newSurroundingScope,
                         structType.KwStruct,
                         structType.Fields
-                            .Select(field => field.Name)
-                            .Zip(ctorTypes.Skip(1).Select(ToSemanticType))
-                            .ToDictionary(kv => kv.First, kv => kv.Second));
+                            .ToDictionary(
+                                field => field.Name, 
+                                field =>
+                                {
+                                    var newType = cloner.Clone(field.Type);
+                                    SymbolResolution.Resolve(System.SymbolTable, newType);
+                                    return new DataStructures.Lazy<SemaType>(() => System.EvaluateType(newType));
+                                }));
                 }
                 if (tagType is Expression.ProcSignature procSign)
                 {

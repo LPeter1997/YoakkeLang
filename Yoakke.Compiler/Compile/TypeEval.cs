@@ -136,7 +136,7 @@ namespace Yoakke.Compiler.Compile
             else if (leftType is Type.Struct structType)
             {
                 // Field access
-                return structType.Fields[dot.Right];
+                return structType.Fields[dot.Right].Value;
             }
             else
             {

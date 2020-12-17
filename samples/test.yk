@@ -1,14 +1,10 @@
 
-const Frac = struct {
-    nom: i32;
-    den: i32;
-
-    const new = proc(x: i32, y: i32) -> Frac {
-        Frac{ nom = x; den = y; }
-    };
+const Vector2 = struct {
+    x: i32;
+    y: i32;
 };
 
 const main = proc() -> i32 {
-    var f = Frac.new(2, 654);
-    f.den
+    var x = Vector2 { x = 3; y = 4; };
+    x.x
 };

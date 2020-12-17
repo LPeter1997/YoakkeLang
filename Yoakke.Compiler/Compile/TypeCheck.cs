@@ -326,7 +326,7 @@ namespace Yoakke.Compiler.Compile
                 {
                     // Types need to match
                     var assignedType = System.TypeOf(field.Value);
-                    if (!assignedType.Equals(declaredType))
+                    if (!assignedType.Equals(declaredType.Value))
                     {
                         // TODO
                         throw new NotImplementedException($"Field type mismatch '{declaredType}' vs '{assignedType}'!");
