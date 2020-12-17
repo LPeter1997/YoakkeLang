@@ -70,10 +70,6 @@ namespace Yoakke.Compiler.Compile
             file = new ElimDependencies(System).Elim(file);
             nameContext.NameAll(file);
             // Eliminate dependent procedures
-            //file = elimDepProcs.Elim(file);
-            /*new DefineScope(SymbolTable).Define(file);
-            new DeclareSymbol(SymbolTable).Declare(file);
-            new ResolveSymbol(SymbolTable).Resolve(file);*/
             // For something to be compiled, it has to be type-checked
             TypeCheck(file);
             // If the type-checking succeeded, we can compile

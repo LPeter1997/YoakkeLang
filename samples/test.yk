@@ -1,9 +1,14 @@
 
-const modify = proc(x: *i32) {
-    x~ = 24;
+const Frac = struct {
+    nom: i32;
+    den: i32;
+
+    const new = proc(x: i32, y: i32) -> Frac {
+        Frac{ nom = x; den = y; }
+    };
 };
+
 const main = proc() -> i32 {
-    var x = 0;
-    modify(&x);
-    x
+    var f = Frac.new(2, 654);
+    f.den
 };

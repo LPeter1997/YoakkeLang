@@ -559,5 +559,25 @@ const entry = proc() -> i32 {
 ";
             TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(0));
         }
+
+        [TestMethod]
+        public void StructTypeConstructor()
+        {
+            string src = @"
+const Frac = struct {
+    nom: i32;
+    den: i32;
+
+    const new = proc(x: i32, y: i32) -> Frac {
+        Frac{ nom = x; den = y; }
+    };
+};
+const entry = proc() -> i32 {
+    var f = Frac.new(2, 654);
+    f.den
+};
+";
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(654));
+        }
     }
 }
