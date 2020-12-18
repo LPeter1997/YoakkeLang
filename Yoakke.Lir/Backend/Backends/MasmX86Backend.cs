@@ -67,7 +67,7 @@ namespace Yoakke.Lir.Backend.Backends
             code
                 .Append($"{global.Name} DB ")
                 .AppendJoin(", ", Enumerable.Repeat("0", global.Size))
-                .AppendLine(" DUP (?)");
+                .AppendLine();
         }
 
         private void DeclareConstant(X86Const constant)
@@ -75,7 +75,7 @@ namespace Yoakke.Lir.Backend.Backends
             code
                 .Append($"{constant.Name} DB ")
                 .AppendJoin(", ", constant.Bytes)
-                .AppendLine(" DUP (?)");
+                .AppendLine();
         }
 
         private void CompileProc(X86Proc proc)
