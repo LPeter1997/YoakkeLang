@@ -290,14 +290,14 @@ namespace Yoakke.Compiler.Compile
         {
             Expression.LitType.Integer => Lir.Types.Type.I32.NewValue(int.Parse(lit.Value)),
             Expression.LitType.Bool => Lir.Types.Type.I32.NewValue(lit.Value == "true" ? 1 : 0),
-            Expression.LitType.String => CompileStringLit(lit.Value),
+            Expression.LitType.String => CompileStringLit(lit),
             _ => throw new NotImplementedException(),
         };
 
-        private Value CompileStringLit(string str)
+        private Value CompileStringLit(Expression.Literal strLit)
         {
             // Cut off quotes
-            str = str.Substring(1, str.Length - 2);
+            var str = strLit.Value.Substring(1, strLit.Value.Length - 2);
             // TODO: Escape
             // Null-terminate
             str += '\0';
@@ -309,7 +309,8 @@ namespace Yoakke.Compiler.Compile
                 arrayType, 
                 utf8bytes.Select(b => (Value)Lir.Types.Type.U8.NewValue(b)).ToList().AsValueList());
             // Define the new constant
-            var constant = Builder.DefineConst(nameContext.NameOf(str), arrayValue);
+            // TODO: Check if already added not to bloat assembly?
+            var constant = Builder.DefineConst(nameContext.NameOf(strLit), arrayValue);
             // Figure out the struct type
             var structType = System.ReferToConstType("@c", "str");
             var lirStructType = TranslateToLirType(structType);

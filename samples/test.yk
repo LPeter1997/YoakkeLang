@@ -1,20 +1,10 @@
 
 const puts = @extern("puts", proc(*u8) -> i32);
-const putchar = @extern("putchar", proc(i32) -> i32);
-
-const putchar_rec = proc(n: i32) {
-    if n == 0 { return; }
-    putchar_rec(n / 10);
-    putchar(48 + n % 10);
-};
 
 const print_number = proc(n: i32) {
-    if n == 0 {
-        putchar(48);
-    }
-    else {
-        putchar_rec(n);
-    }
+    const printf_hack = @extern("printf", proc(*u8, i32) -> i32);
+    printf_hack("%d".data, n);
+    puts("".data);
 };
 
 const main = proc() -> i32 {
@@ -31,7 +21,6 @@ const main = proc() -> i32 {
         }
         else {
             print_number(i);
-            puts("".data);
         }
         i += 1;
     }
