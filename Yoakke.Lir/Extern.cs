@@ -14,6 +14,11 @@ namespace Yoakke.Lir
         public string Name { get; }
         public Visibility Visibility { get; set; } = Visibility.Public;
 
+        /// <summary>
+        /// The actual linked symbol name that the linker will search for.
+        /// This is different from <see cref="Name"/>, as that is for identifying the external in the IR code.
+        /// </summary>
+        public readonly string? LinkName;
         // TODO: Do we even want this nullable?
         // We did it because of @extern
         /// <summary>
@@ -26,17 +31,20 @@ namespace Yoakke.Lir
         /// </summary>
         /// <param name="name">The name of the external symbol.</param>
         /// <param name="type">The <see cref="Type"/> of the external symbol.</param>
+        /// <param name="linkName">The actual linked symbol name that the linker will search for.</param>
         /// <param name="path">The path of the binary the symbol originates from.</param>
-        public Extern(string name, Type type, string? path)
+        public Extern(string name, Type type, string linkName, string? path)
         {
             Name = name;
             Type = type;
+            LinkName = linkName;
             Path = path;
         }
 
         public override string ToValueString() => Name;
         public override string ToString() =>
-            $"extern {Type.ToTypeString()} {Name}{(Path == null ? string.Empty : $" [source = \"{Path}\"]")}";
+            $"extern [link_name = \"{LinkName}\"] " +
+            $"{Type.ToTypeString()} {Name}{(Path == null ? string.Empty : $" [source = \"{Path}\"]")}";
         public override bool Equals(Value? other) => ReferenceEquals(this, other);
         public override int GetHashCode() => HashCode.Combine(typeof(Extern), Name);
         // NOTE: Makes no sense to clone this

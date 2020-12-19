@@ -17,6 +17,8 @@ namespace Yoakke.Compiler.Compile.Intrinsics
     {
         private class Impl : Intrinsic
         {
+            private static int externalCnt = 0;
+
             public override Lir.Types.Type ReturnType { get; }
             public override Type Type { get; }
 
@@ -33,7 +35,7 @@ namespace Yoakke.Compiler.Compile.Intrinsics
             {
                 // TODO: Check args
                 var name = ReadString(vm, args.First());
-                var external = new Lir.Extern(name, ReturnType, null); // TODO: Path?
+                var external = new Lir.Extern($"unnamed_external_{externalCnt++}", ReturnType, name, null); // TODO: Path?
                 return external;
             }
 

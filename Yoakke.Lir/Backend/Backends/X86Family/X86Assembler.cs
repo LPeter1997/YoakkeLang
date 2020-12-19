@@ -862,12 +862,16 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         private int nameCnt = 0;
         private string GetUniqueName(string name) => $"{name}_{nameCnt++}";
 
-        private static string GetSymbolName(ISymbol symbol) =>
-               // For Cdecl procedures we assume an underscore prefix
-               (symbol is Proc proc && proc.CallConv == CallConv.Cdecl)
+        private static string GetSymbolName(ISymbol symbol) => symbol switch
+        {
+            // For Cdecl procedures we assume an underscore prefix
+            Proc proc when proc.CallConv == CallConv.Cdecl => $"_{symbol.Name}",
+            Proc proc => throw new NotImplementedException(), // TODO
+            // Externals use the link name
+            Extern ext => $"_{ext.LinkName}",
             // For non-procedures too
-            || !(symbol is Proc)
-            ? $"_{symbol.Name}" : symbol.Name;
+            _ => $"_{symbol.Name}",
+        };
 
         private int OffsetOf(Struct structDef, int fieldNo) => sizeContext.OffsetOf(structDef, fieldNo);
         private int SizeOf(Value value) => SizeOf(value.Type);
