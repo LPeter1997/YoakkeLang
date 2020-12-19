@@ -1,31 +1,9 @@
 
-const print = proc(s: @c.str) {
-    const puts = @extern("puts", proc(*u8) -> i32);
-    puts(s.data);
-};
-
-const print_number = proc(n: i32) {
-    const printf_hack = @extern("printf", proc(*u8, i32) -> i32);
-    printf_hack("%d".data, n);
-    print("");
+const foo = proc() -> i32 {
+    const bar = proc() -> i32 { 153 };
+    bar()
 };
 
 const main = proc() -> i32 {
-    var i = 0;
-    while i < 100 {
-        if i % 3 == 0 && i % 5 == 0 {
-            print("FizzBuzz");
-        }
-        else if i % 3 == 0 {
-            print("Fizz");
-        }
-        else if i % 5 == 0 {
-            print("Buzz");
-        }
-        else {
-            print_number(i);
-        }
-        i += 1;
-    }
-    0
+    foo()
 };

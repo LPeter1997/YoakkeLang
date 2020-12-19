@@ -26,6 +26,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         private X86Proc? currentProcedure;
         private X86BasicBlock? currentBasicBlock;
         private SizeContext sizeContext = new SizeContext { PointerSize = 4, };
+        private X86FormatOptions formatOptions;
 
         private Proc? entryPoint;
         private Proc? prelude;
@@ -39,10 +40,16 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         /// Compiles an <see cref="X86Assembly"/> from a <see cref="Assembly"/>.
         /// </summary>
         /// <param name="assembly">The <see cref="Assembly"/> to compile.</param>
+        /// <param name="formatOptions">The format options to use.</param>
         /// <returns>The compiled <see cref="X86Assembly"/>.</returns>
-        public static X86Assembly Assemble(Assembly assembly)
+        public static X86Assembly Assemble(Assembly assembly, X86FormatOptions formatOptions)
         {
-            return new X86Assembler().Compile(assembly);
+            return new X86Assembler(formatOptions).Compile(assembly);
+        }
+
+        private X86Assembler(X86FormatOptions formatOptions)
+        {
+            this.formatOptions = formatOptions;
         }
 
         private X86Assembly Compile(Assembly assembly)
@@ -91,7 +98,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 // Forward declare each basic block inside
                 foreach (var bb in proc.BasicBlocks)
                 {
-                    basicBlocks[bb] = new X86BasicBlock(x86proc, bb.Name);
+                    basicBlocks[bb] = new X86BasicBlock(x86proc, formatOptions.Escape(bb.Name));
                 }
             }
         }
@@ -862,15 +869,15 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         private int nameCnt = 0;
         private string GetUniqueName(string name) => $"{name}_{nameCnt++}";
 
-        private static string GetSymbolName(ISymbol symbol) => symbol switch
+        private string GetSymbolName(ISymbol symbol) => symbol switch
         {
             // For Cdecl procedures we assume an underscore prefix
-            Proc proc when proc.CallConv == CallConv.Cdecl => $"_{symbol.Name}",
+            Proc proc when proc.CallConv == CallConv.Cdecl => $"_{formatOptions.Escape(symbol.Name)}",
             Proc proc => throw new NotImplementedException(), // TODO
             // Externals use the link name
             Extern ext => $"_{ext.LinkName}",
             // For non-procedures too
-            _ => $"_{symbol.Name}",
+            _ => $"_{formatOptions.Escape(symbol.Name)}",
         };
 
         private int OffsetOf(Struct structDef, int fieldNo) => sizeContext.OffsetOf(structDef, fieldNo);

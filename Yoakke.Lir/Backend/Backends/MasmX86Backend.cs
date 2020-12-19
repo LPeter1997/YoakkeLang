@@ -18,6 +18,7 @@ namespace Yoakke.Lir.Backend.Backends
         {
             SpecialSeparator = '@',
             AllUpperCase = false,
+            Escapes = { (".", "_") },
         };
 
         public bool IsSupported(TargetTriplet targetTriplet) =>
@@ -31,12 +32,18 @@ namespace Yoakke.Lir.Backend.Backends
             code.Clear();
             code.AppendLine(".386")
                 .AppendLine(".MODEL flat");
-            var x86asm = X86Assembler.Assemble(build.CheckedAssembly);
+            var x86asm = X86Assembler.Assemble(build.CheckedAssembly, formatOptions);
             CompileAssembly(x86asm);
             code.AppendLine("END");
             // Write to file
             var outPath = Path.Combine(build.IntermediatesDirectory, $"{build.CheckedAssembly.Name}.asm");
             File.WriteAllText(outPath, code.ToString());
+            build.Extra["publicSymbolNames"] = build
+                .CheckedAssembly
+                .Symbols
+                .Where(sym => sym.Visibility == Visibility.Public)
+                .Select(sym => formatOptions.Escape(sym.Name))
+                .ToList();
             build.Extra["assemblyFile"] = outPath;
         }
 

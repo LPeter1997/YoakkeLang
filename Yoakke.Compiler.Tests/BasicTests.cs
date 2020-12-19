@@ -589,7 +589,7 @@ const entry = proc() -> i32 {
             string src = @"
 const foo = proc() -> i32 {
     const bar = proc() -> i32 { 153 };
-    bar();
+    bar()
 };
 const entry = proc() -> i32 {
     foo()

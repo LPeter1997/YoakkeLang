@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Yoakke.Lir.Backend.Backends.X86Family;
 
 namespace Yoakke.Lir.Backend.Toolchain.Msvc
 {
@@ -22,12 +24,8 @@ namespace Yoakke.Lir.Backend.Toolchain.Msvc
             /*var entry = build.OutputKind == OutputKind.Executable 
                 ? $"/ENTRY:\"{build.CheckedAssembly.EntryPoint.Name}\"" 
                 : string.Empty;*/
-            var publicSymbols = build
-                .CheckedAssembly
-                .Symbols
-                .Where(sym => !(sym is Extern))
-                .Where(sym => sym.Visibility == Visibility.Public);
-            var exports = string.Join(' ', publicSymbols.Select(sym => $"/EXPORT:\"{sym.Name}\""));
+            var publicSymbols = (IReadOnlyList<string>)build.Extra["publicSymbolNames"];
+            var exports = string.Join(' ', publicSymbols.Select(sym => $"/EXPORT:\"{sym}\""));
             var outputKindFlag = GetOutputKindFlag(build.OutputKind);
             var targetMachineId = GetTargetMachineId(build.TargetTriplet);
 

@@ -1,4 +1,6 @@
-﻿namespace Yoakke.Lir.Backend.Backends.X86Family
+﻿using System.Collections.Generic;
+
+namespace Yoakke.Lir.Backend.Backends.X86Family
 {
     /// <summary>
     /// An interface for abstracting away intel and AT&T syntax.
@@ -34,5 +36,16 @@
         /// True, if the comment should go above the instruction, false of after the instruction.
         /// </summary>
         public bool CommentAbove { get; set; }
+        /// <summary>
+        /// Escape sequences to escape in symbol names and such.
+        /// </summary>
+        public List<(string Escaped, string Replacement)> Escapes { get; set; } = new List<(string, string)>();
+
+        // TODO: Doc
+        public string Escape(string name)
+        {
+            foreach (var (e, r) in Escapes) name = name.Replace(e, r);
+            return name;
+        }
     }
 }
