@@ -116,8 +116,8 @@ namespace Yoakke.Compiler.Semantic.Types
                 var dependentSymbols = Parameters
                     .Select(p => p.Type)
                     .Append(Return)
-                    .Where(t => t is Dependent)
-                    .Select(t => (Symbol)((Dependent)t).Symbol)
+                    .OfType<Dependent>()
+                    .Select(t => (Symbol)t.Symbol)
                     .Where(sym => Parameters.Any(p => p.Symbol == sym))
                     .ToHashSet();
                 if (dependentSymbols.Count == 0) return null;

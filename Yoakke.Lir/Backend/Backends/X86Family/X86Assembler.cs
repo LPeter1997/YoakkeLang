@@ -113,9 +113,7 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
             registerOffsets.Clear();
             var registers = proc.BasicBlocks
                 .SelectMany(bb => bb.Instructions)
-                .Where(ins => ins is ValueInstr)
-                // NOTE: Cast returned nullable for some reason
-                .Select(ins => (ValueInstr)ins)
+                .OfType<ValueInstr>()
                 .Select(ins => ins.Result);
             // TODO: This is probably only true for Cdecl?
             // Start from 4 because of the top one being the return address

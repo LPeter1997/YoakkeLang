@@ -21,20 +21,17 @@ namespace Yoakke.Lir.Backend.Toolchain
         /// The first <see cref="IAssembler"/> in this toolchain.
         /// </summary>
         public IAssembler Assembler => 
-            // NOTE: Cast returned IAssembler? for some reason
-            Tools.Where(t => t is IAssembler).Select(t => (IAssembler)t).First();
+            Tools.OfType<IAssembler>().First();
         /// <summary>
         /// The first <see cref="ILinker"/> in this toolchain.
         /// </summary>
         public ILinker Linker =>
-            // NOTE: Cast returned ILinker? for some reason
-            Tools.Where(t => t is ILinker).Select(t => (ILinker)t).First();
+            Tools.OfType<ILinker>().First();
         /// <summary>
         /// The first <see cref="IArchiver"/> in this toolchain.
         /// </summary>
         public IArchiver Archiver =>
-            // NOTE: Cast returned IArchiver? for some reason
-            Tools.Where(t => t is IArchiver).Select(t => (IArchiver)t).First();
+            Tools.OfType<IArchiver>().First();
 
         /// <summary>
         /// A string that represents the version of this toolchain.

@@ -58,9 +58,7 @@ namespace Yoakke.Lir
             .Select(p => p.Index)
             .Concat(BasicBlocks
                 .SelectMany(bb => bb.Instructions)
-                .Where(ins => ins is ValueInstr)
-                // NOTE: Cast returned a nullable for some reason
-                .Select(i => (ValueInstr)i)
+                .OfType<ValueInstr>()
                 .Select(vi => vi.Result.Index))
             .DefaultIfEmpty(-1)
             .Max() + 1;
