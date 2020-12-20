@@ -15,6 +15,7 @@ using Yoakke.Lir.Runtime;
 using Yoakke.Lir.Status;
 using Yoakke.Lir.Values;
 using Yoakke.Reporting;
+using Yoakke.Reporting.Info;
 using Yoakke.Reporting.Render;
 using Yoakke.Syntax;
 using Yoakke.Syntax.Ast;
@@ -129,11 +130,41 @@ namespace Yoakke.Compiler
             }
             output.Close();
 #else
+            var src = new SourceFile("foo.yk",
+@"
+const Frac = struct {
+    nom: i32;
+    den: i32;
+
+    const new = proc(n: i32, d: i32) -> Frac {
+        Frac{ nom = n; den = d; }
+    };
+};
+
+const Half = Frac.new(1, 2);
+
+const main = proc() -> i32 {
+    Half.den
+};
+");
+
             var diag = new Diagnostic
             {
                 Severity = Severity.Error,
-                Message = "You oofed this one",
                 Code = "E0523",
+                Message = "You oofed this one",
+                Information = 
+                { 
+                    new PrimaryDiagnosticInfo
+                    {
+                        Span = new Span(src, new Position(5, 10), 5),
+                        Message = "here lmao",
+                    },
+                    new HintDiagnosticInfo
+                    {
+                        Message = "Did you mean to aaa?",
+                    },
+                },
             };
             new ConsoleDiagnosticRenderer().Render(diag);
 #endif

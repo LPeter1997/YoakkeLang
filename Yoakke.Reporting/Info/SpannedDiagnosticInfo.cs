@@ -10,7 +10,7 @@ namespace Yoakke.Reporting.Info
     /// <summary>
     /// Information for a <see cref="Diagnostic"/> that has a <see cref="Span"/> associated with it.
     /// </summary>
-    public class SpannedDiagnosticInfo
+    public class SpannedDiagnosticInfo : IDiagnosticInfo
     {
         /// <summary>
         /// The <see cref="Span"/> of the diagnosis place.
