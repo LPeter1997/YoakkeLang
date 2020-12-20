@@ -189,7 +189,7 @@ namespace Yoakke.Reporting.Render
         private void RenderSourceLine(ReadOnlySpan<char> text, SpannedDiagnosticInfo? info)
         {
             Console.ForegroundColor = textColor;
-            var lineCursor = new LineCursor();
+            var lineCursor = new LineCursor() { TabSize = tabSize };
             (int Start, int End)? highlightSpan = info is PrimaryDiagnosticInfo p ? (p.Span.Start.Column, p.Span.End.Column) : null;
             for (int i = 0; i < text.Length; ++i)
             {
@@ -214,7 +214,7 @@ namespace Yoakke.Reporting.Render
         private void RenderSourceLineAnnotation(ReadOnlySpan<char> text, SpannedDiagnosticInfo info)
         {
             Console.ForegroundColor = decorationColor;
-            var lineCursor = new LineCursor();
+            var lineCursor = new LineCursor() { TabSize = tabSize };
             var isPrimary = info is PrimaryDiagnosticInfo;
             (int Start, int End) span = (info.Span.Start.Column, info.Span.End.Column);
             for (int i = 0; i < span.End; ++i)
