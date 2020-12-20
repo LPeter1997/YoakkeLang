@@ -162,8 +162,13 @@ const main = proc() -> i32 {
                 { 
                     new PrimaryDiagnosticInfo
                     {
-                        Span = new Span(src, new Position(5, 10), 5),
-                        Message = "here lmao",
+                        Span = new Span(src, new Position(6, 8), 4),
+                        Message = "u tried to make it here",
+                    },
+                    new SpannedDiagnosticInfo
+                    {
+                        Span = new Span(src, new Position(10, 6), 4),
+                        Message = "and using it here",
                     },
                     new HintDiagnosticInfo
                     {

@@ -15,6 +15,7 @@ namespace Yoakke.Reporting.Render
     {
         private ConsoleColor decorationColor = ConsoleColor.Gray;
         private ConsoleColor textColor = ConsoleColor.White;
+        private ConsoleColor highlightColor = ConsoleColor.Red;
         private int linesBefore = 1;
         private int linesAfter = 1;
         private int tabSize = 4;
@@ -30,11 +31,14 @@ namespace Yoakke.Reporting.Render
 
             if (spannedInfo.Any())
             {
+                highlightColor = diagnostic.Severity?.Color ?? highlightColor;
+
                 var source = spannedInfo.First().Span.Source;
                 Debug.Assert(source != null);
 
                 // We need the largest line number to pad the others
-                var lineNumberPaddingLen = (spannedInfo.Select(si => si.Span.End.Line + 1).Max()).ToString().Length;
+                var lineNumberPaddingLen = (spannedInfo.Select(si => si.Span.End.Line + linesAfter + 1).Max())
+                    .ToString().Length;
                 var lineNumberPadding = new string(' ', lineNumberPaddingLen);
 
                 // If there is a primary information source, write the head for it
@@ -93,6 +97,7 @@ namespace Yoakke.Reporting.Render
             Debug.Assert(source != null);
 
             int? lastLineIndex = null;
+            int? lastAnnotatedLineIndex = null;
             foreach (var info in infos)
             {
                 // NOTE: We don't support multiple files yet in a single diagnostic
@@ -101,13 +106,23 @@ namespace Yoakke.Reporting.Render
                 // NOTE: We don't support multiline spans either
                 Debug.Assert(info.Span.Start.Line == info.Span.End.Line);
                 // NOTE: We don't support multiple annotations in the same line either
-                Debug.Assert(lastLineIndex != info.Span.Start.Line);
+                Debug.Assert(lastAnnotatedLineIndex != info.Span.Start.Line);
 
                 var annotatedLineIndex = info.Span.Start.Line;
+                lastAnnotatedLineIndex = annotatedLineIndex;
 
                 // Calculate how many lines to go before and after
                 int startIndex = Math.Max(lastLineIndex == null ? 0 : lastLineIndex.Value, annotatedLineIndex - linesBefore);
                 int endIndex = Math.Min(annotatedLineIndex + linesAfter + 1, source.LineCount);
+
+                if (lastLineIndex != null && endIndex - lastLineIndex.Value > 1)
+                {
+                    // The difference between the last and the current line is greater than 1, put dots between
+                    RenderLinePad(lineNumberPadding);
+                    RenderDecoration("...");
+                    Console.WriteLine();
+                }
+                
                 lastLineIndex = endIndex;
 
                 for (int lineIndex = startIndex; lineIndex != endIndex; ++lineIndex)
@@ -115,7 +130,19 @@ namespace Yoakke.Reporting.Render
                     RenderLineNumber(lineIndex, lineNumberPadding);
                     // TODO: if lineIndex == startIndex, annotate
                     // NOTE: All lines have to be printed per-character to have a uniform tab-size
-                    RenderSourceLine(source.Line(lineIndex).ToString());
+                    if (lineIndex == annotatedLineIndex)
+                    {
+                        var line = source.Line(lineIndex).ToString();
+                        RenderSourceLine(line, info);
+                        Console.WriteLine();
+
+                        RenderLinePad(lineNumberPadding);
+                        RenderSourceLineAnnotation(line, info);
+                    }
+                    else
+                    {
+                        RenderSourceLine(source.Line(lineIndex).ToString(), null);
+                    }
                     Console.WriteLine();
                 }
             }
@@ -129,12 +156,19 @@ namespace Yoakke.Reporting.Render
 
         private void RenderHint(HintDiagnosticInfo hint) => RenderText($"hint: {hint.Message}");
 
-        private void RenderSourceLine(ReadOnlySpan<char> span)
+        private void RenderSourceLine(ReadOnlySpan<char> text, SpannedDiagnosticInfo info)
         {
             Console.ForegroundColor = textColor;
             int column = 0;
-            foreach (var ch in span)
+            (int Start, int End)? highlightSpan = info is PrimaryDiagnosticInfo p ? (p.Span.Start.Column, p.Span.End.Column) : null;
+            for (int i = 0; i < text.Length; ++i)
             {
+                if (highlightSpan.HasValue)
+                {
+                    var span = highlightSpan.Value;
+                    Console.ForegroundColor = (i >= span.Start && i < span.End) ? highlightColor : textColor;
+                }
+                char ch = text[i];
                 if (ch == '\t')
                 {
                     var advance = tabSize - column % tabSize;
@@ -147,6 +181,32 @@ namespace Yoakke.Reporting.Render
                     column += 1;
                 }
             }
+            Console.ResetColor();
+        }
+
+        private void RenderSourceLineAnnotation(ReadOnlySpan<char> text, SpannedDiagnosticInfo info)
+        {
+            Console.ForegroundColor = decorationColor;
+            int column = 0;
+            var isPrimary = info is PrimaryDiagnosticInfo;
+            (int Start, int End) span = (info.Span.Start.Column, info.Span.End.Column);
+            for (int i = 0; i < span.End; ++i)
+            {
+                char ch = text[i];
+                if (ch == '\t')
+                {
+                    var advance = tabSize - column % tabSize;
+                    column += advance;
+                    Console.Write(new string((i >= span.Start && i < span.End) ? (isPrimary ? '^' : '-') : ' ', advance));
+                }
+                else if (!char.IsControl(ch))
+                {
+                    Console.Write((i >= span.Start && i < span.End) ? (isPrimary ? '^' : '-') : ' ');
+                    column += 1;
+                }
+            }
+            Console.ForegroundColor = isPrimary ? highlightColor : textColor;
+            Console.Write($" {info.Message}");
             Console.ResetColor();
         }
 
