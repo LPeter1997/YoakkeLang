@@ -15,6 +15,8 @@ namespace Yoakke.Reporting.Render
     {
         private ConsoleColor decorationColor = ConsoleColor.Gray;
         private ConsoleColor textColor = ConsoleColor.White;
+        private int linesBefore = 1;
+        private int linesAfter = 1;
 
         public void Render(Diagnostic diagnostic)
         {
@@ -40,9 +42,7 @@ namespace Yoakke.Reporting.Render
                 RenderLinePad(lineNumberPadding);
                 Console.WriteLine();
 
-                // TODO: Annotated lines
-                RenderLineNumber(5, lineNumberPadding);
-                Console.WriteLine();
+                RenderAnnotatedLines(spannedInfo, lineNumberPadding);
 
                 RenderLinePad(lineNumberPadding);
                 Console.WriteLine();
@@ -83,13 +83,48 @@ namespace Yoakke.Reporting.Render
             RenderDecoration($"{lineNumberPadding} ┌─ ");
             Debug.Assert(primarySpan.Source != null);
             RenderText($"{primarySpan.Source.Path}:{primarySpan.Start.Line + 1}:{primarySpan.Start.Column + 1}");
+            Console.WriteLine();
+        }
+
+        private void RenderAnnotatedLines(IEnumerable<SpannedDiagnosticInfo> infos, string lineNumberPadding)
+        {
+            var source = infos.First().Span.Source;
+            Debug.Assert(source != null);
+
+            int? lastLineIndex = null;
+            foreach (var info in infos)
+            {
+                // NOTE: We don't support multiple files yet in a single diagnostic
+                // Maybe later we want to
+                Debug.Assert(info.Span.Source == source);
+                // NOTE: We don't support multiline spans either
+                Debug.Assert(info.Span.Start.Line == info.Span.End.Line);
+                // NOTE: We don't support multiple annotations in the same line either
+                Debug.Assert(lastLineIndex != info.Span.Start.Line);
+
+                var annotatedLineIndex = info.Span.Start.Line;
+
+                // Calculate how many lines to go before and after
+                int startIndex = Math.Max(lastLineIndex == null ? 0 : lastLineIndex.Value, annotatedLineIndex - linesBefore);
+                int endIndex = Math.Min(annotatedLineIndex + linesAfter + 1, source.LineCount);
+                lastLineIndex = endIndex;
+
+                for (int lineIndex = startIndex; lineIndex != endIndex; ++lineIndex)
+                {
+                    RenderLineNumber(lineIndex, lineNumberPadding);
+                    // TODO: if lineIndex == startIndex, annotate
+                    // NOTE: All lines have to be printed per-character to have a uniform tab-size
+                    RenderText(source.Line(lineIndex).TrimEnd().ToString());
+                    Console.WriteLine();
+                }
+            }
         }
 
         private void RenderLinePad(string lineNumberPadding) =>
             RenderDecoration($"{lineNumberPadding} │");
 
-        private void RenderLineNumber(int lineNumber, string lineNumberPadding) =>
-            RenderDecoration($"{(lineNumber + 1).ToString().PadLeft(lineNumberPadding.Length)} │");
+        private void RenderLineNumber(int lineIndex, string lineNumberPadding) =>
+            RenderDecoration($"{(lineIndex + 1).ToString().PadLeft(lineNumberPadding.Length)} │");
 
         private void RenderHint(HintDiagnosticInfo hint) => RenderText($"hint: {hint.Message}");
 

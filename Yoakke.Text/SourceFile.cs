@@ -73,6 +73,7 @@ namespace Yoakke.Text
         private void CalculateLineStarts()
         {
             var cursor = new Cursor();
+            int lastLine = 0;
             lineStarts.Add(0);
             for (int i = 0; i < Text.Length; ++i)
             {
@@ -80,17 +81,18 @@ namespace Yoakke.Text
                 // If our column is at the start, there's a possibility for a newline
                 if (cursor.Position.Column == 0)
                 {
-                    if (cursor.Position.Line != lineStarts.Last())
+                    if (cursor.Position.Line != lastLine)
                     {
                         // Yes, this is a different line
-                        lineStarts.Add(i);
+                        lineStarts.Add(i + 1);
+                        lastLine = cursor.Position.Line;
                     }
                     else
                     {
                         // No, the line is the same
                         // This could be a windows newline or some control character
                         // Update it
-                        lineStarts[lineStarts.Count - 1] = i;
+                        lineStarts[lineStarts.Count - 1] = i + 1;
                     }
                 }
             }
