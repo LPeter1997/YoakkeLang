@@ -744,6 +744,9 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
 
             switch (value)
             {
+            // TODO (NOTE below)
+            // NOTE: Quite a bit of repetition with int and struct
+            // Maybe we can just ask constants to turn to byte arrays and then do the split in a shared way
             case Value.Int i:
             {
                 if (asLvalue) throw new InvalidOperationException("An integer can't be an lvalue!");
@@ -755,6 +758,21 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
                 var bytes = origBytes.Concat(Enumerable.Repeat((byte)0, byteCount - origBytes.Length));
                 // Now we collect the resulting operands
                 var result = SplitData(byteCount, dataSize =>
+                {
+                    var bs = bytes.Take(dataSize).ToArray();
+                    bytes = bytes.Skip(dataSize);
+                    return Lit(DataWidth.GetFromSize(dataSize), BitConverter.ToInt32(bs));
+                });
+                return result.ToArray();
+            }
+
+            case Value.Struct s:
+            {
+                if (asLvalue) throw new InvalidOperationException("A struct constant can't be an lvalue!");
+
+                var origBytes = ToByteArray(s);
+                var bytes = origBytes.AsEnumerable();
+                var result = SplitData(origBytes.Length, dataSize =>
                 {
                     var bs = bytes.Take(dataSize).ToArray();
                     bytes = bytes.Skip(dataSize);
@@ -897,7 +915,8 @@ namespace Yoakke.Lir.Backend.Backends.X86Family
         private static byte[] ToByteArray(Value value) => value switch
         {
             Value.Int i => i.Value.AsSpan().ToArray(),
-            Value.Array a => a.Values.SelectMany(v => ToByteArray(v)).ToArray(),
+            Value.Array a => a.Values.SelectMany(ToByteArray).ToArray(),
+            Value.Struct s => s.Values.SelectMany(ToByteArray).ToArray(),
             _ => throw new NotImplementedException(),
         };
 

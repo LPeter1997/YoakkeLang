@@ -615,7 +615,7 @@ const entry = proc() -> i32 {
     Half.den
 };
 ";
-            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(153));
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(2));
         }
     }
 }
