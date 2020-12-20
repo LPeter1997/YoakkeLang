@@ -14,6 +14,7 @@ using Yoakke.Lir.Passes;
 using Yoakke.Lir.Runtime;
 using Yoakke.Lir.Status;
 using Yoakke.Lir.Values;
+using Yoakke.Reporting;
 using Yoakke.Syntax;
 using Yoakke.Syntax.Ast;
 using Yoakke.Text;
@@ -24,7 +25,7 @@ namespace Yoakke.Compiler
     {
         static void Main(string[] args)
         {
-#if true
+#if false
             var system = new DependencySystem("../../../../../stdlib");
             var symTab = system.SymbolTable;
 
@@ -110,7 +111,7 @@ namespace Yoakke.Compiler
                 }
             }
 #endif
-#else
+#elif false
             // TODO: We need to expand arguments
             // We need to refactor out expansion (and parsing) mechanism to work everywhere, not just in the main parser module
             var src = File.ReadAllText("C:/TMP/SDL2/include/SDL.h");
@@ -126,6 +127,14 @@ namespace Yoakke.Compiler
                 output.WriteLine(t.Value);
             }
             output.Close();
+#else
+            var diag = new Diagnostic
+            {
+                Severity = Severity.Error,
+                Message = "You oofed this one",
+                Code = "E0523",
+            };
+            new ConsoleDiagnosticRenderer().Render(diag);
 #endif
         }
     }
