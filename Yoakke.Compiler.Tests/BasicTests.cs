@@ -597,5 +597,25 @@ const entry = proc() -> i32 {
 ";
             TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(153));
         }
+
+        [TestMethod]
+        public void MaterializeConstantAtRuntime()
+        {
+            string src = @"
+const Frac = struct {
+    nom: i32;
+    den: i32;
+
+    const new = proc(n: i32, d: i32) -> Frac {
+        Frac{ nom = n; den = d; }
+    };
+};
+const Half = Frac.new(1, 2);
+const entry = proc() -> i32 {
+    Half.den
+};
+";
+            TestOnAllBackends<Func<Int32>>(src, Type.I32.NewValue(153));
+        }
     }
 }

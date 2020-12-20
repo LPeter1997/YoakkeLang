@@ -1,9 +1,15 @@
 
-const foo = proc() -> i32 {
-    const bar = proc() -> i32 { 153 };
-    bar()
+const Frac = struct {
+    nom: i32;
+    den: i32;
+
+    const new = proc(n: i32, d: i32) -> Frac {
+        Frac{ nom = n; den = d; }
+    };
 };
 
+const Half = Frac.new(1, 2);
+
 const main = proc() -> i32 {
-    foo()
+    Half.den
 };
