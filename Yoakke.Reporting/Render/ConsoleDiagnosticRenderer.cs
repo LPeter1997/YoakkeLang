@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Yoakke.Reporting.Info;
+using Yoakke.Text;
 
 namespace Yoakke.Reporting.Render
 {
@@ -115,12 +116,23 @@ namespace Yoakke.Reporting.Render
                 int startIndex = Math.Max(lastLineIndex == null ? 0 : lastLineIndex.Value, annotatedLineIndex - linesBefore);
                 int endIndex = Math.Min(annotatedLineIndex + linesAfter + 1, source.LineCount);
 
-                if (lastLineIndex != null && startIndex - lastLineIndex.Value > 0)
+                if (lastLineIndex != null)
                 {
-                    // The difference between the last and the current line is greater than 1, put dots between
-                    RenderLinePad(lineNumberPadding);
-                    RenderDecoration("...");
-                    Console.WriteLine();
+                    var lineDifference = startIndex - lastLineIndex.Value;
+                    if (lineDifference > 1)
+                    {
+                        // The difference between the last and the current line is greater than 1, put dots between
+                        RenderLinePad(lineNumberPadding);
+                        RenderDecoration("...");
+                        Console.WriteLine();
+                    }
+                    else if (lineDifference == 1)
+                    {
+                        // The difference between the last and the current line is exactly 1, no sense to dot it out
+                        RenderLineNumber(startIndex - 1, lineNumberPadding);
+                        RenderSourceLine(source.Line(startIndex - 1).TrimEnd().ToString(), null);
+                        Console.WriteLine();
+                    }
                 }
                 
                 lastLineIndex = endIndex;
@@ -130,9 +142,9 @@ namespace Yoakke.Reporting.Render
                     RenderLineNumber(lineIndex, lineNumberPadding);
                     // TODO: if lineIndex == startIndex, annotate
                     // NOTE: All lines have to be printed per-character to have a uniform tab-size
+                    var line = source.Line(lineIndex).TrimEnd().ToString();
                     if (lineIndex == annotatedLineIndex)
                     {
-                        var line = source.Line(lineIndex).ToString();
                         RenderSourceLine(line, info);
                         Console.WriteLine();
 
@@ -141,7 +153,7 @@ namespace Yoakke.Reporting.Render
                     }
                     else
                     {
-                        RenderSourceLine(source.Line(lineIndex).ToString(), null);
+                        RenderSourceLine(line, null);
                     }
                     Console.WriteLine();
                 }
@@ -156,10 +168,10 @@ namespace Yoakke.Reporting.Render
 
         private void RenderHint(HintDiagnosticInfo hint) => RenderText($"hint: {hint.Message}");
 
-        private void RenderSourceLine(ReadOnlySpan<char> text, SpannedDiagnosticInfo info)
+        private void RenderSourceLine(ReadOnlySpan<char> text, SpannedDiagnosticInfo? info)
         {
             Console.ForegroundColor = textColor;
-            int column = 0;
+            var lineCursor = new LineCursor();
             (int Start, int End)? highlightSpan = info is PrimaryDiagnosticInfo p ? (p.Span.Start.Column, p.Span.End.Column) : null;
             for (int i = 0; i < text.Length; ++i)
             {
@@ -169,16 +181,13 @@ namespace Yoakke.Reporting.Render
                     Console.ForegroundColor = (i >= span.Start && i < span.End) ? highlightColor : textColor;
                 }
                 char ch = text[i];
-                if (ch == '\t')
+                if (lineCursor.Append(ch, out var advance))
                 {
-                    var advance = tabSize - column % tabSize;
-                    column += advance;
                     Console.Write(new string(' ', advance));
                 }
-                else if (!char.IsControl(ch))
+                else
                 {
                     Console.Write(ch);
-                    column += 1;
                 }
             }
             Console.ResetColor();
@@ -187,22 +196,20 @@ namespace Yoakke.Reporting.Render
         private void RenderSourceLineAnnotation(ReadOnlySpan<char> text, SpannedDiagnosticInfo info)
         {
             Console.ForegroundColor = decorationColor;
-            int column = 0;
+            var lineCursor = new LineCursor();
             var isPrimary = info is PrimaryDiagnosticInfo;
             (int Start, int End) span = (info.Span.Start.Column, info.Span.End.Column);
             for (int i = 0; i < span.End; ++i)
             {
                 char ch = i >= text.Length ? ' ' : text[i];
-                if (ch == '\t')
+                var filler = (i >= span.Start && i < span.End) ? (isPrimary ? '^' : '-') : ' ';
+                if (lineCursor.Append(ch, out var advance))
                 {
-                    var advance = tabSize - column % tabSize;
-                    column += advance;
-                    Console.Write(new string((i >= span.Start && i < span.End) ? (isPrimary ? '^' : '-') : ' ', advance));
+                    Console.Write(new string(filler, advance));
                 }
-                else if (!char.IsControl(ch))
+                else
                 {
-                    Console.Write((i >= span.Start && i < span.End) ? (isPrimary ? '^' : '-') : ' ');
-                    column += 1;
+                    Console.Write(filler);
                 }
             }
             Console.ForegroundColor = isPrimary ? highlightColor : textColor;

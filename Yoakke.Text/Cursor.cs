@@ -8,7 +8,7 @@
         /// <summary>
         /// The current <see cref="Position"/>.
         /// </summary>
-        public Position Position { get; private set; }
+        public Position Position { get; set; }
 
         private bool lastReturn;
 
@@ -48,10 +48,5 @@
         {
             foreach (var c in str) Append(c);
         }
-
-        /// <summary>
-        /// Resets the <see cref="Position"/> to 0, 0.
-        /// </summary>
-        public void Reset() => Position = new Position();
     }
 }
