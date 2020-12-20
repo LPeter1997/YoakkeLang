@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Yoakke.Reporting
+namespace Yoakke.Reporting.Render
 {
     /// <summary>
     /// An <see cref="IDiagnosticRenderer"/> that prints the <see cref="Diagnostic"/> to console.

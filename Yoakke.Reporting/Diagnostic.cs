@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Yoakke.Reporting.Info;
 
 namespace Yoakke.Reporting
 {
@@ -16,12 +17,16 @@ namespace Yoakke.Reporting
         /// </summary>
         public Severity? Severity { get; set; }
         /// <summary>
+        /// The diagnosis identifier code, if there's any.
+        /// </summary>
+        public string? Code { get; set; }
+        /// <summary>
         /// The summary message of the diagnosis.
         /// </summary>
         public string? Message { get; set; }
         /// <summary>
-        /// The diagnosis identifier code, if there's any.
+        /// The information list about this <see cref="Diagnostic"/>.
         /// </summary>
-        public string? Code { get; set; }
+        public List<IDiagnosticInfo> Information { get; set; } = new List<IDiagnosticInfo>();
     }
 }

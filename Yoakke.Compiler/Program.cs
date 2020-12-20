@@ -15,6 +15,7 @@ using Yoakke.Lir.Runtime;
 using Yoakke.Lir.Status;
 using Yoakke.Lir.Values;
 using Yoakke.Reporting;
+using Yoakke.Reporting.Render;
 using Yoakke.Syntax;
 using Yoakke.Syntax.Ast;
 using Yoakke.Text;
