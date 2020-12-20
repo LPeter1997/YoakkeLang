@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net5</TargetFramework>
 	
-	<Platforms>AnyCPU;x86</Platforms>
+	  <Platforms>AnyCPU;x86</Platforms>
 	  
     <Nullable>enable</Nullable>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>

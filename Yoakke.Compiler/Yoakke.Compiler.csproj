@@ -14,7 +14,7 @@
     <ProjectReference Include="..\Yoakke.Syntax\Yoakke.Syntax.csproj" />
     <ProjectReference Include="..\Yoakke.Text\Yoakke.Text.csproj" />
     <ProjectReference Include="..\Yoakke.DataStructures\Yoakke.DataStructures.csproj" />
-	<ProjectReference Include="..\Yoakke.C.Syntax\Yoakke.C.Syntax.csproj" />
+	  <ProjectReference Include="..\Yoakke.C.Syntax\Yoakke.C.Syntax.csproj" />
   </ItemGroup>
 
 </Project>

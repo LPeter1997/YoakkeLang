@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	<OutputType>Exe</OutputType>
+	  <OutputType>Exe</OutputType>
     <TargetFramework>net5</TargetFramework>
-	<Platforms>AnyCPU;x86</Platforms>
+	  <Platforms>AnyCPU;x86</Platforms>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

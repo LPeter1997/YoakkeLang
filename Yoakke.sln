@@ -19,7 +19,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Yoakke.DataStructures.Tests
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Yoakke.Syntax", "Yoakke.Syntax\Yoakke.Syntax.csproj", "{8D16F038-C349-4424-8980-D16F165EF34C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Yoakke.C.Syntax", "Yoakke.C.Syntax\Yoakke.C.Syntax.csproj", "{D8373CEF-CA96-407B-8A15-3FA06F278CDB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Yoakke.C.Syntax", "Yoakke.C.Syntax\Yoakke.C.Syntax.csproj", "{D8373CEF-CA96-407B-8A15-3FA06F278CDB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Yoakke.Reporting", "Yoakke.Reporting\Yoakke.Reporting.csproj", "{57AE7E53-E451-411B-A6D9-F296B8B5BEB1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -101,6 +103,14 @@ Global
 		{D8373CEF-CA96-407B-8A15-3FA06F278CDB}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D8373CEF-CA96-407B-8A15-3FA06F278CDB}.Release|x86.ActiveCfg = Release|Any CPU
 		{D8373CEF-CA96-407B-8A15-3FA06F278CDB}.Release|x86.Build.0 = Release|Any CPU
+		{57AE7E53-E451-411B-A6D9-F296B8B5BEB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57AE7E53-E451-411B-A6D9-F296B8B5BEB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57AE7E53-E451-411B-A6D9-F296B8B5BEB1}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{57AE7E53-E451-411B-A6D9-F296B8B5BEB1}.Debug|x86.Build.0 = Debug|Any CPU
+		{57AE7E53-E451-411B-A6D9-F296B8B5BEB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57AE7E53-E451-411B-A6D9-F296B8B5BEB1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{57AE7E53-E451-411B-A6D9-F296B8B5BEB1}.Release|x86.ActiveCfg = Release|Any CPU
+		{57AE7E53-E451-411B-A6D9-F296B8B5BEB1}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
