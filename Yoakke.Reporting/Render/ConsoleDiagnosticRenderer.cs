@@ -115,7 +115,7 @@ namespace Yoakke.Reporting.Render
                 int startIndex = Math.Max(lastLineIndex == null ? 0 : lastLineIndex.Value, annotatedLineIndex - linesBefore);
                 int endIndex = Math.Min(annotatedLineIndex + linesAfter + 1, source.LineCount);
 
-                if (lastLineIndex != null && endIndex - lastLineIndex.Value > 1)
+                if (lastLineIndex != null && startIndex - lastLineIndex.Value > 0)
                 {
                     // The difference between the last and the current line is greater than 1, put dots between
                     RenderLinePad(lineNumberPadding);
@@ -192,7 +192,7 @@ namespace Yoakke.Reporting.Render
             (int Start, int End) span = (info.Span.Start.Column, info.Span.End.Column);
             for (int i = 0; i < span.End; ++i)
             {
-                char ch = text[i];
+                char ch = i >= text.Length ? ' ' : text[i];
                 if (ch == '\t')
                 {
                     var advance = tabSize - column % tabSize;
