@@ -35,7 +35,7 @@
             {
                 lastReturn = false;
                 // Only advance, if this is a visual character
-                if (!char.IsControl(c)) Position = Position.Advance();
+                if (!char.IsControl(c) || c == '\t') Position = Position.Advance();
             }
         }
 

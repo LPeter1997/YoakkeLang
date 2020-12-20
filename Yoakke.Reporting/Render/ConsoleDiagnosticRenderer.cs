@@ -17,6 +17,7 @@ namespace Yoakke.Reporting.Render
         private ConsoleColor textColor = ConsoleColor.White;
         private int linesBefore = 1;
         private int linesAfter = 1;
+        private int tabSize = 4;
 
         public void Render(Diagnostic diagnostic)
         {
@@ -114,19 +115,40 @@ namespace Yoakke.Reporting.Render
                     RenderLineNumber(lineIndex, lineNumberPadding);
                     // TODO: if lineIndex == startIndex, annotate
                     // NOTE: All lines have to be printed per-character to have a uniform tab-size
-                    RenderText(source.Line(lineIndex).TrimEnd().ToString());
+                    RenderSourceLine(source.Line(lineIndex).ToString());
                     Console.WriteLine();
                 }
             }
         }
 
         private void RenderLinePad(string lineNumberPadding) =>
-            RenderDecoration($"{lineNumberPadding} │");
+            RenderDecoration($"{lineNumberPadding} │ ");
 
         private void RenderLineNumber(int lineIndex, string lineNumberPadding) =>
-            RenderDecoration($"{(lineIndex + 1).ToString().PadLeft(lineNumberPadding.Length)} │");
+            RenderDecoration($"{(lineIndex + 1).ToString().PadLeft(lineNumberPadding.Length)} │ ");
 
         private void RenderHint(HintDiagnosticInfo hint) => RenderText($"hint: {hint.Message}");
+
+        private void RenderSourceLine(ReadOnlySpan<char> span)
+        {
+            Console.ForegroundColor = textColor;
+            int column = 0;
+            foreach (var ch in span)
+            {
+                if (ch == '\t')
+                {
+                    var advance = tabSize - column % tabSize;
+                    column += advance;
+                    Console.Write(new string(' ', advance));
+                }
+                else if (!char.IsControl(ch))
+                {
+                    Console.Write(ch);
+                    column += 1;
+                }
+            }
+            Console.ResetColor();
+        }
 
         private void RenderText(string msg)
         {

@@ -136,7 +136,7 @@ const Frac = struct {
     nom: i32;
     den: i32;
 
-    const new = proc(n: i32, d: i32) -> Frac {
+	const new = proc(n: i32, d: i32) -> Frac {
         Frac{ nom = n; den = d; }
     };
 };
@@ -147,6 +147,11 @@ const main = proc() -> i32 {
     Half.den
 };
 ");
+
+            //for (int i = 0; i < src.LineCount; ++i)
+            //{
+            //    Console.WriteLine($"line {i}: {src.Line(i).ToString()}");
+            //}
 
             var diag = new Diagnostic
             {
