@@ -9,6 +9,21 @@ using Yoakke.Text;
 
 namespace Yoakke.Reporting.Render
 {
+    // NOTE: Many improvements can be made, like discarding empty lines on ... edges or the edges of the whole
+    // Example:
+    //  2 | 
+    //  3 | hello
+    //  4 |
+    //    | ...
+    //  8 |
+    //  9 | bye
+    // 10 | 
+    //
+    // Could be shortened into
+    //  3 | hello
+    //    | ...
+    //  9 | bye
+
     /// <summary>
     /// An <see cref="IDiagnosticRenderer"/> that prints the <see cref="Diagnostic"/> to console.
     /// </summary>
