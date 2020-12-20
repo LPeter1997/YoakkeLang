@@ -23,6 +23,9 @@ namespace Yoakke.Reporting.Render
     //  3 | hello
     //    | ...
     //  9 | bye
+    //
+    // We could achieve this by splitting all the lines into continuous groups that are separated by '...' and then
+    // trimming the edges.
 
     /// <summary>
     /// An <see cref="IDiagnosticRenderer"/> that prints the <see cref="Diagnostic"/> to console.
