@@ -42,7 +42,7 @@ namespace Yoakke.Syntax.Error
         public Diagnostic GetDiagnostic() => new Diagnostic
         {
             Severity = Severity.Error,
-            Message = Context == null ? "Syntax error!" : $"Syntax error while parsing {Context}!",
+            Message = Context == null ? "Syntax error" : $"Syntax error while parsing {Context}",
             Information =
             {
                 new PrimaryDiagnosticInfo
@@ -51,7 +51,7 @@ namespace Yoakke.Syntax.Error
                     Span = Expected.All(IsTerminatorToken) && Prev != null 
                         ? new Span(Prev.Span.Source, Prev.Span.End, 1)
                         : Got.Span,
-                    Message = $"expected {string.Join("or", Expected)}!",
+                    Message = $"expected {string.Join("or", Expected.Select(tt => tt.ToText()))}",
                 },
             },
         };

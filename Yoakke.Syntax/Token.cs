@@ -291,4 +291,37 @@ namespace Yoakke.Syntax
         /// </summary>
         KwReturn,
     }
+
+    public static class TokenTypeExtensions
+    {
+        private static readonly string[] tokenTextLut =
+        {
+            "unknown",
+            "end of file",
+
+            "line comment",
+
+            "(", ")", "{", "}", "[", "]",
+            ".", ",", ":", ";", "->",
+
+            "=", 
+            "+", "-", "*", "/", "%",
+            ">", "<", ">=", "<=", "==", "!=",
+            "&&", "||", "!", "&", "|", "^", "~",
+            "<<", ">>",
+            
+            "+=", "-=", "*=", "/=", "%=",
+
+            "identifier", "integer literal", "string literal",
+
+            "proc", "const", "struct", "true", "false", "if", "else", "while", "var", "return",
+        };
+
+        /// <summary>
+        /// Creates a textual representation of a <see cref="TokenType"/>.
+        /// </summary>
+        /// <param name="tt">The <see cref="TokenType"/> to textualize.</param>
+        /// <returns>The text representation of the <see cref="TokenType"/>.</returns>
+        public static string ToText(this TokenType tt) => tokenTextLut[(int)tt];
+    }
 }
