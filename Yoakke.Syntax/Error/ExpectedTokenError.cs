@@ -51,7 +51,7 @@ namespace Yoakke.Syntax.Error
                     Span = Expected.All(IsTerminatorToken) && Prev != null 
                         ? new Span(Prev.Span.Source, Prev.Span.End, 1)
                         : Got.Span,
-                    Message = $"expected {string.Join("or", Expected.Select(tt => tt.ToText()))}",
+                    Message = $"expected {string.Join(" or ", Expected.Select(tt => tt.ToText()))}",
                 },
             },
         };

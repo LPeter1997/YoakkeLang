@@ -125,8 +125,12 @@ namespace Yoakke.Syntax
                     continue;
                 }
                 // Error, unexpected
-                // TODO: Report error
-                throw new NotImplementedException();
+                Status.Report(new ExpectedTokenError(
+                    new TokenType[] { TokenType.KwVar, TokenType.KwConst },
+                    lastToken,
+                    Peek(),
+                    "top level declaration"));
+                Next();
             }
             // We need to append any remaining free comments
             if (lastComments.Count > 0)
