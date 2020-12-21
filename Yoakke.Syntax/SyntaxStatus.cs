@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Yoakke.Syntax.Error;
 
 namespace Yoakke.Syntax
 {

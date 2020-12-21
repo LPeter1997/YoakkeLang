@@ -27,7 +27,7 @@ namespace Yoakke.Compiler
     {
         static void Main(string[] args)
         {
-#if false
+#if true
             var system = new DependencySystem("../../../../../stdlib");
             var symTab = system.SymbolTable;
 
@@ -47,7 +47,17 @@ namespace Yoakke.Compiler
                     new Lir.Types.Type.Proc(Lir.CallConv.Cdecl, Lir.Types.Type.I32, new ValueList<Lir.Types.Type> { Lir.Types.Type.I32 }),
                     "libucrt.lib"));*/
 
-            var ast = system.LoadAst(@"../../../../../samples/test.yk");
+            var syntaxStatus = new SyntaxStatus();
+            var ast = system.LoadAst(@"../../../../../samples/test.yk", syntaxStatus);
+            if (syntaxStatus.Errors.Count > 0)
+            {
+                var cr = new ConsoleDiagnosticRenderer();
+                foreach (var err in syntaxStatus.Errors)
+                {
+                    cr.Render(err.GetDiagnostic());
+                }
+                return;
+            }
 
             //Console.WriteLine(prg.Dump());
             //Console.WriteLine(ast.Dump());
@@ -113,7 +123,7 @@ namespace Yoakke.Compiler
                 }
             }
 #endif
-#elif false
+#elif true
             // TODO: We need to expand arguments
             // We need to refactor out expansion (and parsing) mechanism to work everywhere, not just in the main parser module
             var src = File.ReadAllText("C:/TMP/SDL2/include/SDL.h");

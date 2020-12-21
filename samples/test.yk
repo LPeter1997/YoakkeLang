@@ -11,5 +11,6 @@ const Frac = struct {
 const Half = Frac.new(1, 2);
 
 const main = proc() -> i32 {
-    Half.den
+    var a = "hello
+    ;Half.den
 };

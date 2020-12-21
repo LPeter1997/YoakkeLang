@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Yoakke.Syntax.Error;
 using Yoakke.Text;
 
 namespace Yoakke.Syntax
@@ -185,11 +186,11 @@ namespace Yoakke.Syntax
                 while (true)
                 {
                     var peek = Peek(len);
-                    if (peek == '\0')
+                    if (peek == '\0' || peek == '\r' || peek == '\n')
                     {
                         // Unclosed token, report an error
                         var tok = MakeToken(TokenType.StringLiteral, len);
-                        Status.Report(new UnclosedTokenError(tok, "\""));
+                        Status.Report(new UnterminatedTokenError(tok, "\""));
                         return tok;
                     }
                     if (peek == '"') break;
@@ -242,30 +243,5 @@ namespace Yoakke.Syntax
 
         private static bool IsIdent(char ch) =>
             char.IsLetterOrDigit(ch) || ch == '_';
-    }
-
-    /// <summary>
-    /// An error for a token that was missing it's closing delimiter, like an ending quote for
-    /// strings.
-    /// </summary>
-    public class UnclosedTokenError : ISyntaxError
-    {
-        /// <summary>
-        /// The lexed token.
-        /// </summary>
-        public readonly Token Token;
-        /// <summary>
-        /// The expected closing delimiter.
-        /// </summary>
-        public readonly string Close;
-
-        public UnclosedTokenError(Token token, string close)
-        {
-            Token = token;
-            Close = close;
-        }
-
-        public string GetErrorMessage() => 
-            $"Unclosed {Token.Type}! Expected {Close} at the end!";
     }
 }

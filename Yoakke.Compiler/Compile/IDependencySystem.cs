@@ -21,7 +21,7 @@ namespace Yoakke.Compiler.Compile
         public Builder Builder { get; }
         public TypeTranslator TypeTranslator { get; }
 
-        public Declaration.File LoadAst(string path);
+        public Declaration.File LoadAst(string path, SyntaxStatus syntaxStatus);
 
         public Assembly? Compile(Declaration.File file, BuildStatus status);
         public void TypeCheck(Node node);

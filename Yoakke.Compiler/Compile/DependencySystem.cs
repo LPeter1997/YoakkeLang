@@ -49,19 +49,19 @@ namespace Yoakke.Compiler.Compile
             SymbolTable.DefineBuiltinPrimitives();
             // Load prelude
             {
-                var preludeAst = LoadAst("prelude.yk");
+                // TODO: syntax status?
+                var preludeAst = LoadAst("prelude.yk", new SyntaxStatus());
                 SymbolResolution.Resolve(SymbolTable, preludeAst);
             }
             SymbolTable.DefineBuiltinIntrinsics();
         }
 
-        public Declaration.File LoadAst(string path)
+        public Declaration.File LoadAst(string path, SyntaxStatus syntaxStatus)
         {
             path = GetFilePath(path);
             // To AST
             var src = File.ReadAllText(path);
             var srcFile = new SourceFile(path, src);
-            var syntaxStatus = new SyntaxStatus();
             var tokens = Lexer.Lex(srcFile, syntaxStatus);
             var parser = new Parser(tokens, syntaxStatus);
             var prg = parser.ParseFile();
@@ -193,7 +193,8 @@ namespace Yoakke.Compiler.Compile
             SymbolTable.DefineBuiltinPrimitives();
             // Load prelude
             {
-                var preludeAst = LoadAst("prelude.yk");
+                // TODO: Syntax status?
+                var preludeAst = LoadAst("prelude.yk", new Syntax.SyntaxStatus());
                 SymbolResolution.Resolve(SymbolTable, preludeAst);
             }
             SymbolTable.DefineBuiltinIntrinsics();
