@@ -42,7 +42,7 @@ namespace Yoakke.Syntax.Error
         public Diagnostic GetDiagnostic() => new Diagnostic
         {
             Severity = Severity.Error,
-            Message = Context == null ? "Syntax error" : $"Syntax error while parsing {Context}",
+            Message = Context == null ? "Syntax error" : $"syntax error while parsing {Context}",
             Information =
             {
                 new PrimaryDiagnosticInfo
