@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,16 +29,38 @@ namespace Yoakke.Reporting.Render
     // trimming the edges.
 
     /// <summary>
-    /// An <see cref="IDiagnosticRenderer"/> that prints the <see cref="Diagnostic"/> to console.
+    /// An <see cref="IDiagnosticRenderer"/> that prints the <see cref="Diagnostic"/> as text.
     /// </summary>
-    public class ConsoleDiagnosticRenderer : IDiagnosticRenderer
+    public class TextDiagnosticRenderer : IDiagnosticRenderer
     {
+        /// <summary>
+        /// The <see cref="TextWriter"/> this renderer writes to.
+        /// </summary>
+        public TextWriter Writer { get; }
+
         private ConsoleColor decorationColor = ConsoleColor.Gray;
         private ConsoleColor textColor = ConsoleColor.White;
         private ConsoleColor highlightColor = ConsoleColor.Red;
         private int linesBefore = 1;
         private int linesAfter = 1;
         private int tabSize = 4;
+
+        /// <summary>
+        /// Initializes a new <see cref="TextDiagnosticRenderer"/>.
+        /// </summary>
+        /// <param name="writer">The <see cref="TextWriter"/> to write to.</param>
+        public TextDiagnosticRenderer(TextWriter writer)
+        {
+            Writer = writer;
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="TextDiagnosticRenderer"/> to write to stderr.
+        /// </summary>
+        public TextDiagnosticRenderer()
+            : this(Console.Error)
+        {
+        }
 
         public void Render(Diagnostic diagnostic)
         {

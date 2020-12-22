@@ -51,7 +51,7 @@ namespace Yoakke.Compiler
             var ast = system.LoadAst(@"../../../../../samples/test.yk", syntaxStatus);
             if (syntaxStatus.Errors.Count > 0)
             {
-                var cr = new ConsoleDiagnosticRenderer();
+                var cr = new TextDiagnosticRenderer();
                 foreach (var err in syntaxStatus.Errors)
                 {
                     cr.Render(err.GetDiagnostic());
