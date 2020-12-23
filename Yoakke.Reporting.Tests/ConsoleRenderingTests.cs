@@ -42,7 +42,8 @@ some other line");
 3 │ this is a line of text
   │           ^^^^ some annotation
 4 │ next line
-  │", result.ToString());
+  │
+", result.ToString());
         }
     }
 }

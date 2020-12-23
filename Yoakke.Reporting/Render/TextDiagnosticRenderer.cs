@@ -37,13 +37,14 @@ namespace Yoakke.Reporting.Render
         /// The <see cref="TextWriter"/> this renderer writes to.
         /// </summary>
         public TextWriter Writer { get; }
-
-        private ConsoleColor decorationColor = ConsoleColor.Gray;
-        private ConsoleColor textColor = ConsoleColor.White;
-        private ConsoleColor highlightColor = ConsoleColor.Red;
-        private int linesBefore = 1;
-        private int linesAfter = 1;
-        private int tabSize = 4;
+        /// <summary>
+        /// How many lines to print before and after the relevant lines.
+        /// </summary>
+        public int SurroundingLines { get; set; } = 1;
+        /// <summary>
+        /// The tab size to use in spaces.
+        /// </summary>
+        public int TabSize { get; set; }
 
         /// <summary>
         /// Initializes a new <see cref="TextDiagnosticRenderer"/>.
