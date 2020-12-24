@@ -43,6 +43,7 @@ namespace Yoakke.Reporting.Render
         private class DotLine : LinePrimitive { }
         private class AnnotationLine : LinePrimitive
         {
+            public int AnnotatedLine { get; set; }
             public IEnumerable<SpannedDiagnosticInfo> Annotations { get; set; }
         }
 
@@ -142,7 +143,24 @@ namespace Yoakke.Reporting.Render
             buffer.WriteLine($"{lineNumberPadding} ┌─ {sourceFile.Path}");
             // Pad lines
             buffer.WriteLine($"{lineNumberPadding} │");
-            // TODO: Print annotated lines
+            // Print all the line primitives
+            foreach (var line in linePrimitives)
+            {
+                switch (line)
+                {
+                case SourceLine sourceLine:
+                    buffer.WriteLine($"{(sourceLine.Line + 1).ToString().PadLeft(lineNumberPadding.Length)} │");
+                    break;
+
+                case AnnotationLine annotation:
+                    buffer.WriteLine($"{lineNumberPadding} │");
+                    break;
+
+                case DotLine dotLine:
+                    buffer.WriteLine($"{lineNumberPadding} │ ...");
+                    break;
+                }
+            }
             // Pad lines
             buffer.WriteLine($"{lineNumberPadding} │");
         }
@@ -187,7 +205,7 @@ namespace Yoakke.Reporting.Render
                 {
                     yield return new SourceLine { Source = sourceFile, Line = i };
                     // If this was an annotated line, yield the annotation
-                    if (i == infoGroup.Key) yield return new AnnotationLine { Annotations = infoGroup };
+                    if (i == infoGroup.Key) yield return new AnnotationLine { AnnotatedLine = i, Annotations = infoGroup };
                 }
             }
         }
