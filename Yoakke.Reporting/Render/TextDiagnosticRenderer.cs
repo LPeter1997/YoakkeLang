@@ -55,6 +55,10 @@ namespace Yoakke.Reporting.Render
         /// </summary>
         public int SurroundingLines { get; set; } = 1;
         /// <summary>
+        /// How big of a gap can we connect up between annotated lines.
+        /// </summary>
+        public int ConnectUpLines { get; set; } = 1;
+        /// <summary>
         /// The tab size to use in spaces.
         /// </summary>
         public int TabSize { get; set; }
@@ -95,7 +99,7 @@ namespace Yoakke.Reporting.Render
                 .GroupBy(si => si.Span.Source);
 
             // Print each group
-            foreach (var group in spannedInfo) RenderSpannedGroup(group.Key, group);
+            foreach (var group in spannedInfo) RenderSpannedGroup(group);
 
             // Finally we print any hints
             var hints = diagnostic.Information.OfType<HintDiagnosticInfo>();
@@ -122,12 +126,17 @@ namespace Yoakke.Reporting.Render
         }
 
         // Spanned infos related to a single file
-        private void RenderSpannedGroup(SourceFile? sourceFile, IEnumerable<SpannedDiagnosticInfo> infos)
+        private void RenderSpannedGroup(IEnumerable<SpannedDiagnosticInfo> infos)
         {
+            var sourceFile = infos.First().Span.Source;
             Debug.Assert(sourceFile != null);
 
+            // Generate all line primitives
+            var linePrimitives = CollectLinesToRender(infos).ToList();
+            // Find the largest line index printed
+            var maxLineIndex = linePrimitives.OfType<SourceLine>().Select(l => l.Line).Max();
             // Create a padding to fit all line numbers from the largest of the group
-            var lineNumberPadding = new string(' ', (infos.Last().Span.End.Line + 1).ToString().Length);
+            var lineNumberPadding = new string(' ', (maxLineIndex + 1).ToString().Length);
 
             // Print the ┌─ <file name>
             buffer.WriteLine($"{lineNumberPadding} ┌─ {sourceFile.Path}");
@@ -158,19 +167,28 @@ namespace Yoakke.Reporting.Render
                 if (lastLineIndex != null)
                 {
                     var difference = minLineIndex - lastLineIndex.Value;
-                    if (difference == 1)
+                    if (difference <= ConnectUpLines)
                     {
-                        // Difference is exactly one, no reason to dot it out
-                        yield return new SourceLine { Source = sourceFile, Line = lastLineIndex.Value };
+                        // Difference is negligible, connect them up, no reason to dot it out
+                        for (int i = 0; i < ConnectUpLines; ++i)
+                        {
+                            yield return new SourceLine { Source = sourceFile, Line = lastLineIndex.Value + i };
+                        }
                     }
-                    else if (difference > 1)
+                    else
                     {
                         // Bigger difference, dot out
                         yield return new DotLine { };
                     }
                 }
                 lastLineIndex = maxLineIndex;
-
+                // Now we need to print all the relevant lines
+                for (int i = minLineIndex; i < maxLineIndex; ++i)
+                {
+                    yield return new SourceLine { Source = sourceFile, Line = i };
+                    // If this was an annotated line, yield the annotation
+                    if (i == infoGroup.Key) yield return new AnnotationLine { Annotations = infoGroup };
+                }
             }
         }
 
