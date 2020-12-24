@@ -68,6 +68,12 @@ namespace Yoakke.Reporting.Detail
             CursorY += 1;
         }
 
+        public void WriteLine(string str)
+        {
+            Write(str);
+            WriteLine();
+        }
+
         public void Fill(int left, int top, int width, int height, char ch)
         {
             for (int j = 0; j < height; ++j)

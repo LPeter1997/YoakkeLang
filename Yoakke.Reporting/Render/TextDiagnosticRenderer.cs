@@ -81,8 +81,9 @@ namespace Yoakke.Reporting.Render
                 .OfType<SpannedDiagnosticInfo>()
                 .OrderBy(si => si.Span.Start)
                 .GroupBy(si => si.Span.Source);
-            
 
+            // Print each group
+            foreach (var group in spannedInfo) RenderSpannedGroup(group.Key, group);
 
             // Finally we print any hints
             var hints = diagnostic.Information.OfType<HintDiagnosticInfo>();
@@ -108,6 +109,22 @@ namespace Yoakke.Reporting.Render
             buffer.WriteLine();
         }
 
-        private void RenderHint(HintDiagnosticInfo hint) => buffer.Write($"hint: {hint.Message}");
+        private void RenderSpannedGroup(SourceFile? sourceFile, IEnumerable<SpannedDiagnosticInfo> infos)
+        {
+            Debug.Assert(sourceFile != null);
+
+            // Create a padding to fit all line numbers from the largest of the group
+            var lineNumberPadding = new string(' ', (infos.Last().Span.End.Line + 1).ToString().Length);
+
+            // Print the ┌─ <file name>
+            buffer.WriteLine($"{lineNumberPadding} ┌─ {sourceFile.Path}");
+            // Pad lines
+            buffer.WriteLine($"{lineNumberPadding} │");
+            // TODO: Print annotated lines
+            // Pad lines
+            buffer.WriteLine($"{lineNumberPadding} │");
+        }
+
+        private void RenderHint(HintDiagnosticInfo hint) => buffer.WriteLine($"hint: {hint.Message}");
     }
 }
