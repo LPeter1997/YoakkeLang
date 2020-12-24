@@ -27,7 +27,7 @@ namespace Yoakke.Compiler
     {
         static void Main(string[] args)
         {
-#if true
+#if false
             var system = new DependencySystem("../../../../../stdlib");
             var symTab = system.SymbolTable;
 
@@ -123,7 +123,7 @@ namespace Yoakke.Compiler
                 }
             }
 #endif
-#elif true
+#elif false
             // TODO: We need to expand arguments
             // We need to refactor out expansion (and parsing) mechanism to work everywhere, not just in the main parser module
             var src = File.ReadAllText("C:/TMP/SDL2/include/SDL.h");
@@ -186,7 +186,7 @@ const main = proc() -> i32 {
                     },
                 },
             };
-            new ConsoleDiagnosticRenderer().Render(diag);
+            new TextDiagnosticRenderer().Render(diag);
 #endif
         }
     }

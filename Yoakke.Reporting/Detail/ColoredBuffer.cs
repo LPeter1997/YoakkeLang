@@ -17,8 +17,24 @@ namespace Yoakke.Reporting.Detail
 
         public ConsoleColor ForegroundColor { get; set; }
         public ConsoleColor BackgroundColor { get; set; }
+        public int CursorX { get; set; }
+        public int CursorY { get; set; }
 
         private List<Line> lines = new List<Line>();
+
+        public void Clear()
+        {
+            CursorX = 0;
+            CursorY = 0;
+            ResetColor();
+            lines.Clear();
+        }
+
+        public void ResetColor()
+        {
+            ForegroundColor = Console.ForegroundColor;
+            BackgroundColor = Console.BackgroundColor;
+        }
 
         public void Plot(int x, int y, char ch)
         {
@@ -26,6 +42,8 @@ namespace Yoakke.Reporting.Detail
             var line = lines[y];
             line.Text[x] = ch;
             line.Color[x] = (ForegroundColor, BackgroundColor);
+            CursorX = x + 1;
+            CursorY = y;
         }
 
         public void WriteAt(int left, int top, string str)
@@ -37,6 +55,17 @@ namespace Yoakke.Reporting.Detail
                 line.Text[left + i] = str[i];
                 line.Color[left + i] = (ForegroundColor, BackgroundColor);
             }
+            CursorX = left + str.Length;
+            CursorY = top;
+        }
+
+        public void Write(char ch) => Plot(CursorX, CursorY, ch);
+        public void Write(string str) => WriteAt(CursorX, CursorY, str);
+
+        public void WriteLine()
+        {
+            CursorX = 0;
+            CursorY += 1;
         }
 
         public void Fill(int left, int top, int width, int height, char ch)
@@ -53,6 +82,8 @@ namespace Yoakke.Reporting.Detail
                     line.Color[xp] = (ForegroundColor, BackgroundColor);
                 }
             }
+            CursorX = left + width;
+            CursorY = top + height - 1;
         }
 
         public void Recolor(int left, int top, int width, int height)
