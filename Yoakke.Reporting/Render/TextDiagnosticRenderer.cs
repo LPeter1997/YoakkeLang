@@ -34,6 +34,18 @@ namespace Yoakke.Reporting.Render
     /// </summary>
     public class TextDiagnosticRenderer : IDiagnosticRenderer
     {
+        private abstract class LinePrimitive { }
+        private class SourceLine : LinePrimitive 
+        {
+            public SourceFile Source { get; set; }
+            public int Line { get; set; }
+        }
+        private class DotLine : LinePrimitive { }
+        private class AnnotationLine : LinePrimitive
+        {
+            public IEnumerable<SpannedDiagnosticInfo> Annotations { get; set; }
+        }
+
         /// <summary>
         /// The <see cref="TextWriter"/> this renderer writes to.
         /// </summary>
@@ -109,6 +121,7 @@ namespace Yoakke.Reporting.Render
             buffer.WriteLine();
         }
 
+        // Spanned infos related to a single file
         private void RenderSpannedGroup(SourceFile? sourceFile, IEnumerable<SpannedDiagnosticInfo> infos)
         {
             Debug.Assert(sourceFile != null);
@@ -123,6 +136,42 @@ namespace Yoakke.Reporting.Render
             // TODO: Print annotated lines
             // Pad lines
             buffer.WriteLine($"{lineNumberPadding} │");
+        }
+
+        // Collects all the line subgroups
+        private IEnumerable<LinePrimitive> CollectLinesToRender(IEnumerable<SpannedDiagnosticInfo> infos)
+        {
+            // We need to group the spanned informations per line
+            var groupedInfos = infos.GroupBy(si => si.Span.Start.Line);
+            var sourceFile = infos.First().Span.Source;
+            Debug.Assert(sourceFile != null);
+
+            // Now we collect each line primitive
+            int? lastLineIndex = null;
+            foreach (var infoGroup in groupedInfos)
+            {
+                // First we determine the range we need to print for this info
+                var currentLineIndex = infoGroup.Key;
+                var minLineIndex = Math.Max(lastLineIndex ?? 0, currentLineIndex - SurroundingLines);
+                var maxLineIndex = Math.Min(sourceFile.LineCount, currentLineIndex + SurroundingLines);
+                // Determine if we need dotting or a line in between
+                if (lastLineIndex != null)
+                {
+                    var difference = minLineIndex - lastLineIndex.Value;
+                    if (difference == 1)
+                    {
+                        // Difference is exactly one, no reason to dot it out
+                        yield return new SourceLine { Source = sourceFile, Line = lastLineIndex.Value };
+                    }
+                    else if (difference > 1)
+                    {
+                        // Bigger difference, dot out
+                        yield return new DotLine { };
+                    }
+                }
+                lastLineIndex = maxLineIndex;
+
+            }
         }
 
         private void RenderHint(HintDiagnosticInfo hint) => buffer.WriteLine($"hint: {hint.Message}");
