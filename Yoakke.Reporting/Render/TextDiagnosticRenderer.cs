@@ -63,6 +63,10 @@ namespace Yoakke.Reporting.Render
         /// The tab size to use in spaces.
         /// </summary>
         public int TabSize { get; set; } = 4;
+        /// <summary>
+        /// The <see cref="ISyntaxHighlighter"/> to use for the source code.
+        /// </summary>
+        public ISyntaxHighlighter SyntaxHighlighter { get; set; } = new NullSyntaxHighlighter();
 
         private ColoredBuffer buffer;
 
@@ -169,6 +173,8 @@ namespace Yoakke.Reporting.Render
 
         private void RenderSourceLine(SourceLine sourceLine)
         {
+            // Print the source line with a default color
+            buffer.ForegroundColor = ConsoleColor.White;
             var line = sourceLine.Source.Line(sourceLine.Line);
             var lineCur = new LineCursor { TabSize = TabSize };
             foreach (var ch in line)
@@ -177,6 +183,18 @@ namespace Yoakke.Reporting.Render
                 if (lineCur.Append(ch, out var advance)) buffer.CursorX += advance;
                 else buffer.Write(ch);
             }
+            // Do syntax highlighting, if needed
+            var tokenInfo = SyntaxHighlighter.GetHighlightingForLine(sourceLine.Source, sourceLine.Line);
+            if (tokenInfo.Any())
+            {
+                // There are tokens to highlight, do it
+                var tokenInfoList = tokenInfo.OrderBy(ti => ti.StartIndex).ToList();
+                foreach (var token in tokenInfoList)
+                {
+                    // TODO
+                }
+            }
+            buffer.ResetColor();
         }
 
         private void RenderAnnotationLines(AnnotationLine annotationLine, string prefix)
