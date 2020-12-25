@@ -33,13 +33,18 @@ namespace Yoakke.Syntax.Error
         public Diagnostic GetDiagnostic() => new Diagnostic
         {
             Severity = Severity.Error,
-            Message = $"Unterminated {Token.Type}!",
+            Message = $"Unterminated {Token.Type.ToText()}!",
             Information =
             {
-                new PrimaryDiagnosticInfo
+                new SpannedDiagnosticInfo
                 { 
                     Span = new Span(Token.Span.Source, Token.Span.Start, 1),
                     Message = "starting here",
+                },
+                new PrimaryDiagnosticInfo
+                {
+                    Span = new Span(Token.Span.Source, Token.Span.End, 1),
+                    Message = $"missing {Close} here",
                 },
             },
         };

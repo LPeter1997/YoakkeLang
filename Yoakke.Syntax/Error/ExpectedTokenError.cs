@@ -29,32 +29,47 @@ namespace Yoakke.Syntax.Error
         /// <summary>
         /// The name of the parsed construct for hinting.
         /// </summary>
-        public readonly string? Context;
+        public string? Context { get; set; }
+        /// <summary>
+        /// If this is a token that comes in pair, then the starting <see cref="Token"/>, null otherwise.
+        /// </summary>
+        public Token? Starting { get; set; }
 
-        public ExpectedTokenError(IEnumerable<TokenType> expected, Token? prev, Token got, string? context)
+        public ExpectedTokenError(IEnumerable<TokenType> expected, Token? prev, Token got)
         {
             Expected = expected;
             Prev = prev;
             Got = got;
-            Context = context;
         }
 
-        public Diagnostic GetDiagnostic() => new Diagnostic
+        public Diagnostic GetDiagnostic()
         {
-            Severity = Severity.Error,
-            Message = Context == null ? "Syntax error" : $"syntax error while parsing {Context}",
-            Information =
+            var diag = new Diagnostic
             {
-                new PrimaryDiagnosticInfo
+                Severity = Severity.Error,
+                Message = Context == null ? "Syntax error" : $"syntax error while parsing {Context}",
+                Information =
                 {
-                    // For terminator tokens we show the end of the prev. token
-                    Span = Expected.All(IsTerminatorToken) && Prev != null 
-                        ? new Span(Prev.Span.Source, Prev.Span.End, 1)
-                        : Got.Span,
-                    Message = $"expected {string.Join(" or ", Expected.Select(tt => tt.ToText()))}",
+                    new PrimaryDiagnosticInfo
+                    {
+                        // For terminator tokens we show the end of the prev. token
+                        Span = Expected.All(IsTerminatorToken) && Prev != null
+                            ? new Span(Prev.Span.Source, Prev.Span.End, 1)
+                            : Got.Span,
+                        Message = $"expected {string.Join(" or ", Expected.Select(tt => tt.ToText()))} here",
+                    },
                 },
-            },
-        };
+            };
+            if (Starting != null)
+            {
+                diag.Information.Add(new SpannedDiagnosticInfo
+                {
+                    Message = $"matching {Starting.Value} is here",
+                    Span = Starting.Span,
+                });
+            }
+            return diag;
+        }
 
         private static bool IsTerminatorToken(TokenType tt) =>
                tt == TokenType.Semicolon 

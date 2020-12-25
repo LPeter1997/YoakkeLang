@@ -10,6 +10,7 @@ using Yoakke.Text;
 namespace Yoakke.Syntax
 {
     // TODO: We can rewrite with PeekBuffer!
+    // TODO: Expect kinda has a lot of parameters, can we make it nicer?
 
     /// <summary>
     /// The parser that converts a sequence of tokens into a parse tree.
@@ -128,8 +129,7 @@ namespace Yoakke.Syntax
                 Status.Report(new ExpectedTokenError(
                     new TokenType[] { TokenType.KwVar, TokenType.KwConst },
                     lastToken,
-                    Peek(),
-                    "top level declaration"));
+                    Peek()) { Context = "top level declaration" });
                 Next();
             }
             // We need to append any remaining free comments
@@ -154,9 +154,9 @@ namespace Yoakke.Syntax
 
         private Declaration.Definition ParseDefinition()
         {
-            var keyword = Expect(null, TokenType.KwConst, TokenType.KwVar);
+            var keyword = Expect(null, null, TokenType.KwConst, TokenType.KwVar);
             var doc = GetDocComment(keyword);
-            var name = Expect("declaration statement", TokenType.Identifier);
+            var name = Expect("declaration statement", null, TokenType.Identifier);
             // : <type>
             Expression? type = null;
             if (Match(TokenType.Colon, out var colon))
@@ -175,7 +175,7 @@ namespace Yoakke.Syntax
                 throw new NotImplementedException();
             }
             // Semicolon and line comment
-            var semicolon = Expect("declaration statement", TokenType.Semicolon);
+            var semicolon = Expect("declaration statement", null, TokenType.Semicolon);
             var lineComment = GetLineComment(semicolon);
             // We are done
             return new Declaration.Definition(
@@ -211,13 +211,13 @@ namespace Yoakke.Syntax
 
         private Statement ParseReturnStatement()
         {
-            var ret = Expect(null, TokenType.KwReturn);
+            var ret = Expect(null, null, TokenType.KwReturn);
             Expression? value = null;
             if (Peek().Type != TokenType.Semicolon)
             {
                 value = ParseExpression(ExprState.None);
             }
-            var semicolon = Expect("return statement", TokenType.Semicolon);
+            var semicolon = Expect("return statement", null, TokenType.Semicolon);
             return new Statement.Return(ret, value, semicolon);
         }
 
@@ -279,10 +279,10 @@ namespace Yoakke.Syntax
             }
             else if (peek.Type == TokenType.OpenBracket)
             {
-                var openBracket = Expect(null, TokenType.OpenBracket);
+                var openBracket = Expect(null, null, TokenType.OpenBracket);
                 // Array type expression
                 var length = ParseExpression(ExprState.None);
-                var closeBracket = Expect("array type expression", TokenType.CloseBracket);
+                var closeBracket = Expect("array type expression", openBracket, TokenType.CloseBracket);
                 var elementType = ParsePrefixExpression(state);
                 return new Expression.ArrayType(openBracket, length, closeBracket, elementType);
             }
@@ -305,7 +305,7 @@ namespace Yoakke.Syntax
                 }
                 else if (peek.Type == TokenType.OpenParen)
                 {
-                    var openParen = Expect(null, TokenType.OpenParen);
+                    var openParen = Expect(null, null, TokenType.OpenParen);
                     // Call expression
                     var args = new List<WithComma<Expression>>();
                     while (Peek().Type != TokenType.CloseParen)
@@ -315,15 +315,15 @@ namespace Yoakke.Syntax
                         args.Add(new WithComma<Expression>(arg, comma));
                         if (!hasComma) break;
                     }
-                    var closeParen = Expect("call expression", TokenType.CloseParen);
+                    var closeParen = Expect("call expression", openParen, TokenType.CloseParen);
                     result = new Expression.Call(result, openParen, args, closeParen);
                 }
                 else if (peek.Type == TokenType.OpenBracket)
                 {
-                    var openBracket = Expect(null, TokenType.OpenBracket);
+                    var openBracket = Expect(null, null, TokenType.OpenBracket);
                     // Subscript expression
                     var index = ParseExpression(ExprState.None);
-                    var closeBracket = Expect("subscript expression", TokenType.CloseBracket);
+                    var closeBracket = Expect("subscript expression", openBracket, TokenType.CloseBracket);
                     result = new Expression.Subscript(result, openBracket, index, closeBracket);
                 }
                 else if (!state.HasFlag(ExprState.TypeOnly)
@@ -331,20 +331,20 @@ namespace Yoakke.Syntax
                       && peek.Type == TokenType.OpenBrace)
                 {
                     // Struct instantiation
-                    var openBrace = Expect(null, TokenType.OpenBrace);
+                    var openBrace = Expect(null, null, TokenType.OpenBrace);
                     var fields = new List<Expression.StructValue.Field>();
                     while (Peek().Type != TokenType.CloseBrace)
                     {
                         fields.Add(ParseStructValueField());
                     }
-                    var closeBrace = Expect("struct instantiation", TokenType.CloseBrace);
+                    var closeBrace = Expect("struct instantiation", openBrace, TokenType.CloseBrace);
                     result = new Expression.StructValue(result, openBrace, fields, closeBrace);
                 }
                 else if (peek.Type == TokenType.Dot)
                 {
                     // Dot path
-                    var dot = Expect(null, TokenType.Dot);
-                    var ident = Expect("dot path expression", TokenType.Identifier);
+                    var dot = Expect(null, null, TokenType.Dot);
+                    var ident = Expect("dot path expression", null, TokenType.Identifier);
                     result = new Expression.DotPath(result, dot, ident);
                 }
                 else break;
@@ -354,10 +354,10 @@ namespace Yoakke.Syntax
 
         private Expression.StructValue.Field ParseStructValueField()
         {
-            var name = Expect("struct initializer value", TokenType.Identifier);
-            var assign = Expect("struct initializer value", TokenType.Assign);
+            var name = Expect("struct initializer value", null, TokenType.Identifier);
+            var assign = Expect("struct initializer value", null, TokenType.Assign);
             var value = ParseExpression(ExprState.None);
-            var semicolon = Expect("struct initializer value", TokenType.Semicolon);
+            var semicolon = Expect("struct initializer value", null, TokenType.Semicolon);
             return new Expression.StructValue.Field(name, assign, value, semicolon);
         }
 
@@ -413,8 +413,8 @@ namespace Yoakke.Syntax
 
         private Expression.ProcSignature ParseProcSignature()
         {
-            var proc = Expect(null, TokenType.KwProc);
-            var openParen = Expect("procedure signature", TokenType.OpenParen);
+            var proc = Expect(null, null, TokenType.KwProc);
+            var openParen = Expect("procedure signature", null, TokenType.OpenParen);
             // Parameters
             var parameters = new List<WithComma<Expression.ProcSignature.Parameter>>();
             while (Peek().Type != TokenType.CloseParen)
@@ -424,7 +424,7 @@ namespace Yoakke.Syntax
                 parameters.Add(new WithComma<Expression.ProcSignature.Parameter>(param, comma));
                 if (!hasComma) break;
             }
-            var closeParen = Expect("procedure signature", TokenType.CloseParen);
+            var closeParen = Expect("procedure signature", openParen, TokenType.CloseParen);
             // Return type
             Expression? ret = null;
             if (Match(TokenType.Arrow, out var arrow))
@@ -444,8 +444,8 @@ namespace Yoakke.Syntax
             if (Peek(1).Type == TokenType.Colon)
             {
                 // This parameter has a name
-                name = Expect("parameter", TokenType.Identifier);
-                colon = Expect("parameter", TokenType.Colon);
+                name = Expect("parameter", null, TokenType.Identifier);
+                colon = Expect("parameter", null, TokenType.Colon);
             }
             var type = ParseExpression(ExprState.TypeOnly);
             return new Expression.ProcSignature.Parameter(name, colon, type);
@@ -453,7 +453,7 @@ namespace Yoakke.Syntax
 
         private Expression.If ParseIfExpression()
         {
-            var iff = Expect(null, TokenType.KwIf);
+            var iff = Expect(null, null, TokenType.KwIf);
             var condition = ParseExpression(ExprState.NoBraced);
             var then = ParseBlockExpression();
             // Else-ifs and else
@@ -491,7 +491,7 @@ namespace Yoakke.Syntax
 
         private Expression.While ParseWhileExpression()
         {
-            var whileKw = Expect(null, TokenType.KwWhile);
+            var whileKw = Expect(null, null, TokenType.KwWhile);
             var condition = ParseExpression(ExprState.NoBraced);
             var body = ParseBlockExpression();
             return new Expression.While(whileKw, condition, body);
@@ -499,8 +499,8 @@ namespace Yoakke.Syntax
 
         private Expression.StructType ParseStructTypeExpression()
         {
-            var structKw = Expect(null, TokenType.KwStruct);
-            var openBrace = Expect("struct type expression", TokenType.OpenBrace);
+            var structKw = Expect(null, null, TokenType.KwStruct);
+            var openBrace = Expect("struct type expression", null, TokenType.OpenBrace);
 
             var declarations = new List<Declaration>();
             var fields = new List<Expression.StructType.Field>();
@@ -525,11 +525,11 @@ namespace Yoakke.Syntax
 
         private Expression.StructType.Field ParseStructTypeField()
         {
-            var name = Expect("stuct field", TokenType.Identifier);
+            var name = Expect("stuct field", null, TokenType.Identifier);
             var doc = GetDocComment(name);
-            var colon = Expect("stuct field", TokenType.Colon);
+            var colon = Expect("stuct field", null, TokenType.Colon);
             var type = ParseExpression(ExprState.TypeOnly);
-            var semicolon = Expect("stuct field", TokenType.Semicolon);
+            var semicolon = Expect("stuct field", null, TokenType.Semicolon);
             var lineComment = GetLineComment(semicolon);
 
             return new Expression.StructType.Field(doc, name, colon, type, semicolon, lineComment);
@@ -537,15 +537,15 @@ namespace Yoakke.Syntax
 
         private Expression ParseParenthesized()
         {
-            var openParen = Expect(null, TokenType.OpenParen);
+            var openParen = Expect(null, null, TokenType.OpenParen);
             var inside = ParseExpression(ExprState.None);
-            var closeParen = Expect(null, TokenType.CloseParen);
+            var closeParen = Expect(null, openParen, TokenType.CloseParen);
             return new Expression.Parenthesized(openParen, inside, closeParen);
         }
 
         private Expression.Block ParseBlockExpression()
         {
-            var openBrace = Expect(null, TokenType.OpenBrace);
+            var openBrace = Expect(null, null, TokenType.OpenBrace);
             var statements = new List<Statement>();
             Expression? value = null;
             while (true)
@@ -575,7 +575,7 @@ namespace Yoakke.Syntax
                     }
                 }
             }
-            var closeBrace = Expect("block", TokenType.CloseBrace);
+            var closeBrace = Expect("block", openBrace, TokenType.CloseBrace);
             // We are done
             return new Expression.Block(openBrace, statements, value, closeBrace);
         }
@@ -630,7 +630,7 @@ namespace Yoakke.Syntax
             return false;
         }
 
-        private Token Expect(string? context, params TokenType[] tts)
+        private Token Expect(string? context, Token? pair, params TokenType[] tts)
         {
             var t = Peek();
             if (!tts.Contains(t.Type))
@@ -638,7 +638,7 @@ namespace Yoakke.Syntax
                 // NOTE: For now we just return the first kind of token expected here
                 // Later we might want to use smarter strategies
                 var result = new Token(t.Span, tts[0], t.Value);
-                Status.Report(new ExpectedTokenError(tts, lastToken, t, context));
+                Status.Report(new ExpectedTokenError(tts, lastToken, t) { Context = context, Starting = pair });
                 return result;
             }
             else

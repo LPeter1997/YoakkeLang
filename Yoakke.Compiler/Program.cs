@@ -27,7 +27,7 @@ namespace Yoakke.Compiler
     {
         static void Main(string[] args)
         {
-#if false
+#if true
             var system = new DependencySystem("../../../../../stdlib");
             var symTab = system.SymbolTable;
 
@@ -51,7 +51,7 @@ namespace Yoakke.Compiler
             var ast = system.LoadAst(@"../../../../../samples/test.yk", syntaxStatus);
             if (syntaxStatus.Errors.Count > 0)
             {
-                var cr = new TextDiagnosticRenderer();
+                var cr = new TextDiagnosticRenderer { SyntaxHighlighter = new YoakkeReportingSyntaxHighlighter() };
                 foreach (var err in syntaxStatus.Errors)
                 {
                     cr.Render(err.GetDiagnostic());

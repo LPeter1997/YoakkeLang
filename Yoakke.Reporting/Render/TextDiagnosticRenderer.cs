@@ -144,7 +144,11 @@ namespace Yoakke.Reporting.Render
             var lineNumberPadding = new string(' ', (maxLineIndex + 1).ToString().Length);
 
             // Print the ┌─ <file name>
-            buffer.WriteLine($"{lineNumberPadding} ┌─ {sourceFile.Path}");
+            buffer.Write($"{lineNumberPadding} ┌─ {sourceFile.Path}");
+            // If there is a primary info, write the line and column
+            var primaryInfo = infos.OfType<PrimaryDiagnosticInfo>().FirstOrDefault();
+            if (primaryInfo != null) buffer.Write($":{primaryInfo.Span.Start.Line}:{primaryInfo.Span.Start.Column}");
+            buffer.WriteLine();
             // Pad lines
             buffer.WriteLine($"{lineNumberPadding} │");
             // Print all the line primitives
@@ -218,7 +222,7 @@ namespace Yoakke.Reporting.Render
         {
             var sourceFile = annotationLine.Annotations.First().Span.Source;
             Debug.Assert(sourceFile != null);
-            var line = sourceFile.Line(annotationLine.AnnotatedLine);
+            var line = sourceFile.Line(annotationLine.AnnotatedLine).TrimEnd();
 
             // Order annotations by starting position
             var annotationsOrdered = annotationLine.Annotations.OrderBy(si => si.Span.Start).ToList();
