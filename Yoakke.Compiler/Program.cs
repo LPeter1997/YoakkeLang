@@ -145,8 +145,8 @@ namespace Yoakke.Compiler
 const Frac = struct {
     nom: i32;
     den: i32;
-
 	const new = proc(n: i32, d: i32) -> Frac {
+        // Some comment
         Frac{ nom = n; den = d; }
     };
 };
@@ -196,7 +196,7 @@ const main = proc() -> i32 {
                     },
                 },
             };
-            new TextDiagnosticRenderer().Render(diag);
+            new TextDiagnosticRenderer() { SyntaxHighlighter = new YoakkeReportingSyntaxHighlighter() }.Render(diag);
 #endif
         }
     }

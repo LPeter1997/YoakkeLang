@@ -359,6 +359,8 @@ namespace Yoakke.Reporting.Render
             TokenKind.Literal => ConsoleColor.Blue,
             TokenKind.Name => ConsoleColor.Cyan,
             TokenKind.Punctuation => ConsoleColor.White,
+            TokenKind.Other => ConsoleColor.White,
+            TokenKind.Operator => ConsoleColor.DarkCyan,
             _ => throw new NotImplementedException(),
         };
     }

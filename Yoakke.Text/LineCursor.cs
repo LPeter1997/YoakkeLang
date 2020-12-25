@@ -28,18 +28,19 @@ namespace Yoakke.Text
         /// <returns>True, if this character was a tab.</returns>
         public bool Append(char ch, out int advance)
         {
+            bool isTab = false;
             advance = 0;
             if (ch == '\t')
             {
                 advance = TabSize - Column % TabSize;
-                Column += advance;
-                return true;
+                isTab = true;
             }
             else if (!char.IsControl(ch))
             {
                 advance = 1;
             }
-            return false;
+            Column += advance;
+            return isTab;
         }
 
         /// <summary>

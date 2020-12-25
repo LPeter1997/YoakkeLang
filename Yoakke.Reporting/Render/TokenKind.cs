@@ -16,5 +16,7 @@ namespace Yoakke.Reporting.Render
         Literal,
         Name,
         Punctuation,
+        Operator,
+        Other,
     }
 }
