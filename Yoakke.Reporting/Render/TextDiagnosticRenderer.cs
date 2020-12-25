@@ -62,7 +62,7 @@ namespace Yoakke.Reporting.Render
         /// <summary>
         /// The tab size to use in spaces.
         /// </summary>
-        public int TabSize { get; set; }
+        public int TabSize { get; set; } = 4;
 
         private ColoredBuffer buffer;
 
@@ -149,11 +149,13 @@ namespace Yoakke.Reporting.Render
                 switch (line)
                 {
                 case SourceLine sourceLine:
-                    buffer.WriteLine($"{(sourceLine.Line + 1).ToString().PadLeft(lineNumberPadding.Length)} │");
+                    buffer.Write($"{(sourceLine.Line + 1).ToString().PadLeft(lineNumberPadding.Length)} │");
+                    RenderSourceLine(sourceLine);
+                    buffer.WriteLine();
                     break;
 
                 case AnnotationLine annotation:
-                    buffer.WriteLine($"{lineNumberPadding} │");
+                    RenderAnnotationLines(annotation, $"{lineNumberPadding} │");
                     break;
 
                 case DotLine dotLine:
@@ -163,6 +165,67 @@ namespace Yoakke.Reporting.Render
             }
             // Pad lines
             buffer.WriteLine($"{lineNumberPadding} │");
+        }
+
+        private void RenderSourceLine(SourceLine sourceLine)
+        {
+            var line = sourceLine.Source.Line(sourceLine.Line);
+            var lineCur = new LineCursor { TabSize = TabSize };
+            foreach (var ch in line)
+            {
+                if (ch == '\r' || ch == '\n') break;
+                if (lineCur.Append(ch, out var advance)) buffer.CursorX += advance;
+                else buffer.Write(ch);
+            }
+        }
+
+        private void RenderAnnotationLines(AnnotationLine annotationLine, string prefix)
+        {
+            var sourceFile = annotationLine.Annotations.First().Span.Source;
+            Debug.Assert(sourceFile != null);
+            var line = sourceFile.Line(annotationLine.AnnotatedLine);
+
+            // Order annotations by starting position
+            var annotationsOrdered = annotationLine.Annotations.OrderBy(si => si.Span.Start);
+            // Now we draw the arrows to their correct places under the annotated line
+            buffer.Write(prefix);
+            var lineCur = new LineCursor { TabSize = TabSize };
+            var charIdx = 0;
+            foreach (var annot in annotationsOrdered)
+            {
+                // From the last character index until the start of this annotation we need to fill with spaces
+                for (; charIdx < annot.Span.Start.Column; ++charIdx)
+                {
+                    if (charIdx < line.Length)
+                    {
+                        // Still in range of the line
+                        lineCur.Append(line[charIdx], out var advance);
+                        buffer.CursorX += advance;
+                    }
+                    else
+                    {
+                        // After the line
+                        buffer.CursorX += 1;
+                    }
+                }
+                // Now we are inside the span
+                var arrowHead = annot is PrimaryDiagnosticInfo ? '^' : '-';
+                for (; charIdx < annot.Span.End.Column; ++charIdx)
+                {
+                    if (charIdx < line.Length)
+                    {
+                        // Still in range of the line
+                        lineCur.Append(line[charIdx], out var advance);
+                        for (int i = 0; i < advance; ++i) buffer.Write(arrowHead);
+                    }
+                    else
+                    {
+                        // After the line
+                        buffer.Write(arrowHead);
+                    }
+                }
+            }
+            buffer.WriteLine();
         }
 
         // Collects all the line subgroups
@@ -180,7 +243,7 @@ namespace Yoakke.Reporting.Render
                 // First we determine the range we need to print for this info
                 var currentLineIndex = infoGroup.Key;
                 var minLineIndex = Math.Max(lastLineIndex ?? 0, currentLineIndex - SurroundingLines);
-                var maxLineIndex = Math.Min(sourceFile.LineCount, currentLineIndex + SurroundingLines);
+                var maxLineIndex = Math.Min(sourceFile.LineCount, currentLineIndex + SurroundingLines + 1);
                 // Determine if we need dotting or a line in between
                 if (lastLineIndex != null)
                 {
