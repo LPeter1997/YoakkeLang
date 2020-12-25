@@ -48,7 +48,7 @@ namespace Yoakke.Reporting.Detail
 
         public void WriteAt(int left, int top, string str)
         {
-            EnsureBuffer(left + str.Length, top);
+            EnsureBuffer(left + str.Length - 1, top);
             var line = lines[top];
             for (int i = 0; i < str.Length; ++i)
             {
@@ -79,7 +79,7 @@ namespace Yoakke.Reporting.Detail
             for (int j = 0; j < height; ++j)
             {
                 int yp = top + j;
-                EnsureBuffer(left + width, yp);
+                EnsureBuffer(left + width - 1, yp);
                 var line = lines[yp];
                 for (int i = 0; i < width; ++i)
                 {
@@ -104,7 +104,7 @@ namespace Yoakke.Reporting.Detail
             for (int j = 0; j < height; ++j)
             {
                 int yp = top + j;
-                EnsureBuffer(left + width, yp);
+                EnsureBuffer(left + width - 1, yp);
                 var line = lines[yp];
                 for (int i = 0; i < width; ++i)
                 {
