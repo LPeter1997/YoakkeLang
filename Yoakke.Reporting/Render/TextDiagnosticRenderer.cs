@@ -173,6 +173,7 @@ namespace Yoakke.Reporting.Render
 
         private void RenderSourceLine(SourceLine sourceLine)
         {
+            var xOffset = buffer.CursorX;
             // Print the source line with a default color
             buffer.ForegroundColor = ConsoleColor.White;
             var line = sourceLine.Source.Line(sourceLine.Line);
@@ -187,11 +188,27 @@ namespace Yoakke.Reporting.Render
             var tokenInfo = SyntaxHighlighter.GetHighlightingForLine(sourceLine.Source, sourceLine.Line);
             if (tokenInfo.Any())
             {
-                // There are tokens to highlight, do it
+                // There are tokens to highlight
+                var charIdx = 0;
+                lineCur.Column = 0;
                 var tokenInfoList = tokenInfo.OrderBy(ti => ti.StartIndex).ToList();
                 foreach (var token in tokenInfoList)
                 {
-                    // TODO
+                    // Skip until the next token
+                    for (; charIdx < token.StartIndex; ++charIdx)
+                    {
+                        lineCur.Append(line[charIdx], out var advance);
+                    }
+                    // Go through the token
+                    var tokenStart = lineCur.Column;
+                    for (; charIdx < token.StartIndex + token.Length; ++charIdx)
+                    {
+                        lineCur.Append(line[charIdx], out var advance);
+                    }
+                    var tokenEnd = lineCur.Column;
+                    // Recolor the token
+                    buffer.ForegroundColor = TokenKindToColor(token.Kind);
+                    buffer.Recolor(xOffset + tokenStart, buffer.CursorY, tokenEnd - tokenStart, 1);
                 }
             }
             buffer.ResetColor();
@@ -334,5 +351,15 @@ namespace Yoakke.Reporting.Render
         }
 
         private void RenderHint(HintDiagnosticInfo hint) => buffer.WriteLine($"hint: {hint.Message}");
+
+        private ConsoleColor TokenKindToColor(TokenKind tokenKind) => tokenKind switch
+        {
+            TokenKind.Comment => ConsoleColor.DarkGreen,
+            TokenKind.Keyword => ConsoleColor.Magenta,
+            TokenKind.Literal => ConsoleColor.Blue,
+            TokenKind.Name => ConsoleColor.Cyan,
+            TokenKind.Punctuation => ConsoleColor.White,
+            _ => throw new NotImplementedException(),
+        };
     }
 }
