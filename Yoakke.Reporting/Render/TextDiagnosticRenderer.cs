@@ -212,7 +212,9 @@ namespace Yoakke.Reporting.Render
                 }
                 // Now we are inside the span
                 var arrowHead = annot is PrimaryDiagnosticInfo ? '^' : '-';
-                arrowHeadColumns.Add((buffer.CursorX, annot));
+                var startColumn = buffer.CursorX;
+                arrowHeadColumns.Add((startColumn, annot));
+                if (annot is PrimaryDiagnosticInfo) buffer.ForegroundColor = ConsoleColor.Red;
                 for (; charIdx < annot.Span.End.Column; ++charIdx)
                 {
                     if (charIdx < line.Length)
@@ -226,6 +228,13 @@ namespace Yoakke.Reporting.Render
                         // After the line
                         buffer.Write(arrowHead);
                     }
+                }
+                var endColumn = buffer.CursorX;
+                if (annot is PrimaryDiagnosticInfo)
+                {
+                    // Recolor the source line too
+                    buffer.Recolor(startColumn, buffer.CursorY - 1, endColumn - startColumn, 1);
+                    buffer.ResetColor();
                 }
             }
             // Now we are done with arrows in the line, it's time to do the arrow bodies downwards
@@ -242,12 +251,14 @@ namespace Yoakke.Reporting.Render
             // We only consider annotations with messages
             foreach (var (col, annot) in arrowHeadColumns.SkipLast(1).Reverse().Where(a => a.Info.Message != null))
             {
+                if (annot is PrimaryDiagnosticInfo) buffer.ForegroundColor = ConsoleColor.Red;
                 // Draw the arrow
                 buffer.Fill(col, arrowBaseLine, 1, arrowBodyLength, '│');
                 buffer.Plot(col, arrowBaseLine + arrowBodyLength, '└');
                 arrowBodyLength += 1;
                 // Append the message
                 buffer.Write($" {annot.Message}");
+                if (annot is PrimaryDiagnosticInfo) buffer.ResetColor();
             }
             // Fill the in between lines with the prefix
             for (int i = 0; i < arrowBodyLength; ++i)

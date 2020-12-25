@@ -92,6 +92,13 @@ namespace Yoakke.Reporting.Detail
             CursorY = top + height - 1;
         }
 
+        public void Recolor(int x, int y)
+        {
+            EnsureBuffer(x, y);
+            var line = lines[y];
+            line.Color[x] = (ForegroundColor, BackgroundColor);
+        }
+
         public void Recolor(int left, int top, int width, int height)
         {
             for (int j = 0; j < height; ++j)
