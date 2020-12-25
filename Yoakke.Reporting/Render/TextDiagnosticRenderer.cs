@@ -149,13 +149,13 @@ namespace Yoakke.Reporting.Render
                 switch (line)
                 {
                 case SourceLine sourceLine:
-                    buffer.Write($"{(sourceLine.Line + 1).ToString().PadLeft(lineNumberPadding.Length)} │");
+                    buffer.Write($"{(sourceLine.Line + 1).ToString().PadLeft(lineNumberPadding.Length)} │ ");
                     RenderSourceLine(sourceLine);
                     buffer.WriteLine();
                     break;
 
                 case AnnotationLine annotation:
-                    RenderAnnotationLines(annotation, $"{lineNumberPadding} │");
+                    RenderAnnotationLines(annotation, $"{lineNumberPadding} │ ");
                     break;
 
                 case DotLine dotLine:
@@ -186,8 +186,10 @@ namespace Yoakke.Reporting.Render
             var line = sourceFile.Line(annotationLine.AnnotatedLine);
 
             // Order annotations by starting position
-            var annotationsOrdered = annotationLine.Annotations.OrderBy(si => si.Span.Start);
+            var annotationsOrdered = annotationLine.Annotations.OrderBy(si => si.Span.Start).ToList();
             // Now we draw the arrows to their correct places under the annotated line
+            // Also collect physical column positions to extend the arrows
+            var arrowHeadColumns = new List<(int Column, SpannedDiagnosticInfo Info)>();
             buffer.Write(prefix);
             var lineCur = new LineCursor { TabSize = TabSize };
             var charIdx = 0;
@@ -210,6 +212,7 @@ namespace Yoakke.Reporting.Render
                 }
                 // Now we are inside the span
                 var arrowHead = annot is PrimaryDiagnosticInfo ? '^' : '-';
+                arrowHeadColumns.Add((buffer.CursorX, annot));
                 for (; charIdx < annot.Span.End.Column; ++charIdx)
                 {
                     if (charIdx < line.Length)
@@ -225,7 +228,35 @@ namespace Yoakke.Reporting.Render
                     }
                 }
             }
-            buffer.WriteLine();
+            // Now we are done with arrows in the line, it's time to do the arrow bodies downwards
+            // The first one will have N, the last 0 length bodies, decreasing by one
+            // The last one just has the message inline
+            {
+                var lastAnnot = annotationsOrdered.Last();
+                if (lastAnnot.Message != null) buffer.Write($" {lastAnnot.Message}");
+                buffer.WriteLine();
+            }
+            // From now on all previous ones will be one longer than the ones later
+            int arrowBaseLine = buffer.CursorY;
+            int arrowBodyLength = 0;
+            // We only consider annotations with messages
+            foreach (var (col, annot) in arrowHeadColumns.SkipLast(1).Reverse().Where(a => a.Info.Message != null))
+            {
+                // Draw the arrow
+                buffer.Fill(col, arrowBaseLine, 1, arrowBodyLength, '│');
+                buffer.Plot(col, arrowBaseLine + arrowBodyLength, '└');
+                arrowBodyLength += 1;
+                // Append the message
+                buffer.Write($" {annot.Message}");
+            }
+            // Fill the in between lines with the prefix
+            for (int i = 0; i < arrowBodyLength; ++i)
+            {
+                buffer.WriteAt(0, arrowBaseLine + i, prefix);
+            }
+            // Reset cursor position
+            buffer.CursorX = 0;
+            buffer.CursorY = arrowBaseLine + arrowBodyLength;
         }
 
         // Collects all the line subgroups

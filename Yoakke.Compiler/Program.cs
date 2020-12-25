@@ -185,6 +185,11 @@ const main = proc() -> i32 {
                         Span = new Span(src, new Position(6, 23), 3),
                         Message = "and using it here",
                     },
+                    new SpannedDiagnosticInfo
+                    {
+                        Span = new Span(src, new Position(6, 14), 3),
+                        Message = "and using it here",
+                    },
                     new HintDiagnosticInfo
                     {
                         Message = "Did you mean to aaa?",
