@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Yoakke.Compiler.Compile.Intrinsics;
-using Yoakke.Compiler.Semantic;
-using Yoakke.Compiler.Semantic.Types;
 using Yoakke.Lir.Values;
 using Yoakke.Syntax;
 using Yoakke.Syntax.Ast;

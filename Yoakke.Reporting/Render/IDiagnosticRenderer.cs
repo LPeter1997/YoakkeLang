@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Yoakke.Reporting.Render
+﻿namespace Yoakke.Reporting.Render
 {
     /// <summary>
     /// Anything that can visualize a <see cref="Diagnostic"/> to the user in some way.

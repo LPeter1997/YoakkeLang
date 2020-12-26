@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using Yoakke.Lir.Backend.Backends.X86Family;
 
 namespace Yoakke.Lir.Backend.Toolchain.Msvc
 {

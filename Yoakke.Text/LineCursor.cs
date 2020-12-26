@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Yoakke.Text
+﻿namespace Yoakke.Text
 {
     /// <summary>
     /// Utility to keep track of visual column index by resolving tabs.

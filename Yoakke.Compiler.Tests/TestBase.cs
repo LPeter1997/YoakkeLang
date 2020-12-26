@@ -1,9 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using Yoakke.Compiler;
 using Yoakke.Compiler.Compile;
 using Yoakke.Compiler.Semantic;
 using Yoakke.Lir.Backend;

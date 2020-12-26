@@ -2,14 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Yoakke.DataStructures;
 using Yoakke.Syntax.Ast;
 using SemaType = Yoakke.Compiler.Semantic.Types.Type;
 using LirType = Yoakke.Lir.Types.Type;
 using Yoakke.Lir.Values;
-using Yoakke.Syntax;
 using Yoakke.Compiler.Semantic;
 
 namespace Yoakke.Compiler.Compile

@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Yoakke.Compiler.Compile;
 using Yoakke.Compiler.Compile.Intrinsics;
 using Yoakke.Lir.Values;
-using Yoakke.Syntax;
 using Yoakke.Syntax.Ast;
-using Yoakke.Compiler.Semantic.Types;
 using Type = Yoakke.Compiler.Semantic.Types.Type;
 
 namespace Yoakke.Compiler.Semantic

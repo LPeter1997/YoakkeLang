@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Mail;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Yoakke.Syntax.Ast
+﻿namespace Yoakke.Syntax.Ast
 {
     // TODO: Doc
     public class Cloner : Transformator

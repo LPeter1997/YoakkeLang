@@ -1,6 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Transactions;
+﻿using System.Linq;
 using Yoakke.Syntax.Ast;
 
 namespace Yoakke.Syntax

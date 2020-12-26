@@ -1,14 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Runtime.InteropServices.ComTypes;
-using System.Text;
-using System.Threading.Tasks;
 using Yoakke.Compiler.Semantic;
-using Yoakke.DataStructures;
-using Yoakke.Syntax;
 using Yoakke.Syntax.Ast;
 using Type = Yoakke.Compiler.Semantic.Types.Type;
 

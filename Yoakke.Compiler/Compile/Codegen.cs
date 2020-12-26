@@ -2,16 +2,11 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Threading.Tasks;
 using Yoakke.Compiler.Semantic;
 using Yoakke.DataStructures;
 using Yoakke.Lir;
-using Yoakke.Lir.Status;
-using Yoakke.Lir.Types;
 using Yoakke.Lir.Values;
-using Yoakke.Syntax;
 using Yoakke.Syntax.Ast;
 
 namespace Yoakke.Compiler.Compile

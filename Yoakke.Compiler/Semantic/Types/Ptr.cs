@@ -1,10 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Yoakke.DataStructures;
-
-namespace Yoakke.Compiler.Semantic.Types
+﻿namespace Yoakke.Compiler.Semantic.Types
 {
     partial class Type
     {

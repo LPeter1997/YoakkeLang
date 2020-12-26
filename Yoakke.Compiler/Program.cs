@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Net.Http.Headers;
-using System.Runtime.InteropServices;
-using Yoakke.C.Syntax.Cpp;
 using Yoakke.Compiler.Compile;
 using Yoakke.Compiler.Semantic;
 using Yoakke.DataStructures;
@@ -14,12 +9,8 @@ using Yoakke.Lir.Passes;
 using Yoakke.Lir.Runtime;
 using Yoakke.Lir.Status;
 using Yoakke.Lir.Values;
-using Yoakke.Reporting;
-using Yoakke.Reporting.Info;
 using Yoakke.Reporting.Render;
 using Yoakke.Syntax;
-using Yoakke.Syntax.Ast;
-using Yoakke.Text;
 
 namespace Yoakke.Compiler
 {

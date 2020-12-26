@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Yoakke.Reporting.Detail;
 using Yoakke.Reporting.Info;
 using Yoakke.Text;

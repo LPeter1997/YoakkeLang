@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Yoakke.DataStructures;
-using Yoakke.Lir.Types;
 using Type = Yoakke.Lir.Types.Type;
 
 namespace Yoakke.Lir.Values

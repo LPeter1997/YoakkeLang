@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Yoakke.Reporting.Render
+﻿namespace Yoakke.Reporting.Render
 {
     /// <summary>
     /// Represents a single, colored token in the annotated source code.
