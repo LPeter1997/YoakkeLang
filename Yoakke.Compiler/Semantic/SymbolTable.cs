@@ -123,7 +123,7 @@ namespace Yoakke.Compiler.Semantic
         public Symbol ReferSymbol(Node node, string name)
         {
             var scope = ContainingScope(node);
-            var symbol = scope.Reference(name);
+            var symbol = scope.Reference(name, System);
             referredSymbol.Add(node, symbol);
             return symbol;
         }

@@ -12,6 +12,7 @@ using Yoakke.Lir.Status;
 using Yoakke.Lir.Utils;
 using Yoakke.Lir.Values;
 using Yoakke.Syntax;
+using Yoakke.Syntax.Error;
 using Yoakke.Text;
 using Type = Yoakke.Lir.Types.Type;
 

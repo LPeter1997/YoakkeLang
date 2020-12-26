@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Yoakke.Syntax.Error;
 
-namespace Yoakke.Syntax
+namespace Yoakke.Syntax.Error
 {
     /// <summary>
     /// Status of syntax analysis, like errors.

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Yoakke.Reporting.Render;
+using Yoakke.Syntax.Error;
 using Yoakke.Text;
 
 namespace Yoakke.Syntax

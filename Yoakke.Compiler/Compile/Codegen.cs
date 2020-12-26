@@ -481,7 +481,7 @@ namespace Yoakke.Compiler.Compile
             {
                 // Static member access
                 var leftValue = System.EvaluateType(dot.Left);
-                var symbol = leftValue.DefinedScope.Reference(dot.Right);
+                var symbol = leftValue.DefinedScope.Reference(dot.Right, System);
                 return CompileSymbol(symbol);
             }
             else if (leftType is Semantic.Types.Type.Struct sty)

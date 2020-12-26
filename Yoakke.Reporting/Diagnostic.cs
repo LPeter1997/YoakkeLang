@@ -23,6 +23,6 @@ namespace Yoakke.Reporting
         /// <summary>
         /// The information list about this <see cref="Diagnostic"/>.
         /// </summary>
-        public List<IDiagnosticInfo> Information { get; set; } = new List<IDiagnosticInfo>();
+        public IList<IDiagnosticInfo> Information { get; set; } = new List<IDiagnosticInfo>();
     }
 }

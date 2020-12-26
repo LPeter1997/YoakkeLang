@@ -11,6 +11,7 @@ using Yoakke.Lir.Status;
 using Yoakke.Lir.Values;
 using Yoakke.Reporting.Render;
 using Yoakke.Syntax;
+using Yoakke.Syntax.Error;
 
 namespace Yoakke.Compiler
 {
@@ -19,8 +20,6 @@ namespace Yoakke.Compiler
         static void Main(string[] args)
         {
 #if true
-            Console.WriteLine(StringMetrics.OptimalStringAlignmentDistance("ab", "ba"));
-
             var system = new DependencySystem("../../../../../stdlib");
             var symTab = system.SymbolTable;
 

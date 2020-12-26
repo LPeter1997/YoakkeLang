@@ -32,7 +32,7 @@ namespace Yoakke.Compiler.Compile.Intrinsics
             // Or the intrinsic itself could cache already loaded in values
             // Load in file
             // TODO: syntax status?
-            var ast = System.LoadAst(fileName, new Syntax.SyntaxStatus());
+            var ast = System.LoadAst(fileName, new Syntax.Error.SyntaxStatus());
             // We need to create a struct type that contains the constants in the file
             // First we define the new scope
             System.SymbolTable.PushScope(Semantic.ScopeKind.Struct);

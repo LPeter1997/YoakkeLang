@@ -5,6 +5,8 @@ using Yoakke.Lir.Values;
 using Yoakke.Syntax;
 using Yoakke.Syntax.Ast;
 using Yoakke.Compiler.Semantic.Types;
+using Yoakke.Syntax.Error;
+using Yoakke.Compiler.Error;
 
 namespace Yoakke.Compiler.Compile
 {
@@ -12,6 +14,7 @@ namespace Yoakke.Compiler.Compile
     public interface IDependencySystem
     {
         public string StandardLibraryPath { get; }
+        public CompileStatus Status { get; }
 
         public SymbolTable SymbolTable { get; }
         public Builder Builder { get; }

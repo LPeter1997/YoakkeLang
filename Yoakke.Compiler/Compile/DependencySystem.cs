@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Yoakke.Compiler.Error;
 using Yoakke.Compiler.Semantic;
 using Yoakke.Lir;
 using Yoakke.Lir.Runtime;
@@ -10,6 +11,7 @@ using Yoakke.Lir.Status;
 using Yoakke.Lir.Values;
 using Yoakke.Syntax;
 using Yoakke.Syntax.Ast;
+using Yoakke.Syntax.Error;
 using Yoakke.Text;
 using Type = Yoakke.Compiler.Semantic.Types.Type;
 
@@ -21,6 +23,7 @@ namespace Yoakke.Compiler.Compile
     public class DependencySystem : IDependencySystem
     {
         public string StandardLibraryPath { get; }
+        public CompileStatus Status { get; } = new CompileStatus();
 
         public SymbolTable SymbolTable { get; private set; }
         public Builder Builder => codegen.Builder;
@@ -190,7 +193,7 @@ namespace Yoakke.Compiler.Compile
             // Load prelude
             {
                 // TODO: Syntax status?
-                var preludeAst = LoadAst("prelude.yk", new Syntax.SyntaxStatus());
+                var preludeAst = LoadAst("prelude.yk", new SyntaxStatus());
                 SymbolResolution.Resolve(SymbolTable, preludeAst);
             }
             SymbolTable.DefineBuiltinIntrinsics();
