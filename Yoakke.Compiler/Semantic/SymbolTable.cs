@@ -123,7 +123,10 @@ namespace Yoakke.Compiler.Semantic
         public Symbol ReferSymbol(Node node, string name)
         {
             var scope = ContainingScope(node);
-            var symbol = scope.Reference(name, System);
+            var definition = node.ParseTreeNode as Syntax.ParseTree.Expression.Literal;
+            var symbol = definition == null 
+                ? scope.Reference(name, System) 
+                : scope.Reference(definition.Token, System);
             referredSymbol.Add(node, symbol);
             return symbol;
         }

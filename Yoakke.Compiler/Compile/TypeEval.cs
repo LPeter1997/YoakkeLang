@@ -122,7 +122,10 @@ namespace Yoakke.Compiler.Compile
             {
                 // Static member access
                 var leftValue = System.EvaluateType(dot.Left);
-                var referredSymbol = leftValue.DefinedScope.Reference(dot.Right, System);
+                var token = ((Syntax.ParseTree.Expression.DotPath?)dot.ParseTreeNode)?.Right;
+                var referredSymbol = token == null
+                    ? leftValue.DefinedScope.Reference(dot.Right, System)
+                    : leftValue.DefinedScope.Reference(token, System);
                 return TypeOfSymbol(referredSymbol);
             }
             else if (leftType is Type.Struct structType)

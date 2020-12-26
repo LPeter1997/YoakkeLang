@@ -176,7 +176,10 @@ namespace Yoakke.Compiler.Compile
             {
                 // Static member access, we need the type value itself
                 var leftValue = System.EvaluateType(dot.Left);
-                leftValue.DefinedScope.Reference(dot.Right, System);
+                var token = ((Syntax.ParseTree.Expression.DotPath?)dot.ParseTreeNode)?.Right;
+                var _ = token == null 
+                    ? leftValue.DefinedScope.Reference(dot.Right, System)
+                    : leftValue.DefinedScope.Reference(token, System);
             }
             else if (leftType is Type.Struct structType)
             {
