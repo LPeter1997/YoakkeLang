@@ -23,6 +23,8 @@ namespace Yoakke.Compiler
             var system = new DependencySystem("../../../../../stdlib");
             var symTab = system.SymbolTable;
 
+            var diagRenderer = new TextDiagnosticRenderer { SyntaxHighlighter = new YoakkeReportingSyntaxHighlighter() };
+
             // TODO: Temporary
             /*symTab.DefineBuiltin(
                 "puts",
@@ -43,11 +45,7 @@ namespace Yoakke.Compiler
             var ast = system.LoadAst(@"../../../../../samples/test.yk", syntaxStatus);
             if (syntaxStatus.Errors.Count > 0)
             {
-                var cr = new TextDiagnosticRenderer { SyntaxHighlighter = new YoakkeReportingSyntaxHighlighter() };
-                foreach (var err in syntaxStatus.Errors)
-                {
-                    cr.Render(err.GetDiagnostic());
-                }
+                foreach (var err in syntaxStatus.Errors) diagRenderer.Render(err.GetDiagnostic());
                 return;
             }
 
@@ -58,6 +56,11 @@ namespace Yoakke.Compiler
             // TODO: Maye this should also be part of the dependency system?
             // Probably yes!
             SymbolResolution.Resolve(symTab, ast);
+            if (system.Status.Errors.Count > 0)
+            {
+                foreach (var err in system.Status.Errors) diagRenderer.Render(err.GetDiagnostic());
+                return;
+            }
 
             // Compilation
             //var system = new DependencySystem(symTab);

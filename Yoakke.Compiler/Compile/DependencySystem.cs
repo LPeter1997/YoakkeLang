@@ -50,6 +50,7 @@ namespace Yoakke.Compiler.Compile
             {
                 // TODO: syntax status?
                 var preludeAst = LoadAst("prelude.yk", new SyntaxStatus());
+                // TODO: compile status?
                 SymbolResolution.Resolve(SymbolTable, preludeAst);
             }
             SymbolTable.DefineBuiltinIntrinsics();
@@ -181,6 +182,7 @@ namespace Yoakke.Compiler.Compile
             {
                 result = new Expression.DotPath(null, result, piece);
             }
+            // TODO: compile status?
             SymbolResolution.Resolve(SymbolTable, result);
             return result;
         }
@@ -194,6 +196,7 @@ namespace Yoakke.Compiler.Compile
             {
                 // TODO: Syntax status?
                 var preludeAst = LoadAst("prelude.yk", new SyntaxStatus());
+                // TODO: compile status?
                 SymbolResolution.Resolve(SymbolTable, preludeAst);
             }
             SymbolTable.DefineBuiltinIntrinsics();

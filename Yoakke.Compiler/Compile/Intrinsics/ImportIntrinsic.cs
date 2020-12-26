@@ -38,6 +38,7 @@ namespace Yoakke.Compiler.Compile.Intrinsics
             System.SymbolTable.PushScope(Semantic.ScopeKind.Struct);
             var structScope = System.SymbolTable.CurrentScope;
             // Define things
+            // TODO: compile status?
             SymbolResolution.Resolve(System.SymbolTable, ast);
             // Pop scope
             System.SymbolTable.PopScope();

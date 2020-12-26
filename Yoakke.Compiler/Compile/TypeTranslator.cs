@@ -108,6 +108,8 @@ namespace Yoakke.Compiler.Compile
                         System.SymbolTable.CurrentScope = newSurroundingScope;
                         foreach (var decl in decls)
                         {
+                            // TODO: not below
+                            // NOTE: do we need to take care of compile status here?
                             SymbolResolution.Resolve(System.SymbolTable, decl);
                             // TODO: We screw upp associated constants with cloning!
                             // It was kind of a bad system anyway, so it's no biggie it's broken
@@ -124,6 +126,8 @@ namespace Yoakke.Compiler.Compile
                                 field =>
                                 {
                                     var newType = cloner.Clone(field.Type);
+                                    // TODO: note below
+                                    // NOTE: do we need to take care of compile status here?
                                     SymbolResolution.Resolve(System.SymbolTable, newType);
                                     return new DataStructures.Lazy<SemaType>(() => System.EvaluateType(newType));
                                 }));

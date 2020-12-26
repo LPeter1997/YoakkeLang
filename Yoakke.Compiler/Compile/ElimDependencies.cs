@@ -22,6 +22,8 @@ namespace Yoakke.Compiler.Compile
             dependencyMap = collector.DependencyMap;
             var result = (Declaration.File)Transform(file);
             System.ResetSymbolTable();
+            // TODO: note below
+            // NOTE: Do we need to care about compile status here?
             SymbolResolution.Resolve(System.SymbolTable, result);
             //Console.WriteLine(result.Dump());
             return result;

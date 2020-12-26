@@ -42,7 +42,7 @@ namespace Yoakke.Compiler.Error
             var diag = new Diagnostic
             {
                 Severity = Severity.Error,
-                Message = $"unknown symbol '{Name}'!",
+                Message = $"unknown symbol {Name}",
             };
             if (Reference != null)
             {
@@ -56,7 +56,7 @@ namespace Yoakke.Compiler.Error
             {
                 diag.Information.Add(new FootnoteDiagnosticInfo
                 {
-                    Message = $"hint: did you mean {string.Join(" or ", SimilarExistingNames)}",
+                    Message = $"hint: did you mean {string.Join(" or ", SimilarExistingNames)}?",
                 });
             }
             return diag;
