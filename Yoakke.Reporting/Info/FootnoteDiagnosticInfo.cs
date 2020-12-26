@@ -9,7 +9,7 @@ namespace Yoakke.Reporting.Info
     /// <summary>
     /// Some hint for the <see cref="Diagnostic"/>.
     /// </summary>
-    public class HintDiagnosticInfo : IDiagnosticInfo
+    public class FootnoteDiagnosticInfo : IDiagnosticInfo
     {
         /// <summary>
         /// The hint message.

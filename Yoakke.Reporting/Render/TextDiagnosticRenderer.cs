@@ -106,9 +106,9 @@ namespace Yoakke.Reporting.Render
             // Print each group
             foreach (var group in spannedInfo) RenderSpannedGroup(group);
 
-            // Finally we print any hints
-            var hints = diagnostic.Information.OfType<HintDiagnosticInfo>();
-            foreach (var hint in hints) RenderHint(hint);
+            // Finally we print any footnotes
+            var footnotes = diagnostic.Information.OfType<FootnoteDiagnosticInfo>();
+            foreach (var footnote in footnotes) RenderFootnote(footnote);
 
             // Dump to output
             buffer.OutputTo(Writer);
@@ -354,7 +354,7 @@ namespace Yoakke.Reporting.Render
             }
         }
 
-        private void RenderHint(HintDiagnosticInfo hint) => buffer.WriteLine($"hint: {hint.Message}");
+        private void RenderFootnote(FootnoteDiagnosticInfo hint) => buffer.WriteLine(hint.Message);
 
         private ConsoleColor TokenKindToColor(TokenKind tokenKind) => tokenKind switch
         {
