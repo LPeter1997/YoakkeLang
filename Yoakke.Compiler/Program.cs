@@ -28,7 +28,7 @@ namespace Yoakke.Compiler
         static void Main(string[] args)
         {
 #if true
-            Console.WriteLine(StringMetrics.LevenshteinDistance("kitten", "sitting"));
+            Console.WriteLine(StringMetrics.OptimalStringAlignmentDistance("ab", "ba"));
 
             var system = new DependencySystem("../../../../../stdlib");
             var symTab = system.SymbolTable;

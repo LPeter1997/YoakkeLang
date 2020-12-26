@@ -39,10 +39,32 @@ namespace Yoakke.DataStructures
             return v0[t.Length];
         }
 
-        public static int OptimalStringAlignmentDistance(string s, string t)
+        public static int OptimalStringAlignmentDistance(string a, string b)
         {
-            // TODO
-            throw new NotImplementedException();
+            var d = new int[a.Length + 1, b.Length + 1];
+
+            for (int i = 0; i <= a.Length; ++i) d[i, 0] = i;
+            for (int j = 0; j <= b.Length; ++j) d[0, j] = j;
+
+            for (int i = 1; i <= a.Length; ++i)
+            {
+                for (int j = 1; j <= b.Length; ++j)
+                {
+                    var deletionCost = d[i - 1, j] + 1;
+                    var insertionCost = d[i, j - 1] + 1;
+                    var substitutionCost = d[i - 1, j - 1] + (a[i - 1] == b[j - 1] ? 0 : 1);
+
+                    d[i, j] = Math.Min(deletionCost, Math.Min(insertionCost, substitutionCost));
+
+                    if (i > 1 && j > 1 && a[i - 1] == b[j - 2] && a[i - 2] == b[j - 1])
+                    {
+                        var transpositionCost = d[i - 2, j - 2] + 1;
+                        d[i, j] = Math.Min(d[i, j], transpositionCost);
+                    }
+                }
+            }
+
+            return d[a.Length, b.Length];
         }
     }
 }
