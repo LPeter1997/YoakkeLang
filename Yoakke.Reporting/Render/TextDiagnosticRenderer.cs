@@ -311,18 +311,25 @@ namespace Yoakke.Reporting.Render
         private IEnumerable<LinePrimitive> CollectLinesToRender(IEnumerable<SpannedDiagnosticInfo> infos)
         {
             // We need to group the spanned informations per line
-            var groupedInfos = infos.GroupBy(si => si.Span.Start.Line);
+            var groupedInfos = infos.GroupBy(si => si.Span.Start.Line).ToList();
             var sourceFile = infos.First().Span.Source;
             Debug.Assert(sourceFile != null);
 
             // Now we collect each line primitive
             int? lastLineIndex = null;
-            foreach (var infoGroup in groupedInfos)
+            for (int j = 0; j < groupedInfos.Count; ++j)
             {
+                var infoGroup = groupedInfos[j];
                 // First we determine the range we need to print for this info
                 var currentLineIndex = infoGroup.Key;
                 var minLineIndex = Math.Max(lastLineIndex ?? 0, currentLineIndex - SurroundingLines);
                 var maxLineIndex = Math.Min(sourceFile.LineCount, currentLineIndex + SurroundingLines + 1);
+                if (j < groupedInfos.Count - 1)
+                {
+                    // There's a chance we step over to the next annotation
+                    var nextGroupLineIndex = groupedInfos[j + 1].Key;
+                    maxLineIndex = Math.Min(maxLineIndex, nextGroupLineIndex);
+                }
                 // Determine if we need dotting or a line in between
                 if (lastLineIndex != null)
                 {
@@ -330,7 +337,7 @@ namespace Yoakke.Reporting.Render
                     if (difference <= ConnectUpLines)
                     {
                         // Difference is negligible, connect them up, no reason to dot it out
-                        for (int i = 0; i < ConnectUpLines; ++i)
+                        for (int i = 0; i < difference; ++i)
                         {
                             yield return new SourceLine { Source = sourceFile, Line = lastLineIndex.Value + i };
                         }

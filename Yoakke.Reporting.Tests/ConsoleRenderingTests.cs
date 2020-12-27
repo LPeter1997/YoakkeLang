@@ -47,6 +47,50 @@ some other line");
         }
 
         [TestMethod]
+        public void TwoAnnotationsRightUnderEachother()
+        {
+            var src = new SourceFile("simple.txt",
+@"line 1
+prev line
+this is a line of text
+some other line
+last line");
+            var diag = new Diagnostic
+            {
+                Severity = Severity.Error,
+                Code = "E0001",
+                Message = "Some error message",
+                Information =
+                {
+                    new PrimaryDiagnosticInfo
+                    {
+                        Span = new Span(src, new Position(line: 2, column: 10), 4),
+                        Message = "some annotation1",
+                    },
+                    new SpannedDiagnosticInfo
+                    {
+                        Span = new Span(src, new Position(line: 3, column: 5), 5),
+                        Message = "some annotation2",
+                    },
+                },
+            };
+            var result = new StringWriter();
+            var renderer = new TextDiagnosticRenderer(result);
+            renderer.Render(diag);
+            Assert.AreEqual(@"error[E0001]: Some error message
+  ┌─ simple.txt:2:10
+  │
+2 │ prev line
+3 │ this is a line of text
+  │           ^^^^ some annotation1
+4 │ some other line
+  │      ----- some annotation2
+5 │ last line
+  │
+", result.ToString());
+        }
+
+        [TestMethod]
         public void TwoAnnotationsClose()
         {
             var src = new SourceFile("simple.txt",

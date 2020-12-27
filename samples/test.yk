@@ -10,7 +10,10 @@ const Frac = struct {
 
 const Half = Frac.new(1, 2);
 
+const foo = proc() {
+    1
+};
+
 const main = proc() -> i32 {
-    var x = true;
-    x
+    0
 };
