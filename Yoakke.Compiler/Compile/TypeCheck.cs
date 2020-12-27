@@ -14,7 +14,9 @@ namespace Yoakke.Compiler.Compile
     {
         public IDependencySystem System { get; }
 
+        // TODO: Very yucky context pattern here too...
         private Type? currentProcReturnType = null;
+        private Expression? currentProcSignature = null;
 
         public TypeCheck(IDependencySystem system)
         {
@@ -23,7 +25,7 @@ namespace Yoakke.Compiler.Compile
 
         public void Check(Node node) => Visit(node);
 
-        protected override object? Visit(Declaration.Const cons) => WithCurrentProcReturnType(null, () =>
+        protected override object? Visit(Declaration.Const cons) => WithCurrentProcReturnType(null, null, () =>
         {
             // Type-check type and value
             base.Visit(cons);
@@ -68,8 +70,9 @@ namespace Yoakke.Compiler.Compile
                     {
                         System.Status.Report(new TypeMismatchError(inferredType, valueType)
                         {
-                            Defined = var.Type,
-                            Wrong = var.Value,
+                            Defined = var.Type?.ParseTreeNode,
+                            Wrong = var.Value.ParseTreeNode,
+                            Context = "variable definition",
                         });
                     }
                 }
@@ -90,8 +93,23 @@ namespace Yoakke.Compiler.Compile
             Type retType = ret.Value == null ? Type.Unit : System.TypeOf(ret.Value);
             if (!currentProcReturnType.Equals(retType))
             {
-                // TODO
-                throw new NotImplementedException($"Return type mismatch! Declared '{currentProcReturnType}' but got '{retType}'!");
+                Expression? FindDeepestReturnValue(Expression? expr) =>
+                    expr is Expression.Block block
+                    ? FindDeepestReturnValue(block.Value)
+                    : expr;
+
+                // Error, work out what we know
+                Debug.Assert(currentProcSignature != null);
+                var signature = (Syntax.ParseTree.Expression.ProcSignature?)currentProcSignature.ParseTreeNode;
+                var definition = (Syntax.ParseTree.IParseTreeElement?)signature?.Return ?? signature?.CloseParen;
+                var wrong = ((Node?)FindDeepestReturnValue(ret.Value) ?? ret)?.ParseTreeNode;
+                System.Status.Report(new TypeMismatchError(currentProcReturnType, retType)
+                {
+                    Defined = definition,
+                    Wrong = wrong,
+                    Context = "return value",
+                    ImplicitlyDefined = signature != null && signature.Return == null,
+                });
             }
             return null;
         }
@@ -124,7 +142,7 @@ namespace Yoakke.Compiler.Compile
             Debug.Assert(proc.Signature.Return != null);
             var returnType = System.EvaluateType(proc.Signature.Return);
             // We type-check with this return type
-            WithCurrentProcReturnType(returnType, () => Visit(proc.Body));
+            WithCurrentProcReturnType(returnType, proc.Signature, () => Visit(proc.Body));
             return null;
         }
 
@@ -348,12 +366,16 @@ namespace Yoakke.Compiler.Compile
             return null;
         }
 
-        private object? WithCurrentProcReturnType(Type? procReturnType, Action action)
+        // TODO: Eww
+        private object? WithCurrentProcReturnType(Type? procReturnType, Expression? procSignature, Action action)
         {
             var lastProcReturnType = currentProcReturnType;
+            var lastProcSignature = currentProcSignature;
             currentProcReturnType = procReturnType;
+            currentProcSignature = procSignature;
             action();
             currentProcReturnType = lastProcReturnType;
+            currentProcSignature = lastProcSignature;
             return null;
         }
     }

@@ -6,6 +6,7 @@ using Yoakke.Compiler.Semantic.Types;
 using Yoakke.Reporting;
 using Yoakke.Reporting.Info;
 using Yoakke.Syntax.Ast;
+using Yoakke.Syntax.ParseTree;
 
 namespace Yoakke.Compiler.Error
 {
@@ -21,15 +22,23 @@ namespace Yoakke.Compiler.Error
         /// </summary>
         public readonly Type Type2;
         /// <summary>
-        /// The <see cref="Expression"/> the entity was defined to be of the given type.
+        /// The <see cref="IParseTreeElement"/> where the entity was defined to be of the given type.
         /// This corresponds to <see cref="Type1"/>.
         /// </summary>
-        public Expression? Defined { get; set; }
+        public IParseTreeElement? Defined { get; set; }
         /// <summary>
-        /// The <see cref="Expression"/> that tried to coerce into another, wrong type.
+        /// The <see cref="IParseTreeElement"/> that tried to coerce into another, wrong type.
         /// This corresponds to <see cref="Type2"/>.
         /// </summary>
-        public Expression? Wrong { get; set; }
+        public IParseTreeElement? Wrong { get; set; }
+        /// <summary>
+        /// The context where the mismatch happened.
+        /// </summary>
+        public string? Context { get; set; }
+        /// <summary>
+        /// True, if the type definition was implicit.
+        /// </summary>
+        public bool ImplicitlyDefined { get; set; } = false;
 
         public TypeMismatchError(Type type1, Type type2)
         {
@@ -39,27 +48,27 @@ namespace Yoakke.Compiler.Error
 
         public Diagnostic GetDiagnostic()
         {
+            var msgSuffix = Context == null ? string.Empty : $" in {Context}";
             var diag = new Diagnostic
             {
                 Severity = Severity.Error,
-                Message = $"type mismatch between {Type1} and {Type2}",
+                Message = $"type mismatch between {Type1} and {Type2}{msgSuffix}",
             };
-            var defined = Defined?.ParseTreeNode;
-            var wrong = Wrong?.ParseTreeNode;
-            if (defined != null)
+            if (Defined != null)
             {
+                var defPrefix = ImplicitlyDefined ? "(implicitly) " : string.Empty;
                 diag.Information.Add(new SpannedDiagnosticInfo
                 {
-                    Message = $"defined to be {Type1} here",
-                    Span = defined.Span,
+                    Message = $"{defPrefix}defined to be {Type1} here",
+                    Span = Defined.Span,
                 });
             }
-            if (wrong != null)
+            if (Wrong != null)
             {
                 diag.Information.Add(new PrimaryDiagnosticInfo
                 {
                     Message = $"coerced to {Type2} here",
-                    Span = wrong.Span,
+                    Span = Wrong.Span,
                 });
             }
             return diag;
