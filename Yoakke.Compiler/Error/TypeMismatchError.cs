@@ -42,7 +42,7 @@ namespace Yoakke.Compiler.Error
             var diag = new Diagnostic
             {
                 Severity = Severity.Error,
-                Message = $"Type mismatch between {Type1} and {Type2}!",
+                Message = $"type mismatch between {Type1} and {Type2}",
             };
             var defined = Defined?.ParseTreeNode;
             var wrong = Wrong?.ParseTreeNode;
