@@ -78,6 +78,11 @@ namespace Yoakke.Compiler
 #else
             var buildStatus = new BuildStatus();
             var asm = system.Compile(ast, buildStatus);
+            if (system.Status.Errors.Count > 0)
+            {
+                foreach (var err in system.Status.Errors) diagRenderer.Render(err.GetDiagnostic());
+                return;
+            }
             foreach (var err in buildStatus.Errors)
             {
                 Console.WriteLine(err.GetErrorMessage());

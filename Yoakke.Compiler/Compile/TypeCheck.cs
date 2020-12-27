@@ -2,6 +2,7 @@
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
+using Yoakke.Compiler.Error;
 using Yoakke.Compiler.Semantic;
 using Yoakke.Syntax.Ast;
 using Type = Yoakke.Compiler.Semantic.Types.Type;
@@ -65,8 +66,11 @@ namespace Yoakke.Compiler.Compile
                     // The delared type must match the value type
                     if (!inferredType.Equals(valueType))
                     {
-                        // TODO
-                        throw new NotImplementedException($"Type mismatch '{inferredType}' vs '{valueType}'!");
+                        System.Status.Report(new TypeMismatchError(inferredType, valueType)
+                        {
+                            Defined = var.Type,
+                            Wrong = var.Value,
+                        });
                     }
                 }
             }

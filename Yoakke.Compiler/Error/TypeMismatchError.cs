@@ -50,7 +50,7 @@ namespace Yoakke.Compiler.Error
             {
                 diag.Information.Add(new SpannedDiagnosticInfo
                 {
-                    Message = $"inferred to be {Type1} here",
+                    Message = $"defined to be {Type1} here",
                     Span = defined.Span,
                 });
             }
