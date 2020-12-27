@@ -11,6 +11,6 @@ const Frac = struct {
 const Half = Frac.new(1, 2);
 
 const main = proc() -> i32 {
-    var x: Hlaf;
+    var x: i32 = true;
     123
 };
