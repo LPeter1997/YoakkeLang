@@ -187,8 +187,8 @@ namespace Yoakke.Reporting.Render
                 else buffer.Write(ch);
             }
             // Do syntax highlighting, if needed
-            var tokenInfo = SyntaxHighlighter.GetHighlightingForLine(sourceLine.Source, sourceLine.Line);
-            if (tokenInfo.Any())
+            var tokenInfo = SyntaxHighlighter.GetHighlightingForLine(sourceLine.Source, sourceLine.Line).ToList();
+            if (tokenInfo.Count > 0)
             {
                 // There are tokens to highlight
                 var charIdx = 0;

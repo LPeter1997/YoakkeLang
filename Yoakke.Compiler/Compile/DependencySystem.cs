@@ -9,6 +9,7 @@ using Yoakke.Lir;
 using Yoakke.Lir.Runtime;
 using Yoakke.Lir.Status;
 using Yoakke.Lir.Values;
+using Yoakke.Reporting.Render;
 using Yoakke.Syntax;
 using Yoakke.Syntax.Ast;
 using Yoakke.Syntax.Error;
@@ -22,8 +23,9 @@ namespace Yoakke.Compiler.Compile
     /// </summary>
     public class DependencySystem : IDependencySystem
     {
+        public event IDependencySystem.CompileErrorEventHandler? CompileError;
+
         public string StandardLibraryPath { get; }
-        public CompileStatus Status { get; } = new CompileStatus();
 
         public SymbolTable SymbolTable { get; private set; }
         public Builder Builder => codegen.Builder;
@@ -34,6 +36,7 @@ namespace Yoakke.Compiler.Compile
         private TypeCheck typeCheck;
 
         private HashSet<Proc> tempEval = new HashSet<Proc>();
+        private List<ICompileError> errors = new List<ICompileError>();
 
         public DependencySystem(string standardLibraryPath)
         {
@@ -49,24 +52,32 @@ namespace Yoakke.Compiler.Compile
             // Load prelude
             {
                 // TODO: syntax status?
-                var preludeAst = LoadAst("prelude.yk", new SyntaxStatus());
+                var preludeAst = LoadAst("prelude.yk");
                 // TODO: compile status?
                 SymbolResolution.Resolve(SymbolTable, preludeAst);
             }
             SymbolTable.DefineBuiltinIntrinsics();
+
+            CompileError += OnCompileError;
         }
 
-        public Declaration.File LoadAst(string path, SyntaxStatus syntaxStatus)
+        public void ReportCompileError(ICompileError compileError) =>
+            CompileError?.Invoke(this, compileError);
+
+        public Declaration.File LoadAst(string path)
         {
             path = GetFilePath(path);
             // To AST
             var src = File.ReadAllText(path);
             var srcFile = new SourceFile(path, src);
-            var tokens = Lexer.Lex(srcFile, syntaxStatus);
-            var parser = new Parser(tokens, syntaxStatus);
+            var lexer = new Lexer(srcFile);
+            lexer.SyntaxError += OnSyntaxError;
+            var parser = new Parser(lexer.Lex());
+            parser.SyntaxError += OnSyntaxError;
             var prg = parser.ParseFile();
             var ast = ParseTreeToAst.Convert(prg);
             ast = new Desugaring().Desugar(ast);
+            TerminateAndDumpIfHasErrors();
             return ast;
         }
 
@@ -103,7 +114,12 @@ namespace Yoakke.Compiler.Compile
         }
 
         public Type TypeOf(Expression expression) => typeEval.TypeOf(expression);
-        public void TypeCheck(Node node) => typeCheck.Check(node);
+
+        public void TypeCheck(Node node)
+        {
+            typeCheck.Check(node);
+            TerminateAndDumpIfHasErrors();
+        }
 
         public Value Evaluate(Expression expression)
         {
@@ -195,11 +211,29 @@ namespace Yoakke.Compiler.Compile
             // Load prelude
             {
                 // TODO: Syntax status?
-                var preludeAst = LoadAst("prelude.yk", new SyntaxStatus());
+                var preludeAst = LoadAst("prelude.yk");
                 // TODO: compile status?
                 SymbolResolution.Resolve(SymbolTable, preludeAst);
             }
             SymbolTable.DefineBuiltinIntrinsics();
+        }
+
+        private void OnSyntaxError(object sender, ISyntaxError syntaxError) =>
+            ReportCompileError(new SyntaxError(syntaxError));
+
+        private void OnCompileError(IDependencySystem system, ICompileError compileError)
+        {
+            Debug.Assert(system == this);
+            errors.Add(compileError);
+        }
+
+        private void TerminateAndDumpIfHasErrors()
+        {
+            if (errors.Count == 0) return;
+
+            var diagRenderer = new TextDiagnosticRenderer { SyntaxHighlighter = new YoakkeReportingSyntaxHighlighter() };
+            foreach (var err in errors) diagRenderer.Render(err.GetDiagnostic());
+            Environment.Exit(1);
         }
     }
 }

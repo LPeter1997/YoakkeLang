@@ -14,9 +14,16 @@ namespace Yoakke.Syntax
     public class Lexer
     {
         /// <summary>
-        /// The <see cref="SyntaxStatus"/> this <see cref="Lexer"/> reports to.
+        /// The called event handler type when a syntax error occurs.
         /// </summary>
-        public SyntaxStatus Status { get; }
+        /// <param name="sender">The <see cref="Lexer"/> that produced the error.</param>
+        /// <param name="syntaxError">The <see cref="ISyntaxError"/> describing the error.</param>
+        public delegate void SyntaxErrorEventHandler(Lexer sender, ISyntaxError syntaxError);
+
+        /// <summary>
+        /// Happens, when a syntax error is detected.
+        /// </summary>
+        public event SyntaxErrorEventHandler? SyntaxError;
 
         private SourceFile source;
         private TextReader reader;
@@ -25,34 +32,27 @@ namespace Yoakke.Syntax
         private StringBuilder peekBuffer = new StringBuilder();
 
         /// <summary>
-        /// Returns an <see cref="IEnumerable{Token}"/> for the given <see cref="SourceFile"/>, that lexes
-        /// until EOF is read.
-        /// </summary>
-        /// <param name="source">The <see cref="SourceFile"/> to lex.</param>
-        /// <param name="status">The <see cref="SyntaxStatus"/> to report errors to.</param>
-        /// <returns>The <see cref="IEnumerable{Token}"/> of the lexed input.</returns>
-        public static IEnumerable<Token> Lex(SourceFile source, SyntaxStatus status)
-        {
-            var lexer = new Lexer(source, status);
-
-            while (true)
-            {
-                var t = lexer.Next();
-                yield return t;
-                if (t.Type == TokenType.End) break;
-            }
-        }
-
-        /// <summary>
         /// Initializes a new <see cref="Lexer"/>.
         /// </summary>
         /// <param name="source">The <see cref="SourceFile"/> to lex.</param>
-        /// <param name="status">The <see cref="SyntaxStatus"/> to report errors to.</param>
-        public Lexer(SourceFile source, SyntaxStatus status)
+        public Lexer(SourceFile source)
         {
             this.source = source;
             reader = new StringReader(source.Text);
-            Status = status;
+        }
+
+        /// <summary>
+        /// Returns an <see cref="IEnumerable{Token}"/> that lexes until EOF is read.
+        /// </summary>
+        /// <returns>The <see cref="IEnumerable{Token}"/> of the lexed input.</returns>
+        public IEnumerable<Token> Lex()
+        {
+            while (true)
+            {
+                var t = Next();
+                yield return t;
+                if (t.Type == TokenType.End) break;
+            }
         }
 
         /// <summary>
@@ -190,7 +190,7 @@ namespace Yoakke.Syntax
                     {
                         // Unclosed token, report an error
                         var tok = MakeToken(TokenType.StringLiteral, len);
-                        Status.Report(new UnterminatedTokenError(tok, "\""));
+                        ReportSyntaxError(new UnterminatedTokenError(tok, "\""));
                         return tok;
                     }
                     if (peek == '"') break;
@@ -203,6 +203,9 @@ namespace Yoakke.Syntax
 
             return MakeToken(TokenType.Unknown, 1);
         }
+
+        private void ReportSyntaxError(ISyntaxError syntaxError) =>
+            SyntaxError?.Invoke(this, syntaxError);
 
         private Token MakeToken(TokenType tokenType, int len)
         {

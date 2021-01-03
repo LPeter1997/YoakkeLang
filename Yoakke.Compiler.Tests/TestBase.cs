@@ -115,11 +115,14 @@ namespace Yoakke.Lir.Tests
             where TFunc : Delegate
         {
             var srcFile = new SourceFile($"{TestContext.TestName}.yk", source);
-            var syntaxStatus = new SyntaxStatus();
-            var tokens = Lexer.Lex(srcFile, syntaxStatus);
-            var parser = new Parser(tokens, syntaxStatus);
+
+            var lexer = new Lexer(srcFile);
+            lexer.SyntaxError += (s, err) => throw new Exception("Test has syntax error!");
+            
+            var parser = new Parser(lexer.Lex());
+            parser.SyntaxError += (s, err) => throw new Exception("Test has syntax error!");
             var prg = parser.ParseFile();
-            Assert.AreEqual(0, syntaxStatus.Errors.Count);
+
             var ast = ParseTreeToAst.Convert(prg);
             ast = new Desugaring().Desugar(ast);
 

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Yoakke.Reporting.Render;
 using Yoakke.Syntax.Error;
@@ -40,9 +41,9 @@ namespace Yoakke.Syntax
 
         public IEnumerable<ColoredToken> GetHighlightingForLine(SourceFile sourceFile, int lineIndex)
         {
-            var line = sourceFile.Line(lineIndex).ToString();
+            var line = sourceFile.Line(lineIndex).TrimEnd().ToString();
             var lineSource = new SourceFile(sourceFile.Path, line);
-            return Lexer.Lex(lineSource, new SyntaxStatus())
+            return new Lexer(lineSource).Lex()
                 .Select(t => new ColoredToken
                 { 
                     StartIndex = t.Span.Start.Column,

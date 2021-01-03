@@ -17,6 +17,7 @@ namespace Yoakke.Syntax
     /// </summary>
     public class Parser
     {
+        #region Operator Tables
         // Helpers for operator precedence /////////////////////////////////////
 
         private enum Associativity
@@ -77,13 +78,21 @@ namespace Yoakke.Syntax
             Precedence.Left(TokenType.Add, TokenType.Subtract),
             Precedence.Left(TokenType.Multiply, TokenType.Divide, TokenType.Modulo),
         };
+        #endregion
 
         // Parser itself ///////////////////////////////////////////////////////
 
         /// <summary>
-        /// The <see cref="SyntaxStatus"/> this <see cref="Parser"/> reports to.
+        /// The called event handler type when a syntax error occurs.
         /// </summary>
-        public SyntaxStatus Status { get; }
+        /// <param name="sender">The <see cref="Parser"/> that produced the error.</param>
+        /// <param name="syntaxError">The <see cref="ISyntaxError"/> describing the error.</param>
+        public delegate void SyntaxErrorEventHandler(Parser sender, ISyntaxError syntaxError);
+
+        /// <summary>
+        /// Happens, when a syntax error is detected.
+        /// </summary>
+        public event SyntaxErrorEventHandler? SyntaxError;
 
         private SourceFile? source;
         private IReadOnlyList<Token> tokens;
@@ -98,12 +107,11 @@ namespace Yoakke.Syntax
         /// </summary>
         /// <param name="tokens">The sequence of <see cref="Token"/>s to parse.</param>
         /// <param name="status">The <see cref="SyntaxStatus"/> to report errors to.</param>
-        public Parser(IEnumerable<Token> tokens, SyntaxStatus status)
+        public Parser(IEnumerable<Token> tokens)
         {
             this.tokens = tokens.ToArray();
             Debug.Assert(this.tokens.Count > 0);
             source = this.tokens.First().Span.Source;
-            Status = status;
         }
 
         // Declarations ////////////////////////////////////////////////////////
@@ -126,7 +134,7 @@ namespace Yoakke.Syntax
                     continue;
                 }
                 // Error, unexpected
-                Status.Report(new ExpectedTokenError(
+                ReportSyntaxError(new ExpectedTokenError(
                     new TokenType[] { TokenType.KwVar, TokenType.KwConst },
                     lastToken,
                     Peek()) { Context = "top level declaration" });
@@ -638,7 +646,7 @@ namespace Yoakke.Syntax
                 // NOTE: For now we just return the first kind of token expected here
                 // Later we might want to use smarter strategies
                 var result = new Token(t.Span, tts[0], t.Value);
-                Status.Report(new ExpectedTokenError(tts, lastToken, t) { Context = context, Starting = pair });
+                ReportSyntaxError(new ExpectedTokenError(tts, lastToken, t) { Context = context, Starting = pair });
                 return result;
             }
             else
@@ -647,6 +655,9 @@ namespace Yoakke.Syntax
             }
             return t;
         }
+
+        private void ReportSyntaxError(ISyntaxError syntaxError) =>
+            SyntaxError?.Invoke(this, syntaxError);
 
         private Token Peek(int amount = 0)
         {

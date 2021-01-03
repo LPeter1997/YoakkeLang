@@ -68,7 +68,7 @@ namespace Yoakke.Compiler.Compile
                     // The delared type must match the value type
                     if (!inferredType.Equals(valueType))
                     {
-                        System.Status.Report(new TypeMismatchError(inferredType, valueType)
+                        System.ReportCompileError(new TypeMismatchError(inferredType, valueType)
                         {
                             Defined = var.Type?.ParseTreeNode,
                             Wrong = var.Value.ParseTreeNode,
@@ -103,7 +103,7 @@ namespace Yoakke.Compiler.Compile
                 var signature = (Syntax.ParseTree.Expression.ProcSignature?)currentProcSignature.ParseTreeNode;
                 var definition = (Syntax.ParseTree.IParseTreeElement?)signature?.Return ?? signature?.CloseParen;
                 var wrong = ((Node?)FindDeepestReturnValue(ret.Value) ?? ret)?.ParseTreeNode;
-                System.Status.Report(new TypeMismatchError(currentProcReturnType, retType)
+                System.ReportCompileError(new TypeMismatchError(currentProcReturnType, retType)
                 {
                     Defined = definition,
                     Wrong = wrong,

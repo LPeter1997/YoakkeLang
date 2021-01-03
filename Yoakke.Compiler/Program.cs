@@ -41,13 +41,7 @@ namespace Yoakke.Compiler
                     new Lir.Types.Type.Proc(Lir.CallConv.Cdecl, Lir.Types.Type.I32, new ValueList<Lir.Types.Type> { Lir.Types.Type.I32 }),
                     "libucrt.lib"));*/
 
-            var syntaxStatus = new SyntaxStatus();
-            var ast = system.LoadAst(@"../../../../../samples/test.yk", syntaxStatus);
-            if (syntaxStatus.Errors.Count > 0)
-            {
-                foreach (var err in syntaxStatus.Errors) diagRenderer.Render(err.GetDiagnostic());
-                return;
-            }
+            var ast = system.LoadAst(@"../../../../../samples/test.yk");
 
             //Console.WriteLine(prg.Dump());
             //Console.WriteLine(ast.Dump());
@@ -56,11 +50,6 @@ namespace Yoakke.Compiler
             // TODO: Maye this should also be part of the dependency system?
             // Probably yes!
             SymbolResolution.Resolve(symTab, ast);
-            if (system.Status.Errors.Count > 0)
-            {
-                foreach (var err in system.Status.Errors) diagRenderer.Render(err.GetDiagnostic());
-                return;
-            }
 
             // Compilation
             //var system = new DependencySystem(symTab);
@@ -76,13 +65,9 @@ namespace Yoakke.Compiler
                 Console.WriteLine(sym);
             }
 #else
+            // TODO: Integrate build errors as ICEs!
             var buildStatus = new BuildStatus();
             var asm = system.Compile(ast, buildStatus);
-            if (system.Status.Errors.Count > 0)
-            {
-                foreach (var err in system.Status.Errors) diagRenderer.Render(err.GetDiagnostic());
-                return;
-            }
             foreach (var err in buildStatus.Errors)
             {
                 Console.WriteLine(err.GetErrorMessage());
