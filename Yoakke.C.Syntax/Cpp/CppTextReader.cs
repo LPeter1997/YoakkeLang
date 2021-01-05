@@ -8,6 +8,8 @@ using Yoakke.Text;
 
 namespace Yoakke.C.Syntax.Cpp
 {
+    // TODO: Remove horrible source file adapter pattern?
+
     /// <summary>
     /// Basically does this:
     /// https://gcc.gnu.org/onlinedocs/gcc-10.2.0/cpp/Initial-processing.html#Initial-processing
@@ -76,14 +78,16 @@ namespace Yoakke.C.Syntax.Cpp
                 if (result != null)
                 {
                     // It is a trigraph
-                    current = new PositionedChar(cursor.Position, result.Value);
+                    // TODO: Source file?
+                    current = new PositionedChar(null, cursor.Position, result.Value);
                     toConsume = 3;
                 }
             }
             if (current == null)
             {
                 // Just a single character
-                current = new PositionedChar(cursor.Position, Peek(0));
+                // TODO: Source file?
+                current = new PositionedChar(null, cursor.Position, Peek(0));
                 toConsume = 1;
             }
             if (current.Value.Char == '\0') current = null;

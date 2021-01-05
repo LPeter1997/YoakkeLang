@@ -7,6 +7,8 @@ using Yoakke.Text;
 
 namespace Yoakke.C.Syntax
 {
+    // TODO: Remove the crappy sourcefile adapter pattern
+
     /// <summary>
     /// A C lexer that breaks up the source into <see cref="Token"/>s.
     /// Skips comments.
@@ -472,7 +474,8 @@ namespace Yoakke.C.Syntax
             source.PrevOrDefault(new PositionedChar()).Position;
 
         private PositionedChar PeekPositioned(int amount, char eof = '\0') => 
-            source.PeekOrDefault(amount, new PositionedChar(PeekDefaultPosition, eof));
+            // TODO: Source file?
+            source.PeekOrDefault(amount, new PositionedChar(null, PeekDefaultPosition, eof));
 
         private static bool IsIdent(char ch) =>
             char.IsLetterOrDigit(ch) || ch == '_';
@@ -484,7 +487,8 @@ namespace Yoakke.C.Syntax
             var cursor = new Cursor();
             foreach (var ch in chars)
             {
-                yield return new PositionedChar(cursor.Position, ch);
+                // TODO: Source file?
+                yield return new PositionedChar(null, cursor.Position, ch);
                 cursor.Append(ch);
             }
         }
