@@ -41,6 +41,7 @@ namespace Yoakke.Syntax
             reader = new StringReader(source.Text);
         }
 
+        // TODO: Has side-effects! Can't re-enumerate!
         /// <summary>
         /// Returns an <see cref="IEnumerable{Token}"/> that lexes until EOF is read.
         /// </summary>
