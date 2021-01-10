@@ -42,11 +42,11 @@ namespace Yoakke.Lir
         // NOTE: Makes no sense to clone this
         public override Value Clone() => this;
 
-        public void Validate(BuildStatus status)
+        public void Validate(ValidationContext context)
         {
             if (Value is Register)
             {
-                status.Report(new ValidationError(this, "A constant can't reference a register!"));
+                context.Report(new ValidationError(context, this, "A constant can't reference a register!"));
             }
         }
     }

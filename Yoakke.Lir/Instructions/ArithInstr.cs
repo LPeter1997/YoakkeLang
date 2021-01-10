@@ -50,19 +50,19 @@ namespace Yoakke.Lir.Instructions
         public override string ToString() => 
             $"{Result} = {Keyword} {Left.ToValueString()}, {Right.ToValueString()}";
 
-        public override void Validate(BuildStatus status)
+        public override void Validate(ValidationContext context)
         {
             try
             {
                 var resultTy = CommonArithmeticType(Left.Type, Right.Type);
                 if (!Result.Type.Equals(resultTy))
                 {
-                    ReportValidationError(status, "The arithmetic result does not match the result storage type!");
+                    ReportValidationError(context, "The arithmetic result does not match the result storage type!");
                 }
             }
             catch (ArgumentException ex)
             {
-                ReportValidationError(status, ex.Message);
+                ReportValidationError(context, ex.Message);
             }
         }
 

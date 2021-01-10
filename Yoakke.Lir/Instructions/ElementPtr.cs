@@ -54,19 +54,19 @@ namespace Yoakke.Lir.Instructions
             public override string ToString() => 
                 $"{Result} = elementptr {Value.ToValueString()}, {Index.Value}";
 
-            public override void Validate(BuildStatus status)
+            public override void Validate(ValidationContext context)
             {
                 try
                 {
                     var subtype = AccessedSubtype(Value.Type, Index.Value);
                     if (!Result.Type.Equals(subtype))
                     {
-                        ReportValidationError(status, "The result type does not match the result storage type!");
+                        ReportValidationError(context, "The result type does not match the result storage type!");
                     }
                 }
                 catch (ArgumentException ex)
                 {
-                    ReportValidationError(status, ex.Message);
+                    ReportValidationError(context, ex.Message);
                 }
             }
 

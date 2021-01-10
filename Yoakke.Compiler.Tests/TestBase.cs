@@ -105,9 +105,8 @@ namespace Yoakke.Lir.Tests
 
         private Assembly Check(UncheckedAssembly assembly)
         {
-            var status = new BuildStatus();
-            var asm = assembly.Check(status);
-            Assert.AreEqual(0, status.Errors.Count);
+            var asm = assembly.Check();
+            // TODO: Errors
             return asm;
         }
 
@@ -131,9 +130,8 @@ namespace Yoakke.Lir.Tests
             SymbolResolution.Resolve(symTab, ast);
 
             // Compilation
-            var buildStatus = new BuildStatus();
-            var asm = system.Compile(ast, buildStatus);
-            Assert.AreEqual(0, buildStatus.Errors.Count);
+            var asm = system.Compile(ast);
+            // TODO: Errors
             Assert.IsNotNull(asm);
             new CodePassSet().Pass(asm);
 

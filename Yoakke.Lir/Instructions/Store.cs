@@ -43,20 +43,20 @@ namespace Yoakke.Lir.Instructions
 
             public override string ToString() => $"store {Target.ToValueString()}, {Value.ToValueString()}";
 
-            public override void Validate(BuildStatus status)
+            public override void Validate(ValidationContext context)
             {
                 if (Target is Const)
                 {
-                    ReportValidationError(status, "Target address can't be a constant!");
+                    ReportValidationError(context, "Target address can't be a constant!");
                 }
                 if (!(Target.Type is Type.Ptr targetPtr))
                 {
-                    ReportValidationError(status, "Target address must be of a pointer type!");
+                    ReportValidationError(context, "Target address must be of a pointer type!");
                     return; // NOTE: Not needed
                 }
                 if (!Value.Type.Equals(targetPtr.Subtype))
                 {
-                    ReportValidationError(status, "The stored value must match the source pointer's subtype!");
+                    ReportValidationError(context, "The stored value must match the source pointer's subtype!");
                 }
             }
         }

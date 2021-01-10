@@ -53,15 +53,15 @@ namespace Yoakke.Lir.Instructions
             public override string ToString() => 
                 $"jmpif {Condition.ToValueString()}, {Then.Name}, {Else.Name}";
 
-            public override void Validate(BuildStatus status)
+            public override void Validate(ValidationContext context)
             {
                 if (!(Condition.Type is Type.Int))
                 {
-                    ReportValidationError(status, "Condition must be of integer type!");
+                    ReportValidationError(context, "Condition must be of integer type!");
                 }
                 if (Then.Proc != BasicBlock.Proc || Else.Proc != BasicBlock.Proc)
                 {
-                    ReportValidationError(status, "Cross-procedure jump is illegal!");
+                    ReportValidationError(context, "Cross-procedure jump is illegal!");
                 }
             }
         }

@@ -38,7 +38,7 @@ namespace Yoakke.Lir
         // NOTE: Makes no sense to clone this
         public override Value Clone() => this;
 
-        public void Validate(BuildStatus status)
+        public void Validate(ValidationContext context)
         {
             // No-op
         }

@@ -39,16 +39,16 @@ namespace Yoakke.Lir.Instructions
 
             public override string ToString() => $"{Result} = load {Source.ToValueString()}";
 
-            public override void Validate(BuildStatus status)
+            public override void Validate(ValidationContext context)
             {
                 if (!(Source.Type is Type.Ptr ptrTy))
                 {
-                    ReportValidationError(status, "The source address must be a pointer type!");
+                    ReportValidationError(context, "The source address must be a pointer type!");
                     return; // NOTE: Not needed
                 }
                 if (!Result.Type.Equals(ptrTy.Subtype))
                 {
-                    ReportValidationError(status, "The result typemust be equal to the source address subtype!");
+                    ReportValidationError(context, "The result typemust be equal to the source address subtype!");
                 }
             }
         }

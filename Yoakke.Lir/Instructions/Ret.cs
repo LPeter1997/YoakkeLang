@@ -37,11 +37,11 @@ namespace Yoakke.Lir.Instructions
 
             public override string ToString() => $"ret {Value.ToValueString()}";
 
-            public override void Validate(BuildStatus status)
+            public override void Validate(ValidationContext context)
             {
                 if (!BasicBlock.Proc.Return.Equals(Value.Type))
                 {
-                    ReportValidationError(status, "Return type mismatch!");
+                    ReportValidationError(context, "Return type mismatch!");
                 }
             }
         }

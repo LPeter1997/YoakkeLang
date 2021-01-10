@@ -51,29 +51,29 @@ namespace Yoakke.Lir.Instructions
                 $"{Result} = call {Procedure.ToValueString()}" +
                 $"({string.Join(", ", Arguments.Select(arg => arg.ToValueString()))})";
 
-            public override void Validate(BuildStatus status)
+            public override void Validate(ValidationContext context)
             {
                 if (Procedure is Value.User userValue && userValue.Payload is IUserProc userProc)
                 {
                     if (!Result.Type.Equals(userProc.ReturnType))
                     {
-                        ReportValidationError(status, "The result storage type must match with the call result!");
+                        ReportValidationError(context, "The result storage type must match with the call result!");
                     }
                 }
                 else if (Procedure.Type is Type.Proc procType)
                 {
                     if (!Result.Type.Equals(procType.Return))
                     {
-                        ReportValidationError(status, "The result storage type must match with the call result!");
+                        ReportValidationError(context, "The result storage type must match with the call result!");
                     }
                     if (!procType.Parameters.SequenceEqual(Arguments.Select(arg => arg.Type)))
                     {
-                        ReportValidationError(status, "Argument type mismatch!");
+                        ReportValidationError(context, "Argument type mismatch!");
                     }
                 }
                 else
                 {
-                    ReportValidationError(status, "The procedure value must be of a procedure type!");
+                    ReportValidationError(context, "The procedure value must be of a procedure type!");
                     return; // NOTE: This is not needed
                 }
             }

@@ -23,11 +23,11 @@ namespace Yoakke.Lir.Instructions
 
         public abstract override string ToString();
 
-        public abstract void Validate(BuildStatus status);
+        public abstract void Validate(ValidationContext context);
 
-        protected void ReportValidationError(BuildStatus status, string message)
+        protected void ReportValidationError(ValidationContext context, string message)
         {
-            status.Report(new ValidationError(this, message));
+            context.Report(new ValidationError(context, this, message));
         }
     }
 }

@@ -99,15 +99,15 @@ namespace Yoakke.Lir.Instructions
             public override string ToString() => 
                 $"{Result} = cmp {Comparison} {Left.ToValueString()}, {Right.ToValueString()}";
 
-            public override void Validate(BuildStatus status)
+            public override void Validate(ValidationContext context)
             {
                 if (!(Result.Type is Type.Int))
                 {
-                    ReportValidationError(status, "Result type of comparison must be an integer!");
+                    ReportValidationError(context, "Result type of comparison must be an integer!");
                 }
                 if (!(Left.Type.Equals(Right.Type)))
                 {
-                    ReportValidationError(status, "Type mismatch between operands!");
+                    ReportValidationError(context, "Type mismatch between operands!");
                 }
                 if (Left.Type is Type.Int && Right.Type is Type.Int)
                 {
@@ -118,12 +118,12 @@ namespace Yoakke.Lir.Instructions
                     // Allowed, if comparison is equality
                     if (Comparison != Comparison.eq && Comparison != Comparison.ne)
                     {
-                        ReportValidationError(status, "User types can only be equality compared!");
+                        ReportValidationError(context, "User types can only be equality compared!");
                     }
                 }
                 else
                 {
-                    ReportValidationError(status, "Unsupported comparison types!");
+                    ReportValidationError(context, "Unsupported comparison types!");
                 }
             }
         }

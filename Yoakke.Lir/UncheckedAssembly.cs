@@ -50,6 +50,9 @@ namespace Yoakke.Lir
         /// </summary>
         public IList<Proc> Procedures { get; set; } = new List<Proc>();
 
+        // TODO: Doc
+        public event ValidationContext.ValidationErrorEventHandler? ValidationError;
+
         /// <summary>
         /// All symbols this <see cref="Assembly"/> defines.
         /// </summary>
@@ -91,22 +94,24 @@ namespace Yoakke.Lir
             .SelectMany(ins => ins.InstrArgs)
             .OfType<Extern>();
 
-        public Assembly Check(BuildStatus status)
+        public Assembly Check()
         {
-            Validate(status);
+            var context = new ValidationContext(this);
+            context.ValidationError += ValidationError;
+            Validate(context);
             // TODO: This should be done elsewhere, but add externals
             Externals = Externals.Concat(FindAllExternalsUsed()).Distinct().ToList();
             return new Assembly(this);
         }
 
-        public void Validate(BuildStatus status)
+        public void Validate(ValidationContext context)
         {
             // We check for user-types in externals
             foreach (var ext in Externals)
             {
                 if (ext.Type.Equals(Type.User_))
                 {
-                    status.Report(new ValidationError(ext, "Externals can't be of user types!"));
+                    context.Report(new ValidationError(context, ext, "Externals can't be of user types!"));
                 }
             }
             // We check name duplication for symbols
@@ -115,11 +120,11 @@ namespace Yoakke.Lir
             {
                 if (!symbolNames.Add(sym.Name))
                 {
-                    status.Report(new ValidationError((IValidate)sym, "Symbol name already present in the assembly!"));
+                    context.Report(new ValidationError(context, (IValidate)sym, "Symbol name already present in the assembly!"));
                 }
             }
             // TODO: Check circularity for struct definitions?
-            foreach (var proc in Procedures) proc.Validate(status);
+            foreach (var proc in Procedures) proc.Validate(context);
         } 
     }
 }

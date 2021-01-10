@@ -44,37 +44,37 @@ namespace Yoakke.Lir
         public override string ToString() => 
             $"label {Name}:\n{string.Join('\n', Instructions.Select(i => $"    {i}"))}";
 
-        public void Validate(BuildStatus status)
+        public void Validate(ValidationContext context)
         {
             // Check emptyness
             if (Instructions.Count == 0)
             {
-                ReportValidationError(status, "A basic block cannot be empty!");
+                ReportValidationError(context, "A basic block cannot be empty!");
             }
             // Check basic block assumptions
             if (Instructions.SkipLast(1).Any(ins => ins.IsBranch))
             {
-                ReportValidationError(status, "A basic block can only contain jump or return instructions at the end!");
+                ReportValidationError(context, "A basic block can only contain jump or return instructions at the end!");
             }
             if (!EndsInBranch)
             {
-                ReportValidationError(status, "A basic block must end in a jump or return instruction!");
+                ReportValidationError(context, "A basic block must end in a jump or return instruction!");
             }
             // Check instructions
             foreach (var ins in Instructions)
             {
                 if (ins.BasicBlock != this)
                 {
-                    var err = new ValidationError(ins, "The instruction is not linked to it's containing basic block!");
-                    status.Report(err);
+                    var err = new ValidationError(context, ins, "The instruction is not linked to it's containing basic block!");
+                    context.Report(err);
                 }
-                ins.Validate(status);
+                ins.Validate(context);
             }
         }
 
-        private void ReportValidationError(BuildStatus status, string message)
+        private void ReportValidationError(ValidationContext context, string message)
         {
-            status.Report(new ValidationError(this, message));
+            context.Report(new ValidationError(context, this, message));
         }
     }
 }

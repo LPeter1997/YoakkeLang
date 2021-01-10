@@ -46,11 +46,11 @@ namespace Yoakke.Lir.Instructions
 
             public override string ToString() => $"{Result} = cast {Target.ToTypeString()}, {Value.ToValueString()}";
 
-            public override void Validate(BuildStatus status)
+            public override void Validate(ValidationContext context)
             {
                 if (!Result.Type.Equals(Target))
                 {
-                    ReportValidationError(status, "The cast type must match the result storage type!");
+                    ReportValidationError(context, "The cast type must match the result storage type!");
                 }
                 if (
                     // Source type and target type match, basically a no-op
@@ -63,7 +63,7 @@ namespace Yoakke.Lir.Instructions
                 }
                 else
                 {
-                    ReportValidationError(status, "No such cast!");
+                    ReportValidationError(context, "No such cast!");
                 }
             }
         }

@@ -36,16 +36,16 @@ namespace Yoakke.Lir.Instructions
 
             public override string ToString() => $"{Result} = alloc {Allocated.ToTypeString()}";
 
-            public override void Validate(BuildStatus status)
+            public override void Validate(ValidationContext context)
             {
                 if (!(Result.Type is Type.Ptr resultPtr))
                 {
-                    ReportValidationError(status, "Result type must be a pointer!");
+                    ReportValidationError(context, "Result type must be a pointer!");
                     return; // NOTE: Unnecessary
                 }
                 if (!resultPtr.Subtype.Equals(Allocated))
                 {
-                    ReportValidationError(status, "Type mismatch between the allocated type and the storage pointer's subtype!");
+                    ReportValidationError(context, "Type mismatch between the allocated type and the storage pointer's subtype!");
                 }
             }
         }

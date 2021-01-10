@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Yoakke.DataStructures\Yoakke.DataStructures.csproj" />
+    <ProjectReference Include="..\Yoakke.Reporting\Yoakke.Reporting.csproj" />
   </ItemGroup>
 
 </Project>

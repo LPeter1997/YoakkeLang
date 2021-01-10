@@ -42,7 +42,7 @@ namespace Yoakke.Lir.Backend.Toolchain
             if (build.Assembly != null && build.CheckedAssembly == null)
             {
                 build.Metrics.StartTime("Validation");
-                build.CheckedAssembly = build.Assembly.Check(build.Status);
+                build.CheckedAssembly = build.Assembly.Check();
                 build.Metrics.EndTime();
             }
 

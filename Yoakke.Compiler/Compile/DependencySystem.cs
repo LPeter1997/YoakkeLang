@@ -96,20 +96,15 @@ namespace Yoakke.Compiler.Compile
             return path;
         }
 
-        public Assembly? Compile(Declaration.File file, BuildStatus status)
+        // TODO: DO we still want nullable here?
+        public Assembly? Compile(Declaration.File file)
         {
             var asm = codegen.Generate(file);
             // Erase the temporaries and things that have user-types in them
             asm.Procedures = asm.Procedures
                 .Except(tempEval)
                 .Where(proc => !proc.HasUserValues()).ToList();
-            var checkedAsm = asm.Check(status);
-            if (status.Errors.Count > 0)
-            {
-                // TODO: Debug dump
-                Console.WriteLine(asm);
-                return null;
-            }
+            var checkedAsm = asm.Check();
             return checkedAsm;
         }
 
@@ -135,13 +130,12 @@ namespace Yoakke.Compiler.Compile
             var proc = codegen.GenerateEvaluationProc(expression);
             // We memorize the evaluation procedure so we can remove it from the final assembly
             tempEval.Add(proc);
-            var status = new BuildStatus();
-            var asm = codegen.Builder.Assembly.Check(status);
-            if (status.Errors.Count > 0)
+            var asm = codegen.Builder.Assembly.Check();
+            /*if (status.Errors.Count > 0)
             {
                 // TODO: The compiled assembly might be incomplete!
                 //throw new NotImplementedException();
-            }
+            }*/
             var vm = new VirtualMachine(asm);
             return vm.Execute(proc, new Value[] { });
         }

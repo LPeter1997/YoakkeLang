@@ -36,11 +36,11 @@ namespace Yoakke.Lir.Instructions
 
             public override string ToString() => $"jmp {Target.Name}";
 
-            public override void Validate(BuildStatus status)
+            public override void Validate(ValidationContext context)
             {
                 if (Target.Proc != BasicBlock.Proc)
                 {
-                    ReportValidationError(status, "Cross-procedure jump is illegal!");
+                    ReportValidationError(context, "Cross-procedure jump is illegal!");
                 }
             }
         }

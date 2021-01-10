@@ -11,6 +11,16 @@ namespace Yoakke.Lir.Backend
     /// </summary>
     public class Build
     {
+        // TODO: Doc
+        public delegate void BuildErrorEventHandler(Build build, IBuildError buildError);
+        // TODO: Doc
+        public delegate void BuildWarningEventHandler(Build build, IBuildWarning buildWarning);
+
+        // TODO: Doc
+        public event BuildErrorEventHandler? BuildError;
+        // TODO: Doc
+        public event BuildWarningEventHandler? BuildWarning;
+
         /// <summary>
         /// The <see cref="TargetTriplet"/> the build targets.
         /// </summary>
@@ -29,10 +39,21 @@ namespace Yoakke.Lir.Backend
         /// </summary>
         public string OutputPath { get; set; } = "a.out";
 
+        private UncheckedAssembly? assembly;
         /// <summary>
         /// The <see cref="UncheckedAssembly"/> that need to be compiled.
         /// </summary>
-        public UncheckedAssembly? Assembly { get; set; }
+        public UncheckedAssembly? Assembly 
+        { 
+            get => assembly; 
+            set
+            {
+                // Propagate validation errors
+                if (assembly != null) assembly.ValidationError -= OnValidationError;
+                assembly = value;
+                if (assembly != null) assembly.ValidationError += OnValidationError;
+            }
+        }
         /// <summary>
         /// The already checked <see cref="Assembly"/>.
         /// </summary>
@@ -54,22 +75,21 @@ namespace Yoakke.Lir.Backend
         /// <see cref="Metrics"/> about the build.
         /// </summary>
         public readonly Metrics Metrics = new Metrics();
-        /// <summary>
-        /// The <see cref="BuildStatus"/> for this build.
-        /// </summary>
-        public readonly BuildStatus Status = new BuildStatus();
 
-        public bool HasErrors => Status.Errors.Count != 0;
+        // TODO: Doc
+        public bool HasErrors { get; private set; }
 
-        public void Report(IBuildWarning warning) => Status.Report(warning);
-        public void Report(IBuildError error) => Status.Report(error);
-
-        public string GetIrCode()
+        public Build()
         {
-            if (CheckedAssembly == null) throw new InvalidOperationException();
-            return CheckedAssembly.ToString();
+            BuildError += (s, e) => HasErrors = true;
         }
 
-        public string GetAssemblyCode() => File.ReadAllText((string)Extra["assemblyFile"]);
+        public void Report(IBuildWarning warning) => BuildWarning?.Invoke(this, warning);
+        public void Report(IBuildError error) => BuildError?.Invoke(this, error);
+
+        private void OnValidationError(ValidationContext context, ValidationError validationError)
+        {
+            Report(validationError);
+        }
     }
 }

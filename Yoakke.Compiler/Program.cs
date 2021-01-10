@@ -66,12 +66,7 @@ namespace Yoakke.Compiler
             }
 #else
             // TODO: Integrate build errors as ICEs!
-            var buildStatus = new BuildStatus();
-            var asm = system.Compile(ast, buildStatus);
-            foreach (var err in buildStatus.Errors)
-            {
-                Console.WriteLine(err.GetErrorMessage());
-            }
+            var asm = system.Compile(ast);
             if (asm == null) return;
 
             new CodePassSet().Pass(asm);
@@ -99,14 +94,6 @@ namespace Yoakke.Compiler
             //build.ExternalBinaries.Add("libcmt.lib");
             //build.ExternalBinaries.Add("kernel32.lib");
             toolchain.Compile(build);
-            if (build.HasErrors)
-            {
-                Console.WriteLine("Build error!");
-                foreach (var err in build.Status.Errors)
-                {
-                    Console.WriteLine(err.GetErrorMessage());
-                }
-            }
 #endif
 #elif false
             // TODO: We need to expand arguments

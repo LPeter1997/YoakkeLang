@@ -49,15 +49,15 @@ namespace Yoakke.Lir.Instructions
         public override string ToString() => 
             $"{Result} = {Keyword} {Left.ToValueString()}, {Right.ToValueString()}";
 
-        public override void Validate(BuildStatus status)
+        public override void Validate(ValidationContext context)
         {
             if (!Left.Type.Equals(Right.Type))
             {
-                ReportValidationError(status, "Operand type mismatch!");
+                ReportValidationError(context, "Operand type mismatch!");
             }
             if (!Result.Type.Equals(Left.Type))
             {
-                ReportValidationError(status, "The bitwise result does not match the result storage type!");
+                ReportValidationError(context, "The bitwise result does not match the result storage type!");
             }
             if (Left.Type is Type.Int)
             {
@@ -65,7 +65,7 @@ namespace Yoakke.Lir.Instructions
             }
             else
             {
-                ReportValidationError(status, "Unsupported operand type!");
+                ReportValidationError(context, "Unsupported operand type!");
             }
         }
     }

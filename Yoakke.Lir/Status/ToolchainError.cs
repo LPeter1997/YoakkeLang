@@ -1,4 +1,5 @@
 ﻿using Yoakke.Lir.Backend.Toolchain;
+using Yoakke.Reporting;
 
 namespace Yoakke.Lir.Status
 {
@@ -18,8 +19,10 @@ namespace Yoakke.Lir.Status
             Message = message;
         }
 
-        public string GetErrorMessage() =>
-            $"Toolchain error while executing {Tool} using the command '{Command}':\n" +
-            Message;
+        public Diagnostic GetDiagnostic() => new Diagnostic
+        {
+            Severity = Severity.Error,
+            Message = $"Toolchain error while executing {Tool} using the command '{Command}':\n{Message}",
+        };
     }
 }

@@ -51,15 +51,15 @@ namespace Yoakke.Lir.Instructions
         public override string ToString() => 
             $"{Result} = {Keyword} {Shifted.ToValueString()}, {Amount.ToValueString()}";
 
-        public override void Validate(BuildStatus status)
+        public override void Validate(ValidationContext context)
         {
             if (!Result.Type.Equals(Shifted.Type))
             {
-                ReportValidationError(status, "The shifted type must match the result storage type!");
+                ReportValidationError(context, "The shifted type must match the result storage type!");
             }
             if (!(Shifted.Type is Type.Int && Amount.Type is Type.Int))
             {
-                ReportValidationError(status, "The shift operands must be integers!");
+                ReportValidationError(context, "The shift operands must be integers!");
             }
             // TODO: Make sure shift amount is unsigned?
         }

@@ -73,15 +73,15 @@ namespace Yoakke.Lir
         // NOTE: Makes no sense to clone this
         public override Value Clone() => this;
 
-        public void Validate(BuildStatus status)
+        public void Validate(ValidationContext context)
         {
             foreach (var bb in BasicBlocks)
             {
                 if (bb.Proc != this)
                 {
-                    status.Report(new ValidationError(bb, "The basic block is not linked to the containing procedure!"));
+                    context.Report(new ValidationError(context, bb, "The basic block is not linked to the containing procedure!"));
                 }
-                bb.Validate(status);
+                bb.Validate(context);
             }
         }
 
