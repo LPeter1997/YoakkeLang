@@ -68,7 +68,7 @@ namespace Yoakke.Lir.Tests
             }
         }
 
-        private void TestOnToolchain<TFunc>(IToolchain toolchain, Assembly assembly, Value expected, params Value[] args)
+        private void TestOnToolchain<TFunc>(IToolchain toolchain, UncheckedAssembly assembly, Value expected, params Value[] args)
             where TFunc : Delegate
         {
             // Compile
@@ -77,10 +77,9 @@ namespace Yoakke.Lir.Tests
                 IntermediatesDirectory = IntermediatesDirectory,
                 OutputKind = OutputKind.DynamicLibrary,
                 OutputPath = Path.Combine(IntermediatesDirectory, $"{TestContext.TestName}_{uniqueId++}.dll"),
-                CheckedAssembly = assembly,
+                Assembly = assembly,
             };
             toolchain.Compile(build);
-            Assert.IsFalse(build.HasErrors);
             // Load function
             var nativeArgs = args.Select(FromValue).ToArray();
             var proc = NativeUtils.LoadNativeProcedure<TFunc>(build.OutputPath, "entry", CallConv.Cdecl);
@@ -96,11 +95,12 @@ namespace Yoakke.Lir.Tests
             Assert.AreEqual(expected, result);
         }
 
-        private void TestOnAllBackends<TFunc>(Assembly assembly, Value expected, params Value[] args) 
+        private void TestOnAllBackends<TFunc>(UncheckedAssembly assembly, Value expected, params Value[] args) 
             where TFunc : Delegate
         {
             TestOnToolchain<TFunc>(NativeToolchain, assembly, expected, args);
-            TestOnVirtualMachine(assembly, expected, args);
+            var checkedAsm = assembly.Check();
+            TestOnVirtualMachine(checkedAsm, expected, args);
         }
 
         private Assembly Check(UncheckedAssembly assembly)

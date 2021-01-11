@@ -29,15 +29,15 @@ namespace Yoakke.Lir.Passes
         /// </summary>
         public CodePassSet()
         {
-            foreach (var p in DefaultPasses) Passes.Add(p);
+            Passes = DefaultPasses.ToList();
         }
 
         /// <summary>
         /// Applies the contained <see cref="Passes"/> as long as there are changes found.
         /// </summary>
-        /// <param name="assembly">The <see cref="Assembly"/> to apply the passes on.</param>
+        /// <param name="assembly">The <see cref="UncheckedAssembly"/> to apply the passes on.</param>
         /// <param name="changed">Outputs true, if the code was changed.</param>
-        public void Pass(Assembly assembly, out bool changed)
+        public void Pass(UncheckedAssembly assembly, out bool changed)
         {
             changed = false;
             bool first = true;
@@ -52,9 +52,9 @@ namespace Yoakke.Lir.Passes
         /// <summary>
         /// Same as <see cref="Pass(Assembly, out bool)"/>.
         /// </summary>
-        public void Pass(Assembly assembly) => Pass(assembly, out var _);
+        public void Pass(UncheckedAssembly assembly) => Pass(assembly, out var _);
 
-        private bool Pass(Assembly assembly, bool first)
+        private bool Pass(UncheckedAssembly assembly, bool first)
         {
             bool changed = false;
             foreach (var pass in Passes)

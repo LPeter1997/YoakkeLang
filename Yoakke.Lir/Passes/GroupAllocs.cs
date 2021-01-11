@@ -11,7 +11,7 @@ namespace Yoakke.Lir.Passes
     {
         public bool IsSinglePass => true;
 
-        public void Pass(Assembly assembly, out bool changed)
+        public void Pass(UncheckedAssembly assembly, out bool changed)
         {
             changed = false;
             foreach (var proc in assembly.Procedures)

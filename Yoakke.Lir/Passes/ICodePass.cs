@@ -11,10 +11,10 @@
         public bool IsSinglePass { get; }
 
         /// <summary>
-        /// Does a pass on the given <see cref="Assembly"/>.
+        /// Does a pass on the given <see cref="UncheckedAssembly"/>.
         /// </summary>
-        /// <param name="assembly">The <see cref="Assembly"/> to do the pass on.</param>
+        /// <param name="assembly">The <see cref="UncheckedAssembly"/> to do the pass on.</param>
         /// <param name="changed">True is output, if the code was changed in any way.</param>
-        public void Pass(Assembly assembly, out bool changed);
+        public void Pass(UncheckedAssembly assembly, out bool changed);
     }
 }

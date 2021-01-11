@@ -9,6 +9,8 @@ using Yoakke.Lir.Passes;
 using Yoakke.Lir.Runtime;
 using Yoakke.Lir.Status;
 using Yoakke.Lir.Values;
+using Yoakke.Reporting;
+using Yoakke.Reporting.Info;
 using Yoakke.Reporting.Render;
 using Yoakke.Syntax;
 using Yoakke.Syntax.Error;
@@ -19,32 +21,12 @@ namespace Yoakke.Compiler
     {
         static void Main(string[] args)
         {
-#if true
             var system = new DependencySystem("../../../../../stdlib");
             var symTab = system.SymbolTable;
 
             var diagRenderer = new TextDiagnosticRenderer { SyntaxHighlighter = new YoakkeReportingSyntaxHighlighter() };
 
-            // TODO: Temporary
-            /*symTab.DefineBuiltin(
-                "puts",
-                new Semantic.Type.Proc(new ValueList<Semantic.Type> { new Semantic.Type.Ptr(Semantic.Type.U8) }, Semantic.Type.I32),
-                system.Builder.DefineExtern(
-                    "puts",
-                    new Lir.Types.Type.Proc(Lir.CallConv.Cdecl, Lir.Types.Type.I32, new ValueList<Lir.Types.Type> { new Lir.Types.Type.Ptr(Lir.Types.Type.U8) }),
-                    "libucrt.lib"));
-            symTab.DefineBuiltin(
-                "abs",
-                new Semantic.Type.Proc(new ValueList<Semantic.Type> { Semantic.Type.I32 }, Semantic.Type.I32),
-                system.Builder.DefineExtern(
-                    "abs",
-                    new Lir.Types.Type.Proc(Lir.CallConv.Cdecl, Lir.Types.Type.I32, new ValueList<Lir.Types.Type> { Lir.Types.Type.I32 }),
-                    "libucrt.lib"));*/
-
             var ast = system.LoadAst(@"../../../../../samples/test.yk");
-
-            //Console.WriteLine(prg.Dump());
-            //Console.WriteLine(ast.Dump());
 
             // Semantics
             // TODO: Maye this should also be part of the dependency system?
@@ -65,17 +47,16 @@ namespace Yoakke.Compiler
                 Console.WriteLine(sym);
             }
 #else
-            // TODO: Integrate build errors as ICEs!
             var asm = system.Compile(ast);
-            if (asm == null) return;
-
             new CodePassSet().Pass(asm);
             Console.WriteLine(asm);
             Console.WriteLine("\n");
 
             // Run in the VM
 #if true
-            var vm = new VirtualMachine(asm);
+            asm.ValidationError += OnICE;
+            var checkedAsm = asm.Check();
+            var vm = new VirtualMachine(checkedAsm);
             var result = vm.Execute("main", new Value[] { });
             Console.WriteLine($"Result: {result}");
 #endif
@@ -84,10 +65,15 @@ namespace Yoakke.Compiler
             var toolchain = Toolchains.All().First();
             var build = new Build
             {
-                CheckedAssembly = asm,
+                Assembly = asm,
                 IntermediatesDirectory = "C:/TMP/program_build",
                 OutputPath = "C:/TMP/program.exe",
             };
+            build.BuildWarning += (s, warn) =>
+            {
+                // TODO
+            };
+            build.BuildError += OnICE;
             build.ExternalBinaries.Add("libvcruntime.lib");
             build.ExternalBinaries.Add("msvcrt.lib");
             build.ExternalBinaries.Add("legacy_stdio_definitions.lib");
@@ -95,81 +81,19 @@ namespace Yoakke.Compiler
             //build.ExternalBinaries.Add("kernel32.lib");
             toolchain.Compile(build);
 #endif
-#elif false
-            // TODO: We need to expand arguments
-            // We need to refactor out expansion (and parsing) mechanism to work everywhere, not just in the main parser module
-            var src = File.ReadAllText("C:/TMP/SDL2/include/SDL.h");
-            var ppTokens = C.Syntax.Lexer.Lex(CppTextReader.Process(src));
-            var pp = new PreProcessor("C:/TMP/SDL2/include/SDL.h");
-            pp.AddIncludePath("C:/TMP/SDL2/include");
-            pp.AddIncludePath(@"c:\Program Files (x86)\Microsoft Visual Studio\2019\Community\SDK\ScopeCppSDK\vc15\SDK\include\ucrt");
-            pp.AddIncludePath(@"c:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.27.29110\include");
-            pp.Define("WIN32", new UserMacro(false, false, new string[] { }, new C.Syntax.Token[] { }));
-            var output = new StreamWriter(new FileStream("out.txt", FileMode.OpenOrCreate));
-            foreach (var t in pp.Process(ppTokens))
+        }
+
+        private static void OnICE(object sender, IBuildError error)
+        {
+            var diag = error.GetDiagnostic();
+            diag.Severity = Severity.InternalError;
+            diag.Message = $"Internal compiler error!\n{diag.Message}";
+            diag.Information.Add(new FootnoteDiagnosticInfo
             {
-                output.WriteLine(t.Value);
-            }
-            output.Close();
-#else
-            var src = new SourceFile("foo.yk",
-@"
-const Frac = struct {
-    nom: i32;
-    den: i32;
-	const new = proc(n: i32, d: i32) -> Frac {
-        // Some comment
-        Frac{ nom = n; den = d; }
-    };
-};
-
-const Half = Frac.new(1, 2);
-
-const main = proc() -> i32 {
-    Half.den
-};
-");
-
-            //for (int i = 0; i < src.LineCount; ++i)
-            //{
-            //    Console.WriteLine($"line {i}: {src.Line(i).ToString()}");
-            //}
-
-            var diag = new Diagnostic
-            {
-                Severity = Severity.Error,
-                Code = "E0523",
-                Message = "You oofed this one",
-                Information = 
-                { 
-                    new PrimaryDiagnosticInfo
-                    {
-                        Span = new Span(src, new Position(6, 8), 4),
-                        Message = "u tried to make it here",
-                    },
-                    new SpannedDiagnosticInfo
-                    {
-                        Span = new Span(src, new Position(10, 6), 4),
-                        Message = "and using it here",
-                    },
-                    new SpannedDiagnosticInfo
-                    {
-                        Span = new Span(src, new Position(6, 23), 3),
-                        Message = "and using it here",
-                    },
-                    new SpannedDiagnosticInfo
-                    {
-                        Span = new Span(src, new Position(6, 14), 3),
-                        Message = "and using it here",
-                    },
-                    new HintDiagnosticInfo
-                    {
-                        Message = "Did you mean to aaa?",
-                    },
-                },
-            };
-            new TextDiagnosticRenderer() { SyntaxHighlighter = new YoakkeReportingSyntaxHighlighter() }.Render(diag);
-#endif
+                Message = "Please report this error at the official Yoakke repository!",
+            });
+            new TextDiagnosticRenderer().Render(error.GetDiagnostic());
+            Environment.Exit(1);
         }
     }
 }

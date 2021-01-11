@@ -27,7 +27,7 @@ namespace Yoakke.Compiler.Compile
 
         public Declaration.File LoadAst(string path);
 
-        public Assembly? Compile(Declaration.File file);
+        public UncheckedAssembly Compile(Declaration.File file);
         public void TypeCheck(Node node);
         public Type TypeOf(Expression expression);
         public Value Evaluate(Expression expression);

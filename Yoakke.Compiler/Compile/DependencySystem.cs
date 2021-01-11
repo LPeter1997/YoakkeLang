@@ -97,15 +97,14 @@ namespace Yoakke.Compiler.Compile
         }
 
         // TODO: DO we still want nullable here?
-        public Assembly? Compile(Declaration.File file)
+        public UncheckedAssembly Compile(Declaration.File file)
         {
             var asm = codegen.Generate(file);
             // Erase the temporaries and things that have user-types in them
             asm.Procedures = asm.Procedures
                 .Except(tempEval)
                 .Where(proc => !proc.HasUserValues()).ToList();
-            var checkedAsm = asm.Check();
-            return checkedAsm;
+            return asm;
         }
 
         public Type TypeOf(Expression expression) => typeEval.TypeOf(expression);

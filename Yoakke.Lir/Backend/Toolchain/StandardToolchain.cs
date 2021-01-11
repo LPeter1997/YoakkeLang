@@ -38,7 +38,15 @@ namespace Yoakke.Lir.Backend.Toolchain
 
             build.Metrics.StartTime("Overall");
 
-            // First we validate
+            // Do the code pass first
+            if (build.CodePass != null && build.Assembly != null)
+            {
+                build.Metrics.StartTime("Code passes");
+                build.CodePass.Pass(build.Assembly, out var _);
+                build.Metrics.EndTime();
+            }
+
+            // Then we validate
             if (build.Assembly != null && build.CheckedAssembly == null)
             {
                 build.Metrics.StartTime("Validation");
@@ -53,14 +61,6 @@ namespace Yoakke.Lir.Backend.Toolchain
             }
 
             Debug.Assert(build.CheckedAssembly != null);
-            
-            // Do the code pass here
-            if (build.CodePass != null)
-            {
-                build.Metrics.StartTime("Code passes");
-                build.CodePass.Pass(build.CheckedAssembly, out var _);
-                build.Metrics.EndTime();
-            }
 
             if (build.OutputKind == OutputKind.Ir)
             {
