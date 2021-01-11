@@ -12,7 +12,7 @@ namespace Yoakke.Reporting
         public static readonly Severity Note = new Severity { Description = "note", Color = ConsoleColor.Green };
         public static readonly Severity Warning = new Severity { Description = "warning", Color = ConsoleColor.Yellow };
         public static readonly Severity Error = new Severity { Description = "error", Color = ConsoleColor.Red };
-        public static readonly Severity InternalError = new Severity { Description = "internal compiler error", Color = ConsoleColor.Magenta };
+        public static readonly Severity InternalError = new Severity { Description = "internal error", Color = ConsoleColor.Magenta };
 
         /// <summary>
         /// The textual representation of the severity level.

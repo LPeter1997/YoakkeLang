@@ -74,6 +74,7 @@ namespace Yoakke.Lir.Tests
             // Compile
             var build = new Build
             {
+                CodePass = CodePassSet.BasicPass,
                 IntermediatesDirectory = IntermediatesDirectory,
                 OutputKind = OutputKind.DynamicLibrary,
                 OutputPath = Path.Combine(IntermediatesDirectory, $"{TestContext.TestName}_{uniqueId++}.dll"),
@@ -132,8 +133,6 @@ namespace Yoakke.Lir.Tests
             // Compilation
             var asm = system.Compile(ast);
             // TODO: Errors
-            Assert.IsNotNull(asm);
-            new CodePassSet().Pass(asm);
 
             TestOnAllBackends<TFunc>(asm, expected, args);
         }

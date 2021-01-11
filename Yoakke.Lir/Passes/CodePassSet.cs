@@ -13,9 +13,12 @@ namespace Yoakke.Lir.Passes
         /// <summary>
         /// A collection of default <see cref="ICodePass"/>es.
         /// </summary>
-        public static readonly IReadOnlyList<ICodePass> DefaultPasses = new ICodePass[]
+        public static readonly ICodePass BasicPass = new CodePassSet
         {
-            new GroupAllocs(),
+            Passes =
+            { 
+                new GroupAllocs(),
+            }
         };
 
         /// <summary>
@@ -24,12 +27,10 @@ namespace Yoakke.Lir.Passes
         public readonly IList<ICodePass> Passes = new List<ICodePass>();
 
         /// <summary>
-        /// Initializes a new <see cref="CodePassSet"/> with the default <see cref="ICodePass"/>es.
-        /// See the <see cref="DefaultPasses"/>.
+        /// Initializes a new, empty <see cref="CodePassSet"/>.
         /// </summary>
         public CodePassSet()
         {
-            Passes = DefaultPasses.ToList();
         }
 
         /// <summary>

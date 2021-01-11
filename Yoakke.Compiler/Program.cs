@@ -48,7 +48,6 @@ namespace Yoakke.Compiler
             }
 #else
             var asm = system.Compile(ast);
-            new CodePassSet().Pass(asm);
             Console.WriteLine(asm);
             Console.WriteLine("\n");
 
@@ -65,6 +64,7 @@ namespace Yoakke.Compiler
             var toolchain = Toolchains.All().First();
             var build = new Build
             {
+                CodePass = CodePassSet.BasicPass,
                 Assembly = asm,
                 IntermediatesDirectory = "C:/TMP/program_build",
                 OutputPath = "C:/TMP/program.exe",
@@ -87,12 +87,12 @@ namespace Yoakke.Compiler
         {
             var diag = error.GetDiagnostic();
             diag.Severity = Severity.InternalError;
-            diag.Message = $"Internal compiler error!\n{diag.Message}";
+            diag.Message = $"Internal compiler error (ICE)\ninfo: {diag.Message}";
             diag.Information.Add(new FootnoteDiagnosticInfo
             {
-                Message = "Please report this error at the official Yoakke repository!",
+                Message = "Please report this error at the official Yoakke repository.",
             });
-            new TextDiagnosticRenderer().Render(error.GetDiagnostic());
+            new TextDiagnosticRenderer().Render(diag);
             Environment.Exit(1);
         }
     }

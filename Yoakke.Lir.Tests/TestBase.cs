@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Yoakke.Lir.Backend;
 using Yoakke.Lir.Backend.Toolchain;
+using Yoakke.Lir.Passes;
 using Yoakke.Lir.Runtime;
 using Yoakke.Lir.Status;
 using Yoakke.Lir.Utils;
@@ -68,6 +69,7 @@ namespace Yoakke.Lir.Tests
             // Compile
             var build = new Build
             {
+                CodePass = CodePassSet.BasicPass,
                 IntermediatesDirectory = IntermediatesDirectory,
                 OutputKind = OutputKind.DynamicLibrary,
                 OutputPath = Path.Combine(IntermediatesDirectory, $"{TestContext.TestName}_{uniqueId++}.dll"),

@@ -1,5 +1,6 @@
 ﻿using System;
 using Yoakke.Reporting;
+using Yoakke.Reporting.Info;
 
 namespace Yoakke.Lir.Status
 {
@@ -41,6 +42,13 @@ namespace Yoakke.Lir.Status
         {
             Severity = Severity.Error,
             Message = Message,
+            Information =
+            {
+                new FootnoteDiagnosticInfo
+                {
+                    Message = $"relevant IR code:\n{Subject}",
+                }
+            }
         };
     }
 }
