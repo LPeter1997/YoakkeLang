@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Yoakke.DataStructures;
 using Yoakke.Lir.Instructions;
 using Yoakke.Lir.Status;
 
@@ -25,7 +26,7 @@ namespace Yoakke.Lir
         /// <summary>
         /// The list of instructions this block contains.
         /// </summary>
-        public readonly IList<Instr> Instructions = new List<Instr>();
+        public readonly IList<Instr> Instructions;
 
         /// <summary>
         /// True, if this <see cref="BasicBlock"/> ends in a branch instruction.
@@ -39,6 +40,9 @@ namespace Yoakke.Lir
         public BasicBlock(string name)
         {
             Name = name;
+            var instructions = new ObservableList<Instr>();
+            instructions.ItemAdded += (s, instr) => instr.BasicBlock = this;
+            Instructions = instructions;
         }
 
         public override string ToString() => 

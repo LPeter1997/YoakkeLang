@@ -37,7 +37,7 @@ namespace Yoakke.Lir
         /// <summary>
         /// The list of <see cref="BasicBlock"/>s the procedure consists of.
         /// </summary>
-        public readonly IList<BasicBlock> BasicBlocks = new List<BasicBlock>();
+        public readonly IList<BasicBlock> BasicBlocks;
 
         /// <summary>
         /// Initializes a new <see cref="Proc"/>.
@@ -46,6 +46,9 @@ namespace Yoakke.Lir
         public Proc(string name)
         {
             Name = name;
+            var bbs = new ObservableList<BasicBlock>();
+            bbs.ItemAdded += (s, bb) => bb.Proc = this;
+            BasicBlocks = bbs;
         }
 
         public override string ToValueString() => Name;

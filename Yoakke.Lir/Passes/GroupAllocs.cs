@@ -37,7 +37,6 @@ namespace Yoakke.Lir.Passes
             foreach (var instr in allocs) preludeBB.Instructions.Add(instr);
             preludeBB.Instructions.Add(new Instr.Jmp(proc.BasicBlocks.First()));
             // Now we insert our block
-            preludeBB.Proc = proc;
             proc.BasicBlocks.Insert(0, preludeBB);
             // We modified
             return true;
