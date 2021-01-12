@@ -14,8 +14,10 @@ namespace Yoakke.Compiler.Compile
     public interface IDependencySystem
     {
         public delegate void CompileErrorEventHandler(IDependencySystem sender, ICompileError compileError);
+        public delegate void PhaseCompleteEventHandler(IDependencySystem sender);
 
         public event CompileErrorEventHandler? CompileError;
+        public event PhaseCompleteEventHandler? PhaseComplete;
 
         public string StandardLibraryPath { get; }
 
@@ -23,7 +25,7 @@ namespace Yoakke.Compiler.Compile
         public Builder Builder { get; }
         public TypeTranslator TypeTranslator { get; }
 
-        public void ReportCompileError(ICompileError compileError);
+        public void Report(ICompileError compileError);
 
         public Declaration.File LoadAst(string path);
 

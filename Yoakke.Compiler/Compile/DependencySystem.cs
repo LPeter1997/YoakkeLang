@@ -24,6 +24,7 @@ namespace Yoakke.Compiler.Compile
     public class DependencySystem : IDependencySystem
     {
         public event IDependencySystem.CompileErrorEventHandler? CompileError;
+        public event IDependencySystem.PhaseCompleteEventHandler? PhaseComplete;
 
         public string StandardLibraryPath { get; }
 
@@ -61,7 +62,7 @@ namespace Yoakke.Compiler.Compile
             CompileError += OnCompileError;
         }
 
-        public void ReportCompileError(ICompileError compileError) =>
+        public void Report(ICompileError compileError) =>
             CompileError?.Invoke(this, compileError);
 
         public Declaration.File LoadAst(string path)
@@ -77,7 +78,7 @@ namespace Yoakke.Compiler.Compile
             var prg = parser.ParseFile();
             var ast = ParseTreeToAst.Convert(prg);
             ast = new Desugaring().Desugar(ast);
-            TerminateAndDumpIfHasErrors();
+            PhaseComplete?.Invoke(this);
             return ast;
         }
 
@@ -112,7 +113,7 @@ namespace Yoakke.Compiler.Compile
         public void TypeCheck(Node node)
         {
             typeCheck.Check(node);
-            TerminateAndDumpIfHasErrors();
+            PhaseComplete?.Invoke(this);
         }
 
         public Value Evaluate(Expression expression)
@@ -212,7 +213,7 @@ namespace Yoakke.Compiler.Compile
         }
 
         private void OnSyntaxError(object sender, ISyntaxError syntaxError) =>
-            ReportCompileError(new SyntaxError(syntaxError));
+            Report(new SyntaxError(syntaxError));
 
         private void OnCompileError(IDependencySystem system, ICompileError compileError)
         {
@@ -220,13 +221,13 @@ namespace Yoakke.Compiler.Compile
             errors.Add(compileError);
         }
 
-        private void TerminateAndDumpIfHasErrors()
+        /*private void TerminateAndDumpIfHasErrors()
         {
             if (errors.Count == 0) return;
 
             var diagRenderer = new TextDiagnosticRenderer { SyntaxHighlighter = new YoakkeReportingSyntaxHighlighter() };
             foreach (var err in errors) diagRenderer.Render(err.GetDiagnostic());
             Environment.Exit(1);
-        }
+        }*/
     }
 }

@@ -108,7 +108,7 @@ namespace Yoakke.Compiler.Semantic
             // Report
             var diag = reference == null ? new UndefinedSymbolError(name) : new UndefinedSymbolError(reference);
             diag.SimilarExistingNames = similarlyNamedSymbol.Select(sym => sym.Name);
-            system.ReportCompileError(diag);
+            system.Report(diag);
             // Return a dummy symbol
             return new Symbol.Var(null, name, Symbol.VarKind.Local);
         }

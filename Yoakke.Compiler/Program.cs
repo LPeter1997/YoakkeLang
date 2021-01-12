@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Yoakke.Compiler.Compile;
+using Yoakke.Compiler.Error;
 using Yoakke.Compiler.Semantic;
 using Yoakke.DataStructures;
 using Yoakke.Lir.Backend;
@@ -19,12 +21,14 @@ namespace Yoakke.Compiler
 {
     class Program
     {
+        private static List<ICompileError> errors = new List<ICompileError>();
+
         static void Main(string[] args)
         {
             var system = new DependencySystem("../../../../../stdlib");
+            system.CompileError += (s, err) => errors.Add(err);
+            system.PhaseComplete += OnPhaseComplete;
             var symTab = system.SymbolTable;
-
-            var diagRenderer = new TextDiagnosticRenderer { SyntaxHighlighter = new YoakkeReportingSyntaxHighlighter() };
 
             var ast = system.LoadAst(@"../../../../../samples/test.yk");
 
@@ -32,9 +36,6 @@ namespace Yoakke.Compiler
             // TODO: Maye this should also be part of the dependency system?
             // Probably yes!
             SymbolResolution.Resolve(symTab, ast);
-
-            // Compilation
-            //var system = new DependencySystem(symTab);
 
 #if false
             system.TypeCheck(ast);
@@ -93,6 +94,18 @@ namespace Yoakke.Compiler
                 Message = "Please report this error at the official Yoakke repository.",
             });
             new TextDiagnosticRenderer().Render(diag);
+            Environment.Exit(1);
+        }
+
+        private static void OnPhaseComplete(IDependencySystem system)
+        {
+            if (errors.Count == 0) return;
+
+            var diagRenderer = new TextDiagnosticRenderer 
+            { 
+                SyntaxHighlighter = new YoakkeReportingSyntaxHighlighter() 
+            };
+            foreach (var err in errors) diagRenderer.Render(err.GetDiagnostic());
             Environment.Exit(1);
         }
     }
