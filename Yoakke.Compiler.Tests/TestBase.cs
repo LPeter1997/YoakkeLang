@@ -80,6 +80,7 @@ namespace Yoakke.Lir.Tests
                 OutputPath = Path.Combine(IntermediatesDirectory, $"{TestContext.TestName}_{uniqueId++}.dll"),
                 Assembly = assembly,
             };
+            build.BuildError += (s, e) => Assert.Fail("Test has build error!");
             toolchain.Compile(build);
             // Load function
             var nativeArgs = args.Select(FromValue).ToArray();
@@ -100,15 +101,14 @@ namespace Yoakke.Lir.Tests
             where TFunc : Delegate
         {
             TestOnToolchain<TFunc>(NativeToolchain, assembly, expected, args);
-            var checkedAsm = assembly.Check();
+            var checkedAsm = Check(assembly);
             TestOnVirtualMachine(checkedAsm, expected, args);
         }
 
         private Assembly Check(UncheckedAssembly assembly)
         {
-            var asm = assembly.Check();
-            // TODO: Errors
-            return asm;
+            assembly.ValidationError += (s, e) => Assert.Fail("Test has validation error!");
+            return assembly.Check();
         }
 
         protected void TestOnAllBackends<TFunc>(string source, Value expected, params Value[] args)
@@ -117,16 +117,17 @@ namespace Yoakke.Lir.Tests
             var srcFile = new SourceFile($"{TestContext.TestName}.yk", source);
 
             var lexer = new Lexer(srcFile);
-            lexer.SyntaxError += (s, err) => throw new Exception("Test has syntax error!");
+            lexer.SyntaxError += (s, err) => Assert.Fail("Test has syntax error!");
             
             var parser = new Parser(lexer.Lex());
-            parser.SyntaxError += (s, err) => throw new Exception("Test has syntax error!");
+            parser.SyntaxError += (s, err) => Assert.Fail("Test has syntax error!");
             var prg = parser.ParseFile();
 
             var ast = ParseTreeToAst.Convert(prg);
             ast = new Desugaring().Desugar(ast);
 
             var system = new DependencySystem("../../../../../stdlib");
+            system.CompileError += (s, err) => Assert.Fail("Test has compilation error!");
             var symTab = system.SymbolTable;
             SymbolResolution.Resolve(symTab, ast);
 

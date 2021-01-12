@@ -75,8 +75,8 @@ namespace Yoakke.Lir.Tests
                 OutputPath = Path.Combine(IntermediatesDirectory, $"{TestContext.TestName}_{uniqueId++}.dll"),
                 CheckedAssembly = assembly,
             };
+            build.BuildError += (s, e) => Assert.Fail("Test has build error!");
             toolchain.Compile(build);
-            Assert.IsFalse(build.HasErrors);
             // Load function
             var nativeArgs = args.Select(FromValue).ToArray();
             var proc = NativeUtils.LoadNativeProcedure<TFunc>(build.OutputPath, "entry", CallConv.Cdecl);
@@ -120,6 +120,7 @@ namespace Yoakke.Lir.Tests
         protected Builder GetBuilder(Type type)
         {
             var asm = new UncheckedAssembly(TestContext.TestName);
+            asm.ValidationError += (s, e) => Assert.Fail("Test has validation error!");
             var builder = new Builder(asm);
             var entry = builder.DefineProc("entry");
             entry.Visibility = Visibility.Public;
