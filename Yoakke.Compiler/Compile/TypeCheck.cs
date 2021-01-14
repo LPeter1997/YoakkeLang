@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
@@ -6,6 +7,7 @@ using Yoakke.Compiler.Error;
 using Yoakke.Compiler.Semantic;
 using Yoakke.Syntax.Ast;
 using Type = Yoakke.Compiler.Semantic.Types.Type;
+using IParseTreeElement = Yoakke.Syntax.ParseTree.IParseTreeElement;
 
 namespace Yoakke.Compiler.Compile
 {
@@ -329,6 +331,7 @@ namespace Yoakke.Compiler.Compile
             }
             // Check if all fields are instantiated exactly once and with their proper type
             var remainingFields = structType.Fields.ToDictionary(f => f.Key, f => f.Value);
+            var alreadyInitialized = new Dictionary<string, IParseTreeElement?>();
             foreach (var field in sval.Fields)
             {
                 if (!remainingFields.Remove(field.Name, out var declaredType))
@@ -336,9 +339,11 @@ namespace Yoakke.Compiler.Compile
                     // Either already initialized, or unknown field
                     if (structType.Fields.ContainsKey(field.Name))
                     {
-                        // Double-init
-                        // TODO
-                        throw new NotImplementedException($"Field '{field.Name}' is double-initialized!");
+                        System.Report(new DoubleInitializationError(sval.StructType?.ParseTreeNode, field.Name)
+                        {
+                            FirstInitialized = alreadyInitialized[field.Name],
+                            SecondInitialized = field.ParseTreeNode,
+                        });
                     }
                     else
                     {
@@ -356,6 +361,7 @@ namespace Yoakke.Compiler.Compile
                         // TODO
                         throw new NotImplementedException($"Field type mismatch '{declaredType}' vs '{assignedType}'!");
                     }
+                    alreadyInitialized.Add(field.Name, field.ParseTreeNode);
                 }
             }
             if (remainingFields.Count > 0)

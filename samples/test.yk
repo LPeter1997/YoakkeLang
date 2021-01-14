@@ -8,12 +8,7 @@ const Frac = struct {
     };
 };
 
-const Half = Frac.new(1, 2);
-
-const foo = proc() {
-    1
-};
-
 const main = proc() -> i32 {
+    var a = Frac{ nom = 23; den = 23; nom = 652; };
     0
 };
