@@ -8,6 +8,7 @@ using Yoakke.Compiler.Semantic;
 using Yoakke.Syntax.Ast;
 using Type = Yoakke.Compiler.Semantic.Types.Type;
 using IParseTreeElement = Yoakke.Syntax.ParseTree.IParseTreeElement;
+using Yoakke.DataStructures;
 
 namespace Yoakke.Compiler.Compile
 {
@@ -339,17 +340,22 @@ namespace Yoakke.Compiler.Compile
                     // Either already initialized, or unknown field
                     if (structType.Fields.ContainsKey(field.Name))
                     {
-                        System.Report(new DoubleInitializationError(sval.StructType?.ParseTreeNode, field.Name)
+                        System.Report(new DoubleInitializationError(structType, field.Name)
                         {
+                            TypeInitializer = sval.StructType?.ParseTreeNode,
                             FirstInitialized = alreadyInitialized[field.Name],
                             SecondInitialized = field.ParseTreeNode,
                         });
                     }
                     else
                     {
-                        // Unknown field
-                        // TODO
-                        throw new NotImplementedException($"Unknown field '{field.Name}'!");
+                        System.Report(new UnknownInitializedFieldError(structType, field.Name)
+                        {
+                            TypeInitializer = sval.StructType?.ParseTreeNode,
+                            UnknownInitialized = field.ParseTreeNode,
+                            SimilarExistingNames = remainingFields.Keys
+                                .Where(n => StringMetrics.OptimalStringAlignmentDistance(n, field.Name) <= 2),
+                        });
                     }
                 }
                 else
@@ -366,8 +372,10 @@ namespace Yoakke.Compiler.Compile
             }
             if (remainingFields.Count > 0)
             {
-                // TODO
-                throw new NotImplementedException($"{remainingFields.Count} fields remaining uninitialized!");
+                System.Report(new MissingInitializationError(structType, remainingFields.Keys)
+                {
+                    TypeInitializer = sval.StructType?.ParseTreeNode,
+                });
             }
             return null;
         }

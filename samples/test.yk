@@ -9,6 +9,6 @@ const Frac = struct {
 };
 
 const main = proc() -> i32 {
-    var a = Frac{ nom = 23; den = 23; nom = 652; };
+    var a = Frac{ nob = 4; };
     0
 };
