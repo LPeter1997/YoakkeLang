@@ -36,10 +36,11 @@ namespace Yoakke.Syntax.Error
                     Span = new Span(Token.Span.Source, Token.Span.Start, 1),
                     Message = "starting here",
                 },
-                new PrimaryDiagnosticInfo
+                new SpannedDiagnosticInfo
                 {
                     Span = new Span(Token.Span.Source, Token.Span.End, 1),
                     Message = $"missing {Close} here",
+                    Severity = Severity.Error,
                 },
             },
         };

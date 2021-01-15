@@ -15,5 +15,9 @@ namespace Yoakke.Reporting.Info
         /// The message appended to the position.
         /// </summary>
         public string? Message { get; set; }
+        /// <summary>
+        /// The <see cref="Severity"/> of this information.
+        /// </summary>
+        public Severity? Severity { get; set; }
     }
 }

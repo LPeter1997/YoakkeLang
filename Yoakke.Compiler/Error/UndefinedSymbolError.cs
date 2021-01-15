@@ -46,10 +46,11 @@ namespace Yoakke.Compiler.Error
             };
             if (Reference != null)
             {
-                diag.Information.Add(new PrimaryDiagnosticInfo
+                diag.Information.Add(new SpannedDiagnosticInfo
                 {
                     Message = "referred here",
                     Span = Reference.Span,
+                    Severity = Severity.Error,
                 });
             }
             if (SimilarExistingNames.Any())

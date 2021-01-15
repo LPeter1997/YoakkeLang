@@ -47,13 +47,14 @@ namespace Yoakke.Syntax.Error
                 Message = Context == null ? "Syntax error" : $"syntax error while parsing {Context}",
                 Information =
                 {
-                    new PrimaryDiagnosticInfo
+                    new SpannedDiagnosticInfo
                     {
                         // For terminator tokens we show the end of the prev. token
                         Span = Expected.All(IsTerminatorToken) && Prev != null
                             ? new Span(Prev.Span.Source, Prev.Span.End, 1)
                             : Got.Span,
                         Message = $"expected {string.Join(" or ", Expected.Select(tt => tt.ToText()))} here",
+                        Severity = Severity.Error,
                     },
                 },
             };

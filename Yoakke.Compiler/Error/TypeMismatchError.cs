@@ -65,10 +65,11 @@ namespace Yoakke.Compiler.Error
             }
             if (Wrong != null)
             {
-                diag.Information.Add(new PrimaryDiagnosticInfo
+                diag.Information.Add(new SpannedDiagnosticInfo
                 {
                     Message = $"coerced to {Type2} here",
                     Span = Wrong.Span,
+                    Severity = Severity.Error,
                 });
             }
             return diag;

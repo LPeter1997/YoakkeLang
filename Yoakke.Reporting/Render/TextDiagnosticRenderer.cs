@@ -144,7 +144,7 @@ namespace Yoakke.Reporting.Render
             // Print the ┌─ <file name>
             buffer.Write($"{lineNumberPadding} ┌─ {sourceFile.Path}");
             // If there is a primary info, write the line and column
-            var primaryInfo = infos.OfType<PrimaryDiagnosticInfo>().FirstOrDefault();
+            var primaryInfo = infos.FirstOrDefault(info => info.Severity != null);
             if (primaryInfo != null) buffer.Write($":{primaryInfo.Span.Start.Line}:{primaryInfo.Span.Start.Column}");
             buffer.WriteLine();
             // Pad lines
@@ -248,10 +248,10 @@ namespace Yoakke.Reporting.Render
                     }
                 }
                 // Now we are inside the span
-                var arrowHead = annot is PrimaryDiagnosticInfo ? '^' : '-';
+                var arrowHead = annot.Severity != null ? '^' : '-';
                 var startColumn = buffer.CursorX;
                 arrowHeadColumns.Add((startColumn, annot));
-                if (annot is PrimaryDiagnosticInfo) buffer.ForegroundColor = ConsoleColor.Red;
+                if (annot.Severity != null) buffer.ForegroundColor = annot.Severity.Color;
                 for (; charIdx < annot.Span.End.Column; ++charIdx)
                 {
                     if (charIdx < line.Length)
@@ -267,7 +267,7 @@ namespace Yoakke.Reporting.Render
                     }
                 }
                 var endColumn = buffer.CursorX;
-                if (annot is PrimaryDiagnosticInfo)
+                if (annot.Severity != null)
                 {
                     // Recolor the source line too
                     buffer.Recolor(startColumn, buffer.CursorY - 1, endColumn - startColumn, 1);
@@ -288,14 +288,14 @@ namespace Yoakke.Reporting.Render
             // We only consider annotations with messages
             foreach (var (col, annot) in arrowHeadColumns.SkipLast(1).Reverse().Where(a => a.Info.Message != null))
             {
-                if (annot is PrimaryDiagnosticInfo) buffer.ForegroundColor = ConsoleColor.Red;
+                if (annot.Severity != null) buffer.ForegroundColor = annot.Severity.Color;
                 // Draw the arrow
                 buffer.Fill(col, arrowBaseLine, 1, arrowBodyLength, '│');
                 buffer.Plot(col, arrowBaseLine + arrowBodyLength, '└');
                 arrowBodyLength += 1;
                 // Append the message
                 buffer.Write($" {annot.Message}");
-                if (annot is PrimaryDiagnosticInfo) buffer.ResetColor();
+                if (annot.Severity != null) buffer.ResetColor();
             }
             // Fill the in between lines with the prefix
             for (int i = 0; i < arrowBodyLength; ++i)

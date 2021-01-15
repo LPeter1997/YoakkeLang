@@ -25,10 +25,11 @@ some other line");
                 Message = "Some error message",
                 Information =
                 {
-                    new PrimaryDiagnosticInfo
+                    new SpannedDiagnosticInfo
                     {
                         Span = new Span(src, new Position(line: 2, column: 10), 4),
                         Message = "some annotation",
+                        Severity = Severity.Error,
                     }
                 },
             };
@@ -62,10 +63,11 @@ last line");
                 Message = "Some error message",
                 Information =
                 {
-                    new PrimaryDiagnosticInfo
+                    new SpannedDiagnosticInfo
                     {
                         Span = new Span(src, new Position(line: 2, column: 10), 4),
                         Message = "some annotation1",
+                        Severity = Severity.Error,
                     },
                     new SpannedDiagnosticInfo
                     {
@@ -107,10 +109,11 @@ last line");
                 Message = "Some error message",
                 Information =
                 {
-                    new PrimaryDiagnosticInfo
+                    new SpannedDiagnosticInfo
                     {
                         Span = new Span(src, new Position(line: 2, column: 10), 4),
                         Message = "some annotation1",
+                        Severity = Severity.Error,
                     },
                     new SpannedDiagnosticInfo
                     {
@@ -154,10 +157,11 @@ last line");
                 Message = "Some error message",
                 Information =
                 {
-                    new PrimaryDiagnosticInfo
+                    new SpannedDiagnosticInfo
                     {
                         Span = new Span(src, new Position(line: 2, column: 10), 4),
                         Message = "some annotation1",
+                        Severity = Severity.Error,
                     },
                     new SpannedDiagnosticInfo
                     {
@@ -203,10 +207,11 @@ last line");
                 Message = "Some error message",
                 Information =
                 {
-                    new PrimaryDiagnosticInfo
+                    new SpannedDiagnosticInfo
                     {
                         Span = new Span(src, new Position(line: 2, column: 10), 4),
                         Message = "some annotation1",
+                        Severity = Severity.Error,
                     },
                     new SpannedDiagnosticInfo
                     {
@@ -254,10 +259,11 @@ last line");
                 Message = "Some error message",
                 Information =
                 {
-                    new PrimaryDiagnosticInfo
+                    new SpannedDiagnosticInfo
                     {
                         Span = new Span(src, new Position(line: 2, column: 10), 4),
                         Message = "some annotation1",
+                        Severity = Severity.Error,
                     },
                     new SpannedDiagnosticInfo
                     {

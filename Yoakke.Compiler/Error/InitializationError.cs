@@ -77,10 +77,11 @@ namespace Yoakke.Compiler.Error
             }
             if (SecondInitialized != null)
             {
-                diag.Information.Add(new PrimaryDiagnosticInfo
+                diag.Information.Add(new SpannedDiagnosticInfo
                 {
                     Message = "tried to reinitialize here",
                     Span = SecondInitialized.Span,
+                    Severity = Severity.Error,
                 });
             }
             return diag;
@@ -161,10 +162,11 @@ namespace Yoakke.Compiler.Error
             }
             if (UnknownInitialized != null)
             {
-                diag.Information.Add(new PrimaryDiagnosticInfo
+                diag.Information.Add(new SpannedDiagnosticInfo
                 {
                     Message = "unknown field initialized here",
                     Span = UnknownInitialized.Span,
+                    Severity = Severity.Error,
                 });
             }
             if (SimilarExistingNames.Any())
