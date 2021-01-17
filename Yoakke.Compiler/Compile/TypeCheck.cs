@@ -91,20 +91,12 @@ namespace Yoakke.Compiler.Compile
 
         protected override object? Visit(Statement.Return ret)
         {
-            if (currentProcReturnType == null)
-            {
-                // TODO
-                throw new NotImplementedException("Return at illegal position!");
-            }
+            Debug.Assert(currentProcReturnType != null);
+
             base.Visit(ret);
             Type retType = ret.Value == null ? Type.Unit : System.TypeOf(ret.Value);
             if (!currentProcReturnType.Equals(retType))
             {
-                Expression? FindDeepestReturnValue(Expression? expr) =>
-                    expr is Expression.Block block
-                    ? FindDeepestReturnValue(block.Value)
-                    : expr;
-
                 // Error, work out what we know
                 Debug.Assert(currentProcSignature != null);
                 var signature = (Syntax.ParseTree.Expression.ProcSignature?)currentProcSignature.ParseTreeNode;
@@ -170,8 +162,14 @@ namespace Yoakke.Compiler.Compile
                 var elseType = System.TypeOf(iff.Else);
                 if (!thenType.Equals(elseType))
                 {
-                    // TODO
-                    throw new NotImplementedException("If-else branch mismatch!");
+                    var thenRet = FindDeepestReturnValue(iff.Then)?.ParseTreeNode;
+                    var elseRet = FindDeepestReturnValue(iff.Else)?.ParseTreeNode;
+                    System.Report(new TypeMismatchError(thenType, elseType)
+                    {
+                        Context = "if expression",
+                        Defined = thenRet,
+                        Wrong = elseRet,
+                    });
                 }
             }
             return null;
@@ -396,5 +394,10 @@ namespace Yoakke.Compiler.Compile
             currentProcSignature = lastProcSignature;
             return null;
         }
+
+        private static Expression? FindDeepestReturnValue(Expression? expr) =>
+            expr is Expression.Block block
+            ? FindDeepestReturnValue(block.Value)
+            : expr;
     }
 }

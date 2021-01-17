@@ -1,7 +1,6 @@
 
 
-const Foo: i32 = true;
-
 const main = proc() -> i32 {
+    var x = if 1 > 3 { true } else { 123 };
     0
 };
