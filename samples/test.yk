@@ -1,14 +1,7 @@
 
-const Frac = struct {
-    nom: i32;
-    den: i32;
 
-    const new = proc(n: i32, d: i32) -> Frac {
-        Frac{ nom = n; den = d; }
-    };
-};
+const Foo: i32 = true;
 
 const main = proc() -> i32 {
-    var a = Frac{ nob = 4; };
     0
 };

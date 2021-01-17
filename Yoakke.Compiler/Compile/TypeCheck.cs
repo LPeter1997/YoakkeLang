@@ -41,8 +41,12 @@ namespace Yoakke.Compiler.Compile
                 var consType = System.EvaluateType(cons.Type);
                 if (!symbol.Type.Equals(consType))
                 {
-                    // TODO
-                    throw new NotImplementedException($"Type mismatch '{consType}' vs '{symbol.Type}'!");
+                    System.Report(new TypeMismatchError(consType, symbol.Type)
+                    {
+                        Defined = cons.Type.ParseTreeNode,
+                        Wrong = cons.Value.ParseTreeNode,
+                        Context = "constant definition",
+                    });
                 }
             }
         });

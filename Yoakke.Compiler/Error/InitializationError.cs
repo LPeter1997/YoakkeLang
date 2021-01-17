@@ -9,6 +9,11 @@ using Yoakke.Syntax.ParseTree;
 
 namespace Yoakke.Compiler.Error
 {
+    // TODO: We could merge all initialization errors into one!
+    // This would help missing initializer errors that were caused by misspelling
+    // A probably misspelled initializer should not be reported separately, but be mentioned as a hint instead for the 
+    // missing one
+
     // TODO: Doc
     public abstract class InitializationError : ICompileError
     {
