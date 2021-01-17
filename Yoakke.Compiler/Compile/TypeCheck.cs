@@ -152,8 +152,11 @@ namespace Yoakke.Compiler.Compile
             var conditionType = System.TypeOf(iff.Condition);
             if (!conditionType.Equals(Type.Bool))
             {
-                // TODO
-                throw new NotImplementedException("Condition must be boolean!");
+                System.Report(new ExpectedTypeError(Type.Bool, conditionType)
+                {
+                    Context = "if condition",
+                    Place = iff.Condition.ParseTreeNode,
+                });
             }
             // If there is an else branch, body types should match
             if (iff.Else != null)
@@ -182,8 +185,11 @@ namespace Yoakke.Compiler.Compile
             var conditionType = System.TypeOf(whil.Condition);
             if (!conditionType.Equals(Type.Bool))
             {
-                // TODO
-                throw new NotImplementedException("Condition must be boolean!");
+                System.Report(new ExpectedTypeError(Type.Bool, conditionType)
+                {
+                    Context = "while condition",
+                    Place = whil.Condition.ParseTreeNode,
+                });
             }
             // Body must be unit
             var bodyType = System.TypeOf(whil.Body);
