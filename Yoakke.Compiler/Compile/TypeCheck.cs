@@ -122,7 +122,12 @@ namespace Yoakke.Compiler.Compile
                 // An expression in a statement's position must produce a unit type, if it's not semicolon terminated
                 if (!evalType.Equals(Type.Unit))
                 {
-                    throw new NotImplementedException("A statement can't evaluate to anything other than unit!");
+                    System.Report(new ExpectedTypeError(Type.Unit, evalType)
+                    {
+                        Context = "statement",
+                        Place = FindDeepestReturnValue(expr.Expression)?.ParseTreeNode,
+                        Note = "implicit returns can only appear as the last expressions in the block"
+                    });
                 }
             }
             return null;
@@ -413,9 +418,12 @@ namespace Yoakke.Compiler.Compile
             return null;
         }
 
-        private static Expression? FindDeepestReturnValue(Expression? expr) =>
-            expr is Expression.Block block
-            ? FindDeepestReturnValue(block.Value)
-            : expr;
+        private static Expression? FindDeepestReturnValue(Expression? expr) => expr switch
+        {
+            null => null,
+            Expression.Block block => FindDeepestReturnValue(block.Value),
+            Expression.If iff => FindDeepestReturnValue(iff.Then) ?? FindDeepestReturnValue(iff.Else) ?? iff,
+            _ => expr,
+        };
     }
 }

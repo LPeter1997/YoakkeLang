@@ -5,6 +5,11 @@ const Foo = struct {
 };
 
 const main = proc() -> i32 {
-    var f = Foo{ x = 3; y = 4; };
-    f.z
+    if 2 > 4 {
+        true
+    }
+    else {
+        false
+    }
+    0
 };

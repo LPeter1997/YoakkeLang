@@ -28,6 +28,10 @@ namespace Yoakke.Compiler.Error
         /// The context where the mismatch happened.
         /// </summary>
         public string? Context { get; set; }
+        /// <summary>
+        /// Note, if any.
+        /// </summary>
+        public string? Note { get; set; }
 
         public ExpectedTypeError(Type expected, Type got)
         {
@@ -50,6 +54,13 @@ namespace Yoakke.Compiler.Error
                     Message = $"expected to be type {Expected} here, but got {Got}",
                     Span = Place.Span,
                     Severity = Severity.Error,
+                });
+            }
+            if (Note != null)
+            {
+                diag.Information.Add(new FootnoteDiagnosticInfo
+                {
+                    Message = $"note: {Note}",
                 });
             }
             return diag;
