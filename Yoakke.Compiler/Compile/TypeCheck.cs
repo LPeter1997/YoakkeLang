@@ -364,7 +364,7 @@ namespace Yoakke.Compiler.Compile
             var alreadyInitialized = new Dictionary<string, IParseTreeElement?>();
             foreach (var field in sval.Fields)
             {
-                if (!remainingFields.Remove(field.Name, out var declaredType))
+                if (!remainingFields.Remove(field.Name, out var declaredField))
                 {
                     // Either already initialized, or unknown field
                     if (structType.Fields.ContainsKey(field.Name))
@@ -391,10 +391,14 @@ namespace Yoakke.Compiler.Compile
                 {
                     // Types need to match
                     var assignedType = System.TypeOf(field.Value);
-                    if (!assignedType.Equals(declaredType.Value))
+                    if (!assignedType.Equals(declaredField.Type.Value))
                     {
-                        // TODO
-                        throw new NotImplementedException($"Field type mismatch '{declaredType}' vs '{assignedType}'!");
+                        System.Report(new TypeMismatchError(declaredField.Type.Value, assignedType)
+                        { 
+                            Context = "struct value initialization",
+                            Defined = declaredField.Definition?.ParseTreeNode,
+                            Wrong = field.ParseTreeNode,
+                        });
                     }
                     alreadyInitialized.Add(field.Name, field.ParseTreeNode);
                 }

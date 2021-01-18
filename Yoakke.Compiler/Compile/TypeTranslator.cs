@@ -54,7 +54,7 @@ namespace Yoakke.Compiler.Compile
             foreach (var field in struc.Fields)
             {
                 fieldIndices[(struc, field.Key)] = counter;
-                fields.Add(ToLirType(field.Value.Value));
+                fields.Add(ToLirType(field.Value.Type.Value));
                 ++counter;
             }
             return System.Builder.DefineStruct(fields);
@@ -129,7 +129,9 @@ namespace Yoakke.Compiler.Compile
                                     // TODO: note below
                                     // NOTE: do we need to take care of compile status here?
                                     SymbolResolution.Resolve(System.SymbolTable, newType);
-                                    return new DataStructures.Lazy<SemaType>(() => System.EvaluateType(newType));
+                                    return new SemaType.Struct.Field(
+                                        new DataStructures.Lazy<SemaType>(() => System.EvaluateType(newType)),
+                                        field);
                                 }));
                 }
                 if (tagType is Expression.ProcSignature procSign)

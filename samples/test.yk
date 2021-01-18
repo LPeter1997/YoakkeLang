@@ -5,8 +5,6 @@ const Foo = struct {
 };
 
 const main = proc() -> i32 {
-    while true {
-        1
-    }
+    var a = Foo { x = 4; y = true; };
     0
 };

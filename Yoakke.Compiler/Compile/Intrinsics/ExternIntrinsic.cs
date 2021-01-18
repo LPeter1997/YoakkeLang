@@ -81,7 +81,7 @@ namespace Yoakke.Compiler.Compile.Intrinsics
                 var moduleType = new Type.Struct(
                     structScope,
                     new Syntax.Token(new Text.Span(), Syntax.TokenType.KwStruct, "struct"),
-                    new Dictionary<string, DataStructures.Lazy<Type>>());
+                    new Dictionary<string, Type.Struct.Field>());
                 // Wrap it, return it
                 return new Value.User(moduleType);
             }

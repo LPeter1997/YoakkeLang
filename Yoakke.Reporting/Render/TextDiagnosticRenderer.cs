@@ -145,7 +145,7 @@ namespace Yoakke.Reporting.Render
             buffer.Write($"{lineNumberPadding} ┌─ {sourceFile.Path}");
             // If there is a primary info, write the line and column
             var primaryInfo = infos.FirstOrDefault(info => info.Severity != null);
-            if (primaryInfo != null) buffer.Write($":{primaryInfo.Span.Start.Line}:{primaryInfo.Span.Start.Column}");
+            if (primaryInfo != null) buffer.Write($":{primaryInfo.Span.Start.Line + 1}:{primaryInfo.Span.Start.Column + 1}");
             buffer.WriteLine();
             // Pad lines
             buffer.WriteLine($"{lineNumberPadding} │");
