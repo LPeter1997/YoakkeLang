@@ -110,7 +110,7 @@ namespace Yoakke.Compiler.Semantic
             diag.SimilarExistingNames = similarlyNamedSymbol.Select(sym => sym.Name);
             system.Report(diag);
             // Return a dummy symbol
-            return new Symbol.Var(null, name, Symbol.VarKind.Local);
+            return new Symbol.Var(null, name, Symbol.VarKind.Local) { Type = Types.Type.Error };
         }
 
         private Symbol? ReferenceRecursive(string name)

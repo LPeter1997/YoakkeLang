@@ -160,15 +160,8 @@ namespace Yoakke.Compiler.Compile
             {
                 if (varSym.Type == null)
                 {
-                    if (varSym.Definition == null)
-                    {
-                        // TODO: Assert that we have errors, because this is an error symbol
-                        return Type.Error;
-                    }
-                    else
-                    {
-                        System.TypeCheck((Statement.Var)varSym.Definition);
-                    }
+                    Debug.Assert(varSym.Definition != null);
+                    System.TypeCheck((Statement.Var)varSym.Definition);
                 }
                 Debug.Assert(varSym.Type != null);
                 return varSym.Type;
