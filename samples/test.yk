@@ -1,8 +1,8 @@
 
 
 const main = proc() -> i32 {
-    while 45 {
-        var x: i32 = 4;
-    }
+    var x: i32 = 3;
+    var y = true;
+    x = true;
     0
 };

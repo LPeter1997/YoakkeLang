@@ -283,8 +283,14 @@ namespace Yoakke.Compiler.Compile
                 var rightType = System.TypeOf(bin.Right);
                 if (!leftType.Equals(rightType))
                 {
-                    // TODO
-                    throw new NotImplementedException($"Assignment type mismatch '{leftType}' vs '{rightType}'!");
+                    var leftIdent = bin.Left as Expression.Identifier;
+                    var leftSymbol = leftIdent == null ? null : System.SymbolTable.ReferredSymbol(leftIdent);
+                    System.Report(new TypeMismatchError(leftType, rightType)
+                    {
+                        Context = "assignment",
+                        Defined = leftSymbol?.Definition?.ParseTreeNode,
+                        Wrong = bin.Right.ParseTreeNode,
+                    });
                 }
             }
             else
