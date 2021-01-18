@@ -23,7 +23,7 @@ namespace Yoakke.Compiler.Compile.Intrinsics
         public abstract Type Type { get; }
 
         /// <summary>
-        /// Initiealizes a new <see cref="Intrinsic"/>.
+        /// Initializes a new <see cref="Intrinsic"/>.
         /// </summary>
         /// <param name="system">The <see cref="IDependencySystem"/>.</param>
         public Intrinsic(IDependencySystem system)
