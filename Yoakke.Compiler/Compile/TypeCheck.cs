@@ -277,7 +277,11 @@ namespace Yoakke.Compiler.Compile
             else
             {
                 // Argument count mismatch
-                throw new NotImplementedException("Argument count mismatch!");
+                System.Report(new ArgCountMismatchError(procType.Parameters.Count, call.Arguments.Count)
+                {
+                    // TODO: Add definition
+                    Wrong = call.ParseTreeNode,
+                });
             }
             return null;
         }
