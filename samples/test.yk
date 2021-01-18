@@ -1,10 +1,13 @@
 
+const max = proc(a: i32, b: i32) -> i32 {
+    if a > b { a } else { b }
+};
+
 const Foo = struct {
     x: i32;
     y: i32;
 };
 
 const main = proc() -> i32 {
-    var a = Foo { x = 4; y = true; };
-    0
+    max(1, true)
 };

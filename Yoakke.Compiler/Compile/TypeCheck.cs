@@ -256,13 +256,28 @@ namespace Yoakke.Compiler.Compile
                 // TODO
                 throw new NotImplementedException("Can't call non-procedure!");
             }
-            // Check if arguments match
-            var argTypes = call.Arguments.Select(arg => System.TypeOf(arg));
-            var paramTypes = procType.Parameters.Select(p => p.Type);
-            if (!paramTypes.SequenceEqual(argTypes))
+            // Check if arguments match parameters
+            if (procType.Parameters.Count == call.Arguments.Count)
             {
-                // TODO
-                throw new NotImplementedException("Call argument types mismatch!");
+                foreach (var (param, arg) in procType.Parameters.Zip(call.Arguments))
+                {
+                    var paramType = param.Type;
+                    var argType = System.TypeOf(arg);
+                    if (!paramType.Equals(argType))
+                    {
+                        System.Report(new TypeMismatchError(paramType, argType)
+                        {
+                            Context = "procedure call",
+                            Defined = param.Symbol.Definition?.ParseTreeNode,
+                            Wrong = arg.ParseTreeNode,
+                        });
+                    }
+                }
+            }
+            else
+            {
+                // Argument count mismatch
+                throw new NotImplementedException("Argument count mismatch!");
             }
             return null;
         }
