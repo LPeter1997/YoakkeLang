@@ -37,7 +37,7 @@ some other line");
             var renderer = new TextDiagnosticRenderer(result);
             renderer.Render(diag);
             Assert.AreEqual(@"error[E0001]: Some error message
-  ┌─ simple.txt:2:10
+  ┌─ simple.txt:3:11
   │
 2 │ prev line
 3 │ this is a line of text
@@ -80,7 +80,7 @@ last line");
             var renderer = new TextDiagnosticRenderer(result);
             renderer.Render(diag);
             Assert.AreEqual(@"error[E0001]: Some error message
-  ┌─ simple.txt:2:10
+  ┌─ simple.txt:3:11
   │
 2 │ prev line
 3 │ this is a line of text
@@ -126,7 +126,7 @@ last line");
             var renderer = new TextDiagnosticRenderer(result);
             renderer.Render(diag);
             Assert.AreEqual(@"error[E0001]: Some error message
-  ┌─ simple.txt:2:10
+  ┌─ simple.txt:3:11
   │
 2 │ prev line
 3 │ this is a line of text
@@ -174,7 +174,7 @@ last line");
             var renderer = new TextDiagnosticRenderer(result);
             renderer.Render(diag);
             Assert.AreEqual(@"error[E0001]: Some error message
-  ┌─ simple.txt:2:10
+  ┌─ simple.txt:3:11
   │
 2 │ prev line
 3 │ this is a line of text
@@ -224,7 +224,7 @@ last line");
             var renderer = new TextDiagnosticRenderer(result);
             renderer.Render(diag);
             Assert.AreEqual(@"error[E0001]: Some error message
-  ┌─ simple.txt:2:10
+  ┌─ simple.txt:3:11
   │
 2 │ prev line
 3 │ this is a line of text
@@ -276,7 +276,7 @@ last line");
             var renderer = new TextDiagnosticRenderer(result);
             renderer.Render(diag);
             Assert.AreEqual(@"error[E0001]: Some error message
-  ┌─ simple.txt:2:10
+  ┌─ simple.txt:3:11
   │
 2 │ prev line
 3 │ this is a line of text
