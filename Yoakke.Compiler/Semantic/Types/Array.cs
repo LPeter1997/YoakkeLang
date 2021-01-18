@@ -30,7 +30,7 @@ namespace Yoakke.Compiler.Semantic.Types
                 Length = length;
             }
 
-            public override bool Equals(Type? other) =>
+            protected override bool EqualsExact(Type? other) =>
                    other is Array a
                 && ElementType.Equals(a.ElementType)
                 && Length == a.Length;

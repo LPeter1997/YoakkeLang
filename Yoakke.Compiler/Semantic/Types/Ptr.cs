@@ -22,7 +22,7 @@
                 Subtype = subtype;
             }
 
-            public override bool Equals(Type? other) =>
+            protected override bool EqualsExact(Type? other) =>
                    other is Ptr p
                 && Subtype.Equals(p.Subtype);
             public override int GetHashCode() =>

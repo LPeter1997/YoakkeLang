@@ -19,6 +19,8 @@ namespace Yoakke.Compiler.Semantic.Types
         public static readonly Type Bool = new Prim("bool", Lir.Types.Type.I32);
         // NOTE: For now it will do
         public static readonly Type Unit = new Prim("unit", Lir.Types.Type.Void_);
+        // NOTE: For now it will do
+        public static readonly Type Error = new Prim("error", Lir.Types.Type.Void_);
         // Special thing
         public static readonly Type Type_ = new Prim("type", Lir.Types.Type.User_);
 
@@ -37,7 +39,10 @@ namespace Yoakke.Compiler.Semantic.Types
         }
 
         public override bool Equals(object? obj) => obj is Type t && Equals(t);
-        public abstract bool Equals(Type? other);
+        public bool Equals(Type? other) =>
+               ReferenceEquals(this, Error) || ReferenceEquals(other, Error) 
+            || EqualsExact(other);
+        protected abstract bool EqualsExact(Type? other);
         public abstract override int GetHashCode();
         public abstract override string ToString();
     }

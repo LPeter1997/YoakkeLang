@@ -35,7 +35,7 @@ namespace Yoakke.Compiler.Semantic.Types
                 Fields = fields.AsValueDictionary();
             }
 
-            public override bool Equals(Type? other) =>
+            protected override bool EqualsExact(Type? other) =>
                 other is Struct s
                 && KwStruct.Equals(s.KwStruct)
                 && Fields.Equals(s.Fields);

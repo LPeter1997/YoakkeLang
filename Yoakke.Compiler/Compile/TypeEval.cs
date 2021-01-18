@@ -135,8 +135,10 @@ namespace Yoakke.Compiler.Compile
                 {
                     return value.Value;
                 }
-                // TODO: Return an error type that can be coerced into anything?
-                return Type.Unit;
+                else
+                {
+                    return Type.Error;
+                }
             }
             else
             {

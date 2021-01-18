@@ -99,7 +99,7 @@ namespace Yoakke.Compiler.Semantic.Types
             {
             }
 
-            public override bool Equals(Type? other) =>
+            protected override bool EqualsExact(Type? other) =>
                    other is Proc p
                 && Parameters.Equals(p.Parameters)
                 && Return.Equals(p.Return);

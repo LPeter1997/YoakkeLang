@@ -30,7 +30,7 @@ namespace Yoakke.Compiler.Semantic.Types
                 Type = type;
             }
 
-            public override bool Equals(Type? other) =>
+            protected override bool EqualsExact(Type? other) =>
                 other is Prim p && Name == p.Name && Type.Equals(p.Type);
             public override int GetHashCode() => HashCode.Combine(typeof(Prim), Name, Type);
             public override string ToString() => Name;

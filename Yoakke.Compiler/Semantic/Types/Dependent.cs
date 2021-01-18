@@ -24,7 +24,7 @@ namespace Yoakke.Compiler.Semantic.Types
                 Symbol = symbol;
             }
 
-            public override bool Equals(Type? other) => 
+            protected override bool EqualsExact(Type? other) => 
                 other is Dependent d && ReferenceEquals(Symbol, d.Symbol);
             public override int GetHashCode() => HashCode.Combine(typeof(Dependent), Symbol);
             public override string ToString() => $"val[{Symbol.Name}]";
