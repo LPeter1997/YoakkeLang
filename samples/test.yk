@@ -5,11 +5,8 @@ const Foo = struct {
 };
 
 const main = proc() -> i32 {
-    if 2 > 4 {
-        true
-    }
-    else {
-        false
+    while true {
+        1
     }
     0
 };

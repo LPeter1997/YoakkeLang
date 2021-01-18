@@ -200,8 +200,12 @@ namespace Yoakke.Compiler.Compile
             var bodyType = System.TypeOf(whil.Body);
             if (!bodyType.Equals(Type.Unit))
             {
-                // TODO
-                throw new NotImplementedException("While body must be unit!");
+                System.Report(new ExpectedTypeError(Type.Unit, bodyType)
+                {
+                    Context = "while block",
+                    Place = FindDeepestReturnValue(whil.Body)?.ParseTreeNode,
+                    Note = "implicit returns cannot appear in while statements"
+                });
             }
             return null;
         }
