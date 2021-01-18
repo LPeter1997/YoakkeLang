@@ -219,8 +219,14 @@ namespace Yoakke.Compiler.Compile
                 // Field access
                 if (!(structType.Fields.ContainsKey(dot.Right)))
                 {
-                    // TODO
-                    throw new NotImplementedException($"Non-existing field '{dot.Right}'!");
+                    var rightIdent = (dot.ParseTreeNode as Syntax.ParseTree.Expression.DotPath)?.Right;
+                    var err = rightIdent == null 
+                        ? new UndefinedSymbolError(dot.Right) 
+                        : new UndefinedSymbolError(rightIdent);
+                    err.Context = "field access";
+                    err.SimilarExistingNames = structType.Fields.Keys
+                        .Where(f => StringMetrics.OptimalStringAlignmentDistance(f, dot.Right) <= 2);
+                    System.Report(err);
                 }
             }
             else

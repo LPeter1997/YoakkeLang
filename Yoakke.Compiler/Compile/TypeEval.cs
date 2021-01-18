@@ -131,7 +131,12 @@ namespace Yoakke.Compiler.Compile
             else if (leftType is Type.Struct structType)
             {
                 // Field access
-                return structType.Fields[dot.Right].Value;
+                if (structType.Fields.TryGetValue(dot.Right, out var value))
+                {
+                    return value.Value;
+                }
+                // TODO: Return an error type that can be coerced into anything?
+                return Type.Unit;
             }
             else
             {

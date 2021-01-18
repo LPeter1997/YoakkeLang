@@ -22,6 +22,10 @@ namespace Yoakke.Compiler.Error
         /// </summary>
         public readonly Token? Reference;
         /// <summary>
+        /// The context where the symbol was referred to.
+        /// </summary>
+        public string? Context { get; set; }
+        /// <summary>
         /// A list of similar symbol names that do exist.
         /// </summary>
         public IEnumerable<string> SimilarExistingNames { get; set; } = Enumerable.Empty<string>();
@@ -39,10 +43,11 @@ namespace Yoakke.Compiler.Error
 
         public Diagnostic GetDiagnostic()
         {
+            var suffix = Context == null ? string.Empty : $" in {Context}";
             var diag = new Diagnostic
             {
                 Severity = Severity.Error,
-                Message = $"unknown symbol {Name}",
+                Message = $"unknown symbol {Name}{suffix}",
             };
             if (Reference != null)
             {

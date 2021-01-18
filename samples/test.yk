@@ -1,8 +1,10 @@
 
+const Foo = struct {
+    x: i32;
+    y: i32;
+};
 
 const main = proc() -> i32 {
-    var x: i32 = 3;
-    var y = true;
-    x = true;
-    0
+    var f = Foo{ x = 3; y = 4; };
+    f.z
 };
