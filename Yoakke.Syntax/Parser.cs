@@ -390,17 +390,9 @@ namespace Yoakke.Syntax
             case TokenType.OpenParen: return ParseParenthesized();
 
             case TokenType.OpenBrace:
-                if (!state.HasFlag(ExprState.NoBraced))
-                {
-                    return ParseBlockExpression();
-                }
-                else
-                {
-                    // TODO: Error
-                    // Or maybe this is a case where we still want to parse a braced block?
-                    // Because... there's no other possibility
-                    throw new NotImplementedException();
-                }
+                // NOTE: We ignore state.HasFlag(ExprState.NoBraced)
+                // As there's no any other sensible thing to do here
+                return ParseBlockExpression();
 
             default:
                 // Error
