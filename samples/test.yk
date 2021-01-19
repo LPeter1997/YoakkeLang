@@ -1,5 +1,41 @@
 
+// TODO: Hack, transmute is needed
+const alloc_i32 = @extern("malloc", proc(i32) -> *i32);
+const free_i32 = @extern("free", proc(*i32));
+const memcpy_i32 = @extern("memcpy", proc(*i32, *i32, i32) -> *i32);
+
+const List_i32 = struct {
+    data: *i32;
+    length: i32;
+
+    const new = proc() -> List_i32 {
+        List_i32 {
+            // TODO: Missing null pointer, transmute would be good...
+            data = alloc_i32(0);
+            length = 0;
+        }
+    };
+
+    const add = proc(l: *List_i32, val: i32) {
+        var new_data = alloc_i32((l~.length + 1) * 4);
+        memcpy_i32(new_data, l~.data, l~.length * 4);
+        free_i32(l~.data);
+        (new_data + l~.length)~ = val;
+        l~.data = new_data;
+        l~.length += 1;
+    };
+
+    const get = proc(l: *List_i32, idx: i32) -> i32 {
+        (l~.data + idx)~
+    };
+};
+
 const main = proc() -> i32 {
-    var x: i32 = #transmute(true, i32);
-    0
+    var l = List_i32.new();
+
+    List_i32.add(&l, 1);
+    List_i32.add(&l, 2);
+    List_i32.add(&l, 3);
+
+    List_i32.get(&l, 0) + List_i32.get(&l, 1) + List_i32.get(&l, 2)
 };

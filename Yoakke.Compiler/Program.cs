@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Yoakke.Compiler.Compile;
 using Yoakke.Compiler.Error;
@@ -25,6 +26,8 @@ namespace Yoakke.Compiler
 
         static void Main(string[] args)
         {
+            var stopwatch = Stopwatch.StartNew();
+
             var system = new DependencySystem("../../../../../stdlib");
             system.CompileError += (s, err) => errors.Add(err);
             system.PhaseComplete += OnPhaseComplete;
@@ -49,11 +52,13 @@ namespace Yoakke.Compiler
             }
 #else
             var asm = system.Compile(ast);
+            var compilationTime = stopwatch.ElapsedMilliseconds;
+
             Console.WriteLine(asm);
             Console.WriteLine("\n");
 
             // Run in the VM
-#if true
+#if false
             asm.ValidationError += OnICE;
             var checkedAsm = asm.Check();
             var vm = new VirtualMachine(checkedAsm);
@@ -81,6 +86,8 @@ namespace Yoakke.Compiler
             //build.ExternalBinaries.Add("libcmt.lib");
             //build.ExternalBinaries.Add("kernel32.lib");
             toolchain.Compile(build);
+
+            Console.WriteLine($"\nCompilation took {compilationTime} ms");
 #endif
         }
 

@@ -41,6 +41,7 @@ namespace Yoakke.Lir.Backend.Backends
             build.Extra["publicSymbolNames"] = build
                 .CheckedAssembly
                 .Symbols
+                .Where(sym => !(sym is Extern))
                 .Where(sym => sym.Visibility == Visibility.Public)
                 .Select(sym => formatOptions.Escape(sym.Name))
                 .ToList();

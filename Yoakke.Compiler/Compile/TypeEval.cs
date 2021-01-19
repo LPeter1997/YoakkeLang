@@ -161,7 +161,7 @@ namespace Yoakke.Compiler.Compile
                 if (varSym.Type == null)
                 {
                     Debug.Assert(varSym.Definition != null);
-                    System.TypeCheck((Statement.Var)varSym.Definition);
+                    System.TypeCheck((Statement)varSym.Definition);
                 }
                 Debug.Assert(varSym.Type != null);
                 return varSym.Type;
