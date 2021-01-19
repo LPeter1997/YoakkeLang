@@ -371,6 +371,7 @@ namespace Yoakke.Syntax
 
         private Expression ParseAtomicExpression(ExprState state)
         {
+            begin:
             var peek = Peek();
             switch (peek.Type)
             {
@@ -402,8 +403,11 @@ namespace Yoakke.Syntax
                 }
 
             default:
-                // TODO: Error
-                throw new NotImplementedException();
+                // Error
+                ReportSyntaxError(new UnexpectedTokenError(peek) { Context = "expression" });
+                Next();
+                // For now we just retry
+                goto begin;
             }
         }
 

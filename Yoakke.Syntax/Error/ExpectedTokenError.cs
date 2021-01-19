@@ -44,7 +44,7 @@ namespace Yoakke.Syntax.Error
             var diag = new Diagnostic
             {
                 Severity = Severity.Error,
-                Message = Context == null ? "Syntax error" : $"syntax error while parsing {Context}",
+                Message = Context == null ? "syntax error" : $"syntax error while parsing {Context}",
                 Information =
                 {
                     new SpannedDiagnosticInfo
