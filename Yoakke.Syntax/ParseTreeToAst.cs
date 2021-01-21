@@ -141,6 +141,9 @@ namespace Yoakke.Syntax
 
             ParseTree.Expression.Parenthesized paren => Convert(paren.Inside),
 
+            ParseTree.Expression.Const cons => 
+                new Ast.Expression.Const(cons, Convert(cons.Inside)),
+
             _ => throw new NotImplementedException(),
         };
 

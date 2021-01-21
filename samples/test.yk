@@ -1,41 +1,28 @@
 
-// TODO: Hack, transmute is needed
-const alloc_i32 = @extern("malloc", proc(i32) -> *i32);
-const free_i32 = @extern("free", proc(*i32));
-const memcpy_i32 = @extern("memcpy", proc(*i32, *i32, i32) -> *i32);
+// Dependent typing ////////////////////////////////////////////////////////////
 
-const List_i32 = struct {
-    data: *i32;
-    length: i32;
+// Declaration site
 
-    const new = proc() -> List_i32 {
-        List_i32 {
-            // TODO: Missing null pointer, transmute would be good...
-            data = alloc_i32(0);
-            length = 0;
-        }
-    };
+// Identity with dependent types.
+// const identity = proc(T: type, x: T) -> T { x };
 
-    const add = proc(l: *List_i32, val: i32) {
-        var new_data = alloc_i32((l~.length + 1) * 4);
-        memcpy_i32(new_data, l~.data, l~.length * 4);
-        free_i32(l~.data);
-        (new_data + l~.length)~ = val;
-        l~.data = new_data;
-        l~.length += 1;
-    };
+// Turns into this:
+// const identity_ = proc(T: type) -> proc(T) -> T {
+//     proc(x: T) -> T { x }
+// };
 
-    const get = proc(l: *List_i32, idx: i32) -> i32 {
-        (l~.data + idx)~
-    };
-};
+// Call Site
+
+// A call like this:
+// const _ = identity(i32, 4);
+
+// Turns into this:
+// const _2 = const(identity_(i32))(4);
 
 const main = proc() -> i32 {
-    var l = List_i32.new();
-
-    List_i32.add(&l, 1);
-    List_i32.add(&l, 2);
-    List_i32.add(&l, 3);
-
-    List_i32.get(&l, 0) + List_i32.get(&l, 1) + List_i32.get(&l, 2)
+    // var nullptr: *i32 = @cast(0, *i32);
+    const(@extern("puts", proc(*u8) -> i32))("Hello, World!".data);
+    // const P = @extern("puts", proc(*u8) -> i32);
+    // P("Hello, World!".data);
+    0
 };

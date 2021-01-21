@@ -197,7 +197,7 @@ namespace Yoakke.Syntax
         {
             switch (Peek().Type)
             {
-            case TokenType.KwConst:
+            case TokenType.KwConst when Peek(1).Type != TokenType.OpenParen:
             case TokenType.KwVar:
                 return ParseDefinition();
 
@@ -394,6 +394,9 @@ namespace Yoakke.Syntax
                 // As there's no any other sensible thing to do here
                 return ParseBlockExpression();
 
+            case TokenType.KwConst when Peek(1).Type == TokenType.OpenParen:
+                return ParseConstExpression();
+
             default:
                 // Error
                 ReportSyntaxError(new UnexpectedTokenError(peek) { Context = "expression" });
@@ -545,6 +548,15 @@ namespace Yoakke.Syntax
             var inside = ParseExpression(ExprState.None);
             var closeParen = Expect(null, openParen, TokenType.CloseParen);
             return new Expression.Parenthesized(openParen, inside, closeParen);
+        }
+
+        private Expression ParseConstExpression()
+        {
+            var kwConst = Expect(null, null, TokenType.KwConst);
+            var openParen = Expect("const expression", null, TokenType.OpenParen);
+            var inside = ParseExpression(ExprState.None);
+            var closeParen = Expect("const expression", openParen, TokenType.CloseParen);
+            return new Expression.Const(kwConst, openParen, inside, closeParen);
         }
 
         private Expression.Block ParseBlockExpression()

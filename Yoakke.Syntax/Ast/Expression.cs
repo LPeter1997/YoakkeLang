@@ -477,5 +477,22 @@ namespace Yoakke.Syntax.Ast
                 Right = right;
             }
         }
+
+        /// <summary>
+        /// A const-evaluated expression.
+        /// </summary>
+        public class Const : Expression
+        {
+            /// <summary>
+            /// The expression inside to evaluate compile-time.
+            /// </summary>
+            public readonly Expression Subexpression;
+
+            public Const(ParseTree.Node? parseTreeNode, Expression subexpression)
+                : base(parseTreeNode)
+            {
+                Subexpression = subexpression;
+            }
+        }
     }
 }

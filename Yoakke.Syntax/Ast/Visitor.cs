@@ -77,6 +77,7 @@ namespace Yoakke.Syntax.Ast
             Expression.Binary        b => Visit(b),
             Expression.Unary         u => Visit(u),
             Expression.DotPath       d => Visit(d),
+            Expression.Const         c => Visit(c),
 
             _ => throw new NotImplementedException(),
         };
@@ -210,6 +211,12 @@ namespace Yoakke.Syntax.Ast
         protected virtual T? Visit(Expression.DotPath dot)
         {
             Visit(dot.Left);
+            return default;
+        }
+
+        protected virtual T? Visit(Expression.Const cons)
+        {
+            Visit(cons.Subexpression);
             return default;
         }
 

@@ -679,5 +679,38 @@ namespace Yoakke.Syntax.ParseTree
                 CloseParen = closeParen;
             }
         }
+
+        /// <summary>
+        /// An <see cref="Expression"/> that has to be evaluated compile-time.
+        /// </summary>
+        public class Const : Expression
+        {
+            public override Span Span => new Span(KwConst.Span, CloseParen.Span);
+
+            /// <summary>
+            /// The 'const' keyword.
+            /// </summary>
+            public readonly Token KwConst;
+            /// <summary>
+            /// The '('.
+            /// </summary>
+            public readonly Token OpenParen;
+            /// <summary>
+            /// The contained expression.
+            /// </summary>
+            public readonly Expression Inside;
+            /// <summary>
+            /// The ')'.
+            /// </summary>
+            public readonly Token CloseParen;
+
+            public Const(Token kwConst, Token openParen, Expression inside, Token closeParen)
+            {
+                KwConst = kwConst;
+                OpenParen = openParen;
+                Inside = inside;
+                CloseParen = closeParen;
+            }
+        }
     }
 }

@@ -166,6 +166,11 @@ namespace Yoakke.Syntax.Ast
                 Transform(whil.Condition),
                 Transform(whil.Body));
 
+        protected override Node? Visit(Expression.Const cons) =>
+            new Expression.Const(
+                cons.ParseTreeNode,
+                Transform(cons.Subexpression));
+
         protected Expression.ProcSignature.Parameter Transform(Expression.ProcSignature.Parameter param) =>
             (Expression.ProcSignature.Parameter)VisitNonNull(param);
 
