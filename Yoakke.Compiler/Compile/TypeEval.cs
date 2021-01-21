@@ -50,6 +50,8 @@ namespace Yoakke.Compiler.Compile
         protected override Type? Visit(Expression.Block block) =>
             block.Value == null ? Type.Unit : TypeOf(block.Value);
 
+        protected override Type? Visit(Expression.Const cons) => TypeOf(cons.Subexpression);
+
         protected override Type? Visit(Expression.Call call)
         {
             var procType = (Type.Proc)TypeOf(call.Procedure);

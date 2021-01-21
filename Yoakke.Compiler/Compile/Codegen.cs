@@ -506,6 +506,9 @@ namespace Yoakke.Compiler.Compile
             }
         }
 
+        protected override Value? Visit(Expression.Const cons) =>
+            System.Evaluate(cons.Subexpression);
+
         protected override Value? Visit(Expression.ProcSignature sign)
         {
             // The first element will be a pointer to this expression
