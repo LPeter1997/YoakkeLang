@@ -1,15 +1,41 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
-import * as vscode from 'vscode';
+import { Server } from 'http';
+import * as path from 'path';
+import { workspace, ExtensionContext } from 'vscode';
+import {
+	LanguageClient,
+	LanguageClientOptions,
+	ServerOptions,
+	TransportKind,
+} from 'vscode-languageclient/node';
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
+let client: LanguageClient;
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "test-extension" is now active!');
+export function activate(context: ExtensionContext) {
+	// Path for the server
+	let serverPath = context.asAbsolutePath(path.join('out', 'Yoakke.LanguageServer.exe'));
+
+	// Server options
+	let serverOptions: ServerOptions = {
+		command: serverPath,
+		transport: TransportKind.stdio,
+	};
+
+	// Client options
+	let clientOptions: LanguageClientOptions = {
+		documentSelector: [{ scheme: 'file', language: 'yoakke' }],
+	};
+
+	client = new LanguageClient(
+		'Yoakke Language Server',
+		serverOptions,
+		clientOptions
+	);
+
+	// Start the client, which also starts the server
+	client.start();
 }
 
-// this method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate(): Thenable<void> | undefined {
+	if (!client) return undefined;
+	return client.stop();
+}
