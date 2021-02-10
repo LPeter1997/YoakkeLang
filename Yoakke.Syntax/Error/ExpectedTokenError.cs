@@ -69,7 +69,7 @@ namespace Yoakke.Syntax.Error
             return diag;
         }
 
-        private static bool IsTerminatorToken(TokenType tt) =>
+        public static bool IsTerminatorToken(TokenType tt) =>
                tt == TokenType.Semicolon 
             || tt == TokenType.CloseBrace 
             || tt == TokenType.CloseBracket 

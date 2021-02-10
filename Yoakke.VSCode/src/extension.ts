@@ -1,4 +1,3 @@
-import { Server } from 'http';
 import * as path from 'path';
 import { workspace, ExtensionContext } from 'vscode';
 import {

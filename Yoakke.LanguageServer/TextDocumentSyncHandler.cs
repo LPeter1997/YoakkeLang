@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Yoakke.Compiler.Error;
 
 namespace Yoakke.LanguageServer
 {
@@ -95,18 +96,30 @@ namespace Yoakke.LanguageServer
 
         private void PublishTestDiagnostics(string documentPath)
         {
+            var diagnostics = new Container<Diagnostic>();
+            if (documents.TryGetValue(documentPath, out var sourceText))
+            {
+                diagnostics = new Container<Diagnostic>(DiagnoseSourceFile(documentPath, sourceText)
+                    .Select(DiagnosticTranslator.Translate));
+            }
             server.TextDocument.PublishDiagnostics(new PublishDiagnosticsParams
             {
                 Uri = documentPath,
-                Diagnostics = new Container<Diagnostic>(
-                    new Diagnostic
-                    {
-                        Message = "Test message",
-                        Range = new OmniSharp.Extensions.LanguageServer.Protocol.Models.Range(1, 1, 1, 2),
-                        Severity = DiagnosticSeverity.Error,
-                    }
-                )
+                Diagnostics = diagnostics,
             });
+        }
+
+        private IList<ICompileError> DiagnoseSourceFile(string documentPath, string text)
+        {
+            // NOTE: For now we just parse and check syntax
+            var result = new List<ICompileError>();
+            var sourceFile = new Text.SourceFile(documentPath, text);
+            var lexer = new Syntax.Lexer(sourceFile);
+            lexer.SyntaxError += (sender, err) => result.Add(new SyntaxError(err));
+            var parser = new Syntax.Parser(lexer.Lex());
+            parser.SyntaxError += (sender, err) => result.Add(new SyntaxError(err));
+            parser.ParseFile();
+            return result;
         }
     }
 }
