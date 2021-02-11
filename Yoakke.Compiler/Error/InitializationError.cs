@@ -154,8 +154,7 @@ namespace Yoakke.Compiler.Error
             var diag = new Diagnostic
             {
                 Severity = Severity.Error,
-                //Message = $"no field {UnknownFieldName} can be found in type {Type}",
-                Message = $"no field {UnknownFieldName} can be found",
+                Message = $"no field {UnknownFieldName} can be found in type {Type}",
             };
             if (TypeInitializer != null)
             {

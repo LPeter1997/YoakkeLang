@@ -67,12 +67,47 @@ namespace Yoakke.LanguageServer
 
         public static Diagnostic Translate(TypeMismatchError typeMismatchError)
         {
-            // TODO
+            var message = $"expected type {typeMismatchError.Type1} but got {typeMismatchError.Type2}";
+            if (typeMismatchError.Context != null) message = $"{message} in {typeMismatchError.Context}";
+            var related = new Container<DiagnosticRelatedInformation>();
+            if (typeMismatchError.Defined != null)
+            {
+                var relatedMessage = $"defined to be {typeMismatchError.Type1} here";
+                if (typeMismatchError.ImplicitlyDefined) relatedMessage = $"(implicitly) {relatedMessage}";
+                related = new Container<DiagnosticRelatedInformation>(new DiagnosticRelatedInformation 
+                { 
+                    Message = relatedMessage,
+                    Location = TranslateLocation(typeMismatchError.Defined.Span),
+                });
+            }
+            return new Diagnostic
+            {
+                Message = message,
+                Severity = DiagnosticSeverity.Error,
+                Range = typeMismatchError.Wrong == null ? null : Translate(typeMismatchError.Wrong.Span),
+                RelatedInformation = related,
+            };
         }
 
         public static Diagnostic Translate(UndefinedSymbolError undefinedSymError)
         {
-            // TODO
+            var message = $"unknown symbol {undefinedSymError.Name}";
+            if (undefinedSymError.Context != null) message = $"{message} in {undefinedSymError.Context}";
+            var related = new Container<DiagnosticRelatedInformation>();
+            if (undefinedSymError.SimilarExistingNames.Any())
+            {
+                related = new Container<DiagnosticRelatedInformation>(new DiagnosticRelatedInformation
+                {
+                    Message = $"hint: did you mean {string.Join(" or ", undefinedSymError.SimilarExistingNames)}?",
+                });
+            }
+            return new Diagnostic
+            {
+                Message = message,
+                Severity = DiagnosticSeverity.Error,
+                Range = undefinedSymError.Reference == null ? null : Translate(undefinedSymError.Reference.Span),
+                RelatedInformation = related,
+            };
         }
 
         public static Diagnostic Translate(InitializationError initError) => initError switch
@@ -85,17 +120,48 @@ namespace Yoakke.LanguageServer
 
         public static Diagnostic Translate(DoubleInitializationError doubleInitError)
         {
-            // TODO
+            var related = new Container<DiagnosticRelatedInformation>();
+            if (doubleInitError.FirstInitialized != null)
+            {
+                related = new Container<DiagnosticRelatedInformation>(new DiagnosticRelatedInformation 
+                { 
+                    Message = "first initialized here",
+                    Location = TranslateLocation(doubleInitError.FirstInitialized.Span),
+                });
+            }
+            return new Diagnostic
+            {
+                Message = $"field {doubleInitError.FieldName} is already initialized",
+                Severity = DiagnosticSeverity.Error,
+                Range = doubleInitError.SecondInitialized == null ? null : Translate(doubleInitError.SecondInitialized.Span),
+                RelatedInformation = related,
+            };
         }
 
-        public static Diagnostic Translate(MissingInitializationError missingInitError)
+        public static Diagnostic Translate(MissingInitializationError missingInitError) => new Diagnostic
         {
-            // TODO
-        }
+            Message = $"missing field initializer for {string.Join(", ", missingInitError.MissingNames)}",
+            Severity = DiagnosticSeverity.Error,
+            Range = missingInitError.TypeInitializer == null ? null : Translate(missingInitError.TypeInitializer.Span),
+        };
 
         public static Diagnostic Translate(UnknownInitializedFieldError unknownInitError)
         {
-            // TODO
+            var related = new Container<DiagnosticRelatedInformation>();
+            if (unknownInitError.SimilarExistingNames.Any())
+            {
+                related = new Container<DiagnosticRelatedInformation>(new DiagnosticRelatedInformation
+                {
+                    Message = $"hint: did you mean {string.Join(" or ", unknownInitError.SimilarExistingNames)}?",
+                });
+            }
+            return new Diagnostic
+            {
+                Message = $"no field {unknownInitError.UnknownFieldName} can be found in type {unknownInitError.Type}",
+                Severity = DiagnosticSeverity.Error,
+                Range = unknownInitError.UnknownInitialized == null ? null : Translate(unknownInitError.UnknownInitialized.Span),
+                RelatedInformation = related,
+            };
         }
 
         public static Diagnostic Translate(Syntax.Error.ISyntaxError syntaxError) => syntaxError switch
