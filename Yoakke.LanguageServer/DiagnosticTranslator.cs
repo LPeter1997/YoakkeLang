@@ -14,9 +14,89 @@ namespace Yoakke.LanguageServer
     {
         public static Diagnostic Translate(ICompileError error) => error switch
         {
+            ArgCountMismatchError argcErr => Translate(argcErr),
+            ExpectedTypeError expectedType => Translate(expectedType),
+            InitializationError initError => Translate(initError),
+            TypeMismatchError typeMismatchError => Translate(typeMismatchError),
+            UndefinedSymbolError undefinedSymError => Translate(undefinedSymError),
             SyntaxError syntaxError => Translate(syntaxError.Error),
             _ => throw new NotImplementedException(),
         };
+
+        public static Diagnostic Translate(ArgCountMismatchError argcErr)
+        {
+            var message = $"expected {argcErr.Expected} arguments but got {argcErr.Got} in procedure call";
+            var related = new Container<DiagnosticRelatedInformation>();
+            if (argcErr.Defined != null)
+            {
+                related = new Container<DiagnosticRelatedInformation>(new DiagnosticRelatedInformation
+                {
+                    Message = $"defined to have {argcErr.Expected} arguments here",
+                    Location = TranslateLocation(argcErr.Defined.Span),
+                });
+            }
+            return new Diagnostic
+            {
+                Message = message,
+                Severity = DiagnosticSeverity.Error,
+                Range = argcErr.Wrong == null ? null : Translate(argcErr.Wrong.Span),
+                RelatedInformation = related,
+            };
+        }
+
+        public static Diagnostic Translate(ExpectedTypeError expectedType)
+        {
+            var message = $"expected type {expectedType.Expected} but got {expectedType.Got}";
+            if (expectedType.Context != null) message = $"{message} in {expectedType.Context}";
+            var related = new Container<DiagnosticRelatedInformation>();
+            if (expectedType.Note != null)
+            {
+                related = new Container<DiagnosticRelatedInformation>(new DiagnosticRelatedInformation
+                {
+                    Message = $"note: {expectedType.Note}",
+                });
+            }
+            return new Diagnostic
+            {
+                Message = message,
+                Severity = DiagnosticSeverity.Error,
+                Range = expectedType.Place == null ? null : Translate(expectedType.Place.Span),
+                RelatedInformation = related,
+            };
+        }
+
+        public static Diagnostic Translate(TypeMismatchError typeMismatchError)
+        {
+            // TODO
+        }
+
+        public static Diagnostic Translate(UndefinedSymbolError undefinedSymError)
+        {
+            // TODO
+        }
+
+        public static Diagnostic Translate(InitializationError initError) => initError switch
+        {
+            DoubleInitializationError doubleInitError => Translate(doubleInitError),
+            MissingInitializationError missingInitError => Translate(missingInitError),
+            UnknownInitializedFieldError unknownInitError => Translate(unknownInitError),
+            _ => throw new NotImplementedException(),
+        };
+
+        public static Diagnostic Translate(DoubleInitializationError doubleInitError)
+        {
+            // TODO
+        }
+
+        public static Diagnostic Translate(MissingInitializationError missingInitError)
+        {
+            // TODO
+        }
+
+        public static Diagnostic Translate(UnknownInitializedFieldError unknownInitError)
+        {
+            // TODO
+        }
 
         public static Diagnostic Translate(Syntax.Error.ISyntaxError syntaxError) => syntaxError switch
         {
@@ -28,7 +108,7 @@ namespace Yoakke.LanguageServer
 
         public static Diagnostic Translate(Syntax.Error.ExpectedTokenError expectedToken)
         {
-            var message = $"syntax error: expected {string.Join(" or ", expectedToken.Expected.Select(tt => tt.ToText()))}";
+            var message = $"expected {string.Join(" or ", expectedToken.Expected.Select(tt => tt.ToText()))}";
             if (expectedToken.Context != null) message = $"{message} while parsing {expectedToken.Context}";
             var span = expectedToken.Expected.All(Syntax.Error.ExpectedTokenError.IsTerminatorToken) && expectedToken.Prev != null
                 ? new Text.Span(expectedToken.Prev.Span.Source, expectedToken.Prev.Span.End, 1)
@@ -53,7 +133,7 @@ namespace Yoakke.LanguageServer
 
         public static Diagnostic Translate(Syntax.Error.UnexpectedTokenError unexpectedToken)
         {
-            var message = $"syntax error: unexpected token {unexpectedToken.Got.Value}";
+            var message = $"unexpected token {unexpectedToken.Got.Value}";
             if (unexpectedToken.Context != null) message = $"{message} while parsing {unexpectedToken.Context}";
             return new Diagnostic
             {
@@ -65,7 +145,7 @@ namespace Yoakke.LanguageServer
 
         public static Diagnostic Translate(Syntax.Error.UnterminatedTokenError unterminatedToken)
         {
-            var message = $"syntax error: unterminated {unterminatedToken.Token.Type.ToText()}, expected {unterminatedToken.Close}";
+            var message = $"unterminated {unterminatedToken.Token.Type.ToText()}, expected {unterminatedToken.Close}";
             var span = new Text.Span(unterminatedToken.Token.Span.Source, unterminatedToken.Token.Span.End, 1);
             var related = new Container<DiagnosticRelatedInformation>(new DiagnosticRelatedInformation
             {
