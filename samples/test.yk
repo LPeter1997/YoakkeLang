@@ -25,4 +25,4 @@ const main = proc() -> i32 {
     // const P = @extern("puts", proc(*u8) -> i32);
     // P("Hello, World!".data);
     0
-};
+}

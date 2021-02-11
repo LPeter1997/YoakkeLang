@@ -39,7 +39,7 @@ namespace Yoakke.LanguageServer
                 related = new Container<DiagnosticRelatedInformation>(new DiagnosticRelatedInformation 
                 { 
                     Location = TranslateLocation(expectedToken.Starting.Span),
-                    Message = $"matching {expectedToken.Starting.Value} here"
+                    Message = $"matching {expectedToken.Starting.Value} here",
                 });
             }
             return new Diagnostic
@@ -47,12 +47,13 @@ namespace Yoakke.LanguageServer
                 Message = message,
                 Severity = DiagnosticSeverity.Error,
                 Range = Translate(span),
+                RelatedInformation = related,
             };
         }
 
         public static Diagnostic Translate(Syntax.Error.UnexpectedTokenError unexpectedToken)
         {
-            var message = $"Unexpected token {unexpectedToken.Got.Value}";
+            var message = $"syntax error: unexpected token {unexpectedToken.Got.Value}";
             if (unexpectedToken.Context != null) message = $"{message} while parsing {unexpectedToken.Context}";
             return new Diagnostic
             {
@@ -64,13 +65,19 @@ namespace Yoakke.LanguageServer
 
         public static Diagnostic Translate(Syntax.Error.UnterminatedTokenError unterminatedToken)
         {
-            var message = $"Unterminated token, expected {unterminatedToken.Close}";
+            var message = $"syntax error: unterminated {unterminatedToken.Token.Type.ToText()}, expected {unterminatedToken.Close}";
             var span = new Text.Span(unterminatedToken.Token.Span.Source, unterminatedToken.Token.Span.End, 1);
+            var related = new Container<DiagnosticRelatedInformation>(new DiagnosticRelatedInformation
+            {
+                Location = TranslateLocation(unterminatedToken.Token.Span),
+                Message = $"starting here",
+            });
             return new Diagnostic
             {
                 Message = message,
                 Severity = DiagnosticSeverity.Error,
                 Range = Translate(span),
+                RelatedInformation = related,
             };
         }
 
