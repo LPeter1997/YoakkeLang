@@ -21,8 +21,8 @@ namespace Yoakke.LanguageServer
         public static Diagnostic Translate(Syntax.Error.ISyntaxError syntaxError) => syntaxError switch
         {
             Syntax.Error.ExpectedTokenError expectedToken => Translate(expectedToken),
-            Syntax.Error.UnexpectedTokenError unexpectedToken => new Diagnostic { }, // TODO
-            Syntax.Error.UnterminatedTokenError unterminatedToken => new Diagnostic { }, // TODO
+            Syntax.Error.UnexpectedTokenError unexpectedToken => Translate(unexpectedToken),
+            Syntax.Error.UnterminatedTokenError unterminatedToken => Translate(unterminatedToken),
             _ => throw new NotImplementedException(),
         };
 
@@ -42,6 +42,30 @@ namespace Yoakke.LanguageServer
                     Message = $"matching {expectedToken.Starting.Value} here"
                 });
             }
+            return new Diagnostic
+            {
+                Message = message,
+                Severity = DiagnosticSeverity.Error,
+                Range = Translate(span),
+            };
+        }
+
+        public static Diagnostic Translate(Syntax.Error.UnexpectedTokenError unexpectedToken)
+        {
+            var message = $"Unexpected token {unexpectedToken.Got.Value}";
+            if (unexpectedToken.Context != null) message = $"{message} while parsing {unexpectedToken.Context}";
+            return new Diagnostic
+            {
+                Message = message,
+                Severity = DiagnosticSeverity.Error,
+                Range = Translate(unexpectedToken.Got.Span),
+            };
+        }
+
+        public static Diagnostic Translate(Syntax.Error.UnterminatedTokenError unterminatedToken)
+        {
+            var message = $"Unterminated token, expected {unterminatedToken.Close}";
+            var span = new Text.Span(unterminatedToken.Token.Span.Source, unterminatedToken.Token.Span.End, 1);
             return new Diagnostic
             {
                 Message = message,
