@@ -7,6 +7,7 @@ using Yoakke.Syntax.Ast;
 using Yoakke.Compiler.Semantic.Types;
 using Yoakke.Syntax.Error;
 using Yoakke.Compiler.Error;
+using Yoakke.Text;
 
 namespace Yoakke.Compiler.Compile
 {
@@ -28,6 +29,7 @@ namespace Yoakke.Compiler.Compile
         public void Report(ICompileError compileError);
 
         public Declaration.File LoadAst(string path);
+        public Declaration.File ParseAst(SourceFile source);
 
         public UncheckedAssembly Compile(Declaration.File file);
         public void TypeCheck(Node node);

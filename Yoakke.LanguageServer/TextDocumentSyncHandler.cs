@@ -12,7 +12,9 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Yoakke.Compiler.Compile;
 using Yoakke.Compiler.Error;
+using Yoakke.Compiler.Semantic;
 
 namespace Yoakke.LanguageServer
 {
@@ -113,12 +115,25 @@ namespace Yoakke.LanguageServer
         {
             // NOTE: For now we just parse and check syntax
             var result = new List<ICompileError>();
+            // Create a dependency system
+            var system = new DependencySystem("../stdlib");
+            var symTab = system.SymbolTable;
+            // Register for errors
+            system.CompileError += (s, err) => result.Add(err);
+            // From now on we do semantic checking
+            // If at any phase we encounter errors, simply terminate
+
+            // Parse the ast
             var sourceFile = new Text.SourceFile(documentPath, text);
-            var lexer = new Syntax.Lexer(sourceFile);
-            lexer.SyntaxError += (sender, err) => result.Add(new SyntaxError(err));
-            var parser = new Syntax.Parser(lexer.Lex());
-            parser.SyntaxError += (sender, err) => result.Add(new SyntaxError(err));
-            parser.ParseFile();
+            var ast = system.ParseAst(sourceFile);
+            if (result.Count > 0) return result;
+
+            // Do symbol resolution
+            SymbolResolution.Resolve(symTab, ast);
+            if (result.Count > 0) return result;
+
+            // Finally type-check
+            system.TypeCheck(ast);
             return result;
         }
     }

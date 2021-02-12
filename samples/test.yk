@@ -20,9 +20,10 @@
 // const _2 = const(identity_(i32))(4);
 
 const main = proc() -> i32 {
+    var x: i32 = 2;
+    //var x: i32 = true;
     // var nullptr: *i32 = @cast(0, *i32);
-    const(@extern("puts", proc(*u8) -> i32))("Hello, World!".data);
     // const P = @extern("puts", proc(*u8) -> i32);
     // P("Hello, World!".data);
     0
-}
+};
