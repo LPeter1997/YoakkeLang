@@ -25,6 +25,7 @@ export function activate(context: ExtensionContext) {
 	};
 
 	client = new LanguageClient(
+		"yoakkeLanguageServer",
 		'Yoakke Language Server',
 		serverOptions,
 		clientOptions

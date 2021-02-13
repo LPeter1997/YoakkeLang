@@ -1,34 +1,9 @@
 
-// Dependent typing ////////////////////////////////////////////////////////////
-
-// Declaration site
-
-// Identity with dependent types.
-// const identity = proc(T: type, x: T) -> T { x };
-
-// Turns into this:
-// const identity_ = proc(T: type) -> proc(T) -> T {
-//     proc(x: T) -> T { x }
-// };
-
-// Call Site
-
-// A call like this:
-// const _ = identity(i32, 4);
-
-// Turns into this:
-// const _2 = const(identity_(i32))(4);
-
 const foo = proc(x: i32) -> i32 {
-    x
+    0
 };
 
 const main = proc() -> i32 {
     foo(4);
-    var x: i32 = 2;
-    //var x: i32 = true;
-    // var nullptr: *i32 = @cast(0, *i32);
-    // const P = @extern("puts", proc(*u8) -> i32);
-    // P("Hello, World!".data);
-    x
+    0
 };

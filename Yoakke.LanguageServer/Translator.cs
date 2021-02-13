@@ -49,19 +49,21 @@ namespace Yoakke.LanguageServer
         {
             var message = $"expected type {expectedType.Expected} but got {expectedType.Got}";
             if (expectedType.Context != null) message = $"{message} in {expectedType.Context}";
+            Text.Span? span = expectedType.Place == null ? null : expectedType.Place.Span;
             var related = new Container<DiagnosticRelatedInformation>();
             if (expectedType.Note != null)
             {
                 related = new Container<DiagnosticRelatedInformation>(new DiagnosticRelatedInformation
                 {
                     Message = $"note: {expectedType.Note}",
+                    Location = span == null ? null : TranslateLocation(span.Value),
                 });
             }
             return new Diagnostic
             {
                 Message = message,
                 Severity = DiagnosticSeverity.Error,
-                Range = expectedType.Place == null ? null : Translate(expectedType.Place.Span),
+                Range = span == null ? null : Translate(span.Value),
                 RelatedInformation = related,
             };
         }
@@ -94,19 +96,21 @@ namespace Yoakke.LanguageServer
         {
             var message = $"unknown symbol {undefinedSymError.Name}";
             if (undefinedSymError.Context != null) message = $"{message} in {undefinedSymError.Context}";
+            Text.Span? span = undefinedSymError.Reference == null ? null : undefinedSymError.Reference.Span;
             var related = new Container<DiagnosticRelatedInformation>();
             if (undefinedSymError.SimilarExistingNames.Any())
             {
                 related = new Container<DiagnosticRelatedInformation>(new DiagnosticRelatedInformation
                 {
                     Message = $"hint: did you mean {string.Join(" or ", undefinedSymError.SimilarExistingNames)}?",
+                    Location = span == null ? null : TranslateLocation(span.Value),
                 });
             }
             return new Diagnostic
             {
                 Message = message,
                 Severity = DiagnosticSeverity.Error,
-                Range = undefinedSymError.Reference == null ? null : Translate(undefinedSymError.Reference.Span),
+                Range = span == null ? null : Translate(span.Value),
                 RelatedInformation = related,
             };
         }
@@ -148,19 +152,21 @@ namespace Yoakke.LanguageServer
 
         public static Diagnostic Translate(UnknownInitializedFieldError unknownInitError)
         {
+            Text.Span? span = unknownInitError.UnknownInitialized == null ? null : unknownInitError.UnknownInitialized.Span;
             var related = new Container<DiagnosticRelatedInformation>();
             if (unknownInitError.SimilarExistingNames.Any())
             {
                 related = new Container<DiagnosticRelatedInformation>(new DiagnosticRelatedInformation
                 {
                     Message = $"hint: did you mean {string.Join(" or ", unknownInitError.SimilarExistingNames)}?",
+                    Location = span == null ? null : TranslateLocation(span.Value),
                 });
             }
             return new Diagnostic
             {
                 Message = $"no field {unknownInitError.UnknownFieldName} can be found in type {unknownInitError.Type}",
                 Severity = DiagnosticSeverity.Error,
-                Range = unknownInitError.UnknownInitialized == null ? null : Translate(unknownInitError.UnknownInitialized.Span),
+                Range = span == null ? null : Translate(span.Value),
                 RelatedInformation = related,
             };
         }
