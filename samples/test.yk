@@ -19,7 +19,12 @@
 // Turns into this:
 // const _2 = const(identity_(i32))(4);
 
+const foo = proc(x: i32) -> i32 {
+    x
+};
+
 const main = proc() -> i32 {
+    foo(4);
     var x: i32 = 2;
     //var x: i32 = true;
     // var nullptr: *i32 = @cast(0, *i32);

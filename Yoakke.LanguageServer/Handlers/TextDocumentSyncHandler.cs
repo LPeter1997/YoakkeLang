@@ -15,40 +15,39 @@ using System.Threading.Tasks;
 using Yoakke.Compiler.Compile;
 using Yoakke.Compiler.Error;
 using Yoakke.Compiler.Semantic;
+using Yoakke.LanguageServer.Services;
+using Yoakke.Text;
 
-namespace Yoakke.LanguageServer
+namespace Yoakke.LanguageServer.Handlers
 {
     internal class TextDocumentSyncHandler : ITextDocumentSyncHandler
     {
         // TODO: We should switch to incremental sync kind later
         public TextDocumentSyncKind SyncKind => TextDocumentSyncKind.Full;
-        public readonly DocumentSelector DocumentSelector = new DocumentSelector(new DocumentFilter
-        {
-            Pattern = "**/*.yk",
-        });
 
         private readonly ILanguageServerFacade server;
-        private readonly ConcurrentDictionary<string, string> documents = new ConcurrentDictionary<string, string>();
+        private readonly SourceContainer sourceContainer;
 
-        public TextDocumentSyncHandler(ILanguageServerFacade server)
+        public TextDocumentSyncHandler(ILanguageServerFacade server, SourceContainer sourceContainer)
         {
             this.server = server;
+            this.sourceContainer = sourceContainer;
         }
 
         public TextDocumentChangeRegistrationOptions GetRegistrationOptions() => new TextDocumentChangeRegistrationOptions
         {
-            DocumentSelector = DocumentSelector,
+            DocumentSelector = Globals.DocumentSelector,
             SyncKind = SyncKind,
         };
 
         TextDocumentRegistrationOptions IRegistration<TextDocumentRegistrationOptions>.GetRegistrationOptions() => new TextDocumentRegistrationOptions
         {
-            DocumentSelector = DocumentSelector,
+            DocumentSelector = Globals.DocumentSelector,
         };
 
         TextDocumentSaveRegistrationOptions IRegistration<TextDocumentSaveRegistrationOptions>.GetRegistrationOptions() => new TextDocumentSaveRegistrationOptions
         {
-            DocumentSelector = DocumentSelector,
+            DocumentSelector = Globals.DocumentSelector,
             IncludeText = false,
         };
 
@@ -56,33 +55,33 @@ namespace Yoakke.LanguageServer
 
         public Task<Unit> Handle(DidChangeTextDocumentParams request, CancellationToken cancellationToken)
         {
-            var documentPath = request.TextDocument.Uri.ToString();
+            var uri = request.TextDocument.Uri;
             var text = request.ContentChanges.FirstOrDefault()?.Text;
 
-            documents.AddOrUpdate(documentPath, text, (k, v) => text);
+            sourceContainer.Update(uri, text);
 
-            PublishTestDiagnostics(documentPath);
+            PublishTestDiagnostics(uri);
 
             return Unit.Task;
         }
 
         public Task<Unit> Handle(DidOpenTextDocumentParams request, CancellationToken cancellationToken)
         {
-            var documentPath = request.TextDocument.Uri.ToString();
+            var uri = request.TextDocument.Uri;
             var text = request.TextDocument.Text;
 
-            documents.AddOrUpdate(documentPath, text, (k, v) => text);
+            sourceContainer.Update(uri, text);
 
-            PublishTestDiagnostics(documentPath);
+            PublishTestDiagnostics(uri);
 
             return Unit.Task;
         }
 
         public Task<Unit> Handle(DidCloseTextDocumentParams request, CancellationToken cancellationToken)
         {
-            var documentPath = request.TextDocument.Uri.ToString();
+            var uri = request.TextDocument.Uri;
 
-            documents.TryRemove(documentPath, out var _);
+            sourceContainer.Remove(uri);
 
             return Unit.Task;
         }
@@ -96,22 +95,22 @@ namespace Yoakke.LanguageServer
         {
         }
 
-        private void PublishTestDiagnostics(string documentPath)
+        private void PublishTestDiagnostics(DocumentUri uri)
         {
             var diagnostics = new Container<Diagnostic>();
-            if (documents.TryGetValue(documentPath, out var sourceText))
+            if (sourceContainer.TryGetValue(uri, out var sourceFile))
             {
-                diagnostics = new Container<Diagnostic>(DiagnoseSourceFile(documentPath, sourceText)
+                diagnostics = new Container<Diagnostic>(DiagnoseSourceFile(sourceFile)
                     .Select(DiagnosticTranslator.Translate));
             }
             server.TextDocument.PublishDiagnostics(new PublishDiagnosticsParams
             {
-                Uri = documentPath,
+                Uri = uri,
                 Diagnostics = diagnostics,
             });
         }
 
-        private IList<ICompileError> DiagnoseSourceFile(string documentPath, string text)
+        private IList<ICompileError> DiagnoseSourceFile(SourceFile sourceFile)
         {
             // NOTE: For now we just parse and check syntax
             var result = new List<ICompileError>();
@@ -124,7 +123,6 @@ namespace Yoakke.LanguageServer
             // If at any phase we encounter errors, simply terminate
 
             // Parse the ast
-            var sourceFile = new Text.SourceFile(documentPath, text);
             var ast = system.ParseAst(sourceFile);
             if (result.Count > 0) return result;
 
