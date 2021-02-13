@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,6 +23,7 @@ namespace Yoakke.LanguageServer.Services
 
         public void Remove(DocumentUri uri) => documents.TryRemove(uri, out var _);
 
-        public bool TryGetValue(DocumentUri uri, out SourceFile sourceFile) => documents.TryGetValue(uri, out sourceFile);
+        public bool TryGetValue(DocumentUri uri, [MaybeNullWhen(false)] out SourceFile sourceFile) => 
+            documents.TryGetValue(uri, out sourceFile);
     }
 }

@@ -58,9 +58,11 @@ namespace Yoakke.LanguageServer.Handlers
             var uri = request.TextDocument.Uri;
             var text = request.ContentChanges.FirstOrDefault()?.Text;
 
-            sourceContainer.Update(uri, text);
-
-            PublishTestDiagnostics(uri);
+            if (text != null)
+            {
+                sourceContainer.Update(uri, text);
+                PublishDiagnostics(uri);
+            }
 
             return Unit.Task;
         }
@@ -72,7 +74,7 @@ namespace Yoakke.LanguageServer.Handlers
 
             sourceContainer.Update(uri, text);
 
-            PublishTestDiagnostics(uri);
+            PublishDiagnostics(uri);
 
             return Unit.Task;
         }
@@ -95,13 +97,16 @@ namespace Yoakke.LanguageServer.Handlers
         {
         }
 
-        private void PublishTestDiagnostics(DocumentUri uri)
+        private void PublishDiagnostics(DocumentUri uri)
         {
             var diagnostics = new Container<Diagnostic>();
             if (sourceContainer.TryGetValue(uri, out var sourceFile))
             {
+#pragma warning disable CS8620 // Argument cannot be used for parameter due to differences in the nullability of reference types.
                 diagnostics = new Container<Diagnostic>(DiagnoseSourceFile(sourceFile)
+                    .Where(diag => diag != null)
                     .Select(Translator.Translate));
+#pragma warning restore CS8620 // Argument cannot be used for parameter due to differences in the nullability of reference types.
             }
             server.TextDocument.PublishDiagnostics(new PublishDiagnosticsParams
             {

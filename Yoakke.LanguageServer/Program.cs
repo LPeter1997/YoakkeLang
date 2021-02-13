@@ -13,7 +13,9 @@ namespace Yoakke.LanguageServer
 {
     class Program
     {
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
         static void Main(string[] args) => MainAsync(args).Wait();
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
 
         private static async Task MainAsync(string[] args)
         {
