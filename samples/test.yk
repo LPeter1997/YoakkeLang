@@ -30,5 +30,5 @@ const main = proc() -> i32 {
     // var nullptr: *i32 = @cast(0, *i32);
     // const P = @extern("puts", proc(*u8) -> i32);
     // P("Hello, World!".data);
-    0
+    x
 };

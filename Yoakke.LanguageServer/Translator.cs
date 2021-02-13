@@ -11,7 +11,7 @@ using Range = OmniSharp.Extensions.LanguageServer.Protocol.Models.Range;
 
 namespace Yoakke.LanguageServer
 {
-    internal static class DiagnosticTranslator
+    internal static class Translator
     {
         public static Diagnostic Translate(ICompileError error) => error switch
         {
@@ -230,12 +230,14 @@ namespace Yoakke.LanguageServer
 
         public static Location TranslateLocation(Text.Span span) => new Location
         {
-            Uri = DocumentUri.Parse(span.Source.Path),
+            Uri = DocumentUri.FromFileSystemPath(span.Source.Path),
             Range = Translate(span),
         };
 
         public static Range Translate(Text.Span span) => new Range(Translate(span.Start), Translate(span.End));
 
         public static Position Translate(Text.Position pos) => new Position(pos.Line, pos.Column);
+
+        public static Text.Position Translate(Position pos) => new Text.Position(pos.Line, pos.Character);
     }
 }

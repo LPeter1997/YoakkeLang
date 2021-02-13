@@ -101,7 +101,7 @@ namespace Yoakke.LanguageServer.Handlers
             if (sourceContainer.TryGetValue(uri, out var sourceFile))
             {
                 diagnostics = new Container<Diagnostic>(DiagnoseSourceFile(sourceFile)
-                    .Select(DiagnosticTranslator.Translate));
+                    .Select(Translator.Translate));
             }
             server.TextDocument.PublishDiagnostics(new PublishDiagnosticsParams
             {

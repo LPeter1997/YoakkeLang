@@ -13,30 +13,39 @@ namespace Yoakke.Syntax.Ast
     public class FindByPosition : Visitor<Node>
     {
         // TODO: Doc
-        public static Node? Find(Node root, Position position) => new FindByPosition(position).Visit(root);
+        public static Node? Find(Node root, Position position)
+        {
+            var finder = new FindByPosition(position);
+            finder.Visit(root);
+            return finder.found;
+        }
 
         private Position position;
+        private Node? found;
 
         private FindByPosition(Position position)
         {
             this.position = position;
         }
 
-        protected override Node? Visit(Declaration declaration) => CheckAndVisit(declaration);
-        protected override Node? Visit(Statement statement) => CheckAndVisit(statement);
-        protected override Node? Visit(Expression expression) => CheckAndVisit(expression);
+        protected override Node? Visit(Declaration declaration) =>
+            CanBeInHere(declaration) ? base.Visit(declaration) : null;
+        protected override Node? Visit(Statement statement) =>
+            CanBeInHere(statement) ? base.Visit(statement) : null;
+        protected override Node? Visit(Expression expression) =>
+            CanBeInHere(expression) ? base.Visit(expression) : null;
 
         // Override leaf nodes
-        protected override Node? Visit(Expression.Identifier ident) => ident;
-        protected override Node? Visit(Expression.Literal lit) => lit;
+        protected override Node? Visit(Expression.Identifier ident) => found = ident;
+        protected override Node? Visit(Expression.Literal lit) => found = lit;
 
-        private Node? CheckAndVisit(Node node)
+        private bool CanBeInHere(Node node)
         {
             var parseTreeNode = node.ParseTreeNode;
             // Certainly know it's not here
-            if (parseTreeNode != null && !parseTreeNode.Span.Contains(position)) return null;
+            if (parseTreeNode != null && !parseTreeNode.Span.Contains(position)) return false;
             // Could be in the children
-            return base.Visit(node);
+            return true;
         }
     }
 }

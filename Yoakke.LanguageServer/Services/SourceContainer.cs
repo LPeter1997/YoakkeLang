@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Yoakke.Compiler.Compile;
 using Yoakke.Text;
 
 namespace Yoakke.LanguageServer.Services
