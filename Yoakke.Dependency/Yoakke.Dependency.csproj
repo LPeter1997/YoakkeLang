@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference 
+      Include="..\Yoakke.Dependency.Generator\Yoakke.Dependency.Generator.csproj" 
+      OutputItemType="Analyzer"
+      ReferenceOutputAssembly="False" />
+  </ItemGroup>
+
+</Project>
