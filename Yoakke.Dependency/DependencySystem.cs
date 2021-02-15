@@ -20,10 +20,9 @@ namespace Yoakke.Dependency
         /// Registers a query group to be managed by this <see cref="DependencySystem"/>.
         /// </summary>
         /// <typeparam name="TBase">The query groups interface type.</typeparam>
-        /// <typeparam name="TDerived">The query groups implementation type.</typeparam>
         /// <param name="instantiate">The instantiation function.</param>
         /// <returns>The <see cref="DependencySystem"/> itself.</returns>
-        public DependencySystem Register<TBase, TDerived>(Func<TDerived> instantiate) where TDerived : TBase
+        public DependencySystem Register<TBase>(Func<TBase> instantiate)
         {
             if (!Attribute.IsDefined(typeof(TBase), typeof(QueryGroupAttribute)))
             {
@@ -34,7 +33,17 @@ namespace Yoakke.Dependency
         }
 
         /// <summary>
-        /// Registers a query group that either has only input queries or has no queries at all.
+        /// Registers a default constructible query group to be managed by this <see cref="DependencySystem"/>.
+        /// </summary>
+        /// <typeparam name="TBase">The query groups interface type.</typeparam>
+        /// <typeparam name="TDerived">The query groups implementation type.</typeparam>
+        /// <returns>The <see cref="DependencySystem"/> itself.</returns>
+        public DependencySystem Register<TBase, TDerived>() where TDerived : TBase, new() =>
+            Register<TBase>(() => new TDerived());
+
+        /// <summary>
+        /// Registers a query group that either has only input queries or has no queries at all
+        /// to be managed by this <see cref="DependencySystem"/>.
         /// </summary>
         /// <typeparam name="TBase">The query groups interface type.</typeparam>
         /// <returns>The <see cref="DependencySystem"/> itself.</returns>

@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Yoakke.Compiler.Compile;
+//using Yoakke.Compiler.Compile;
 using Yoakke.Compiler.Error;
 using Yoakke.Compiler.Semantic;
 using Yoakke.DataStructures;
+using Yoakke.Dependency;
 using Yoakke.Lir.Backend;
 using Yoakke.Lir.Backend.Toolchain;
 using Yoakke.Lir.Passes;
@@ -20,11 +21,37 @@ using Yoakke.Syntax.Error;
 
 namespace Yoakke.Compiler
 {
+    [QueryGroup]
+    interface IInputProvider
+    {
+        [InputQuery]
+        public string SourceText(string path);
+
+        [InputQuery]
+        public string StandardLibraryPath();
+    }
+
+    [QueryGroup]
+    interface IParser
+    {
+        List<int> LexTokens(string path);
+    }
+
+    class MyParser : IParser
+    {
+        public List<int> LexTokens(string path)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     class Program
     {
         static void Main(string[] args)
         {
-
+            var system = new DependencySystem()
+                .Register<IParser, MyParser>();
+            system.Get<IParser>().LexTokens("asd");
         }
     }
 
