@@ -22,6 +22,15 @@ namespace Yoakke.Compiler
 {
     class Program
     {
+        static void Main(string[] args)
+        {
+
+        }
+    }
+
+#if false
+    class Program
+    {
         private static List<ICompileError> errors = new List<ICompileError>();
 
         static void Main(string[] args)
@@ -116,4 +125,5 @@ namespace Yoakke.Compiler
             Environment.Exit(1);
         }
     }
+#endif
 }
