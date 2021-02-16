@@ -47,8 +47,9 @@ namespace Yoakke.Compiler
         {
             var system = new DependencySystem()
                 .Register<IInputProvider>()
-                .Register<IParser, MyParser>();
+                ;
             system.Get<IInputProvider>().StandardLibraryPath = "hi";
+            Console.WriteLine(system.Get<IInputProvider>().StandardLibraryPath);
             //system.Get<IParser>().ThisIsInjected();
         }
     }

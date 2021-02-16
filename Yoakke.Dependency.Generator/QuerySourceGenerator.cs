@@ -103,9 +103,9 @@ namespace Yoakke.Dependency.Generator
             {
                 // Non-top-level declaration, error to the user
                 context.ReportDiagnostic(Diagnostic.Create(
-                        QueryGroupInterfaceMustBePartial,
-                        syntax.GetLocation(),
-                        syntax.Identifier.ValueText));
+                    QueryGroupInterfaceMustBeTopLevel,
+                    syntax.GetLocation(),
+                    syntax.Identifier.ValueText));
                 return null;
             }
             // It's a proper interface, generate source code
@@ -120,17 +120,14 @@ namespace Yoakke.Dependency.Generator
                 ? GenerateInputQueryContents(context, symbol)
                 : GenerateQueryContents(symbol);
 
-            var source = $@"
+           return $@"
 namespace {namespaceName}
 {{
     {accessibility} partial interface {interfaceName} {baseInterfacePart}
     {{
         {contents}
     }}
-}}
-";
-
-            return source;
+}}";
         }
 
         private string GenerateInputQueryContents(GeneratorExecutionContext context, INamedTypeSymbol symbol)
@@ -175,10 +172,16 @@ namespace {namespaceName}
             // Assemble the internals
             return $@"
 public class Proxy : {symbol.Name} {{
+    private Yoakke.Dependency.DependencySystem dependencySystem;
+
+    public Proxy(Yoakke.Dependency.DependencySystem dependencySystem) 
+    {{
+        this.dependencySystem = dependencySystem;
+    }}
+
     {proxyDefinitions}
 }}
-{additionalDeclarations}
-";
+{additionalDeclarations}";
         }
 
         private static string GenerateQueryContents(INamedTypeSymbol symbol)
@@ -204,17 +207,18 @@ public class Proxy : {symbol.Name} {{
             proxyDefinitions.AppendLine($"private {storedType} {querySymbol.Name}_storage = default;");
             proxyDefinitions.AppendLine($"private bool {querySymbol.Name}_isset = false;");
             // Generate implementation
+            
             var getterImpl = $@"
-    if (!{querySymbol.Name}_isset)
-    {{
-        throw new System.InvalidOperationException(""Tried to access {querySymbol.Name} before it was ever set!"");
-    }}
-    return {querySymbol.Name}_storage;
-";
+if (!{querySymbol.Name}_isset)
+{{
+    throw new System.InvalidOperationException(""Tried to access {querySymbol.Name} before it was ever set!"");
+}}
+return {querySymbol.Name}_storage;";
+
             var setterImpl = $@"
-    {querySymbol.Name}_storage = value;
-    {querySymbol.Name}_isset = true;
-";
+{querySymbol.Name}_storage = value;
+{querySymbol.Name}_isset = true;";
+
             // Syntax depends on which one this is
             if (querySymbol is IMethodSymbol)
             {
@@ -226,12 +230,11 @@ public class Proxy : {symbol.Name} {{
             {
                 // Use property syntax
                 proxyDefinitions.AppendLine($@"
-    {storedType} {interfaceName}.{querySymbol.Name}
-    {{
-        get {{ {getterImpl} }}
-        set {{ {setterImpl} }}
-    }}
-");
+{storedType} {interfaceName}.{querySymbol.Name}
+{{
+    get {{ {getterImpl} }}
+    set {{ {setterImpl} }}
+}}");
             }
         }
 

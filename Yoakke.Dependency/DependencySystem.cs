@@ -48,9 +48,10 @@ namespace Yoakke.Dependency
         /// <returns>The <see cref="DependencySystem"/> itself.</returns>
         public DependencySystem Register<TBase>() where TBase : IInputQueryGroup
         {
-            // TODO: Somehow lead this back to the other case
-            // We probably need reflection of some sort to read out a nested implementor we can instantiate
-            throw new NotImplementedException();
+            // NOTE: We don't use the other functions so we avoid the attribute checking, as these ones require
+            // the InputQuery one
+            queryGroupInstantiators.Add(typeof(TBase), () => default);
+            return this;
         }
 
         /// <summary>
@@ -66,22 +67,45 @@ namespace Yoakke.Dependency
             if (queryGroupInstantiators.Remove(typeof(TBase), out var instantiate))
             {
                 // Create one with the registered function
-                // NOTE: Function already registers it
-                var newQueryGroup = CreateQueryGroup<TBase>(instantiate);
-                // Return it
-                return newQueryGroup;
+                // NOTE: Function already registers it, no need to here
+                return CreateQueryGroup<TBase>(instantiate);
             }
             throw new KeyNotFoundException("The given query group was not registered. Did you ask by it's interface type?");
         }
 
         private TBase CreateQueryGroup<TBase>(Func<object> instantiate)
         {
-            // Instantiate using the function
-            var queryGroup = (TBase)instantiate();
-            // First we add it, so we can resolve for circular dependencies
-            queryGroups.Add(typeof(TBase), queryGroup);
-            // TODO: Fill in properties, if needed
-            return queryGroup;
+            if (typeof(TBase).IsAssignableTo(typeof(IInputQueryGroup)))
+            {
+                // This is an input query, only depends on the system
+                var queryGroupProxy = InstantiateProxy<TBase>(
+                    new Type[] { typeof(DependencySystem) },
+                    new object[] { this });
+                // Register the proxy
+                queryGroups.Add(typeof(TBase), queryGroupProxy);
+                return queryGroupProxy;
+            }
+            else
+            {
+                // Instantiate using the function
+                var queryGroupImpl = (TBase)instantiate();
+                // Instantiate the proxy
+                var queryGroupProxy = InstantiateProxy<TBase>(
+                    new Type[] { typeof(DependencySystem), typeof(TBase) },
+                    new object[] { this, queryGroupImpl });
+                // Register the proxy
+                queryGroups.Add(typeof(TBase), queryGroupProxy);
+                // TODO: Fill up dependent query properties of queryGroupImpl here?
+                return queryGroupProxy;
+            }
+        }
+
+        private TBase InstantiateProxy<TBase>(Type[] argTypes, object[] args)
+        {
+            var type = typeof(TBase);
+            var proxyClass = type.GetNestedType("Proxy");
+            var proxyCtor = proxyClass.GetConstructor(argTypes);
+            return (TBase)proxyCtor.Invoke(args);
         }
     }
 }
