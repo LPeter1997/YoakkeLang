@@ -133,35 +133,32 @@ namespace {namespaceName}
             return source;
         }
 
-        private static string GenerateInputQueryContents(GeneratorExecutionContext context, INamedTypeSymbol symbol)
+        private string GenerateInputQueryContents(GeneratorExecutionContext context, INamedTypeSymbol symbol)
         {
             // Additional things to put inside the interface
             var additionalDeclarations = new StringBuilder();
+            // Implementation methods for the proxy
+            var proxyDefinitions = new StringBuilder();
 
+            // Member declarations and implementations
             foreach (var member in symbol.GetMembers())
             {
                 if (member is IMethodSymbol methodSymbol)
                 {
-                    // We need to create a set member
-                    // For a member declaration <accessibility> <return-type> <name>(<t1> p1, <t2> p2, ... <tN> pN);
-                    // We want to create a <accessibility> void Set<name>(<t1> p1, <t2> p2, ... <tN> pN, <return-type> value);
-                    var methodAccessibility = AccessibilityToString(methodSymbol.DeclaredAccessibility);
-                    var returnType = methodSymbol.ReturnType.ToDisplayString();
-                    var parameterList = methodSymbol
-                        .Parameters
-                        .Select(p => $"{p.Type.ToDisplayString()} {p.Name}")
-                        .Append($"{returnType} value");
-                    var parameters = string.Join(", ", parameterList);
-                    // Build out the declaration string
-                    additionalDeclarations.Append($"{methodAccessibility} void Set{methodSymbol.Name}({parameters});");
-                    // TODO: Implementation string
+                    if (methodSymbol.Parameters.IsEmpty)
+                    {
+                        GenerateKeylessInputQuery(symbol.Name, additionalDeclarations, proxyDefinitions, member);
+                    }
+                    else
+                    {
+                        // TODO
+                    }
                 }
                 else if (member is IPropertySymbol propertySymbol 
                     && propertySymbol.GetMethod != null
                     && propertySymbol.SetMethod != null)
                 {
-                    // NOTE: We don't want additional declaration here
-                    // TODO
+                    GenerateKeylessInputQuery(symbol.Name, additionalDeclarations, proxyDefinitions, member);
                 }
                 else
                 {
@@ -175,13 +172,67 @@ namespace {namespaceName}
                 }
             }
 
-            return additionalDeclarations.ToString();
+            // Assemble the internals
+            return $@"
+public class Proxy : {symbol.Name} {{
+    {proxyDefinitions}
+}}
+{additionalDeclarations}
+";
         }
 
         private static string GenerateQueryContents(INamedTypeSymbol symbol)
         {
-            // TODO
             return "";
+        }
+
+        private void GenerateKeylessInputQuery(
+            string interfaceName,
+            StringBuilder additionalDeclarations, 
+            StringBuilder proxyDefinitions,
+            ISymbol querySymbol)
+        {
+            var accessibility = AccessibilityToString(querySymbol.DeclaredAccessibility);
+            var storedType = (querySymbol is IMethodSymbol ms ? ms.ReturnType : ((IPropertySymbol)querySymbol).Type).ToDisplayString();
+            if (querySymbol is IMethodSymbol)
+            {
+                // Method, generate extra declaration for setter
+                additionalDeclarations.AppendLine($"{accessibility} void Set{querySymbol.Name}({storedType} value);");
+            }
+
+            // Generate storage, also a flag to denote if the value is set
+            proxyDefinitions.AppendLine($"private {storedType} {querySymbol.Name}_storage = default;");
+            proxyDefinitions.AppendLine($"private bool {querySymbol.Name}_isset = false;");
+            // Generate implementation
+            var getterImpl = $@"
+    if (!{querySymbol.Name}_isset)
+    {{
+        throw new System.InvalidOperationException(""Tried to access {querySymbol.Name} before it was ever set!"");
+    }}
+    return {querySymbol.Name}_storage;
+";
+            var setterImpl = $@"
+    {querySymbol.Name}_storage = value;
+    {querySymbol.Name}_isset = true;
+";
+            // Syntax depends on which one this is
+            if (querySymbol is IMethodSymbol)
+            {
+                // Use method syntax
+                proxyDefinitions.AppendLine($@"{accessibility} {storedType} {querySymbol.Name}() {{ {getterImpl} }}");
+                proxyDefinitions.AppendLine($@"{accessibility} void Set{querySymbol.Name}({storedType} value) {{ {setterImpl} }}");
+            }
+            else
+            {
+                // Use property syntax
+                proxyDefinitions.AppendLine($@"
+    {storedType} {interfaceName}.{querySymbol.Name}
+    {{
+        get {{ {getterImpl} }}
+        set {{ {setterImpl} }}
+    }}
+");
+            }
         }
 
         private static string AccessibilityToString(Accessibility accessibility) => accessibility switch
