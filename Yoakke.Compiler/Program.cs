@@ -22,7 +22,7 @@ using Yoakke.Syntax.Error;
 namespace Yoakke.Compiler
 {
     [QueryGroup]
-    interface IInputProvider
+    partial interface IInputProvider
     {
         [InputQuery]
         public string SourceText(string path);
@@ -32,7 +32,7 @@ namespace Yoakke.Compiler
     }
 
     [QueryGroup]
-    interface IParser
+    partial interface IParser
     {
         List<int> LexTokens(string path);
     }

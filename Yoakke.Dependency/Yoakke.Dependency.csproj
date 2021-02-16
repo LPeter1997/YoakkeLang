@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net5</TargetFramework>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

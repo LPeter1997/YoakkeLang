@@ -3,6 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net5</TargetFramework>
+    <LangVersion>preview</LangVersion>
     <Platforms>AnyCPU;x86</Platforms>
     
     <Nullable>enable</Nullable>
@@ -16,7 +17,12 @@
     <ProjectReference Include="..\Yoakke.DataStructures\Yoakke.DataStructures.csproj" />
 	  <ProjectReference Include="..\Yoakke.C.Syntax\Yoakke.C.Syntax.csproj" />
     <ProjectReference Include="..\Yoakke.Reporting\Yoakke.Reporting.csproj" />
-    <ProjectReference Include="..\Yoakke.Dependency\Yoakke.Dependency.csproj" />
+    <ProjectReference Include="..\Yoakke.Dependency\Yoakke.Dependency.csproj"/>
+    <!-- TODO: Temporary, Yoakke.Dependency should publish this... -->
+    <ProjectReference
+      Include="..\Yoakke.Dependency.Generator\Yoakke.Dependency.Generator.csproj"
+      OutputItemType="Analyzer"
+      ReferenceOutputAssembly="False" />
   </ItemGroup>
 
 </Project>
