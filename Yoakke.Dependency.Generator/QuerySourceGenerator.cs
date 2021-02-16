@@ -42,6 +42,14 @@ namespace Yoakke.Dependency.Generator
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
+        private static readonly DiagnosticDescriptor InputQueryMustBePropertyOrMethod = new DiagnosticDescriptor(
+            id: "YKDEPENDENCYGEN003",
+            title: "Input QueryGroup interface must only contain methods and get-set properties",
+            messageFormat: "Input QueryGroup interface '{0}' must only contain methods and get-set properties, '{1}' is illegal",
+            category: "Yoakke.Dependency.Generator",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
         public void Initialize(GeneratorInitializationContext context)
         {
             context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
@@ -108,17 +116,72 @@ namespace Yoakke.Dependency.Generator
             var interfaceName = symbol.Name;
             var accessibility = AccessibilityToString(symbol.DeclaredAccessibility);
             var baseInterfacePart = isInput ? ": Yoakke.Dependency.IInputQueryGroup" : string.Empty;
+            var contents = isInput
+                ? GenerateInputQueryContents(context, symbol)
+                : GenerateQueryContents(symbol);
 
             var source = $@"
 namespace {namespaceName}
 {{
     {accessibility} partial interface {interfaceName} {baseInterfacePart}
     {{
+        {contents}
     }}
 }}
 ";
 
             return source;
+        }
+
+        private static string GenerateInputQueryContents(GeneratorExecutionContext context, INamedTypeSymbol symbol)
+        {
+            // Additional things to put inside the interface
+            var additionalDeclarations = new StringBuilder();
+
+            foreach (var member in symbol.GetMembers())
+            {
+                if (member is IMethodSymbol methodSymbol)
+                {
+                    // We need to create a set member
+                    // For a member declaration <accessibility> <return-type> <name>(<t1> p1, <t2> p2, ... <tN> pN);
+                    // We want to create a <accessibility> void Set<name>(<t1> p1, <t2> p2, ... <tN> pN, <return-type> value);
+                    var methodAccessibility = AccessibilityToString(methodSymbol.DeclaredAccessibility);
+                    var returnType = methodSymbol.ReturnType.ToDisplayString();
+                    var parameterList = methodSymbol
+                        .Parameters
+                        .Select(p => $"{p.Type.ToDisplayString()} {p.Name}")
+                        .Append($"{returnType} value");
+                    var parameters = string.Join(", ", parameterList);
+                    // Build out the declaration string
+                    additionalDeclarations.Append($"{methodAccessibility} void Set{methodSymbol.Name}({parameters});");
+                    // TODO: Implementation string
+                }
+                else if (member is IPropertySymbol propertySymbol 
+                    && propertySymbol.GetMethod != null
+                    && propertySymbol.SetMethod != null)
+                {
+                    // NOTE: We don't want additional declaration here
+                    // TODO
+                }
+                else
+                {
+                    // Error
+                    context.ReportDiagnostic(Diagnostic.Create(
+                        InputQueryMustBePropertyOrMethod,
+                        member.Locations.First(),
+                        member.Locations.Skip(1),
+                        symbol.Name,
+                        member.Name));
+                }
+            }
+
+            return additionalDeclarations.ToString();
+        }
+
+        private static string GenerateQueryContents(INamedTypeSymbol symbol)
+        {
+            // TODO
+            return "";
         }
 
         private static string AccessibilityToString(Accessibility accessibility) => accessibility switch

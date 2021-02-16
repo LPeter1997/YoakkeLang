@@ -23,7 +23,7 @@ namespace Yoakke.Compiler
 {
     [InputQueryGroup]
     partial interface IInputProvider
-    {        
+    {
         public string SourceText(string path);
 
         public string StandardLibraryPath();
@@ -50,6 +50,7 @@ namespace Yoakke.Compiler
             var system = new DependencySystem()
                 .Register<IInputProvider>()
                 .Register<IParser, MyParser>();
+            system.Get<IInputProvider>().SetSourceText("", "");
             //system.Get<IParser>().ThisIsInjected();
         }
     }
