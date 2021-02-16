@@ -53,8 +53,9 @@ namespace Yoakke.Dependency.Generator
 
             var compilation = context.Compilation;
 
-            // Get the symbol representing the QueryGroup attribute
+            // Get the symbol representing the QueryGroup attributes
             var queryGroupAttributeSymbol = compilation.GetTypeByMetadataName("Yoakke.Dependency.QueryGroupAttribute");
+            var inputQueryGroupAttributeSymbol = compilation.GetTypeByMetadataName("Yoakke.Dependency.InputQueryGroupAttribute");
 
             // Only keep the interfaces that are annotated with this
             // The ones that are annotated must be partial
@@ -62,20 +63,21 @@ namespace Yoakke.Dependency.Generator
             {
                 var model = compilation.GetSemanticModel(syntax.SyntaxTree);
                 var symbol = model.GetDeclaredSymbol(syntax) as INamedTypeSymbol;
-                // Filter interfaces without the query group attribute
-                if (!symbol.GetAttributes().Any(attr =>
-                    SymbolEqualityComparer.Default.Equals(attr.AttributeClass, queryGroupAttributeSymbol)))
-                {
-                    continue;
-                }
+                // Filter interfaces without the query group attributes
+                var isQuery = symbol.GetAttributes().Any(attr =>
+                    SymbolEqualityComparer.Default.Equals(attr.AttributeClass, queryGroupAttributeSymbol));
+                var isInputQuery = symbol.GetAttributes().Any(attr =>
+                    SymbolEqualityComparer.Default.Equals(attr.AttributeClass, inputQueryGroupAttributeSymbol));
+                if (!(isQuery || isInputQuery)) continue;
                 // Try to generate code
-                var generated = GenerateImplementation(context, syntax, symbol);
+                var generated = GenerateImplementation(isInputQuery, context, syntax, symbol);
                 if (generated == null) continue;
                 context.AddSource($"{symbol.Name}.Generated.cs", generated);
             }
         }
 
         private string? GenerateImplementation(
+            bool isInput,
             GeneratorExecutionContext context,
             InterfaceDeclarationSyntax syntax,
             INamedTypeSymbol symbol)
@@ -105,13 +107,13 @@ namespace Yoakke.Dependency.Generator
             var namespaceName = symbol.ContainingNamespace.ToDisplayString();
             var interfaceName = symbol.Name;
             var accessibility = AccessibilityToString(symbol.DeclaredAccessibility);
+            var baseInterfacePart = isInput ? ": Yoakke.Dependency.IInputQueryGroup" : string.Empty;
 
             var source = $@"
 namespace {namespaceName}
 {{
-    {accessibility} partial interface {interfaceName} 
+    {accessibility} partial interface {interfaceName} {baseInterfacePart}
     {{
-        public void ThisIsInjected();
     }}
 }}
 ";

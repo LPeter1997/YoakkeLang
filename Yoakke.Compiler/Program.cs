@@ -21,13 +21,11 @@ using Yoakke.Syntax.Error;
 
 namespace Yoakke.Compiler
 {
-    [QueryGroup]
+    [InputQueryGroup]
     partial interface IInputProvider
-    {
-        [InputQuery]
+    {        
         public string SourceText(string path);
 
-        [InputQuery]
         public string StandardLibraryPath();
     }
 
@@ -43,8 +41,6 @@ namespace Yoakke.Compiler
         {
             throw new NotImplementedException();
         }
-
-        public void ThisIsInjected() { }
     }
 
     class Program
@@ -52,8 +48,9 @@ namespace Yoakke.Compiler
         static void Main(string[] args)
         {
             var system = new DependencySystem()
+                .Register<IInputProvider>()
                 .Register<IParser, MyParser>();
-            system.Get<IParser>().ThisIsInjected();
+            //system.Get<IParser>().ThisIsInjected();
         }
     }
 

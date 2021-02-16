@@ -42,12 +42,11 @@ namespace Yoakke.Dependency
             Register<TBase>(() => new TDerived());
 
         /// <summary>
-        /// Registers a query group that either has only input queries or has no queries at all
-        /// to be managed by this <see cref="DependencySystem"/>.
+        /// Registers an input query group to be managed by this <see cref="DependencySystem"/>.
         /// </summary>
         /// <typeparam name="TBase">The query groups interface type.</typeparam>
         /// <returns>The <see cref="DependencySystem"/> itself.</returns>
-        public DependencySystem Register<TBase>() where TBase : IDefaultConstructibleQueryGroup
+        public DependencySystem Register<TBase>() where TBase : IInputQueryGroup
         {
             // TODO: Somehow lead this back to the other case
             // We probably need reflection of some sort to read out a nested implementor we can instantiate
