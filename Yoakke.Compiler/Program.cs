@@ -43,6 +43,8 @@ namespace Yoakke.Compiler
         {
             throw new NotImplementedException();
         }
+
+        public void ThisIsInjected() { }
     }
 
     class Program
@@ -51,7 +53,7 @@ namespace Yoakke.Compiler
         {
             var system = new DependencySystem()
                 .Register<IParser, MyParser>();
-            system.Get<IParser>().LexTokens("asd");
+            system.Get<IParser>().ThisIsInjected();
         }
     }
 
