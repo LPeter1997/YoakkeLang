@@ -115,7 +115,7 @@ namespace Yoakke.Dependency.Generator
             var namespaceName = symbol.ContainingNamespace.ToDisplayString();
             var interfaceName = symbol.Name;
             var accessibility = AccessibilityToString(symbol.DeclaredAccessibility);
-            var baseInterfacePart = isInput ? ": Yoakke.Dependency.IInputQueryGroup" : string.Empty;
+            var baseInterfacePart = isInput ? ": Yoakke.Dependency.Internal.IInputQueryGroup" : string.Empty;
             var contents = isInput
                 ? GenerateInputQueryContents(context, symbol)
                 : GenerateQueryContents(symbol);
@@ -137,18 +137,32 @@ namespace {namespaceName}
             // Implementation methods for the proxy
             var proxyDefinitions = new StringBuilder();
 
+            // First we get all property names because we need to filter out property-generated methods
+            var propertyNames = new HashSet<string>();
+            foreach (var propertyName in symbol.GetMembers().OfType<IPropertySymbol>().Select(p => p.Name))
+            {
+                propertyNames.Add(propertyName);
+            }
+
             // Member declarations and implementations
             foreach (var member in symbol.GetMembers())
             {
                 if (member is IMethodSymbol methodSymbol)
                 {
-                    if (methodSymbol.Parameters.IsEmpty)
+                    // We skip property methods
+                    bool isPropertyMethod =
+                           (member.Name.StartsWith("get_") || member.Name.StartsWith("set_"))
+                        && propertyNames.Contains(member.Name.Substring(4));
+                    if (!isPropertyMethod)
                     {
-                        GenerateKeylessInputQuery(symbol.Name, additionalDeclarations, proxyDefinitions, member);
-                    }
-                    else
-                    {
-                        GenerateKeyedInputQuery(symbol.Name, additionalDeclarations, proxyDefinitions, methodSymbol);
+                        if (methodSymbol.Parameters.IsEmpty)
+                        {
+                            GenerateKeylessInputQuery(symbol.Name, additionalDeclarations, proxyDefinitions, member);
+                        }
+                        else
+                        {
+                            GenerateKeyedInputQuery(symbol.Name, additionalDeclarations, proxyDefinitions, methodSymbol);
+                        }
                     }
                 }
                 else if (member is IPropertySymbol propertySymbol 
@@ -247,15 +261,19 @@ return {querySymbol.Name}_storage;";
             var accessibility = AccessibilityToString(querySymbol.DeclaredAccessibility);
             var storedType = querySymbol.ReturnType;
             // Method, generate extra declaration for setter
-            var keyParams = string.Join(", ", 
+            var setterKeyParams = string.Join(", ", 
                 querySymbol.Parameters
                     .Select(p => $"{p.Type.ToDisplayString()} {p.Name}")
                     .Append($"{storedType} value"));
-            additionalDeclarations.AppendLine($"{accessibility} void Set{querySymbol.Name}({keyParams});");
-            
+            additionalDeclarations.AppendLine($"{accessibility} void Set{querySymbol.Name}({setterKeyParams});");
+
             // TODO: Generate storage
 
-            // TODO: Generate getter and setter
+            var getterKeyParams = string.Join(", ", querySymbol.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}"));
+            // TODO: Proper getter implementation
+            proxyDefinitions.AppendLine($@"{accessibility} {storedType} {querySymbol.Name}({getterKeyParams}) {{ return default; }}");
+            // TODO: Proper setter implementation
+            proxyDefinitions.AppendLine($@"{accessibility} void Set{querySymbol.Name}({setterKeyParams}) {{ }}");
         }
 
         private static string AccessibilityToString(Accessibility accessibility) => accessibility switch

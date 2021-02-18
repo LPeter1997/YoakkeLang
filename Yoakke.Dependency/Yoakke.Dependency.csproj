@@ -6,10 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference 
-      Include="..\Yoakke.Dependency.Generator\Yoakke.Dependency.Generator.csproj" 
-      OutputItemType="Analyzer"
-      ReferenceOutputAssembly="False" />
+    <ProjectReference Include="..\Yoakke.Dependency.Generator\Yoakke.Dependency.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="False" />
   </ItemGroup>
 
 </Project>
