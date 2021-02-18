@@ -148,7 +148,7 @@ namespace {namespaceName}
                     }
                     else
                     {
-                        // TODO
+                        GenerateKeyedInputQuery(symbol.Name, additionalDeclarations, proxyDefinitions, methodSymbol);
                     }
                 }
                 else if (member is IPropertySymbol propertySymbol 
@@ -236,6 +236,26 @@ return {querySymbol.Name}_storage;";
     set {{ {setterImpl} }}
 }}");
             }
+        }
+
+        private void GenerateKeyedInputQuery(
+            string interfaceName,
+            StringBuilder additionalDeclarations,
+            StringBuilder proxyDefinitions,
+            IMethodSymbol querySymbol)
+        {
+            var accessibility = AccessibilityToString(querySymbol.DeclaredAccessibility);
+            var storedType = querySymbol.ReturnType;
+            // Method, generate extra declaration for setter
+            var keyParams = string.Join(", ", 
+                querySymbol.Parameters
+                    .Select(p => $"{p.Type.ToDisplayString()} {p.Name}")
+                    .Append($"{storedType} value"));
+            additionalDeclarations.AppendLine($"{accessibility} void Set{querySymbol.Name}({keyParams});");
+            
+            // TODO: Generate storage
+
+            // TODO: Generate getter and setter
         }
 
         private static string AccessibilityToString(Accessibility accessibility) => accessibility switch

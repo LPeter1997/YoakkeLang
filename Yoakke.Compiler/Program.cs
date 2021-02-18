@@ -25,6 +25,7 @@ namespace Yoakke.Compiler
     partial interface IInputProvider
     {
         public string StandardLibraryPath();
+        public string SourceText(string path, string root);
     }
 
     [QueryGroup]
@@ -47,8 +48,7 @@ namespace Yoakke.Compiler
         {
             var system = new DependencySystem()
                 .Register<IInputProvider>();
-            system.Get<IInputProvider>().SetStandardLibraryPath("hi");
-            Console.WriteLine(system.Get<IInputProvider>().StandardLibraryPath());
+            Console.WriteLine(system.Get<IInputProvider>().SourceText("foo.yk", "C:"));
             //system.Get<IParser>().ThisIsInjected();
         }
     }
