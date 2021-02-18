@@ -27,9 +27,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Yoakke.Reporting.Tests", "Y
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Yoakke.LanguageServer", "Yoakke.LanguageServer\Yoakke.LanguageServer.csproj", "{4780B74D-73D8-4BC0-ADC7-343D3894269D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Yoakke.Dependency", "Yoakke.Dependency\Yoakke.Dependency.csproj", "{2ED82B68-1B84-4E7F-B27A-BCC6870C770A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Yoakke.Dependency", "Yoakke.Dependency\Yoakke.Dependency.csproj", "{2ED82B68-1B84-4E7F-B27A-BCC6870C770A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Yoakke.Dependency.Generator", "Yoakke.Dependency.Generator\Yoakke.Dependency.Generator.csproj", "{8005039E-621A-4CA1-BB8C-6F78C6F291A1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Yoakke.Dependency.Generator", "Yoakke.Dependency.Generator\Yoakke.Dependency.Generator.csproj", "{8005039E-621A-4CA1-BB8C-6F78C6F291A1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Yoakke.Dependency.Tests", "Yoakke.Dependency.Tests\Yoakke.Dependency.Tests.csproj", "{5D72D0B1-F2E2-4C6B-B6FB-BB87B7AEC12A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -151,6 +153,14 @@ Global
 		{8005039E-621A-4CA1-BB8C-6F78C6F291A1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8005039E-621A-4CA1-BB8C-6F78C6F291A1}.Release|x86.ActiveCfg = Release|Any CPU
 		{8005039E-621A-4CA1-BB8C-6F78C6F291A1}.Release|x86.Build.0 = Release|Any CPU
+		{5D72D0B1-F2E2-4C6B-B6FB-BB87B7AEC12A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5D72D0B1-F2E2-4C6B-B6FB-BB87B7AEC12A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5D72D0B1-F2E2-4C6B-B6FB-BB87B7AEC12A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5D72D0B1-F2E2-4C6B-B6FB-BB87B7AEC12A}.Debug|x86.Build.0 = Debug|Any CPU
+		{5D72D0B1-F2E2-4C6B-B6FB-BB87B7AEC12A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5D72D0B1-F2E2-4C6B-B6FB-BB87B7AEC12A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5D72D0B1-F2E2-4C6B-B6FB-BB87B7AEC12A}.Release|x86.ActiveCfg = Release|Any CPU
+		{5D72D0B1-F2E2-4C6B-B6FB-BB87B7AEC12A}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
