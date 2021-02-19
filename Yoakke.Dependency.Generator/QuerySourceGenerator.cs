@@ -267,13 +267,29 @@ return {querySymbol.Name}_storage;";
                     .Append($"{storedType} value"));
             additionalDeclarations.AppendLine($"{accessibility} void Set{querySymbol.Name}({setterKeyParams});");
 
-            // TODO: Generate storage
+            // TODO: Generate proper storage
+            var keyTypes = string.Join(", ", querySymbol.Parameters.Select(p => p.Type.ToDisplayString()));
+            var dictType =
+                querySymbol.Parameters.Length > 1 
+                ? $"System.Collections.Generic.Dictionary<({keyTypes}), {storedType}>"
+                : $"System.Collections.Generic.Dictionary<{keyTypes}, {storedType}>";
+            proxyDefinitions.AppendLine($"private {dictType} {querySymbol.Name}_storage = new {dictType}();");
 
             var getterKeyParams = string.Join(", ", querySymbol.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}"));
+            var keyParamNames = string.Join(", ", querySymbol.Parameters.Select(p => p.Name));
+
             // TODO: Proper getter implementation
-            proxyDefinitions.AppendLine($@"{accessibility} {storedType} {querySymbol.Name}({getterKeyParams}) {{ return default; }}");
+            // TODO: We could include the keys in the exception
+            proxyDefinitions.AppendLine($@"
+{accessibility} {storedType} {querySymbol.Name}({getterKeyParams}) {{ 
+    if ({querySymbol.Name}_storage.TryGetValue(({keyParamNames}), out var storedValue)) return storedValue;
+    throw new System.InvalidOperationException(""Tried to access {querySymbol.Name} before it was ever set!"");
+}}");
             // TODO: Proper setter implementation
-            proxyDefinitions.AppendLine($@"{accessibility} void Set{querySymbol.Name}({setterKeyParams}) {{ }}");
+            proxyDefinitions.AppendLine($@"
+{accessibility} void Set{querySymbol.Name}({setterKeyParams}) {{
+    {querySymbol.Name}_storage[({keyParamNames})] = value;
+}}");
         }
 
         private static string AccessibilityToString(Accessibility accessibility) => accessibility switch
