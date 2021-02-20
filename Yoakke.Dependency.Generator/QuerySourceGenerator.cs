@@ -26,6 +26,7 @@ namespace Yoakke.Dependency.Generator
             }
         }
 
+        #region Diagnostics
         private static readonly DiagnosticDescriptor QueryGroupInterfaceMustBePartial = new DiagnosticDescriptor(
             id: "YKDEPENDENCYGEN001",
             title: "QueryGroup interface definitions must be partial",
@@ -42,13 +43,14 @@ namespace Yoakke.Dependency.Generator
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
 
-        private static readonly DiagnosticDescriptor InputQueryMustBePropertyOrMethod = new DiagnosticDescriptor(
+        private static readonly DiagnosticDescriptor QueryMustBePropertyOrMethod = new DiagnosticDescriptor(
             id: "YKDEPENDENCYGEN003",
-            title: "Input QueryGroup interface must only contain methods and get-set properties",
+            title: "QueryGroup interface must only contain methods and properties",
             messageFormat: "Input QueryGroup interface '{0}' must only contain methods and get-set properties, '{1}' is illegal",
             category: "Yoakke.Dependency.Generator",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+        #endregion
 
         public void Initialize(GeneratorInitializationContext context)
         {
@@ -110,17 +112,15 @@ namespace Yoakke.Dependency.Generator
             }
             // It's a proper interface, generate source code
 
-            // TODO: For now as test we just inject a new method
-
             var namespaceName = symbol.ContainingNamespace.ToDisplayString();
             var interfaceName = symbol.Name;
             var accessibility = AccessibilityToString(symbol.DeclaredAccessibility);
             var baseInterfacePart = isInput ? ": Yoakke.Dependency.Internal.IInputQueryGroup" : string.Empty;
             var contents = isInput
                 ? GenerateInputQueryContents(context, symbol)
-                : GenerateQueryContents(symbol);
+                : GenerateQueryContents(context, symbol);
 
-           return $@"
+            return $@"
 namespace {namespaceName}
 {{
     {accessibility} partial interface {interfaceName} {baseInterfacePart}
@@ -137,35 +137,21 @@ namespace {namespaceName}
             // Implementation methods for the proxy
             var proxyDefinitions = new StringBuilder();
 
-            // First we get all property names because we need to filter out property-generated methods
-            var propertyNames = new HashSet<string>();
-            foreach (var propertyName in symbol.GetMembers().OfType<IPropertySymbol>().Select(p => p.Name))
-            {
-                propertyNames.Add(propertyName);
-            }
-
             // Member declarations and implementations
-            foreach (var member in symbol.GetMembers())
+            foreach (var member in IgnorePropertyMethods(symbol.GetMembers()))
             {
                 if (member is IMethodSymbol methodSymbol)
                 {
-                    // We skip property methods
-                    bool isPropertyMethod =
-                           (member.Name.StartsWith("get_") || member.Name.StartsWith("set_"))
-                        && propertyNames.Contains(member.Name.Substring(4));
-                    if (!isPropertyMethod)
+                    if (methodSymbol.Parameters.IsEmpty)
                     {
-                        if (methodSymbol.Parameters.IsEmpty)
-                        {
-                            GenerateKeylessInputQuery(symbol.Name, additionalDeclarations, proxyDefinitions, member);
-                        }
-                        else
-                        {
-                            GenerateKeyedInputQuery(symbol.Name, additionalDeclarations, proxyDefinitions, methodSymbol);
-                        }
+                        GenerateKeylessInputQuery(symbol.Name, additionalDeclarations, proxyDefinitions, member);
+                    }
+                    else
+                    {
+                        GenerateKeyedInputQuery(symbol.Name, additionalDeclarations, proxyDefinitions, methodSymbol);
                     }
                 }
-                else if (member is IPropertySymbol propertySymbol 
+                else if (member is IPropertySymbol propertySymbol
                     && propertySymbol.GetMethod != null
                     && propertySymbol.SetMethod != null)
                 {
@@ -175,7 +161,7 @@ namespace {namespaceName}
                 {
                     // Error
                     context.ReportDiagnostic(Diagnostic.Create(
-                        InputQueryMustBePropertyOrMethod,
+                        QueryMustBePropertyOrMethod,
                         member.Locations.First(),
                         member.Locations.Skip(1),
                         symbol.Name,
@@ -198,14 +184,60 @@ public class Proxy : {symbol.Name} {{
 {additionalDeclarations}";
         }
 
-        private static string GenerateQueryContents(INamedTypeSymbol symbol)
+        private string GenerateQueryContents(GeneratorExecutionContext context, INamedTypeSymbol symbol)
         {
-            return "";
+            // Implementation methods for the proxy
+            var proxyDefinitions = new StringBuilder();
+
+            // Member declarations and implementations
+            foreach (var member in IgnorePropertyMethods(symbol.GetMembers()))
+            {
+                if (member is IMethodSymbol methodSymbol)
+                {
+                    if (methodSymbol.Parameters.IsEmpty)
+                    {
+                        GenerateKeylessDerivedQuery(symbol.Name, proxyDefinitions, member);
+                    }
+                    else
+                    {
+                        GenerateKeyedDerivedQuery(symbol.Name, proxyDefinitions, methodSymbol);
+                    }
+                }
+                else if (member is IPropertySymbol propertySymbol && propertySymbol.GetMethod != null)
+                {
+                    GenerateKeylessDerivedQuery(symbol.Name, proxyDefinitions, member);
+                }
+                else
+                {
+                    // Error
+                    context.ReportDiagnostic(Diagnostic.Create(
+                        QueryMustBePropertyOrMethod,
+                        member.Locations.First(),
+                        member.Locations.Skip(1),
+                        symbol.Name,
+                        member.Name));
+                }
+            }
+
+            // Assemble the internals
+            return $@"
+public class Proxy : {symbol.Name} {{
+    private Yoakke.Dependency.DependencySystem dependencySystem;
+    private {symbol.Name} implementation;
+
+    public Proxy(Yoakke.Dependency.DependencySystem dependencySystem, {symbol.Name} implementation) 
+    {{
+        this.dependencySystem = dependencySystem;
+        this.implementation = implementation;
+    }}
+
+    {proxyDefinitions}
+}}";
         }
 
         private void GenerateKeylessInputQuery(
             string interfaceName,
-            StringBuilder additionalDeclarations, 
+            StringBuilder additionalDeclarations,
             StringBuilder proxyDefinitions,
             ISymbol querySymbol)
         {
@@ -253,13 +285,13 @@ public class Proxy : {symbol.Name} {{
             var accessibility = AccessibilityToString(querySymbol.DeclaredAccessibility);
             var storedType = querySymbol.ReturnType;
             // Method, generate extra declaration for setter
-            var setterKeyParams = string.Join(", ", 
+            var setterKeyParams = string.Join(", ",
                 querySymbol.Parameters
                     .Select(p => $"{p.Type.ToDisplayString()} {p.Name}")
                     .Append($"{storedType} value"));
             additionalDeclarations.AppendLine($"{accessibility} void Set{querySymbol.Name}({setterKeyParams});");
 
-            // TODO: Generate proper storage
+            // Generate storage
             var keyTypes = string.Join(", ", querySymbol.Parameters.Select(p => p.Type.ToDisplayString()));
             var storageType = "Yoakke.Dependency.Internal.DependencyValueStorage";
             proxyDefinitions.AppendLine($"private {storageType} {querySymbol.Name}_storage = new {storageType}();");
@@ -267,16 +299,61 @@ public class Proxy : {symbol.Name} {{
             var getterKeyParams = string.Join(", ", querySymbol.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}"));
             var keyParamNames = string.Join(", ", querySymbol.Parameters.Select(p => p.Name));
 
-            // TODO: Proper getter implementation
-            // TODO: We could include the keys in the exception
+            // Generate getter
             proxyDefinitions.AppendLine($@"
 {accessibility} {storedType} {querySymbol.Name}({getterKeyParams}) {{ 
     return {querySymbol.Name}_storage.GetValue<{storedType}>(({keyParamNames}));
 }}");
-            // TODO: Proper setter implementation
+            // Generate setter
             proxyDefinitions.AppendLine($@"
 {accessibility} void Set{querySymbol.Name}({setterKeyParams}) {{
     {querySymbol.Name}_storage.SetValue(this.dependencySystem, ({keyParamNames}), value);
+}}");
+        }
+
+        private void GenerateKeylessDerivedQuery(
+            string interfaceName,
+            StringBuilder proxyDefinitions,
+            ISymbol querySymbol)
+        {
+            var accessibility = AccessibilityToString(querySymbol.DeclaredAccessibility);
+            var storedType = (querySymbol is IMethodSymbol ms ? ms.ReturnType : ((IPropertySymbol)querySymbol).Type).ToDisplayString();
+
+            var getterImpl = querySymbol is IPropertySymbol propertySym
+                ? $"return this.implementation.{propertySym.Name};"
+                : $"return this.implementation.{querySymbol.Name}();";
+
+            if (querySymbol is IMethodSymbol)
+            {
+                // Use method syntax
+                proxyDefinitions.AppendLine($@"{accessibility} {storedType} {querySymbol.Name}() {{ {getterImpl} }}");
+            }
+            else
+            {
+                // Use property syntax
+                proxyDefinitions.AppendLine($@"
+{storedType} {interfaceName}.{querySymbol.Name}
+{{
+    get {{ {getterImpl} }}
+}}");
+            }
+        }
+
+        private void GenerateKeyedDerivedQuery(
+            string interfaceName,
+            StringBuilder proxyDefinitions,
+            IMethodSymbol querySymbol)
+        {
+            var accessibility = AccessibilityToString(querySymbol.DeclaredAccessibility);
+            var storedType = querySymbol.ReturnType;
+
+            var getterKeyParams = string.Join(", ", querySymbol.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}"));
+            var keyParamNames = string.Join(", ", querySymbol.Parameters.Select(p => p.Name));
+
+            // Generate getter
+            proxyDefinitions.AppendLine($@"
+{accessibility} {storedType} {querySymbol.Name}({getterKeyParams}) {{ 
+    return this.implementation.{querySymbol.Name}({keyParamNames});
 }}");
         }
 
@@ -289,5 +366,20 @@ public class Proxy : {symbol.Name} {{
             Accessibility.NotApplicable => string.Empty,
             _ => throw new NotImplementedException(),
         };
+
+        private static IEnumerable<ISymbol> IgnorePropertyMethods(IEnumerable<ISymbol> symbols)
+        {
+            var propertyNames = new HashSet<string>();
+            foreach (var propertyName in symbols.OfType<IPropertySymbol>().Select(p => p.Name))
+            {
+                propertyNames.Add(propertyName);
+            }
+            return symbols.Where(sym =>
+            {
+                if (!(sym is IMethodSymbol methodSymbol)) return true;
+                return !((sym.Name.StartsWith("get_") || sym.Name.StartsWith("set_"))
+                       && propertyNames.Contains(sym.Name.Substring(4)));
+            });
+        }
     }
 }

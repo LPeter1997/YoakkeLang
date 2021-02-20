@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Yoakke.Dependency.Internal;
@@ -103,7 +104,8 @@ namespace Yoakke.Dependency
                     new object[] { this, queryGroupImpl });
                 // Register the proxy
                 queryGroups.Add(typeof(TBase), queryGroupProxy);
-                // TODO: Fill up dependent query properties of queryGroupImpl here?
+                // Fill up the implementations properties with other query group references that are required
+                InitializeQueryGroupProperties(queryGroupImpl);
                 return queryGroupProxy;
             }
         }
@@ -114,6 +116,19 @@ namespace Yoakke.Dependency
             var proxyClass = type.GetNestedType("Proxy");
             var proxyCtor = proxyClass.GetConstructor(argTypes);
             return (TBase)proxyCtor.Invoke(args);
+        }
+
+        private void InitializeQueryGroupProperties<TBase>(TBase impl)
+        {
+            var relevantProperties = impl.GetType()
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(prop => prop.GetCustomAttribute<QueryGroupAttribute>() != null);
+            var proxyGetter = typeof(DependencySystem).GetMethod(nameof(Get));
+            foreach (var prop in relevantProperties)
+            {
+                var typedProxyGetter = proxyGetter.MakeGenericMethod(prop.PropertyType);
+                prop.SetValue(impl, typedProxyGetter.Invoke(this, new object[] { }));
+            }
         }
     }
 }
