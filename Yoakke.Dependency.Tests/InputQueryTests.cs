@@ -38,16 +38,16 @@ namespace Yoakke.Dependency.Tests
             system.Get<IKeylessInputs>().SetMethodInput("Some method value");
 
             // Compare
-            Assert.AreEqual(system.Get<IKeylessInputs>().PropInput, "Some prop value");
-            Assert.AreEqual(system.Get<IKeylessInputs>().MethodInput(), "Some method value");
+            Assert.AreEqual("Some prop value", system.Get<IKeylessInputs>().PropInput);
+            Assert.AreEqual("Some method value", system.Get<IKeylessInputs>().MethodInput());
 
             // Change
             system.Get<IKeylessInputs>().PropInput = "A";
             system.Get<IKeylessInputs>().SetMethodInput("B");
 
             // Compare
-            Assert.AreEqual(system.Get<IKeylessInputs>().PropInput, "A");
-            Assert.AreEqual(system.Get<IKeylessInputs>().MethodInput(), "B");
+            Assert.AreEqual("A", system.Get<IKeylessInputs>().PropInput);
+            Assert.AreEqual("B", system.Get<IKeylessInputs>().MethodInput());
         }
 
         [TestMethod]
@@ -70,11 +70,11 @@ namespace Yoakke.Dependency.Tests
             system.Get<IKeyedInputs>().SetThreeKeyedInput("a", 1, "x", 42);
 
             // Half of them should yield the set results, other half should still throw
-            Assert.AreEqual(system.Get<IKeyedInputs>().OneKeyedInput("a"), "hello");
+            Assert.AreEqual("hello", system.Get<IKeyedInputs>().OneKeyedInput("a"));
             Assert.ThrowsException<InvalidOperationException>(() => system.Get<IKeyedInputs>().OneKeyedInput("b"));
-            Assert.AreEqual(system.Get<IKeyedInputs>().TwoKeyedInput("a", 1), "there");
+            Assert.AreEqual("there", system.Get<IKeyedInputs>().TwoKeyedInput("a", 1));
             Assert.ThrowsException<InvalidOperationException>(() => system.Get<IKeyedInputs>().TwoKeyedInput("b", 1));
-            Assert.AreEqual(system.Get<IKeyedInputs>().ThreeKeyedInput("a", 1, "x"), 42);
+            Assert.AreEqual(42, system.Get<IKeyedInputs>().ThreeKeyedInput("a", 1, "x"));
             Assert.ThrowsException<InvalidOperationException>(() => system.Get<IKeyedInputs>().ThreeKeyedInput("b", 1, "y"));
 
             // Set the other half, update the first half
@@ -86,12 +86,12 @@ namespace Yoakke.Dependency.Tests
             system.Get<IKeyedInputs>().SetThreeKeyedInput("b", 1, "y", 123);
 
             // Now all of them should work
-            Assert.AreEqual(system.Get<IKeyedInputs>().OneKeyedInput("a"), "bye");
-            Assert.AreEqual(system.Get<IKeyedInputs>().OneKeyedInput("b"), "abc");
-            Assert.AreEqual(system.Get<IKeyedInputs>().TwoKeyedInput("a", 1), "here");
-            Assert.AreEqual(system.Get<IKeyedInputs>().TwoKeyedInput("b", 1), "xyz");
-            Assert.AreEqual(system.Get<IKeyedInputs>().ThreeKeyedInput("a", 1, "x"), 21);
-            Assert.AreEqual(system.Get<IKeyedInputs>().ThreeKeyedInput("b", 1, "y"), 123);
+            Assert.AreEqual("bye", system.Get<IKeyedInputs>().OneKeyedInput("a"));
+            Assert.AreEqual("abc", system.Get<IKeyedInputs>().OneKeyedInput("b"));
+            Assert.AreEqual("here", system.Get<IKeyedInputs>().TwoKeyedInput("a", 1));
+            Assert.AreEqual("xyz", system.Get<IKeyedInputs>().TwoKeyedInput("b", 1));
+            Assert.AreEqual(21, system.Get<IKeyedInputs>().ThreeKeyedInput("a", 1, "x"));
+            Assert.AreEqual(123, system.Get<IKeyedInputs>().ThreeKeyedInput("b", 1, "y"));
         }
     }
 }
