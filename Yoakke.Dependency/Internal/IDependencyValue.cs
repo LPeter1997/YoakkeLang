@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -26,6 +27,6 @@ namespace Yoakke.Dependency.Internal
         /// <summary>
         /// Retrieves the stored value.
         /// </summary>
-        public T GetValue<T>(string memberName);
+        public T GetValue<T>([CallerMemberName] string memberName = "");
     }
 }

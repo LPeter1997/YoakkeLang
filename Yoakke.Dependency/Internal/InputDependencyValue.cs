@@ -30,7 +30,7 @@ namespace Yoakke.Dependency.Internal
         /// <summary>
         /// Sets the stored value.
         /// </summary>
-        public void SetValue<T>(DependencySystem system, T value)
+        public void SetValue(DependencySystem system, object value)
         {
             this.value = value;
             ChangedAt = system.GetNextRevision();

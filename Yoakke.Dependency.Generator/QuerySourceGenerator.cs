@@ -134,8 +134,6 @@ namespace {namespaceName}
         {
             // Additional things to put inside the interface
             var additionalDeclarations = new StringBuilder();
-            // Initialization for the proxy
-            var proxyCtor = new StringBuilder();
             // Implementation methods for the proxy
             var proxyDefinitions = new StringBuilder();
 
@@ -159,7 +157,7 @@ namespace {namespaceName}
                     {
                         if (methodSymbol.Parameters.IsEmpty)
                         {
-                            GenerateKeylessInputQuery(symbol.Name, additionalDeclarations, proxyCtor, proxyDefinitions, member);
+                            GenerateKeylessInputQuery(symbol.Name, additionalDeclarations, proxyDefinitions, member);
                         }
                         else
                         {
@@ -171,7 +169,7 @@ namespace {namespaceName}
                     && propertySymbol.GetMethod != null
                     && propertySymbol.SetMethod != null)
                 {
-                    GenerateKeylessInputQuery(symbol.Name, additionalDeclarations, proxyCtor, proxyDefinitions, member);
+                    GenerateKeylessInputQuery(symbol.Name, additionalDeclarations, proxyDefinitions, member);
                 }
                 else
                 {
@@ -193,7 +191,6 @@ public class Proxy : {symbol.Name} {{
     public Proxy(Yoakke.Dependency.DependencySystem dependencySystem) 
     {{
         this.dependencySystem = dependencySystem;
-        {proxyCtor}
     }}
 
     {proxyDefinitions}
@@ -209,7 +206,6 @@ public class Proxy : {symbol.Name} {{
         private void GenerateKeylessInputQuery(
             string interfaceName,
             StringBuilder additionalDeclarations, 
-            StringBuilder proxyCtor,
             StringBuilder proxyDefinitions,
             ISymbol querySymbol)
         {
@@ -223,10 +219,7 @@ public class Proxy : {symbol.Name} {{
 
             // Generate storage
             var storageType = $"Yoakke.Dependency.Internal.InputDependencyValue";
-            proxyDefinitions.AppendLine($"private {storageType} {querySymbol.Name}_storage;");
-
-            // Initialization in ctor
-            proxyCtor.AppendLine($"{querySymbol.Name}_storage = new {storageType}();");
+            proxyDefinitions.AppendLine($"private {storageType} {querySymbol.Name}_storage = new {storageType}();");
 
             // Generate implementation
             var getterImpl = $"return {querySymbol.Name}_storage.GetValue<{storedType}>();";
@@ -268,11 +261,8 @@ public class Proxy : {symbol.Name} {{
 
             // TODO: Generate proper storage
             var keyTypes = string.Join(", ", querySymbol.Parameters.Select(p => p.Type.ToDisplayString()));
-            var dictType =
-                querySymbol.Parameters.Length > 1 
-                ? $"System.Collections.Generic.Dictionary<({keyTypes}), {storedType}>"
-                : $"System.Collections.Generic.Dictionary<{keyTypes}, {storedType}>";
-            proxyDefinitions.AppendLine($"private {dictType} {querySymbol.Name}_storage = new {dictType}();");
+            var storageType = "Yoakke.Dependency.Internal.DependencyValueStorage";
+            proxyDefinitions.AppendLine($"private {storageType} {querySymbol.Name}_storage = new {storageType}();");
 
             var getterKeyParams = string.Join(", ", querySymbol.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}"));
             var keyParamNames = string.Join(", ", querySymbol.Parameters.Select(p => p.Name));
@@ -281,13 +271,12 @@ public class Proxy : {symbol.Name} {{
             // TODO: We could include the keys in the exception
             proxyDefinitions.AppendLine($@"
 {accessibility} {storedType} {querySymbol.Name}({getterKeyParams}) {{ 
-    if ({querySymbol.Name}_storage.TryGetValue(({keyParamNames}), out var storedValue)) return storedValue;
-    throw new System.InvalidOperationException(""Tried to access {querySymbol.Name} before it was ever set!"");
+    return {querySymbol.Name}_storage.GetValue<{storedType}>(({keyParamNames}));
 }}");
             // TODO: Proper setter implementation
             proxyDefinitions.AppendLine($@"
 {accessibility} void Set{querySymbol.Name}({setterKeyParams}) {{
-    {querySymbol.Name}_storage[({keyParamNames})] = value;
+    {querySymbol.Name}_storage.SetValue(this.dependencySystem, ({keyParamNames}), value);
 }}");
         }
 
