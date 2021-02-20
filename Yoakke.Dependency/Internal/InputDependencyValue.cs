@@ -7,7 +7,10 @@ using System.Threading.Tasks;
 
 namespace Yoakke.Dependency.Internal
 {
-    public class InputDependencyValue<TValue> : IDependencyValue
+    /// <summary>
+    /// A value that came from setting an input.
+    /// </summary>
+    public class InputDependencyValue : IDependencyValue
     {
         private object value;
 
@@ -24,7 +27,10 @@ namespace Yoakke.Dependency.Internal
             return (T)value;
         }
 
-        public void SetValue(DependencySystem system, TValue value)
+        /// <summary>
+        /// Sets the stored value.
+        /// </summary>
+        public void SetValue<T>(DependencySystem system, T value)
         {
             this.value = value;
             ChangedAt = system.GetNextRevision();

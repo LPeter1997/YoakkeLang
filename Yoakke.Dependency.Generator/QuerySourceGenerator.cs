@@ -222,7 +222,7 @@ public class Proxy : {symbol.Name} {{
             }
 
             // Generate storage
-            var storageType = $"Yoakke.Dependency.Internal.InputDependencyValue<{storedType}>";
+            var storageType = $"Yoakke.Dependency.Internal.InputDependencyValue";
             proxyDefinitions.AppendLine($"private {storageType} {querySymbol.Name}_storage;");
 
             // Initialization in ctor
