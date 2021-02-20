@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace Yoakke.Dependency.Internal
 {
+    /// <summary>
+    /// Tag type for input queries.
+    /// </summary>
     public interface IInputQueryGroup
     {
     }

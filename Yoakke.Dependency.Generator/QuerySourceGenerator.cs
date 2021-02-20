@@ -134,6 +134,8 @@ namespace {namespaceName}
         {
             // Additional things to put inside the interface
             var additionalDeclarations = new StringBuilder();
+            // Initialization for the proxy
+            var proxyCtor = new StringBuilder();
             // Implementation methods for the proxy
             var proxyDefinitions = new StringBuilder();
 
@@ -157,7 +159,7 @@ namespace {namespaceName}
                     {
                         if (methodSymbol.Parameters.IsEmpty)
                         {
-                            GenerateKeylessInputQuery(symbol.Name, additionalDeclarations, proxyDefinitions, member);
+                            GenerateKeylessInputQuery(symbol.Name, additionalDeclarations, proxyCtor, proxyDefinitions, member);
                         }
                         else
                         {
@@ -169,7 +171,7 @@ namespace {namespaceName}
                     && propertySymbol.GetMethod != null
                     && propertySymbol.SetMethod != null)
                 {
-                    GenerateKeylessInputQuery(symbol.Name, additionalDeclarations, proxyDefinitions, member);
+                    GenerateKeylessInputQuery(symbol.Name, additionalDeclarations, proxyCtor, proxyDefinitions, member);
                 }
                 else
                 {
@@ -191,6 +193,7 @@ public class Proxy : {symbol.Name} {{
     public Proxy(Yoakke.Dependency.DependencySystem dependencySystem) 
     {{
         this.dependencySystem = dependencySystem;
+        {proxyCtor}
     }}
 
     {proxyDefinitions}
@@ -206,6 +209,7 @@ public class Proxy : {symbol.Name} {{
         private void GenerateKeylessInputQuery(
             string interfaceName,
             StringBuilder additionalDeclarations, 
+            StringBuilder proxyCtor,
             StringBuilder proxyDefinitions,
             ISymbol querySymbol)
         {
@@ -217,21 +221,16 @@ public class Proxy : {symbol.Name} {{
                 additionalDeclarations.AppendLine($"{accessibility} void Set{querySymbol.Name}({storedType} value);");
             }
 
-            // Generate storage, also a flag to denote if the value is set
-            proxyDefinitions.AppendLine($"private {storedType} {querySymbol.Name}_storage = default;");
-            proxyDefinitions.AppendLine($"private bool {querySymbol.Name}_isset = false;");
-            // Generate implementation
-            
-            var getterImpl = $@"
-if (!{querySymbol.Name}_isset)
-{{
-    throw new System.InvalidOperationException(""Tried to access {querySymbol.Name} before it was ever set!"");
-}}
-return {querySymbol.Name}_storage;";
+            // Generate storage
+            var storageType = $"Yoakke.Dependency.Internal.InputDependencyValue<{storedType}>";
+            proxyDefinitions.AppendLine($"private {storageType} {querySymbol.Name}_storage;");
 
-            var setterImpl = $@"
-{querySymbol.Name}_storage = value;
-{querySymbol.Name}_isset = true;";
+            // Initialization in ctor
+            proxyCtor.AppendLine($"{querySymbol.Name}_storage = new {storageType}();");
+
+            // Generate implementation
+            var getterImpl = $"return {querySymbol.Name}_storage.GetValue<{storedType}>();";
+            var setterImpl = $"{querySymbol.Name}_storage.SetValue(this.dependencySystem, value);";
 
             // Syntax depends on which one this is
             if (querySymbol is IMethodSymbol)

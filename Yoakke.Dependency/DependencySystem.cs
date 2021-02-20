@@ -16,6 +16,8 @@ namespace Yoakke.Dependency
         private Dictionary<Type, object> queryGroups = new Dictionary<Type, object>();
         // Query groups that have query group instantiators registeres
         private Dictionary<Type, Func<object>> queryGroupInstantiators = new Dictionary<Type, Func<object>>();
+        // The revision we are at
+        private int revisionCounter = 0;
 
         /// <summary>
         /// Registers a query group to be managed by this <see cref="DependencySystem"/>.
@@ -73,6 +75,11 @@ namespace Yoakke.Dependency
             }
             throw new KeyNotFoundException("The given query group was not registered. Did you ask by it's interface type?");
         }
+
+        /// <summary>
+        /// Retrieves the next revision.
+        /// </summary>
+        internal int GetNextRevision() => revisionCounter++;
 
         private TBase CreateQueryGroup<TBase>(Func<object> instantiate)
         {
