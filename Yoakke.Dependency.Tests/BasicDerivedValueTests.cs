@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Yoakke.Dependency.Tests
 {
     [InputQueryGroup]
-    partial interface IInputs
+    partial interface IDerivedInputs
     {
         public int MyConstant { get; set; }
         public int Variable(string name);
@@ -24,7 +24,7 @@ namespace Yoakke.Dependency.Tests
     class MyComputation : IComputation
     {
         [QueryGroup]
-        public IInputs Inputs { get; set; }
+        public IDerivedInputs Inputs { get; set; }
 
         public int ComputeSomething()
         {
@@ -44,23 +44,23 @@ namespace Yoakke.Dependency.Tests
         public void DeriveWithoutKey()
         {
             var system = new DependencySystem()
-                .Register<IInputs>()
+                .Register<IDerivedInputs>()
                 .Register<IComputation, MyComputation>();
 
             // Asking for the computation should throw initially as the inputs are not set
             Assert.ThrowsException<InvalidOperationException>(() => system.Get<IComputation>().ComputeSomething());
 
             // Let's set one of the inputs
-            system.Get<IInputs>().MyConstant = 3;
+            system.Get<IDerivedInputs>().MyConstant = 3;
             // Should still throw
             Assert.ThrowsException<InvalidOperationException>(() => system.Get<IComputation>().ComputeSomething());
 
             // Setting the other should make it valid
-            system.Get<IInputs>().SetVariable("a", 5);
+            system.Get<IDerivedInputs>().SetVariable("a", 5);
             Assert.AreEqual(8, system.Get<IComputation>().ComputeSomething());
 
             // Updating a value should change result
-            system.Get<IInputs>().SetVariable("a", 7);
+            system.Get<IDerivedInputs>().SetVariable("a", 7);
             Assert.AreEqual(10, system.Get<IComputation>().ComputeSomething());
         }
 
@@ -68,23 +68,23 @@ namespace Yoakke.Dependency.Tests
         public void DeriveWithKey()
         {
             var system = new DependencySystem()
-                .Register<IInputs>()
+                .Register<IDerivedInputs>()
                 .Register<IComputation, MyComputation>();
 
             // Asking for the computation should throw initially as the inputs are not set
             Assert.ThrowsException<InvalidOperationException>(() => system.Get<IComputation>().ComputeOther("x", "y"));
 
             // Setting the variables is not enough, the constant is required
-            system.Get<IInputs>().SetVariable("x", 4);
-            system.Get<IInputs>().SetVariable("y", 7);
+            system.Get<IDerivedInputs>().SetVariable("x", 4);
+            system.Get<IDerivedInputs>().SetVariable("y", 7);
             Assert.ThrowsException<InvalidOperationException>(() => system.Get<IComputation>().ComputeOther("x", "y"));
 
             // Setting the constant should resolve it
-            system.Get<IInputs>().MyConstant = 2;
+            system.Get<IDerivedInputs>().MyConstant = 2;
             Assert.AreEqual(22, system.Get<IComputation>().ComputeOther("x", "y"));
 
             // Updating a value should change result
-            system.Get<IInputs>().SetVariable("y", 3);
+            system.Get<IDerivedInputs>().SetVariable("y", 3);
             Assert.AreEqual(14, system.Get<IComputation>().ComputeOther("x", "y"));
         }
     }
