@@ -25,6 +25,7 @@ namespace Yoakke.Dependency.Tests
         public int V1 { get; }
         public int V2 { get; }
         public int V3(int add);
+        public int V4(string v1, int k2);
     }
 
     class MyBasicArithmetic : IBasicArithmetic
@@ -61,6 +62,11 @@ namespace Yoakke.Dependency.Tests
             ++n;
             V3_invocations[add] = n;
             return Arithmetic.V2 * add;
+        }
+
+        public int V4(string v1, int k2)
+        {
+            return Inputs.Variable(v1) + k2;
         }
     }
 
@@ -166,6 +172,33 @@ namespace Yoakke.Dependency.Tests
             Assert.AreEqual(1, arith.V2_invocations);
             Assert.AreEqual(1, arith.V3_invocations[1]);
             Assert.AreEqual(1, arith.V3_invocations[2]);
+        }
+
+        [TestMethod]
+        public void KeyPointingAtDependency()
+        {
+            var arith = new MyBasicArithmetic();
+            var system = new DependencySystem()
+                .Register<INumberInputs>()
+                .Register<IBasicArithmetic>(() => arith);
+
+            system.Get<INumberInputs>().SetVariable("a", 1);
+            system.Get<INumberInputs>().SetVariable("b", 2);
+            system.Get<INumberInputs>().SetVariable("c", 3);
+
+            Assert.AreEqual(1, system.Get<IBasicArithmetic>().V4("a", 0));
+            Assert.AreEqual(3, system.Get<IBasicArithmetic>().V4("a", 2));
+            Assert.AreEqual(7, system.Get<IBasicArithmetic>().V4("b", 5));
+            Assert.AreEqual(9, system.Get<IBasicArithmetic>().V4("b", 7));
+            Assert.AreEqual(8, system.Get<IBasicArithmetic>().V4("c", 5));
+
+            system.Get<INumberInputs>().SetVariable("b", 1);
+
+            Assert.AreEqual(1, system.Get<IBasicArithmetic>().V4("a", 0));
+            Assert.AreEqual(3, system.Get<IBasicArithmetic>().V4("a", 2));
+            Assert.AreEqual(6, system.Get<IBasicArithmetic>().V4("b", 5));
+            Assert.AreEqual(8, system.Get<IBasicArithmetic>().V4("b", 7));
+            Assert.AreEqual(8, system.Get<IBasicArithmetic>().V4("c", 5));
         }
     }
 }
