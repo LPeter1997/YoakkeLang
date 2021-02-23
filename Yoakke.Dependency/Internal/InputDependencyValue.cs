@@ -18,7 +18,7 @@ namespace Yoakke.Dependency.Internal
         public int VerifiedAt => ChangedAt;
         public bool NeedsRecomputing => false;
 
-        public T GetValue<T>([CallerMemberName] string memberName = "")
+        public T GetValue<T>(DependencySystem system, [CallerMemberName] string memberName = "")
         {
             if (ChangedAt == -1)
             {

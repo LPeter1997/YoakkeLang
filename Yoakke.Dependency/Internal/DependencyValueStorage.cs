@@ -11,9 +11,9 @@ namespace Yoakke.Dependency.Internal
     {
         private Dictionary<object, IDependencyValue> storage = new Dictionary<object, IDependencyValue>();
 
-        public T GetValue<T>(object key, [CallerMemberName] string memberName = "")
+        public T GetValue<T>(DependencySystem system, object key, [CallerMemberName] string memberName = "")
         {
-            if (storage.TryGetValue(key, out var valueStorage)) return valueStorage.GetValue<T>();
+            if (storage.TryGetValue(key, out var valueStorage)) return valueStorage.GetValue<T>(system);
             throw new InvalidOperationException($"Tried to retrieve {memberName}({key}) before it was ever set!");
         }
 

@@ -27,6 +27,6 @@ namespace Yoakke.Dependency.Internal
         /// <summary>
         /// Retrieves the stored value.
         /// </summary>
-        public T GetValue<T>([CallerMemberName] string memberName = "");
+        public T GetValue<T>(DependencySystem system, [CallerMemberName] string memberName = "");
     }
 }

@@ -254,7 +254,7 @@ public class Proxy : {symbol.Name} {{
             proxyDefinitions.AppendLine($"private {storageType} {querySymbol.Name}_storage = new {storageType}();");
 
             // Generate implementation
-            var getterImpl = $"return {querySymbol.Name}_storage.GetValue<{storedType}>();";
+            var getterImpl = $"return {querySymbol.Name}_storage.GetValue<{storedType}>(this.dependencySystem);";
             var setterImpl = $"{querySymbol.Name}_storage.SetValue(this.dependencySystem, value);";
 
             // Syntax depends on which one this is
@@ -302,7 +302,7 @@ public class Proxy : {symbol.Name} {{
             // Generate getter
             proxyDefinitions.AppendLine($@"
 {accessibility} {storedType} {querySymbol.Name}({getterKeyParams}) {{ 
-    return {querySymbol.Name}_storage.GetValue<{storedType}>(({keyParamNames}));
+    return {querySymbol.Name}_storage.GetValue<{storedType}>(this.dependencySystem, ({keyParamNames}));
 }}");
             // Generate setter
             proxyDefinitions.AppendLine($@"

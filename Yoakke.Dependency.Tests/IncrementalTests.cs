@@ -70,6 +70,30 @@ namespace Yoakke.Dependency.Tests
             var _4 = system.Get<IIncrementalQuery>().CalculateFoo("abc", 4);
             Assert.AreEqual(derived.CalculatedValue_invocations, 1);
             Assert.AreEqual(derived.CalculateFoo_invocations, 1);
+        }
+
+        [TestMethod]
+        public void RecalculationWhenInputChange()
+        {
+            var derived = new MyIncrementalQuery();
+            var system = new DependencySystem()
+                .Register<IIncrementalInputs>()
+                .Register<IIncrementalQuery>(() => derived);
+
+            system.Get<IIncrementalInputs>().SomeConstant = 7;
+            system.Get<IIncrementalInputs>().SetSomeValue("abc", "xyz");
+
+            // First invocation should cause a recomputation
+            var _1 = system.Get<IIncrementalQuery>().CalculatedValue;
+            var _2 = system.Get<IIncrementalQuery>().CalculateFoo("abc", 4);
+            Assert.AreEqual(derived.CalculatedValue_invocations, 1);
+            Assert.AreEqual(derived.CalculateFoo_invocations, 1);
+
+            // Next recomputation should not
+            var _3 = system.Get<IIncrementalQuery>().CalculatedValue;
+            var _4 = system.Get<IIncrementalQuery>().CalculateFoo("abc", 4);
+            Assert.AreEqual(derived.CalculatedValue_invocations, 1);
+            Assert.AreEqual(derived.CalculateFoo_invocations, 1);
 
             // Changing again should
             system.Get<IIncrementalInputs>().SomeConstant = 6;
