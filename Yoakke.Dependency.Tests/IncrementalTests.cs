@@ -102,6 +102,13 @@ namespace Yoakke.Dependency.Tests
             var _6 = system.Get<IIncrementalQuery>().CalculateFoo("abc", 4);
             Assert.AreEqual(2, derived.CalculatedValue_invocations);
             Assert.AreEqual(2, derived.CalculateFoo_invocations);
+
+            // Changing just one should just recompute one
+            system.Get<IIncrementalInputs>().SetSomeValue("abc", "qwe");
+            var _7 = system.Get<IIncrementalQuery>().CalculatedValue;
+            var _8 = system.Get<IIncrementalQuery>().CalculateFoo("abc", 4);
+            Assert.AreEqual(2, derived.CalculatedValue_invocations);
+            Assert.AreEqual(3, derived.CalculateFoo_invocations);
         }
     }
 }
