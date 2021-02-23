@@ -19,7 +19,6 @@ namespace Yoakke.Dependency.Internal
 
         public int ChangedAt { get; private set; } = -1;
         public int VerifiedAt { get; private set; } = -1;
-        public bool IsUpToDate => Dependencies.All(dep => dep.ChangedAt <= VerifiedAt && dep.IsUpToDate);
 
         public DerivedDependencyValue(Func<DependencySystem, object> recompute)
         {
@@ -38,7 +37,13 @@ namespace Yoakke.Dependency.Internal
                     return GetValueCloned<T>();
                 }
                 // The system has a later revision, let's see if this value is reusable
-                if (IsUpToDate)
+                if (Dependencies.All(dep =>
+                {
+                    // NOTE: We need to get the value to the dependency to update it's statistics
+                    // and possibly participate in early-termination optimization
+                    dep.GetValue<object>(system);
+                    return dep.ChangedAt <= VerifiedAt;
+                }))
                 {
                     // All dependencies came from earlier revisions, this one is still fine
                     // Update the verification, still just clone the memoized value
