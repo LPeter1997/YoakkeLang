@@ -62,14 +62,14 @@ namespace Yoakke.Dependency.Tests
             // First invocation should cause a recomputation
             var _1 = system.Get<IIncrementalQuery>().CalculatedValue;
             var _2 = system.Get<IIncrementalQuery>().CalculateFoo("abc", 4);
-            Assert.AreEqual(derived.CalculatedValue_invocations, 1);
-            Assert.AreEqual(derived.CalculateFoo_invocations, 1);
+            Assert.AreEqual(1, derived.CalculatedValue_invocations);
+            Assert.AreEqual(1, derived.CalculateFoo_invocations);
 
             // Next recomputation should not
             var _3 = system.Get<IIncrementalQuery>().CalculatedValue;
             var _4 = system.Get<IIncrementalQuery>().CalculateFoo("abc", 4);
-            Assert.AreEqual(derived.CalculatedValue_invocations, 1);
-            Assert.AreEqual(derived.CalculateFoo_invocations, 1);
+            Assert.AreEqual(1, derived.CalculatedValue_invocations);
+            Assert.AreEqual(1, derived.CalculateFoo_invocations);
         }
 
         [TestMethod]
@@ -86,22 +86,22 @@ namespace Yoakke.Dependency.Tests
             // First invocation should cause a recomputation
             var _1 = system.Get<IIncrementalQuery>().CalculatedValue;
             var _2 = system.Get<IIncrementalQuery>().CalculateFoo("abc", 4);
-            Assert.AreEqual(derived.CalculatedValue_invocations, 1);
-            Assert.AreEqual(derived.CalculateFoo_invocations, 1);
+            Assert.AreEqual(1, derived.CalculatedValue_invocations);
+            Assert.AreEqual(1, derived.CalculateFoo_invocations);
 
             // Next recomputation should not
             var _3 = system.Get<IIncrementalQuery>().CalculatedValue;
             var _4 = system.Get<IIncrementalQuery>().CalculateFoo("abc", 4);
-            Assert.AreEqual(derived.CalculatedValue_invocations, 1);
-            Assert.AreEqual(derived.CalculateFoo_invocations, 1);
+            Assert.AreEqual(1, derived.CalculatedValue_invocations);
+            Assert.AreEqual(1, derived.CalculateFoo_invocations);
 
             // Changing again should
             system.Get<IIncrementalInputs>().SomeConstant = 6;
             system.Get<IIncrementalInputs>().SetSomeValue("abc", "xyw");
             var _5 = system.Get<IIncrementalQuery>().CalculatedValue;
             var _6 = system.Get<IIncrementalQuery>().CalculateFoo("abc", 4);
-            Assert.AreEqual(derived.CalculatedValue_invocations, 1);
-            Assert.AreEqual(derived.CalculateFoo_invocations, 1);
+            Assert.AreEqual(2, derived.CalculatedValue_invocations);
+            Assert.AreEqual(2, derived.CalculateFoo_invocations);
         }
     }
 }

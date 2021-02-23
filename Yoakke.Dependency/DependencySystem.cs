@@ -85,7 +85,7 @@ namespace Yoakke.Dependency
         /// <summary>
         /// Retrieves the next revision.
         /// </summary>
-        internal int GetNextRevision() => CurrentRevision++;
+        internal int GetNextRevision() => ++CurrentRevision;
 
         /// <summary>
         /// Does cycle-detection.
@@ -104,7 +104,7 @@ namespace Yoakke.Dependency
         /// </summary>
         internal void RegisterDependency(IDependencyValue value)
         {
-            if (valueStack.TryPeek(out var top)) top.Dependencies.Add(value);
+            if (valueStack.TryPeek(out var top) && !top.Dependencies.Contains(value)) top.Dependencies.Add(value);
         }
 
         /// <summary>

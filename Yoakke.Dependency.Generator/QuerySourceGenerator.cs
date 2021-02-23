@@ -188,6 +188,8 @@ public class Proxy : {symbol.Name} {{
         {
             // Implementation methods for the proxy
             var proxyDefinitions = new StringBuilder();
+            // Additional initializations in the ctor
+            var additionalInit = new StringBuilder();
 
             // Member declarations and implementations
             foreach (var member in IgnorePropertyMethods(symbol.GetMembers()))
@@ -196,7 +198,7 @@ public class Proxy : {symbol.Name} {{
                 {
                     if (methodSymbol.Parameters.IsEmpty)
                     {
-                        GenerateKeylessDerivedQuery(symbol.Name, proxyDefinitions, member);
+                        GenerateKeylessDerivedQuery(symbol.Name, proxyDefinitions, additionalInit, member);
                     }
                     else
                     {
@@ -205,7 +207,7 @@ public class Proxy : {symbol.Name} {{
                 }
                 else if (member is IPropertySymbol propertySymbol && propertySymbol.GetMethod != null)
                 {
-                    GenerateKeylessDerivedQuery(symbol.Name, proxyDefinitions, member);
+                    GenerateKeylessDerivedQuery(symbol.Name, proxyDefinitions, additionalInit, member);
                 }
                 else
                 {
@@ -229,6 +231,7 @@ public class Proxy : {symbol.Name} {{
     {{
         this.dependencySystem = dependencySystem;
         this.implementation = implementation;
+        {additionalInit}
     }}
 
     {proxyDefinitions}
@@ -293,35 +296,45 @@ public class Proxy : {symbol.Name} {{
 
             // Generate storage
             var keyTypes = string.Join(", ", querySymbol.Parameters.Select(p => p.Type.ToDisplayString()));
-            var storageType = "Yoakke.Dependency.Internal.DependencyValueStorage";
+            var storageType = "Yoakke.Dependency.Internal.KeyValueCache";
             proxyDefinitions.AppendLine($"private {storageType} {querySymbol.Name}_storage = new {storageType}();");
 
             var getterKeyParams = string.Join(", ", querySymbol.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}"));
             var keyParamNames = string.Join(", ", querySymbol.Parameters.Select(p => p.Name));
 
             // Generate getter
+            // TODO: We could include keys here
             proxyDefinitions.AppendLine($@"
-{accessibility} {storedType} {querySymbol.Name}({getterKeyParams}) {{ 
-    return {querySymbol.Name}_storage.GetValue<{storedType}>(this.dependencySystem, ({keyParamNames}));
+{accessibility} {storedType} {querySymbol.Name}({getterKeyParams}) {{
+    return {querySymbol.Name}_storage.GetInput(({keyParamNames})).GetValue<{storedType}>(this.dependencySystem);
 }}");
             // Generate setter
             proxyDefinitions.AppendLine($@"
 {accessibility} void Set{querySymbol.Name}({setterKeyParams}) {{
-    {querySymbol.Name}_storage.SetValue(this.dependencySystem, ({keyParamNames}), value);
+    {querySymbol.Name}_storage.GetInput(({keyParamNames})).SetValue(this.dependencySystem, value);
 }}");
         }
 
         private void GenerateKeylessDerivedQuery(
             string interfaceName,
             StringBuilder proxyDefinitions,
+            StringBuilder additionalInit,
             ISymbol querySymbol)
         {
             var accessibility = AccessibilityToString(querySymbol.DeclaredAccessibility);
             var storedType = (querySymbol is IMethodSymbol ms ? ms.ReturnType : ((IPropertySymbol)querySymbol).Type).ToDisplayString();
 
-            var getterImpl = querySymbol is IPropertySymbol propertySym
-                ? $"return this.implementation.{propertySym.Name};"
-                : $"return this.implementation.{querySymbol.Name}();";
+            var callImpl = querySymbol is IPropertySymbol
+                ? $"system => this.implementation.{querySymbol.Name}"
+                : $"system => this.implementation.{querySymbol.Name}()";
+
+            // Generate storage
+            var storageType = $"Yoakke.Dependency.Internal.DerivedDependencyValue";
+            proxyDefinitions.AppendLine($"private {storageType} {querySymbol.Name}_storage;");
+            // Init storage
+            additionalInit.AppendLine($"this.{querySymbol.Name}_storage = new {storageType}({callImpl});");
+
+            var getterImpl = $"return {querySymbol.Name}_storage.GetValue<{storedType}>(this.dependencySystem);";
 
             if (querySymbol is IMethodSymbol)
             {
@@ -347,14 +360,20 @@ public class Proxy : {symbol.Name} {{
             var accessibility = AccessibilityToString(querySymbol.DeclaredAccessibility);
             var storedType = querySymbol.ReturnType;
 
+            // Generate storage
+            var storageType = $"Yoakke.Dependency.Internal.KeyValueCache";
+            proxyDefinitions.AppendLine($"private {storageType} {querySymbol.Name}_storage = new {storageType}();");
+
             var getterKeyParams = string.Join(", ", querySymbol.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}"));
             var keyParamNames = string.Join(", ", querySymbol.Parameters.Select(p => p.Name));
 
+            var callImpl = $"system => this.implementation.{querySymbol.Name}({keyParamNames})";
+            var getterImpl = $"return this.{querySymbol.Name}_storage.GetDerived(({keyParamNames}), {callImpl})" +
+                $".GetValue<{storedType}>(this.dependencySystem);";
+
             // Generate getter
             proxyDefinitions.AppendLine($@"
-{accessibility} {storedType} {querySymbol.Name}({getterKeyParams}) {{ 
-    return this.implementation.{querySymbol.Name}({keyParamNames});
-}}");
+{accessibility} {storedType} {querySymbol.Name}({getterKeyParams}) {{ {getterImpl} }}");
         }
 
         private static string AccessibilityToString(Accessibility accessibility) => accessibility switch

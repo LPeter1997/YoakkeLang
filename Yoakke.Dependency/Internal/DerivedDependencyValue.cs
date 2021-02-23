@@ -62,10 +62,16 @@ namespace Yoakke.Dependency.Internal
                 // Value not memoized yet
                 // We push this value onto the computation or "call"-stack
                 system.PushDependency(this);
-                // Now we do the recomputation
-                cachedValue = recompute(system);
-                // We are done with the computation, pop off
-                system.PopDependency();
+                try
+                {
+                    // Now we do the recomputation
+                    cachedValue = recompute(system);
+                }
+                finally
+                {
+                    // We are done with the computation, pop off
+                    system.PopDependency();
+                }
             }
             // We update both change and verification, as because of the recomputation we are definitely verified now
             // And we also have to note to the dependee values that we changed

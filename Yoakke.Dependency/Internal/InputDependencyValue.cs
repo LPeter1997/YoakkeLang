@@ -19,6 +19,7 @@ namespace Yoakke.Dependency.Internal
 
         public T GetValue<T>(DependencySystem system, [CallerMemberName] string memberName = "")
         {
+            system.RegisterDependency(this);
             if (ChangedAt == -1)
             {
                 throw new InvalidOperationException($"Tried to retrieve {memberName} before it was ever set!");
@@ -31,7 +32,6 @@ namespace Yoakke.Dependency.Internal
         /// </summary>
         public void SetValue(DependencySystem system, object value)
         {
-            system.RegisterDependency(this);
             this.value = value;
             ChangedAt = system.GetNextRevision();
         }
