@@ -16,7 +16,6 @@ namespace Yoakke.Dependency.Internal
 
         public int ChangedAt { get; private set; } = -1;
         public int VerifiedAt => ChangedAt;
-        public bool NeedsRecomputing => false;
 
         public T GetValue<T>(DependencySystem system, [CallerMemberName] string memberName = "")
         {
@@ -32,6 +31,7 @@ namespace Yoakke.Dependency.Internal
         /// </summary>
         public void SetValue(DependencySystem system, object value)
         {
+            system.RegisterDependency(this);
             this.value = value;
             ChangedAt = system.GetNextRevision();
         }

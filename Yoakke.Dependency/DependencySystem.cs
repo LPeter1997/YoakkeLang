@@ -13,13 +13,18 @@ namespace Yoakke.Dependency
     /// </summary>
     public class DependencySystem
     {
+        /// <summary>
+        /// The current revision we are at.
+        /// </summary>
+        internal int CurrentRevision { get; private set; } = 0;
+
         // Instantiated query groups
         private Dictionary<Type, object> queryGroups = new Dictionary<Type, object>();
         // Query groups that have query group instantiators registeres
         private Dictionary<Type, Func<object>> queryGroupInstantiators = new Dictionary<Type, Func<object>>();
-        // The revision we are at
-        private int revisionCounter = 0;
-
+        // Runtime "call-stack" for computed values
+        private Stack<DerivedDependencyValue> valueStack = new Stack<DerivedDependencyValue>();
+        
         /// <summary>
         /// Registers a query group to be managed by this <see cref="DependencySystem"/>.
         /// </summary>
@@ -80,7 +85,41 @@ namespace Yoakke.Dependency
         /// <summary>
         /// Retrieves the next revision.
         /// </summary>
-        internal int GetNextRevision() => revisionCounter++;
+        internal int GetNextRevision() => CurrentRevision++;
+
+        /// <summary>
+        /// Does cycle-detection.
+        /// Throws an exception if a cycle is present.
+        /// </summary>
+        internal void DetectCycle(DerivedDependencyValue value)
+        {
+            if (valueStack.Contains(value))
+            {
+                throw new InvalidOperationException("Cycle detected!");
+            }
+        }
+
+        /// <summary>
+        /// Registers a dependency for the current computed value.
+        /// </summary>
+        internal void RegisterDependency(IDependencyValue value)
+        {
+            if (valueStack.TryPeek(out var top)) top.Dependencies.Add(value);
+        }
+
+        /// <summary>
+        /// Pushes the value onto the call-stack.
+        /// </summary>
+        internal void PushDependency(DerivedDependencyValue value)
+        {
+            RegisterDependency(value);
+            valueStack.Push(value);
+        }
+
+        /// <summary>
+        /// Pops the value off the top of the call-stack.
+        /// </summary>
+        internal void PopDependency() => valueStack.Pop();
 
         private TBase CreateQueryGroup<TBase>(Func<object> instantiate)
         {

@@ -21,10 +21,6 @@ namespace Yoakke.Dependency.Internal
         /// </summary>
         public int VerifiedAt { get; }
         /// <summary>
-        /// True, if recomputation is required.
-        /// </summary>
-        public bool NeedsRecomputing { get; }
-        /// <summary>
         /// Retrieves the stored value.
         /// </summary>
         public T GetValue<T>(DependencySystem system, [CallerMemberName] string memberName = "");
