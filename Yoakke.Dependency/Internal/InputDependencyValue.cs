@@ -16,6 +16,7 @@ namespace Yoakke.Dependency.Internal
 
         public int ChangedAt { get; private set; } = -1;
         public int VerifiedAt => ChangedAt;
+        public bool IsUpToDate => true;
 
         public T GetValue<T>(DependencySystem system, [CallerMemberName] string memberName = "")
         {

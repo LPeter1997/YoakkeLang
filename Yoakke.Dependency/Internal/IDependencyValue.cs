@@ -21,6 +21,10 @@ namespace Yoakke.Dependency.Internal
         /// </summary>
         public int VerifiedAt { get; }
         /// <summary>
+        /// True, if this dependency does not require updating.
+        /// </summary>
+        public bool IsUpToDate { get; }
+        /// <summary>
         /// Retrieves the stored value.
         /// </summary>
         public T GetValue<T>(DependencySystem system, [CallerMemberName] string memberName = "");
