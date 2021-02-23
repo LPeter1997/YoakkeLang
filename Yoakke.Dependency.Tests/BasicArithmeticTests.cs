@@ -145,5 +145,27 @@ namespace Yoakke.Dependency.Tests
             Assert.AreEqual(1, arith.V3_invocations[1]);
             Assert.AreEqual(6, system.Get<IBasicArithmetic>().V2);
         }
+
+        [TestMethod]
+        public void DifferentKeysAreOrthogonal()
+        {
+            var arith = new MyBasicArithmetic();
+            var system = new DependencySystem()
+                .Register<INumberInputs>()
+                .Register<IBasicArithmetic>(() => arith);
+
+            system.Get<INumberInputs>().SetVariable("a", 1);
+            system.Get<INumberInputs>().SetVariable("b", 2);
+            system.Get<INumberInputs>().SetVariable("c", 3);
+
+            Assert.AreEqual(3, system.Get<IBasicArithmetic>().V1);
+            Assert.AreEqual(6, system.Get<IBasicArithmetic>().V2);
+            Assert.AreEqual(6, system.Get<IBasicArithmetic>().V3(1));
+            Assert.AreEqual(12, system.Get<IBasicArithmetic>().V3(2));
+            Assert.AreEqual(1, arith.V1_invocations);
+            Assert.AreEqual(1, arith.V2_invocations);
+            Assert.AreEqual(1, arith.V3_invocations[1]);
+            Assert.AreEqual(1, arith.V3_invocations[2]);
+        }
     }
 }
