@@ -36,7 +36,7 @@ namespace Yoakke.Dependency.Internal
         /// <summary>
         /// Gets the dependency value for a derived query.
         /// </summary>
-        public IDependencyValue GetDerived(object key, Func<DependencySystem, object> recompute)
+        public IDependencyValue GetDerived(object key, DerivedDependencyValue.ComputeValueDelegate recompute)
         {
             if (values.TryGetValue(key, out var value)) return (DerivedDependencyValue)value;
             var newValue = new DerivedDependencyValue(recompute);

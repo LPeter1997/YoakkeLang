@@ -13,21 +13,27 @@ namespace Yoakke.Dependency.Internal
     /// </summary>
     public class DerivedDependencyValue : IDependencyValue
     {
+        public delegate Task<object> ComputeValueDelegate(DependencySystem system, CancellationToken cancellationToken);
+
         internal IList<IDependencyValue> Dependencies { get; private set; } = new List<IDependencyValue>();
 
-        private Func<DependencySystem, object> recompute;
+        private ComputeValueDelegate recompute;
         private object cachedValue;
 
         public int ChangedAt { get; private set; } = -1;
         public int VerifiedAt { get; private set; } = -1;
 
-        public DerivedDependencyValue(Func<DependencySystem, object> recompute)
+        public DerivedDependencyValue(ComputeValueDelegate recompute)
         {
             this.recompute = recompute;
         }
 
-        public Task<T> GetValueAsync<T>(DependencySystem system, CancellationToken cancellationToken)
+        public async Task<T> GetValueAsync<T>(DependencySystem system, CancellationToken cancellationToken)
         {
+            // TODO: consider cancellation token?
+            // For ex. not storing result?
+            // try-catch?
+
             system.DetectCycle(this);
             if (ChangedAt != -1)
             {
@@ -35,31 +41,30 @@ namespace Yoakke.Dependency.Internal
                 if (VerifiedAt == system.CurrentRevision)
                 {
                     // We can just clone and return
-                    return Task.FromResult(GetValueCloned<T>());
+                    return GetValueCloned<T>();
                 }
                 // The system has a later revision, let's see if this value is reusable
-                if (Dependencies.All(dep =>
-                {
-                    // NOTE: We need to get the value to the dependency to update it's statistics
-                    // and possibly participate in early-termination optimization
-                    dep.GetValue<object>(system);
-                    return dep.ChangedAt <= VerifiedAt;
-                }))
+                // NOTE: We need to get the value to the dependency to update it's statistics
+                // and possibly participate in early-termination optimization
+                var tasks = Dependencies.Select(dep => dep.GetValueAsync<object>(system, cancellationToken)).ToArray();
+                // We need to wait for all tasks to finish
+                Task.WaitAll(tasks, cancellationToken);
+                if (Dependencies.All(dep => dep.ChangedAt <= VerifiedAt))
                 {
                     // All dependencies came from earlier revisions, this one is still fine
                     // Update the verification, still just clone the memoized value
                     VerifiedAt = system.CurrentRevision;
-                    return Task.FromResult(GetValueCloned<T>());
+                    return GetValueCloned<T>();
                 }
                 // We need to do a recomputation
-                var newValue = recompute(system);
+                var newValue = await recompute(system, cancellationToken);
                 if (newValue.Equals(cachedValue))
                 {
                     // The new value is exactly same as the old one
                     // We will update verification again, as we don't want the dependee values to update unnecessarily
                     VerifiedAt = system.CurrentRevision;
                     // NOTE: The newValue is already a clone here, we can just return that
-                    return Task.FromResult((T)newValue);
+                    return (T)newValue;
                 }
                 // The new value is different
                 cachedValue = newValue;
@@ -72,7 +77,7 @@ namespace Yoakke.Dependency.Internal
                 try
                 {
                     // Now we do the recomputation
-                    cachedValue = recompute(system);
+                    cachedValue = await recompute(system, cancellationToken);
                 }
                 finally
                 {
@@ -84,7 +89,7 @@ namespace Yoakke.Dependency.Internal
             // And we also have to note to the dependee values that we changed
             VerifiedAt = system.CurrentRevision;
             ChangedAt = system.CurrentRevision;
-            return Task.FromResult(GetValueCloned<T>());
+            return GetValueCloned<T>();
         }
 
         private T GetValueCloned<T>()
