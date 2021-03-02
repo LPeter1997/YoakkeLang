@@ -253,12 +253,13 @@ public class Proxy : {symbol.Name} {{
             }
 
             // Generate storage
+            var storageBaseType = $"Yoakke.Dependency.Internal.IDependencyValue";
             var storageType = $"Yoakke.Dependency.Internal.InputDependencyValue";
-            proxyDefinitions.AppendLine($"private {storageType} {querySymbol.Name}_storage = new {storageType}();");
+            proxyDefinitions.AppendLine($"private {storageBaseType} {querySymbol.Name}_storage = new {storageType}();");
 
             // Generate implementation
-            var getterImpl = $"return {querySymbol.Name}_storage.GetValue<{storedType}>(this.dependencySystem);";
-            var setterImpl = $"{querySymbol.Name}_storage.SetValue(this.dependencySystem, value);";
+            var getterImpl = $"return this.{querySymbol.Name}_storage.GetValue<{storedType}>(this.dependencySystem);";
+            var setterImpl = $"(({storageType})this.{querySymbol.Name}_storage).SetValue(this.dependencySystem, value);";
 
             // Syntax depends on which one this is
             if (querySymbol is IMethodSymbol)
@@ -306,12 +307,12 @@ public class Proxy : {symbol.Name} {{
             // TODO: We could include keys here
             proxyDefinitions.AppendLine($@"
 {accessibility} {storedType} {querySymbol.Name}({getterKeyParams}) {{
-    return {querySymbol.Name}_storage.GetInput(({keyParamNames})).GetValue<{storedType}>(this.dependencySystem);
+    return this.{querySymbol.Name}_storage.GetInput(({keyParamNames})).GetValue<{storedType}>(this.dependencySystem);
 }}");
             // Generate setter
             proxyDefinitions.AppendLine($@"
 {accessibility} void Set{querySymbol.Name}({setterKeyParams}) {{
-    {querySymbol.Name}_storage.GetInput(({keyParamNames})).SetValue(this.dependencySystem, value);
+    this.{querySymbol.Name}_storage.SetInput(this.dependencySystem, ({keyParamNames}), value);
 }}");
         }
 
@@ -329,12 +330,13 @@ public class Proxy : {symbol.Name} {{
                 : $"system => this.implementation.{querySymbol.Name}()";
 
             // Generate storage
+            var storageBaseType = $"Yoakke.Dependency.Internal.IDependencyValue";
             var storageType = $"Yoakke.Dependency.Internal.DerivedDependencyValue";
-            proxyDefinitions.AppendLine($"private {storageType} {querySymbol.Name}_storage;");
+            proxyDefinitions.AppendLine($"private {storageBaseType} {querySymbol.Name}_storage;");
             // Init storage
             additionalInit.AppendLine($"this.{querySymbol.Name}_storage = new {storageType}({callImpl});");
 
-            var getterImpl = $"return {querySymbol.Name}_storage.GetValue<{storedType}>(this.dependencySystem);";
+            var getterImpl = $"return this.{querySymbol.Name}_storage.GetValue<{storedType}>(this.dependencySystem);";
 
             if (querySymbol is IMethodSymbol)
             {

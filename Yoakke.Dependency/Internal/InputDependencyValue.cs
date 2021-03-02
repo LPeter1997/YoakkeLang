@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Yoakke.Dependency.Internal
@@ -17,14 +18,14 @@ namespace Yoakke.Dependency.Internal
         public int ChangedAt { get; private set; } = -1;
         public int VerifiedAt => ChangedAt;
 
-        public T GetValue<T>(DependencySystem system, [CallerMemberName] string memberName = "")
+        public Task<T> GetValueAsync<T>(DependencySystem system, CancellationToken cancellationToken)
         {
             system.RegisterDependency(this);
             if (ChangedAt == -1)
             {
-                throw new InvalidOperationException($"Tried to retrieve {memberName} before it was ever set!");
+                throw new InvalidOperationException($"Tried to retrieve input value before it was ever set!");
             }
-            return (T)value;
+            return Task.FromResult((T)value);
         }
 
         /// <summary>

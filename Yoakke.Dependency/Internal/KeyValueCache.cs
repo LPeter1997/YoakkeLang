@@ -16,7 +16,7 @@ namespace Yoakke.Dependency.Internal
         /// <summary>
         /// Gets the dependency value for an input query.
         /// </summary>
-        public InputDependencyValue GetInput(object key)
+        public IDependencyValue GetInput(object key)
         {
             if (values.TryGetValue(key, out var value)) return (InputDependencyValue)value;
             var newValue = new InputDependencyValue();
@@ -25,9 +25,18 @@ namespace Yoakke.Dependency.Internal
         }
 
         /// <summary>
+        /// Sets the dependency value for an input query.
+        /// </summary>
+        public void SetInput(DependencySystem system, object key, object value)
+        {
+            var dependencyValue = GetInput(key);
+            ((InputDependencyValue)dependencyValue).SetValue(system, value);
+        }
+
+        /// <summary>
         /// Gets the dependency value for a derived query.
         /// </summary>
-        public DerivedDependencyValue GetDerived(object key, Func<DependencySystem, object> recompute)
+        public IDependencyValue GetDerived(object key, Func<DependencySystem, object> recompute)
         {
             if (values.TryGetValue(key, out var value)) return (DerivedDependencyValue)value;
             var newValue = new DerivedDependencyValue(recompute);
