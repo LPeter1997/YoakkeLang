@@ -30,10 +30,6 @@ namespace Yoakke.Dependency.Internal
 
         public async Task<T> GetValueAsync<T>(DependencySystem system, CancellationToken cancellationToken)
         {
-            // TODO: consider cancellation token?
-            // For ex. not storing result?
-            // try-catch?
-
             system.DetectCycle(this);
             if (ChangedAt != -1)
             {
@@ -49,6 +45,9 @@ namespace Yoakke.Dependency.Internal
                 var tasks = Dependencies.Select(dep => dep.GetValueAsync<object>(system, cancellationToken)).ToArray();
                 // We need to wait for all tasks to finish
                 Task.WaitAll(tasks, cancellationToken);
+                // In case a cancellation is requested, we shouldn't continue from here
+                if (cancellationToken.IsCancellationRequested) return default;
+                // Now check wether dependencies have been updated since this one
                 if (Dependencies.All(dep => dep.ChangedAt <= VerifiedAt))
                 {
                     // All dependencies came from earlier revisions, this one is still fine
@@ -58,6 +57,9 @@ namespace Yoakke.Dependency.Internal
                 }
                 // We need to do a recomputation
                 var newValue = await recompute(system, cancellationToken);
+                // In case a cancellation is requested, we shouldn't continue from here
+                if (cancellationToken.IsCancellationRequested) return (T)newValue;
+                // Check if we can do an early termination because of the old and new result maching
                 if (newValue.Equals(cachedValue))
                 {
                     // The new value is exactly same as the old one
@@ -74,10 +76,16 @@ namespace Yoakke.Dependency.Internal
                 // Value not memoized yet
                 // We push this value onto the computation or "call"-stack
                 system.PushDependency(this);
+                // NOTE: We ned a try-finally because there is a chance that the first recomputation tries to access an unset value
+                // but popping off the dependency from the system is crucial
                 try
                 {
                     // Now we do the recomputation
-                    cachedValue = await recompute(system, cancellationToken);
+                    var newValue = await recompute(system, cancellationToken);
+                    // In case a cancellation is requested, we shouldn't continue from here
+                    if (cancellationToken.IsCancellationRequested) return (T)newValue;
+                    // No cancellation, we can store the value
+                    cachedValue = newValue;
                 }
                 finally
                 {
