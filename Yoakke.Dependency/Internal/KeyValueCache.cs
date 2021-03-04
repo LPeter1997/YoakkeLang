@@ -48,18 +48,18 @@ namespace Yoakke.Dependency.Internal
         /// Gets the dependency value for a derived query asynchronously.
         /// </summary>
         public IDependencyValue GetDerived(object key, DerivedDependencyValue.ComputeValueAsyncDelegate recompute) =>
-            GetDerived(key, new DerivedDependencyValue.ComputeValueAsyncCtDelegate((sys, ct) => recompute(sys)));
+            GetDerived(key, DerivedDependencyValue.ToAsyncCtDelegate(recompute));
 
         /// <summary>
         /// Gets the dependency value with a cancellation token.
         /// </summary>
         public IDependencyValue GetDerived(object key, DerivedDependencyValue.ComputeValueCtDelegate recompute) =>
-            GetDerived(key, new DerivedDependencyValue.ComputeValueAsyncCtDelegate((sys, ct) => Task.FromResult(recompute(sys, ct))));
+            GetDerived(key, DerivedDependencyValue.ToAsyncCtDelegate(recompute));
 
         /// <summary>
         /// Gets the dependency value with a cancellation token.
         /// </summary>
         public IDependencyValue GetDerived(object key, DerivedDependencyValue.ComputeValueDelegate recompute) =>
-            GetDerived(key, new DerivedDependencyValue.ComputeValueAsyncCtDelegate((sys, ct) => Task.FromResult(recompute(sys))));
+            GetDerived(key, DerivedDependencyValue.ToAsyncCtDelegate(recompute));
     }
 }
