@@ -48,12 +48,12 @@ namespace Yoakke.Dependency.Tests
                 .Register<IComputation, MyComputation>();
 
             // Asking for the computation should throw initially as the inputs are not set
-            Assert.ThrowsException<InvalidOperationException>(() => system.Get<IComputation>().ComputeSomething());
+            Assert.ThrowsException<AggregateException>(() => system.Get<IComputation>().ComputeSomething());
 
             // Let's set one of the inputs
             system.Get<IDerivedInputs>().MyConstant = 3;
             // Should still throw
-            Assert.ThrowsException<InvalidOperationException>(() => system.Get<IComputation>().ComputeSomething());
+            Assert.ThrowsException<AggregateException>(() => system.Get<IComputation>().ComputeSomething());
 
             // Setting the other should make it valid
             system.Get<IDerivedInputs>().SetVariable("a", 5);
@@ -72,12 +72,12 @@ namespace Yoakke.Dependency.Tests
                 .Register<IComputation, MyComputation>();
 
             // Asking for the computation should throw initially as the inputs are not set
-            Assert.ThrowsException<InvalidOperationException>(() => system.Get<IComputation>().ComputeOther("x", "y"));
+            Assert.ThrowsException<AggregateException>(() => system.Get<IComputation>().ComputeOther("x", "y"));
 
             // Setting the variables is not enough, the constant is required
             system.Get<IDerivedInputs>().SetVariable("x", 4);
             system.Get<IDerivedInputs>().SetVariable("y", 7);
-            Assert.ThrowsException<InvalidOperationException>(() => system.Get<IComputation>().ComputeOther("x", "y"));
+            Assert.ThrowsException<AggregateException>(() => system.Get<IComputation>().ComputeOther("x", "y"));
 
             // Setting the constant should resolve it
             system.Get<IDerivedInputs>().MyConstant = 2;

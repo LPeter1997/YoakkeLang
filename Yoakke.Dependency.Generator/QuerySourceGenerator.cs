@@ -332,9 +332,10 @@ public class Proxy : {symbol.Name} {{
             // Generate storage
             var storageBaseType = $"Yoakke.Dependency.Internal.IDependencyValue";
             var storageType = $"Yoakke.Dependency.Internal.DerivedDependencyValue";
+            var delegateType = $"{storageType}.ComputeValueDelegate";
             proxyDefinitions.AppendLine($"private {storageBaseType} {querySymbol.Name}_storage;");
             // Init storage
-            additionalInit.AppendLine($"this.{querySymbol.Name}_storage = new {storageType}({callImpl});");
+            additionalInit.AppendLine($"this.{querySymbol.Name}_storage = new {storageType}(new {delegateType}({callImpl}));");
 
             var getterImpl = $"return this.{querySymbol.Name}_storage.GetValue<{storedType}>(this.dependencySystem);";
 
@@ -369,9 +370,11 @@ public class Proxy : {symbol.Name} {{
             var getterKeyParams = string.Join(", ", querySymbol.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}"));
             var keyParamNames = string.Join(", ", querySymbol.Parameters.Select(p => p.Name));
 
+            var delegateType = $"Yoakke.Dependency.Internal.DerivedDependencyValue.ComputeValueDelegate";
             var callImpl = $"system => this.implementation.{querySymbol.Name}({keyParamNames})";
-            var getterImpl = $"return this.{querySymbol.Name}_storage.GetDerived(({keyParamNames}), {callImpl})" +
-                $".GetValue<{storedType}>(this.dependencySystem);";
+            var getterImpl = $@"
+    return this.{querySymbol.Name}_storage.GetDerived(({keyParamNames}), new {delegateType}({callImpl}))
+        .GetValue<{storedType}>(this.dependencySystem);";
 
             // Generate getter
             proxyDefinitions.AppendLine($@"

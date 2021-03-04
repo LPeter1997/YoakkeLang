@@ -34,14 +34,32 @@ namespace Yoakke.Dependency.Internal
         }
 
         /// <summary>
-        /// Gets the dependency value for a derived query.
+        /// Gets the dependency value for a derived query asynchronously and with a cancellation token.
         /// </summary>
-        public IDependencyValue GetDerived(object key, DerivedDependencyValue.ComputeValueDelegate recompute)
+        public IDependencyValue GetDerived(object key, DerivedDependencyValue.ComputeValueAsyncCtDelegate recompute)
         {
             if (values.TryGetValue(key, out var value)) return (DerivedDependencyValue)value;
             var newValue = new DerivedDependencyValue(recompute);
             values.Add(key, newValue);
             return newValue;
         }
+
+        /// <summary>
+        /// Gets the dependency value for a derived query asynchronously.
+        /// </summary>
+        public IDependencyValue GetDerived(object key, DerivedDependencyValue.ComputeValueAsyncDelegate recompute) =>
+            GetDerived(key, new DerivedDependencyValue.ComputeValueAsyncCtDelegate((sys, ct) => recompute(sys)));
+
+        /// <summary>
+        /// Gets the dependency value with a cancellation token.
+        /// </summary>
+        public IDependencyValue GetDerived(object key, DerivedDependencyValue.ComputeValueCtDelegate recompute) =>
+            GetDerived(key, new DerivedDependencyValue.ComputeValueAsyncCtDelegate((sys, ct) => Task.FromResult(recompute(sys, ct))));
+
+        /// <summary>
+        /// Gets the dependency value with a cancellation token.
+        /// </summary>
+        public IDependencyValue GetDerived(object key, DerivedDependencyValue.ComputeValueDelegate recompute) =>
+            GetDerived(key, new DerivedDependencyValue.ComputeValueAsyncCtDelegate((sys, ct) => Task.FromResult(recompute(sys))));
     }
 }

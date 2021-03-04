@@ -13,19 +13,39 @@ namespace Yoakke.Dependency.Internal
     /// </summary>
     public class DerivedDependencyValue : IDependencyValue
     {
-        public delegate Task<object> ComputeValueDelegate(DependencySystem system, CancellationToken cancellationToken);
+        // Delegates for different computation types
+
+        public delegate Task<object> ComputeValueAsyncCtDelegate(DependencySystem system, CancellationToken cancellationToken);
+        public delegate Task<object> ComputeValueAsyncDelegate(DependencySystem system);
+        public delegate object ComputeValueCtDelegate(DependencySystem system, CancellationToken cancellationToken);
+        public delegate object ComputeValueDelegate(DependencySystem system);
 
         internal IList<IDependencyValue> Dependencies { get; private set; } = new List<IDependencyValue>();
 
-        private ComputeValueDelegate recompute;
+        private ComputeValueAsyncCtDelegate recompute;
         private object cachedValue;
 
         public int ChangedAt { get; private set; } = -1;
         public int VerifiedAt { get; private set; } = -1;
 
-        public DerivedDependencyValue(ComputeValueDelegate recompute)
+        public DerivedDependencyValue(ComputeValueAsyncCtDelegate recompute)
         {
             this.recompute = recompute;
+        }
+
+        public DerivedDependencyValue(ComputeValueAsyncDelegate recompute)
+            : this(new ComputeValueAsyncCtDelegate((sys, ct) => recompute(sys)))
+        {
+        }
+
+        public DerivedDependencyValue(ComputeValueCtDelegate recompute)
+            : this(new ComputeValueAsyncCtDelegate((sys, ct) => Task.FromResult(recompute(sys, ct))))
+        {
+        }
+
+        public DerivedDependencyValue(ComputeValueDelegate recompute)
+            : this(new ComputeValueAsyncCtDelegate((sys, ct) => Task.FromResult(recompute(sys))))
+        {
         }
 
         public async Task<T> GetValueAsync<T>(DependencySystem system, CancellationToken cancellationToken)
