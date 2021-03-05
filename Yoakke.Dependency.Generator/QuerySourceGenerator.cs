@@ -52,6 +52,10 @@ namespace Yoakke.Dependency.Generator
             isEnabledByDefault: true);
         #endregion
 
+        private static readonly string QueryGroupAttribute = "Yoakke.Dependency.QueryGroupAttribute";
+        private static readonly string InputQueryGroupAttribute = "Yoakke.Dependency.InputQueryGroupAttribute";
+        private static readonly string IInputQueryGroup = "Yoakke.Dependency.Internal.IInputQueryGroup";
+
         private static readonly string DependencySystem = "Yoakke.Dependency.DependencySystem";
         private static readonly string IDependencyValue = "Yoakke.Dependency.Internal.IDependencyValue";
         private static readonly string InputDependencyValue = "Yoakke.Dependency.Internal.InputDependencyValue";
@@ -70,8 +74,8 @@ namespace Yoakke.Dependency.Generator
             var compilation = context.Compilation;
 
             // Get the symbol representing the QueryGroup attributes
-            var queryGroupAttributeSymbol = compilation.GetTypeByMetadataName("Yoakke.Dependency.QueryGroupAttribute");
-            var inputQueryGroupAttributeSymbol = compilation.GetTypeByMetadataName("Yoakke.Dependency.InputQueryGroupAttribute");
+            var queryGroupAttributeSymbol = compilation.GetTypeByMetadataName(QueryGroupAttribute);
+            var inputQueryGroupAttributeSymbol = compilation.GetTypeByMetadataName(InputQueryGroupAttribute);
 
             // Only keep the interfaces that are annotated with this
             // The ones that are annotated must be partial
@@ -121,7 +125,7 @@ namespace Yoakke.Dependency.Generator
             var namespaceName = symbol.ContainingNamespace.ToDisplayString();
             var interfaceName = symbol.Name;
             var accessibility = AccessibilityToString(symbol.DeclaredAccessibility);
-            var baseInterfacePart = isInput ? ": Yoakke.Dependency.Internal.IInputQueryGroup" : string.Empty;
+            var baseInterfacePart = isInput ? $": {IInputQueryGroup}" : string.Empty;
             var contents = isInput
                 ? GenerateInputQueryContents(context, symbol)
                 : GenerateQueryContents(context, symbol);
