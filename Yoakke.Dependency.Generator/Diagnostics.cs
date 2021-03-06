@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Yoakke.Dependency.Generator
 {
-    internal class Diagnostics
+    internal static class Diagnostics
     {
         public static readonly DiagnosticDescriptor QueryGroupInterfaceMustBePartial = new DiagnosticDescriptor(
             id: "YKDEPENDENCYGEN001",

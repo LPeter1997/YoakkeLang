@@ -12,6 +12,7 @@ namespace Yoakke.Dependency.Generator
     [Generator]
     public class QuerySourceGenerator : ISourceGenerator
     {
+        // Collects interfaces with at least one attribute
         private class SyntaxReceiver : ISyntaxReceiver
         {
             public IList<InterfaceDeclarationSyntax> CandidateInterfaces { get; } = new List<InterfaceDeclarationSyntax>();
@@ -26,16 +27,6 @@ namespace Yoakke.Dependency.Generator
             }
         }
 
-        private static readonly string QueryGroupAttribute = "Yoakke.Dependency.QueryGroupAttribute";
-        private static readonly string InputQueryGroupAttribute = "Yoakke.Dependency.InputQueryGroupAttribute";
-        private static readonly string IInputQueryGroup = "Yoakke.Dependency.Internal.IInputQueryGroup";
-
-        private static readonly string DependencySystem = "Yoakke.Dependency.DependencySystem";
-        private static readonly string IDependencyValue = "Yoakke.Dependency.Internal.IDependencyValue";
-        private static readonly string InputDependencyValue = "Yoakke.Dependency.Internal.InputDependencyValue";
-        private static readonly string DerivedDependencyValue = "Yoakke.Dependency.Internal.DerivedDependencyValue";
-        private static readonly string KeyValueCache = "Yoakke.Dependency.Internal.KeyValueCache";
-
         public void Initialize(GeneratorInitializationContext context)
         {
             context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
@@ -48,8 +39,8 @@ namespace Yoakke.Dependency.Generator
             var compilation = context.Compilation;
 
             // Get the symbol representing the QueryGroup attributes
-            var queryGroupAttributeSymbol = compilation.GetTypeByMetadataName(QueryGroupAttribute);
-            var inputQueryGroupAttributeSymbol = compilation.GetTypeByMetadataName(InputQueryGroupAttribute);
+            var queryGroupAttributeSymbol = compilation.GetTypeByMetadataName(TypeNames.QueryGroupAttribute);
+            var inputQueryGroupAttributeSymbol = compilation.GetTypeByMetadataName(TypeNames.InputQueryGroupAttribute);
 
             // Only keep the interfaces that are annotated with this
             // The ones that are annotated must be partial
@@ -99,7 +90,7 @@ namespace Yoakke.Dependency.Generator
             var namespaceName = symbol.ContainingNamespace.ToDisplayString();
             var interfaceName = symbol.Name;
             var accessibility = AccessibilityToString(symbol.DeclaredAccessibility);
-            var baseInterfacePart = isInput ? $": {IInputQueryGroup}" : string.Empty;
+            var baseInterfacePart = isInput ? $": {TypeNames.IInputQueryGroup}" : string.Empty;
             var contents = isInput
                 ? GenerateInputQueryContents(context, symbol)
                 : GenerateQueryContents(context, symbol);
@@ -156,9 +147,9 @@ namespace {namespaceName}
             // Assemble the internals
             return $@"
 public class Proxy : {symbol.Name} {{
-    private {DependencySystem} dependencySystem;
+    private {TypeNames.DependencySystem} dependencySystem;
 
-    public Proxy({DependencySystem} dependencySystem) 
+    public Proxy({TypeNames.DependencySystem} dependencySystem) 
     {{
         this.dependencySystem = dependencySystem;
     }}
@@ -208,10 +199,10 @@ public class Proxy : {symbol.Name} {{
             // Assemble the internals
             return $@"
 public class Proxy : {symbol.Name} {{
-    private {DependencySystem} dependencySystem;
+    private {TypeNames.DependencySystem} dependencySystem;
     private {symbol.Name} implementation;
 
-    public Proxy({DependencySystem} dependencySystem, {symbol.Name} implementation) 
+    public Proxy({TypeNames.DependencySystem} dependencySystem, {symbol.Name} implementation) 
     {{
         this.dependencySystem = dependencySystem;
         this.implementation = implementation;
@@ -237,11 +228,11 @@ public class Proxy : {symbol.Name} {{
             }
 
             // Generate storage
-            proxyDefinitions.AppendLine($"private {IDependencyValue} {querySymbol.Name}_storage = new {InputDependencyValue}();");
+            proxyDefinitions.AppendLine($"private {TypeNames.IDependencyValue} {querySymbol.Name}_storage = new {TypeNames.InputDependencyValue}();");
 
             // Generate implementation
             var getterImpl = $"return this.{querySymbol.Name}_storage.GetValue<{storedType}>(this.dependencySystem);";
-            var setterImpl = $"(({InputDependencyValue})this.{querySymbol.Name}_storage).SetValue(this.dependencySystem, value);";
+            var setterImpl = $"(({TypeNames.InputDependencyValue})this.{querySymbol.Name}_storage).SetValue(this.dependencySystem, value);";
 
             // Syntax depends on which one this is
             if (querySymbol is IMethodSymbol)
@@ -279,7 +270,7 @@ public class Proxy : {symbol.Name} {{
 
             // Generate storage
             var keyTypes = string.Join(", ", querySymbol.Parameters.Select(p => p.Type.ToDisplayString()));
-            proxyDefinitions.AppendLine($"private {KeyValueCache} {querySymbol.Name}_storage = new {KeyValueCache}();");
+            proxyDefinitions.AppendLine($"private {TypeNames.KeyValueCache} {querySymbol.Name}_storage = new {TypeNames.KeyValueCache}();");
 
             var getterKeyParams = string.Join(", ", querySymbol.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}"));
             var keyParamNames = string.Join(", ", querySymbol.Parameters.Select(p => p.Name));
@@ -311,10 +302,10 @@ public class Proxy : {symbol.Name} {{
                 : $"system => this.implementation.{querySymbol.Name}()";
 
             // Generate storage
-            proxyDefinitions.AppendLine($"private {IDependencyValue} {querySymbol.Name}_storage;");
+            proxyDefinitions.AppendLine($"private {TypeNames.IDependencyValue} {querySymbol.Name}_storage;");
             // Init storage
             additionalInit.AppendLine($@"
-    this.{querySymbol.Name}_storage = new {DerivedDependencyValue}(new {GetDelegateType(false, false)}({callImpl}));");
+    this.{querySymbol.Name}_storage = new {TypeNames.DerivedDependencyValue}(new {TypeNames.GetComputeDelegateName(false, false)}({callImpl}));");
 
             var getterImpl = $"return this.{querySymbol.Name}_storage.GetValue<{storedType}>(this.dependencySystem);";
 
@@ -343,14 +334,14 @@ public class Proxy : {symbol.Name} {{
             var storedType = querySymbol.ReturnType;
 
             // Generate storage
-            proxyDefinitions.AppendLine($"private {KeyValueCache} {querySymbol.Name}_storage = new {KeyValueCache}();");
+            proxyDefinitions.AppendLine($"private {TypeNames.KeyValueCache} {querySymbol.Name}_storage = new {TypeNames.KeyValueCache}();");
 
             var getterKeyParams = string.Join(", ", querySymbol.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}"));
             var keyParamNames = string.Join(", ", querySymbol.Parameters.Select(p => p.Name));
 
             var callImpl = $"system => this.implementation.{querySymbol.Name}({keyParamNames})";
             var getterImpl = $@"
-    return this.{querySymbol.Name}_storage.GetDerived(({keyParamNames}), new {GetDelegateType(false, false)}({callImpl}))
+    return this.{querySymbol.Name}_storage.GetDerived(({keyParamNames}), new {TypeNames.GetComputeDelegateName(false, false)}({callImpl}))
         .GetValue<{storedType}>(this.dependencySystem);";
 
             // Generate getter
@@ -382,8 +373,5 @@ public class Proxy : {symbol.Name} {{
                        && propertyNames.Contains(sym.Name.Substring(4)));
             });
         }
-
-        private static string GetDelegateType(bool asynch, bool ct) =>
-            $"{DerivedDependencyValue}.ComputeValue{(asynch ? "Async" : string.Empty)}{(ct ? "Ct" : string.Empty)}Delegate";
     }
 }
