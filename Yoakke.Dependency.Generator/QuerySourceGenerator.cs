@@ -27,6 +27,8 @@ namespace Yoakke.Dependency.Generator
             }
         }
 
+        private INamedTypeSymbol cancellationTokenSymbol;
+
         public void Initialize(GeneratorInitializationContext context)
         {
             context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
@@ -38,9 +40,10 @@ namespace Yoakke.Dependency.Generator
 
             var compilation = context.Compilation;
 
-            // Get the symbol representing the QueryGroup attributes
+            // Get the symbol representing the QueryGroup attributes and other required symbols
             var queryGroupAttributeSymbol = compilation.GetTypeByMetadataName(TypeNames.QueryGroupAttribute);
             var inputQueryGroupAttributeSymbol = compilation.GetTypeByMetadataName(TypeNames.InputQueryGroupAttribute);
+            this.cancellationTokenSymbol = compilation.GetTypeByMetadataName(TypeNames.SystemCancellationToken);
 
             // Only keep the interfaces that are annotated with this
             // The ones that are annotated must be partial
@@ -348,6 +351,14 @@ public class Proxy : {symbol.Name} {{
             proxyDefinitions.AppendLine($@"
 {accessibility} {storedType} {querySymbol.Name}({getterKeyParams}) {{ {getterImpl} }}");
         }
+
+        private static bool IsAsynchronous(IMethodSymbol methodSymbol) => methodSymbol.ReturnType
+            .GetMembers()
+            .Any(m => m.Kind == SymbolKind.Method && m.Name == "GetAwaiter");
+
+        private bool HasCancellationToken(IMethodSymbol methodSymbol) =>
+               methodSymbol.Parameters.Length > 0
+            && SymbolEqualityComparer.Default.Equals(this.cancellationTokenSymbol, methodSymbol.Parameters.Last().Type);
 
         private static string AccessibilityToString(Accessibility accessibility) => accessibility switch
         {
