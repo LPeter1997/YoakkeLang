@@ -14,7 +14,7 @@ namespace Yoakke.Dependency.Generator
     {
         private class SyntaxReceiver : ISyntaxReceiver
         {
-            public IList<InterfaceDeclarationSyntax> CandidateInterfaces { get; set; } = new List<InterfaceDeclarationSyntax>();
+            public IList<InterfaceDeclarationSyntax> CandidateInterfaces { get; } = new List<InterfaceDeclarationSyntax>();
 
             public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
             {
@@ -25,32 +25,6 @@ namespace Yoakke.Dependency.Generator
                 }
             }
         }
-
-        #region Diagnostics
-        private static readonly DiagnosticDescriptor QueryGroupInterfaceMustBePartial = new DiagnosticDescriptor(
-            id: "YKDEPENDENCYGEN001",
-            title: "QueryGroup interface definitions must be partial",
-            messageFormat: "QueryGroup interface '{0}' definition must be partial",
-            category: "Yoakke.Dependency.Generator",
-            DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
-
-        private static readonly DiagnosticDescriptor QueryGroupInterfaceMustBeTopLevel = new DiagnosticDescriptor(
-            id: "YKDEPENDENCYGEN002",
-            title: "QueryGroup interface definitions must be top-level definition",
-            messageFormat: "QueryGroup interface '{0}' definition must be a top-level definition",
-            category: "Yoakke.Dependency.Generator",
-            DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
-
-        private static readonly DiagnosticDescriptor QueryMustBePropertyOrMethod = new DiagnosticDescriptor(
-            id: "YKDEPENDENCYGEN003",
-            title: "QueryGroup interface must only contain methods and properties",
-            messageFormat: "Input QueryGroup interface '{0}' must only contain methods and get-set properties, '{1}' is illegal",
-            category: "Yoakke.Dependency.Generator",
-            DiagnosticSeverity.Error,
-            isEnabledByDefault: true);
-        #endregion
 
         private static readonly string QueryGroupAttribute = "Yoakke.Dependency.QueryGroupAttribute";
         private static readonly string InputQueryGroupAttribute = "Yoakke.Dependency.InputQueryGroupAttribute";
@@ -106,7 +80,7 @@ namespace Yoakke.Dependency.Generator
             {
                 // No partial keyword, error to the user
                 context.ReportDiagnostic(Diagnostic.Create(
-                    QueryGroupInterfaceMustBePartial,
+                    Diagnostics.QueryGroupInterfaceMustBePartial,
                     syntax.GetLocation(),
                     syntax.Identifier.ValueText));
                 return null;
@@ -115,7 +89,7 @@ namespace Yoakke.Dependency.Generator
             {
                 // Non-top-level declaration, error to the user
                 context.ReportDiagnostic(Diagnostic.Create(
-                    QueryGroupInterfaceMustBeTopLevel,
+                    Diagnostics.QueryGroupInterfaceMustBeTopLevel,
                     syntax.GetLocation(),
                     syntax.Identifier.ValueText));
                 return null;
@@ -171,7 +145,7 @@ namespace {namespaceName}
                 {
                     // Error
                     context.ReportDiagnostic(Diagnostic.Create(
-                        QueryMustBePropertyOrMethod,
+                        Diagnostics.InputQueryGroupElementMustBePropertyOrMethod,
                         member.Locations.First(),
                         member.Locations.Skip(1),
                         symbol.Name,
@@ -223,7 +197,7 @@ public class Proxy : {symbol.Name} {{
                 {
                     // Error
                     context.ReportDiagnostic(Diagnostic.Create(
-                        QueryMustBePropertyOrMethod,
+                        Diagnostics.QueryGroupElementMustBePropertyOrMethod,
                         member.Locations.First(),
                         member.Locations.Skip(1),
                         symbol.Name,
