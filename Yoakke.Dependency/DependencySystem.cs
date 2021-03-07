@@ -19,7 +19,7 @@ namespace Yoakke.Dependency
         internal int CurrentRevision { get; private set; } = 0;
 
         // Instantiated query groups
-        private Dictionary<Type, object> queryGroups = new Dictionary<Type, object>();
+        private Dictionary<Type, (object Proxy, Action<int> Clear)> queryGroups = new Dictionary<Type, (object Proxy, Action<int> Clear)>();
         // Query groups that have query group instantiators registeres
         private Dictionary<Type, Func<object>> queryGroupInstantiators = new Dictionary<Type, Func<object>>();
         // Runtime "call-stack" for computed values
@@ -71,16 +71,30 @@ namespace Yoakke.Dependency
         public TBase Get<TBase>()
         {
             // Check if it's already instantiated, if so, return it
-            if (queryGroups.TryGetValue(typeof(TBase), out var queryGroup)) return (TBase)queryGroup;
+            if (queryGroups.TryGetValue(typeof(TBase), out var queryGroup)) return (TBase)queryGroup.Proxy;
             // Check if it has an instantiation function registered
             if (queryGroupInstantiators.Remove(typeof(TBase), out var instantiate))
             {
                 // Create one with the registered function
                 // NOTE: Function already registers it, no need to here
-                return CreateQueryGroup<TBase>(instantiate);
+                return CreateQueryGroup<TBase>(instantiate).Proxy;
             }
             throw new KeyNotFoundException("The given query group was not registered. Did you ask by it's interface type?");
         }
+
+        /// <summary>
+        /// Clears the memoized values before a certain revision.
+        /// </summary>
+        /// <param name="before">The revision to clear values before (inclusive).</param>
+        public void Clear(int before)
+        {
+            foreach (var (proxy, clear) in queryGroups.Values) clear(before);
+        }
+
+        /// <summary>
+        /// Clears all memoized values.
+        /// </summary>
+        public void Clear() => Clear(int.MaxValue);
 
         /// <summary>
         /// Retrieves the next revision.
@@ -121,7 +135,7 @@ namespace Yoakke.Dependency
         /// </summary>
         internal void PopDependency() => valueStack.Pop();
 
-        private TBase CreateQueryGroup<TBase>(Func<object> instantiate)
+        private (TBase Proxy, Action<int> Clear) CreateQueryGroup<TBase>(Func<object> instantiate)
         {
             if (typeof(TBase).IsAssignableTo(typeof(IInputQueryGroup)))
             {
@@ -149,12 +163,17 @@ namespace Yoakke.Dependency
             }
         }
 
-        private TBase InstantiateProxy<TBase>(Type[] argTypes, object[] args)
+        private (TBase Proxy, Action<int> Clear) InstantiateProxy<TBase>(Type[] argTypes, object[] args)
         {
             var type = typeof(TBase);
             var proxyClass = type.GetNestedType("Proxy");
             var proxyCtor = proxyClass.GetConstructor(argTypes);
-            return (TBase)proxyCtor.Invoke(args);
+            var proxy = (TBase)proxyCtor.Invoke(args);
+            var proxyClear = proxyClass.GetMethod("Clear", new Type[] { typeof(int) });
+            Action<int> proxyClearLambda = proxyClear == null
+                ? before => { }
+                : before => proxyClear.Invoke(proxy, new object[] { before });
+            return (proxy, proxyClearLambda);
         }
 
         private void InitializeQueryGroupProperties<TBase>(TBase impl)

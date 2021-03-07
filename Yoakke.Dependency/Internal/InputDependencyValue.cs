@@ -18,6 +18,15 @@ namespace Yoakke.Dependency.Internal
         public int ChangedAt { get; private set; } = -1;
         public int VerifiedAt => ChangedAt;
 
+        public void Clear(int before)
+        {
+            if (ChangedAt <= before)
+            {
+                value = null;
+                ChangedAt = -1;
+            }
+        }
+
         public Task<T> GetValueAsync<T>(DependencySystem system, CancellationToken cancellationToken)
         {
             system.RegisterDependency(this);

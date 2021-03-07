@@ -46,5 +46,10 @@ namespace Yoakke.Dependency.Internal
         /// Retrieves the stored value synchronously.
         /// </summary>
         public T GetValue<T>(DependencySystem system) => GetValue<T>(system, CancellationToken.None);
+
+        /// <summary>
+        /// Clears out memoized values before a certain revision.
+        /// </summary>
+        public void Clear(int before);
     }
 }

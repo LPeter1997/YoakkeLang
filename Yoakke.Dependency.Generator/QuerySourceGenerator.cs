@@ -9,6 +9,9 @@ using System.Text;
 
 namespace Yoakke.Dependency.Generator
 {
+    // TODO: Right now there is no way to clear input!
+    // Maybe introduce an Unset variant?
+
     [Generator]
     public class QuerySourceGenerator : ISourceGenerator
     {
@@ -168,6 +171,8 @@ public class Proxy : {symbol.Name} {{
             var proxyDefinitions = new StringBuilder();
             // Additional initializations in the ctor
             var additionalInit = new StringBuilder();
+            // All the clear calls for the storages
+            var clearCalls = new StringBuilder();
 
             // Member declarations and implementations
             foreach (var member in IgnorePropertyMethods(symbol.GetMembers()))
@@ -198,6 +203,7 @@ public class Proxy : {symbol.Name} {{
                         symbol.Name,
                         member.Name));
                 }
+                clearCalls.AppendLine($"this.{member.Name}_storage.Clear(before);");
             }
 
             // Assemble the internals
@@ -211,6 +217,11 @@ public class Proxy : {symbol.Name} {{
         this.dependencySystem = dependencySystem;
         this.implementation = implementation;
         {additionalInit}
+    }}
+
+    public void Clear(int before)
+    {{
+        {clearCalls}
     }}
 
     {proxyDefinitions}

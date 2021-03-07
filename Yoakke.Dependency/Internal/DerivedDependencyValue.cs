@@ -43,6 +43,17 @@ namespace Yoakke.Dependency.Internal
             this.recompute = recompute;
         }
 
+        public void Clear(int before)
+        {
+            if (VerifiedAt <= before)
+            {
+                cachedValue = null;
+                ChangedAt = -1;
+                VerifiedAt = -1;
+                Dependencies.Clear();
+            }
+        }
+
         public async Task<T> GetValueAsync<T>(DependencySystem system, CancellationToken cancellationToken)
         {
             system.DetectCycle(this);

@@ -15,6 +15,15 @@ namespace Yoakke.Dependency.Internal
         private Dictionary<object, IDependencyValue> values = new Dictionary<object, IDependencyValue>();
 
         /// <summary>
+        /// Clears the memoized values before a certain revision.
+        /// </summary>
+        public void Clear(int before)
+        {
+            var keysToRemove = values.Where(kv => kv.Value.VerifiedAt <= before).Select(kv => kv.Key).ToList();
+            foreach (var key in keysToRemove) values.Remove(key);
+        }
+
+        /// <summary>
         /// Gets the dependency value for an input query.
         /// </summary>
         public IDependencyValue GetInput(object key)
