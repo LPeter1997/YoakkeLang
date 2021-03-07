@@ -137,5 +137,30 @@ namespace Yoakke.Dependency.Tests
             Assert.AreEqual(2, derived.CalculatedValue_invocations);
             Assert.AreEqual(2, derived.CalculateFoo_invocations);
         }
+
+        [TestMethod]
+        public void RecalculationWhenDisableMemoization()
+        {
+            var derived = new MyIncrementalQuery();
+            var system = new DependencySystem()
+                .Register<IIncrementalInputs>()
+                .Register<IIncrementalQuery>(() => derived);
+            system.AllowMemo = false;
+
+            system.Get<IIncrementalInputs>().SomeConstant = 7;
+            system.Get<IIncrementalInputs>().SetSomeValue("abc", "xyz");
+
+            // First invocation should cause a recomputation
+            var _1 = system.Get<IIncrementalQuery>().CalculatedValue;
+            var _2 = system.Get<IIncrementalQuery>().CalculateFoo("abc", 4);
+            Assert.AreEqual(1, derived.CalculatedValue_invocations);
+            Assert.AreEqual(1, derived.CalculateFoo_invocations);
+
+            // Next recomputation should also, since memoization is disabled
+            var _3 = system.Get<IIncrementalQuery>().CalculatedValue;
+            var _4 = system.Get<IIncrementalQuery>().CalculateFoo("abc", 4);
+            Assert.AreEqual(2, derived.CalculatedValue_invocations);
+            Assert.AreEqual(2, derived.CalculateFoo_invocations);
+        }
     }
 }

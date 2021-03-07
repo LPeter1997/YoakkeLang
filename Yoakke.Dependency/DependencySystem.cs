@@ -14,6 +14,11 @@ namespace Yoakke.Dependency
     public class DependencySystem
     {
         /// <summary>
+        /// True, if memoization of partial results should be allowed.
+        /// </summary>
+        public bool AllowMemo { get; set; } = true;
+
+        /// <summary>
         /// The current revision we are at.
         /// </summary>
         internal Revision CurrentRevision { get; private set; } = new Revision(0);

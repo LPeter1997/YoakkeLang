@@ -56,8 +56,12 @@ namespace Yoakke.Dependency.Internal
 
         public async Task<T> GetValueAsync<T>(DependencySystem system, CancellationToken cancellationToken)
         {
-            system.DetectCycle(this);
-            if (ChangedAt != Revision.Invalid)
+            if (!system.AllowMemo)
+            {
+                // We disabled memoization, recompute
+                return (T)(await recompute(system, cancellationToken));
+            }
+            else if (ChangedAt != Revision.Invalid)
             {
                 // Value is already memoized
                 if (VerifiedAt == system.CurrentRevision)
@@ -100,6 +104,8 @@ namespace Yoakke.Dependency.Internal
             else
             {
                 // Value not memoized yet
+                // We check for a cycle first
+                system.DetectCycle(this);
                 // We push this value onto the computation or "call"-stack
                 system.PushDependency(this);
                 // NOTE: We ned a try-finally because there is a chance that the first recomputation tries to access an unset value
