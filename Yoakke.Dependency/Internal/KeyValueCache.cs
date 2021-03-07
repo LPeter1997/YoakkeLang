@@ -17,7 +17,7 @@ namespace Yoakke.Dependency.Internal
         /// <summary>
         /// Clears the memoized values before a certain revision.
         /// </summary>
-        public void Clear(int before)
+        public void Clear(Revision before)
         {
             var keysToRemove = values.Where(kv => kv.Value.VerifiedAt <= before).Select(kv => kv.Key).ToList();
             foreach (var key in keysToRemove) values.Remove(key);

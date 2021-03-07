@@ -16,11 +16,11 @@ namespace Yoakke.Dependency.Internal
         /// <summary>
         /// When last changed.
         /// </summary>
-        public int ChangedAt { get; }
+        public Revision ChangedAt { get; }
         /// <summary>
         /// When last verified that it can be re-used.
         /// </summary>
-        public int VerifiedAt { get; }
+        public Revision VerifiedAt { get; }
 
         /// <summary>
         /// Retrieves the stored value asynchronously with a cancellation token to cancel the operation.
@@ -50,6 +50,6 @@ namespace Yoakke.Dependency.Internal
         /// <summary>
         /// Clears out memoized values before a certain revision.
         /// </summary>
-        public void Clear(int before);
+        public void Clear(Revision before);
     }
 }

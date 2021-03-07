@@ -16,10 +16,10 @@ namespace Yoakke.Dependency
         /// <summary>
         /// The current revision we are at.
         /// </summary>
-        internal int CurrentRevision { get; private set; } = 0;
+        internal Revision CurrentRevision { get; private set; } = new Revision(0);
 
         // Instantiated query groups
-        private Dictionary<Type, (object Proxy, Action<int> Clear)> queryGroups = new Dictionary<Type, (object Proxy, Action<int> Clear)>();
+        private Dictionary<Type, (object Proxy, Action<Revision> Clear)> queryGroups = new Dictionary<Type, (object Proxy, Action<Revision> Clear)>();
         // Query groups that have query group instantiators registeres
         private Dictionary<Type, Func<object>> queryGroupInstantiators = new Dictionary<Type, Func<object>>();
         // Runtime "call-stack" for computed values
@@ -86,7 +86,7 @@ namespace Yoakke.Dependency
         /// Clears the memoized values before a certain revision.
         /// </summary>
         /// <param name="before">The revision to clear values before (inclusive).</param>
-        public void Clear(int before)
+        public void Clear(Revision before)
         {
             foreach (var (proxy, clear) in queryGroups.Values) clear(before);
         }
@@ -94,12 +94,16 @@ namespace Yoakke.Dependency
         /// <summary>
         /// Clears all memoized values.
         /// </summary>
-        public void Clear() => Clear(int.MaxValue);
+        public void Clear() => Clear(Revision.MaxValue);
 
         /// <summary>
         /// Retrieves the next revision.
         /// </summary>
-        internal int GetNextRevision() => ++CurrentRevision;
+        internal Revision GetNextRevision()
+        {
+            CurrentRevision = CurrentRevision.Next();
+            return CurrentRevision;
+        }
 
         /// <summary>
         /// Does cycle-detection.
@@ -135,7 +139,7 @@ namespace Yoakke.Dependency
         /// </summary>
         internal void PopDependency() => valueStack.Pop();
 
-        private (TBase Proxy, Action<int> Clear) CreateQueryGroup<TBase>(Func<object> instantiate)
+        private (TBase Proxy, Action<Revision> Clear) CreateQueryGroup<TBase>(Func<object> instantiate)
         {
             if (typeof(TBase).IsAssignableTo(typeof(IInputQueryGroup)))
             {
@@ -163,14 +167,14 @@ namespace Yoakke.Dependency
             }
         }
 
-        private (TBase Proxy, Action<int> Clear) InstantiateProxy<TBase>(Type[] argTypes, object[] args)
+        private (TBase Proxy, Action<Revision> Clear) InstantiateProxy<TBase>(Type[] argTypes, object[] args)
         {
             var type = typeof(TBase);
             var proxyClass = type.GetNestedType("Proxy");
             var proxyCtor = proxyClass.GetConstructor(argTypes);
             var proxy = (TBase)proxyCtor.Invoke(args);
-            var proxyClear = proxyClass.GetMethod("Clear", new Type[] { typeof(int) });
-            Action<int> proxyClearLambda = proxyClear == null
+            var proxyClear = proxyClass.GetMethod("Clear", new Type[] { typeof(Revision) });
+            Action<Revision> proxyClearLambda = proxyClear == null
                 ? before => { }
                 : before => proxyClear.Invoke(proxy, new object[] { before });
             return (proxy, proxyClearLambda);

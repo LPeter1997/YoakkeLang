@@ -219,7 +219,7 @@ public class Proxy : {symbol.Name} {{
         {additionalInit}
     }}
 
-    public void Clear(int before)
+    public void Clear({TypeNames.Revision} before)
     {{
         {clearCalls}
     }}

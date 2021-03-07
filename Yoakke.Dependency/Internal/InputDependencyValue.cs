@@ -15,22 +15,22 @@ namespace Yoakke.Dependency.Internal
     {
         private object value;
 
-        public int ChangedAt { get; private set; } = -1;
-        public int VerifiedAt => ChangedAt;
+        public Revision ChangedAt { get; private set; } = Revision.Invalid;
+        public Revision VerifiedAt => ChangedAt;
 
-        public void Clear(int before)
+        public void Clear(Revision before)
         {
             if (ChangedAt <= before)
             {
                 value = null;
-                ChangedAt = -1;
+                ChangedAt = Revision.Invalid;
             }
         }
 
         public Task<T> GetValueAsync<T>(DependencySystem system, CancellationToken cancellationToken)
         {
             system.RegisterDependency(this);
-            if (ChangedAt == -1)
+            if (ChangedAt == Revision.Invalid)
             {
                 throw new InvalidOperationException($"Tried to retrieve input value before it was ever set!");
             }

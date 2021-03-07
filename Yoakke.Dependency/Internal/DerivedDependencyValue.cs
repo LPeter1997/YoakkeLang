@@ -35,21 +35,21 @@ namespace Yoakke.Dependency.Internal
         private ComputeValueAsyncCtDelegate recompute;
         private object cachedValue;
 
-        public int ChangedAt { get; private set; } = -1;
-        public int VerifiedAt { get; private set; } = -1;
+        public Revision ChangedAt { get; private set; } = Revision.Invalid;
+        public Revision VerifiedAt { get; private set; } = Revision.Invalid;
 
         public DerivedDependencyValue(ComputeValueAsyncCtDelegate recompute)
         {
             this.recompute = recompute;
         }
 
-        public void Clear(int before)
+        public void Clear(Revision before)
         {
             if (VerifiedAt <= before)
             {
                 cachedValue = null;
-                ChangedAt = -1;
-                VerifiedAt = -1;
+                ChangedAt = Revision.Invalid;
+                VerifiedAt = Revision.Invalid;
                 Dependencies.Clear();
             }
         }
@@ -57,7 +57,7 @@ namespace Yoakke.Dependency.Internal
         public async Task<T> GetValueAsync<T>(DependencySystem system, CancellationToken cancellationToken)
         {
             system.DetectCycle(this);
-            if (ChangedAt != -1)
+            if (ChangedAt != Revision.Invalid)
             {
                 // Value is already memoized
                 if (VerifiedAt == system.CurrentRevision)

@@ -10,6 +10,7 @@ namespace Yoakke.Dependency.Generator
         public static readonly string InputQueryGroupAttribute = "Yoakke.Dependency.InputQueryGroupAttribute";
         public static readonly string SystemCancellationToken = "System.Threading.CancellationToken";
 
+        public static readonly string Revision = "Yoakke.Dependency.Revision";
         public static readonly string IInputQueryGroup = "Yoakke.Dependency.Internal.IInputQueryGroup";
         public static readonly string DependencySystem = "Yoakke.Dependency.DependencySystem";
         public static readonly string IDependencyValue = "Yoakke.Dependency.Internal.IDependencyValue";
