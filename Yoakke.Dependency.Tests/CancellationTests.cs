@@ -48,6 +48,8 @@ namespace Yoakke.Dependency.Tests
         [TestMethod]
         public void TestCancellationTokenNotPartOfKey()
         {
+            // ICancellableComputation.Proxy;
+
             var comp = new MyCancellableComputation();
             var system = new DependencySystem()
                 .Register<INumberInputs>()

@@ -174,7 +174,8 @@ public class Proxy : {symbol.Name} {{
             {
                 if (member is IMethodSymbol methodSymbol)
                 {
-                    if (methodSymbol.Parameters.IsEmpty)
+                    if (   methodSymbol.Parameters.IsEmpty
+                        || (methodSymbol.Parameters.Length == 1 && HasCancellationToken(methodSymbol)))
                     {
                         GenerateKeylessDerivedQuery(symbol.Name, proxyDefinitions, additionalInit, member);
                     }
@@ -299,25 +300,30 @@ public class Proxy : {symbol.Name} {{
         {
             var accessibility = AccessibilityToString(querySymbol.DeclaredAccessibility);
             var storedTypeSymbol = (querySymbol is IMethodSymbol ms ? ms.ReturnType : ((IPropertySymbol)querySymbol).Type);
+            var hasCt = querySymbol is IMethodSymbol ms2 && HasCancellationToken(ms2);
             var storedType = storedTypeSymbol.ToDisplayString();
 
+            var callParams = hasCt ? "(system, cancellationToken)" : "system";
+            var callPassArgs = hasCt ? "cancellationToken" : string.Empty;
             var callImpl = querySymbol is IPropertySymbol
-                ? $"system => this.implementation.{querySymbol.Name}"
-                : $"system => this.implementation.{querySymbol.Name}()";
+                ? $"{callParams} => this.implementation.{querySymbol.Name}"
+                : $"{callParams} => this.implementation.{querySymbol.Name}({callPassArgs})";
 
             // Generate storage
             proxyDefinitions.AppendLine($"private {TypeNames.IDependencyValue} {querySymbol.Name}_storage;");
             // Init storage
-            var delegateName = TypeNames.GetComputeDelegateName(IsAwaitable(storedTypeSymbol), false);
+            var delegateName = TypeNames.GetComputeDelegateName(IsAwaitable(storedTypeSymbol), hasCt);
             additionalInit.AppendLine($@"
     this.{querySymbol.Name}_storage = new {TypeNames.DerivedDependencyValue}(new {delegateName}({callImpl}));");
 
-            var getterImpl = $"return this.{querySymbol.Name}_storage.GetValue<{storedType}>(this.dependencySystem);";
+            var getterExtraArgs = hasCt ? ", cancellationToken" : string.Empty;
+            var getterImpl = $"return this.{querySymbol.Name}_storage.GetValue<{storedType}>(this.dependencySystem{getterExtraArgs});";
 
             if (querySymbol is IMethodSymbol)
             {
                 // Use method syntax
-                proxyDefinitions.AppendLine($@"{accessibility} {storedType} {querySymbol.Name}() {{ {getterImpl} }}");
+                var getterExtraParams = hasCt ? $"{TypeNames.SystemCancellationToken} cancellationToken" : string.Empty;
+                proxyDefinitions.AppendLine($@"{accessibility} {storedType} {querySymbol.Name}({getterExtraParams}) {{ {getterImpl} }}");
             }
             else
             {
@@ -338,22 +344,26 @@ public class Proxy : {symbol.Name} {{
             var accessibility = AccessibilityToString(querySymbol.DeclaredAccessibility);
             var storedTypeSymbol = querySymbol.ReturnType;
             var storedType = storedTypeSymbol.ToDisplayString();
+            var hasCt = HasCancellationToken(querySymbol);
 
             // Generate storage
             proxyDefinitions.AppendLine($"private {TypeNames.KeyValueCache} {querySymbol.Name}_storage = new {TypeNames.KeyValueCache}();");
 
-            var getterKeyParams = string.Join(", ", querySymbol.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}"));
-            var keyParamNames = string.Join(", ", querySymbol.Parameters.Select(p => p.Name));
+            var getterParams = string.Join(", ", querySymbol.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}"));
+            var keyParams = hasCt ? querySymbol.Parameters.Take(querySymbol.Parameters.Length - 1) : querySymbol.Parameters;
+            var keyParamNames = string.Join(", ", keyParams.Select(p => p.Name));
 
-            var callImpl = $"system => this.implementation.{querySymbol.Name}({keyParamNames})";
-            var delegateName = TypeNames.GetComputeDelegateName(IsAwaitable(storedTypeSymbol), HasCancellationToken(querySymbol));
+            var callParams = hasCt ? "(system, cancellationToken)" : "system";
+            var callExtraArgs = hasCt ? $", {querySymbol.Parameters.Last().Name}" : string.Empty;
+            var callImpl = $"{callParams} => this.implementation.{querySymbol.Name}({keyParamNames}{callExtraArgs})";
+            var delegateName = TypeNames.GetComputeDelegateName(IsAwaitable(storedTypeSymbol), hasCt);
             var getterImpl = $@"
     return this.{querySymbol.Name}_storage.GetDerived(({keyParamNames}), new {delegateName}({callImpl}))
-        .GetValue<{storedType}>(this.dependencySystem);";
+        .GetValue<{storedType}>(this.dependencySystem{callExtraArgs});";
 
             // Generate getter
             proxyDefinitions.AppendLine($@"
-{accessibility} {storedType} {querySymbol.Name}({getterKeyParams}) {{ {getterImpl} }}");
+{accessibility} {storedType} {querySymbol.Name}({getterParams}) {{ {getterImpl} }}");
         }
 
         private static bool IsAwaitable(ITypeSymbol symbol) => symbol
