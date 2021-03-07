@@ -20,9 +20,15 @@ namespace Yoakke.Dependency.Internal
         public delegate object ComputeValueCtDelegate(DependencySystem system, CancellationToken cancellationToken);
         public delegate object ComputeValueDelegate(DependencySystem system);
 
+        public static ComputeValueAsyncCtDelegate ToAsyncCtDelegate(ComputeValueAsyncCtDelegate f) => f;
         public static ComputeValueAsyncCtDelegate ToAsyncCtDelegate(ComputeValueAsyncDelegate f) => (sys, ct) => f(sys);
         public static ComputeValueAsyncCtDelegate ToAsyncCtDelegate(ComputeValueCtDelegate f) => (sys, ct) => Task.FromResult(f(sys, ct));
         public static ComputeValueAsyncCtDelegate ToAsyncCtDelegate(ComputeValueDelegate f) => (sys, ct) => Task.FromResult(f(sys));
+
+        public static ComputeValueAsyncCtDelegate ToAsyncCtDelegate<T>(Func<DependencySystem, Task<T>> f) =>
+            ToAsyncCtDelegate(new ComputeValueAsyncDelegate(sys => f(sys).ContinueWith(t => (object)t.Result)));
+        public static ComputeValueAsyncCtDelegate ToAsyncCtDelegate<T>(Func<DependencySystem, CancellationToken, Task<T>> f) =>
+            new ComputeValueAsyncCtDelegate((sys, ct) => f(sys, ct).ContinueWith(t => (object)t.Result));
 
         internal IList<IDependencyValue> Dependencies { get; private set; } = new List<IDependencyValue>();
 
@@ -35,21 +41,6 @@ namespace Yoakke.Dependency.Internal
         public DerivedDependencyValue(ComputeValueAsyncCtDelegate recompute)
         {
             this.recompute = recompute;
-        }
-
-        public DerivedDependencyValue(ComputeValueAsyncDelegate recompute)
-            : this(ToAsyncCtDelegate(recompute))
-        {
-        }
-
-        public DerivedDependencyValue(ComputeValueCtDelegate recompute)
-            : this(ToAsyncCtDelegate(recompute))
-        {
-        }
-
-        public DerivedDependencyValue(ComputeValueDelegate recompute)
-            : this(ToAsyncCtDelegate(recompute))
-        {
         }
 
         public async Task<T> GetValueAsync<T>(DependencySystem system, CancellationToken cancellationToken)

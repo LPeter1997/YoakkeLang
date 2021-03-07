@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Yoakke.Dependency.Internal
@@ -60,6 +61,18 @@ namespace Yoakke.Dependency.Internal
         /// Gets the dependency value with a cancellation token.
         /// </summary>
         public IDependencyValue GetDerived(object key, DerivedDependencyValue.ComputeValueDelegate recompute) =>
+            GetDerived(key, DerivedDependencyValue.ToAsyncCtDelegate(recompute));
+
+        /// <summary>
+        /// Gets the dependency value for a derived query asynchronously.
+        /// </summary>
+        public IDependencyValue GetDerived<T>(object key, Func<DependencySystem, Task<T>> recompute) =>
+            GetDerived(key, DerivedDependencyValue.ToAsyncCtDelegate(recompute));
+
+        /// <summary>
+        /// Gets the dependency value for a derived query asynchronously and with a cancellation token.
+        /// </summary>
+        public IDependencyValue GetDerived<T>(object key, Func<DependencySystem, CancellationToken, Task<T>> recompute) =>
             GetDerived(key, DerivedDependencyValue.ToAsyncCtDelegate(recompute));
     }
 }

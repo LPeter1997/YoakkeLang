@@ -299,8 +299,11 @@ public class Proxy : {symbol.Name} {{
             ISymbol querySymbol)
         {
             var accessibility = AccessibilityToString(querySymbol.DeclaredAccessibility);
-            var storedTypeSymbol = (querySymbol is IMethodSymbol ms ? ms.ReturnType : ((IPropertySymbol)querySymbol).Type);
+            var returnTypeSymbol = (querySymbol is IMethodSymbol ms ? ms.ReturnType : ((IPropertySymbol)querySymbol).Type);
+            var isAsync = IsAwaitable(returnTypeSymbol, out var storedTypeSymbol);
+            storedTypeSymbol = isAsync ? storedTypeSymbol : returnTypeSymbol;
             var hasCt = querySymbol is IMethodSymbol ms2 && HasCancellationToken(ms2);
+            var returnType = returnTypeSymbol.ToDisplayString();
             var storedType = storedTypeSymbol.ToDisplayString();
 
             var callParams = hasCt ? "(system, cancellationToken)" : "system";
@@ -312,24 +315,25 @@ public class Proxy : {symbol.Name} {{
             // Generate storage
             proxyDefinitions.AppendLine($"private {TypeNames.IDependencyValue} {querySymbol.Name}_storage;");
             // Init storage
-            var delegateName = TypeNames.GetComputeDelegateName(IsAwaitable(storedTypeSymbol), hasCt);
+            //var delegateName = TypeNames.GetComputeDelegateName(isAsync, hasCt);
             additionalInit.AppendLine($@"
-    this.{querySymbol.Name}_storage = new {TypeNames.DerivedDependencyValue}(new {delegateName}({callImpl}));");
+    this.{querySymbol.Name}_storage = new {TypeNames.DerivedDependencyValue}({TypeNames.DerivedDependencyValue}.ToAsyncCtDelegate({callImpl}));");
 
             var getterExtraArgs = hasCt ? ", cancellationToken" : string.Empty;
-            var getterImpl = $"return this.{querySymbol.Name}_storage.GetValue<{storedType}>(this.dependencySystem{getterExtraArgs});";
+            var getterPostfix = isAsync ? "Async" : string.Empty;
+            var getterImpl = $"return this.{querySymbol.Name}_storage.GetValue{getterPostfix}<{storedType}>(this.dependencySystem{getterExtraArgs});";
 
             if (querySymbol is IMethodSymbol)
             {
                 // Use method syntax
                 var getterExtraParams = hasCt ? $"{TypeNames.SystemCancellationToken} cancellationToken" : string.Empty;
-                proxyDefinitions.AppendLine($@"{accessibility} {storedType} {querySymbol.Name}({getterExtraParams}) {{ {getterImpl} }}");
+                proxyDefinitions.AppendLine($@"{accessibility} {returnType} {querySymbol.Name}({getterExtraParams}) {{ {getterImpl} }}");
             }
             else
             {
                 // Use property syntax
                 proxyDefinitions.AppendLine($@"
-{storedType} {interfaceName}.{querySymbol.Name}
+{returnType} {interfaceName}.{querySymbol.Name}
 {{
     get {{ {getterImpl} }}
 }}");
@@ -342,9 +346,12 @@ public class Proxy : {symbol.Name} {{
             IMethodSymbol querySymbol)
         {
             var accessibility = AccessibilityToString(querySymbol.DeclaredAccessibility);
-            var storedTypeSymbol = querySymbol.ReturnType;
-            var storedType = storedTypeSymbol.ToDisplayString();
+            var returnTypeSymbol = querySymbol.ReturnType;
+            var isAsync = IsAwaitable(returnTypeSymbol, out var storedTypeSymbol);
+            storedTypeSymbol = isAsync ? storedTypeSymbol : returnTypeSymbol;
             var hasCt = HasCancellationToken(querySymbol);
+            var returnType = returnTypeSymbol.ToDisplayString();
+            var storedType = storedTypeSymbol.ToDisplayString();
 
             // Generate storage
             proxyDefinitions.AppendLine($"private {TypeNames.KeyValueCache} {querySymbol.Name}_storage = new {TypeNames.KeyValueCache}();");
@@ -356,19 +363,36 @@ public class Proxy : {symbol.Name} {{
             var callParams = hasCt ? "(system, cancellationToken)" : "system";
             var callExtraArgs = hasCt ? $", {querySymbol.Parameters.Last().Name}" : string.Empty;
             var callImpl = $"{callParams} => this.implementation.{querySymbol.Name}({keyParamNames}{callExtraArgs})";
-            var delegateName = TypeNames.GetComputeDelegateName(IsAwaitable(storedTypeSymbol), hasCt);
+            var getterPostfix = isAsync ? "Async" : string.Empty;
+            //var delegateName = TypeNames.GetComputeDelegateName(isAsync, hasCt);
             var getterImpl = $@"
-    return this.{querySymbol.Name}_storage.GetDerived(({keyParamNames}), new {delegateName}({callImpl}))
-        .GetValue<{storedType}>(this.dependencySystem{callExtraArgs});";
+    return this.{querySymbol.Name}_storage.GetDerived(({keyParamNames}), {TypeNames.DerivedDependencyValue}.ToAsyncCtDelegate({callImpl}))
+        .GetValue{getterPostfix}<{storedType}>(this.dependencySystem{callExtraArgs});";
 
             // Generate getter
             proxyDefinitions.AppendLine($@"
-{accessibility} {storedType} {querySymbol.Name}({getterParams}) {{ {getterImpl} }}");
+{accessibility} {returnType} {querySymbol.Name}({getterParams}) {{ {getterImpl} }}");
         }
 
-        private static bool IsAwaitable(ITypeSymbol symbol) => symbol
-            .GetMembers()
-            .Any(m => m.Kind == SymbolKind.Method && m.Name == "GetAwaiter");
+        private static bool IsAwaitable(ITypeSymbol symbol, out ITypeSymbol awaitedType)
+        {
+            awaitedType = null;
+            foreach (var member in symbol.GetMembers())
+            {
+                if (member.Kind == SymbolKind.Method && member.Name == "GetAwaiter"
+                    && member is IMethodSymbol getAwaiterMethod)
+                {
+                    var awaiterType = getAwaiterMethod.ReturnType;
+                    var awaiterGetResult = awaiterType.GetMembers().First(m => m.Name == "GetResult");
+                    if (awaiterGetResult is IMethodSymbol awaiterGetResultSym)
+                    {
+                        awaitedType = awaiterGetResultSym.ReturnType;
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
 
         private bool HasCancellationToken(IMethodSymbol methodSymbol) =>
                methodSymbol.Parameters.Length > 0
