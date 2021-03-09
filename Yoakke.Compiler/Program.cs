@@ -6,6 +6,7 @@ using System.Linq;
 using Yoakke.Compiler.Error;
 using Yoakke.Compiler.Semantic;
 using Yoakke.DataStructures;
+using Yoakke.Debugging;
 using Yoakke.Dependency;
 using Yoakke.Lir.Backend;
 using Yoakke.Lir.Backend.Toolchain;
@@ -21,35 +22,17 @@ using Yoakke.Syntax.Error;
 
 namespace Yoakke.Compiler
 {
-    [InputQueryGroup]
-    partial interface IInputProvider
-    {
-        public string StandardLibraryPath();
-        public string SourceText(string path, string root);
-    }
-
-    [QueryGroup]
-    partial interface IParser
-    {
-        List<int> LexTokens(string path);
-    }
-
-    class MyParser : IParser
-    {
-        public List<int> LexTokens(string path)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
     class Program
     {
         static void Main(string[] args)
         {
-            var system = new DependencySystem()
-                .Register<IInputProvider>();
-            Console.WriteLine(system.Get<IInputProvider>().SourceText("foo.yk", "rooty"));
-            //system.Get<IParser>().ThisIsInjected();
+            using (var debugger = IDebugger.Create())
+            {
+                debugger.ProcessStartedEvent += (sender, ev) => Console.WriteLine("Process started");
+                debugger.ProcessTerminatedEvent += (sender, ev) => Console.WriteLine($"Process terminated (code {ev.ExitCode})");
+                debugger.StartProcess(@"c:\Users\Péter Lenkefi\source\repos\DebuggerTest\DebuggerTest\foo.exe", null);
+                while (true) { }
+            }
         }
     }
 

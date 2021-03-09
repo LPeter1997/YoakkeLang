@@ -4,3 +4,9 @@ ContinueDebugEvent
 ReadProcessMemory
 WriteProcessMemory
 FlushInstructionCache
+ERROR_SEM_TIMEOUT
+DBG_CONTINUE
+GetLastError
+CREATE_PROCESS_DEBUG_EVENT
+EXIT_PROCESS_DEBUG_EVENT
+ERROR_INVALID_HANDLE

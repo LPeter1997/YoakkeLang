@@ -6,7 +6,7 @@ namespace Yoakke.Debugging
     /// <summary>
     /// Interface for debugging a process.
     /// </summary>
-    public interface IDebugger
+    public interface IDebugger : IDisposable
     {
         // Delegates ///////////////////////////////////////////////////////////
 
@@ -45,5 +45,12 @@ namespace Yoakke.Debugging
         /// <param name="commandLine">The command line arguments to pass.</param>
         /// <returns>The started process.</returns>
         public IProcess StartProcess(string path, string? commandLine);
+
+        // Default for the platform ////////////////////////////////////////////
+
+        public static IDebugger Create()
+        {
+            return new Win32.Win32Debugger();
+        }
     }
 }
