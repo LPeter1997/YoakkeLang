@@ -1,0 +1,6 @@
+﻿CreateProcessW
+WaitForDebugEventEx
+ContinueDebugEvent
+ReadProcessMemory
+WriteProcessMemory
+FlushInstructionCache
