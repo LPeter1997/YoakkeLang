@@ -10,10 +10,12 @@ namespace Yoakke.Debugging.Win32
     internal class Win32Process : IProcess
     {
         public readonly HANDLE Handle;
+        public readonly UIntPtr StartAddress;
 
-        public Win32Process(HANDLE handle)
+        public Win32Process(HANDLE handle, UIntPtr startAddress)
         {
             Handle = handle;
+            StartAddress = startAddress;
         }
     }
 }

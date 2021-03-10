@@ -44,6 +44,12 @@ namespace Yoakke.Debugging.Win32
         public void StartProcess(string path, string? commandLine) =>
             processesToAdd.Enqueue((path, commandLine));
 
+        public IBreakpoint AddBreakpoint(IProcess process, ulong offset)
+        {
+            var win32process = (Win32Process)process;
+            throw new NotImplementedException();
+        }
+
         private void RunMessageLoop()
         {
             running = true;
@@ -79,16 +85,22 @@ namespace Yoakke.Debugging.Win32
         {
             switch (debugEvent.dwDebugEventCode)
             {
-            case 3: // CREATE_PROCESS_DEBUG_EVENT
+            case DEBUG_EVENT_dwDebugEventCodeFlags.CREATE_PROCESS_DEBUG_EVENT:
             {
                 var info = debugEvent.u.CreateProcessInfo;
                 var pid = PInvoke.GetProcessId(info.hProcess);
-                var process = new Win32Process(info.hProcess);
+                if (!WinApi.SymInitializeW(info.hProcess, null, false))
+                {
+                    // TODO: Proper error
+                    throw new NotImplementedException();
+                }
+                var startAddress = GetStartAddress(info.hProcess);
+                var process = new Win32Process(info.hProcess, startAddress);
                 processes.Add(pid, process);
                 ProcessStarted?.Invoke(this, new ProcessStartedEventArgs { Process = process });
             } break;
 
-            case 5: // EXIT_PROCESS_DEBUG_EVENT
+            case DEBUG_EVENT_dwDebugEventCodeFlags.EXIT_PROCESS_DEBUG_EVENT:
             {
                 var info = debugEvent.u.ExitProcess;
                 var process = processes[debugEvent.dwProcessId];
@@ -97,7 +109,7 @@ namespace Yoakke.Debugging.Win32
                 ProcessTerminated?.Invoke(this, new ProcessTerminatedEventArgs { Process = process, ExitCode = exitCode });
             } break;
 
-            case 2: // CREATE_THREAD_DEBUG_EVENT
+            case DEBUG_EVENT_dwDebugEventCodeFlags.CREATE_THREAD_DEBUG_EVENT:
             {
                 var info = debugEvent.u.CreateThread;
                 var tid = PInvoke.GetThreadId(info.hThread);
@@ -106,7 +118,7 @@ namespace Yoakke.Debugging.Win32
                 ThreadStarted?.Invoke(this, new ThreadStartedEventArgs { Thread = thread });
             } break;
 
-            case 4: // EXIT_THREAD_DEBUG_EVENT
+            case DEBUG_EVENT_dwDebugEventCodeFlags.EXIT_THREAD_DEBUG_EVENT:
             {
                 var info = debugEvent.u.ExitThread;
                 var thread = threads[debugEvent.dwThreadId];
@@ -115,7 +127,7 @@ namespace Yoakke.Debugging.Win32
                 ThreadTerminated?.Invoke(this, new ThreadTerminatedEventArgs { Thread = thread, ExitCode = exitCode });
             } break;
 
-            case 8: // OUTPUT_DEBUG_STRING_EVENT
+            case DEBUG_EVENT_dwDebugEventCodeFlags.OUTPUT_DEBUG_STRING_EVENT:
             {
                 var info = debugEvent.u.DebugString;
                 var process = processes[debugEvent.dwProcessId];
@@ -142,7 +154,7 @@ namespace Yoakke.Debugging.Win32
             }
         }
 
-        private void StartProcessInternal(string path, string? commandLine)
+        private static void StartProcessInternal(string path, string? commandLine)
         {
             unsafe
             {
@@ -168,6 +180,18 @@ namespace Yoakke.Debugging.Win32
                         throw new NotImplementedException();
                     }
                 }
+            }
+        }
+
+        private static UIntPtr GetStartAddress(HANDLE process)
+        {
+            unsafe
+            {
+                var symbol = new WinApi.SYMBOL_INFOW();
+                symbol.SizeOfStruct = (uint)sizeof(WinApi.SYMBOL_INFOW);
+                symbol.MaxNameLen = 0;
+                WinApi.SymFromNameW(process, "wWinMainCRTStartup", out symbol);
+                return new UIntPtr(symbol.Address);
             }
         }
     }

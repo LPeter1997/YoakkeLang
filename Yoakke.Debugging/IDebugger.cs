@@ -81,6 +81,14 @@ namespace Yoakke.Debugging
         /// <param name="commandLine">The command line arguments to pass.</param>
         public void StartProcess(string path, string? commandLine);
 
+        /// <summary>
+        /// Adds a breakpoint (disabled by default) at the given offset.
+        /// </summary>
+        /// <param name="process">The process to add the breakpoint to.</param>
+        /// <param name="offset">The offset of the breakpoint relative to the process base address.</param>
+        /// <returns>The handle to the breakpoint.</returns>
+        public IBreakpoint AddBreakpoint(IProcess process, ulong offset);
+
         // Default for the platform ////////////////////////////////////////////
 
         public static IDebugger Create()
