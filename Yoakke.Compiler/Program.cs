@@ -69,6 +69,11 @@ namespace Yoakke.Compiler
                     var pid = GetProcessId(ev.Thread.Process);
                     Console.WriteLine($"Thread {id} terminated in process {pid} (code {ev.ExitCode})");
                 };
+                debugger.DebugOutput += (sender, ev) =>
+                {
+                    var pid = GetProcessId(ev.Process);
+                    Console.WriteLine($"Process {pid} says: {ev.Message}");
+                };
 
                 debugger.StartProcess(@"c:\Users\Péter Lenkefi\source\repos\DebuggerTest\DebuggerTest\foo.exe", null);
                 while (true) { }

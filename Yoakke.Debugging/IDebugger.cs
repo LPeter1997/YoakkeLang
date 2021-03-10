@@ -38,6 +38,13 @@ namespace Yoakke.Debugging
         /// <param name="args">The event arguments.</param>
         public delegate void ThreadTerminatedEventHandler(object? sender, ThreadTerminatedEventArgs args);
 
+        /// <summary>
+        /// Delegate for the event when a debug message is sent.
+        /// </summary>
+        /// <param name="sender">The debugger that sent this event.</param>
+        /// <param name="args">The event arguments.</param>
+        public delegate void DebugOutputEventHandler(object? sender, DebugOutputEventArgs args);
+
         // Events //////////////////////////////////////////////////////////////
 
         /// <summary>
@@ -56,9 +63,14 @@ namespace Yoakke.Debugging
         public event ThreadStartedEventHandler? ThreadStarted;
 
         /// <summary>
-        /// The event that happens when a process is terminated.
+        /// The event that happens when a thread is terminated.
         /// </summary>
         public event ThreadTerminatedEventHandler? ThreadTerminated;
+
+        /// <summary>
+        /// The event that happens when a process sends some debug output.
+        /// </summary>
+        public event DebugOutputEventHandler? DebugOutput;
 
         // API /////////////////////////////////////////////////////////////////
 

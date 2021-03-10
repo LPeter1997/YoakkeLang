@@ -25,6 +25,7 @@ namespace Yoakke.Debugging.Win32
         public event IDebugger.ProcessTerminatedEventHandler? ProcessTerminated;
         public event IDebugger.ThreadStartedEventHandler? ThreadStarted;
         public event IDebugger.ThreadTerminatedEventHandler? ThreadTerminated;
+        public event IDebugger.DebugOutputEventHandler? DebugOutput;
 
         public Win32Debugger()
         {
@@ -49,7 +50,7 @@ namespace Yoakke.Debugging.Win32
             var debugEvent = new DEBUG_EVENT();
             while (running)
             {
-                if (processesToAdd.TryDequeue(out var toAdd))
+                while (processesToAdd.TryDequeue(out var toAdd))
                 {
                     StartProcessInternal(toAdd.Path, toAdd.CommandLine);
                 }
@@ -112,6 +113,26 @@ namespace Yoakke.Debugging.Win32
                 var exitCode = (int)info.dwExitCode;
                 threads.Remove(debugEvent.dwThreadId);
                 ThreadTerminated?.Invoke(this, new ThreadTerminatedEventArgs { Thread = thread, ExitCode = exitCode });
+            } break;
+
+            case 8: // OUTPUT_DEBUG_STRING_EVENT
+            {
+                var info = debugEvent.u.DebugString;
+                var process = processes[debugEvent.dwProcessId];
+                // NOTE: Doesn't work
+                //var thread = threads[debugEvent.dwThreadId];
+                byte[] buffer = new byte[info.nDebugStringLength];
+                unsafe
+                {
+                    fixed (byte* pbuffer = buffer)
+                    {
+                        PInvoke.ReadProcessMemory(process.Handle, info.lpDebugStringData, pbuffer, info.nDebugStringLength, null);
+                    }
+                }
+                string message = info.fUnicode == 0
+                    ? Encoding.ASCII.GetString(buffer)
+                    : Encoding.Unicode.GetString(buffer);
+                DebugOutput?.Invoke(this, new DebugOutputEventArgs { Process = process, Message = message });
             } break;
 
             default:
