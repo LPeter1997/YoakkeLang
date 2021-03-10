@@ -24,12 +24,52 @@ namespace Yoakke.Compiler
 {
     class Program
     {
+        private static Dictionary<IProcess, int> processIds = new Dictionary<IProcess, int>();
+        private static Dictionary<IThread, int> threadIds = new Dictionary<IThread, int>();
+
+        private static int GetProcessId(IProcess p)
+        {
+            if (processIds.TryGetValue(p, out var id)) return id;
+            id = processIds.Count;
+            processIds[p] = id;
+            return id;
+        }
+
+        private static int GetThreadId(IThread p)
+        {
+            if (threadIds.TryGetValue(p, out var id)) return id;
+            id = threadIds.Count;
+            threadIds[p] = id;
+            return id;
+        }
+
         static void Main(string[] args)
         {
             using (var debugger = IDebugger.Create())
             {
-                debugger.ProcessStartedEvent += (sender, ev) => Console.WriteLine("Process started");
-                debugger.ProcessTerminatedEvent += (sender, ev) => Console.WriteLine($"Process terminated (code {ev.ExitCode})");
+                debugger.ProcessStarted += (sender, ev) =>
+                {
+                    var id = GetProcessId(ev.Process);
+                    Console.WriteLine($"Process {id} started");
+                };
+                debugger.ProcessTerminated += (sender, ev) =>
+                {
+                    var id = GetProcessId(ev.Process);
+                    Console.WriteLine($"Process {id} terminated (code {ev.ExitCode})");
+                };
+                debugger.ThreadStarted += (sender, ev) =>
+                {
+                    var id = GetThreadId(ev.Thread);
+                    var pid = GetProcessId(ev.Thread.Process);
+                    Console.WriteLine($"Thread {id} started in process {pid}");
+                };
+                debugger.ThreadTerminated += (sender, ev) =>
+                {
+                    var id = GetThreadId(ev.Thread);
+                    var pid = GetProcessId(ev.Thread.Process);
+                    Console.WriteLine($"Thread {id} terminated in process {pid} (code {ev.ExitCode})");
+                };
+
                 debugger.StartProcess(@"c:\Users\Péter Lenkefi\source\repos\DebuggerTest\DebuggerTest\foo.exe", null);
                 while (true) { }
             }

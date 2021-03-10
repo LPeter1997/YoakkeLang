@@ -24,17 +24,41 @@ namespace Yoakke.Debugging
         /// <param name="args">The event arguments.</param>
         public delegate void ProcessTerminatedEventHandler(object? sender, ProcessTerminatedEventArgs args);
 
+        /// <summary>
+        /// Delegate for the event when a thread is started.
+        /// </summary>
+        /// <param name="sender">The debugger that sent this event.</param>
+        /// <param name="args">The event arguments.</param>
+        public delegate void ThreadStartedEventHandler(object? sender, ThreadStartedEventArgs args);
+
+        /// <summary>
+        /// Delegate for the event when a thread is terminated.
+        /// </summary>
+        /// <param name="sender">The debugger that sent this event.</param>
+        /// <param name="args">The event arguments.</param>
+        public delegate void ThreadTerminatedEventHandler(object? sender, ThreadTerminatedEventArgs args);
+
         // Events //////////////////////////////////////////////////////////////
 
         /// <summary>
         /// The event that happens when a process is started.
         /// </summary>
-        public event ProcessStartedEventHandler? ProcessStartedEvent;
+        public event ProcessStartedEventHandler? ProcessStarted;
 
         /// <summary>
         /// The event that happens when a process is terminated.
         /// </summary>
-        public event ProcessTerminatedEventHandler? ProcessTerminatedEvent;
+        public event ProcessTerminatedEventHandler? ProcessTerminated;
+
+        /// <summary>
+        /// The event that happens when a thread is started.
+        /// </summary>
+        public event ThreadStartedEventHandler? ThreadStarted;
+
+        /// <summary>
+        /// The event that happens when a process is terminated.
+        /// </summary>
+        public event ThreadTerminatedEventHandler? ThreadTerminated;
 
         // API /////////////////////////////////////////////////////////////////
 
@@ -43,8 +67,7 @@ namespace Yoakke.Debugging
         /// </summary>
         /// <param name="path">The path to the executable to start.</param>
         /// <param name="commandLine">The command line arguments to pass.</param>
-        /// <returns>The started process.</returns>
-        public IProcess StartProcess(string path, string? commandLine);
+        public void StartProcess(string path, string? commandLine);
 
         // Default for the platform ////////////////////////////////////////////
 
