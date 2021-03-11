@@ -16,7 +16,7 @@ namespace Yoakke.Debugging.Win32
         private Thread loopThread;
         // Communication between threads
         private BlockingCollection<Action> queuedActions;
-        private ConcurrentDictionary<UInt32, TaskCompletionSource<IProcess>> unreturnedProcesses;
+        private Dictionary<UInt32, TaskCompletionSource<IProcess>> unreturnedProcesses;
         // Bookkeeping
         private ConcurrentDictionary<UInt32, Win32Process> processes;
 
@@ -27,7 +27,7 @@ namespace Yoakke.Debugging.Win32
             loopThread = new Thread(RunLoop);
 
             queuedActions = new BlockingCollection<Action>();
-            unreturnedProcesses = new ConcurrentDictionary<uint, TaskCompletionSource<IProcess>>();
+            unreturnedProcesses = new Dictionary<uint, TaskCompletionSource<IProcess>>();
             processes = new ConcurrentDictionary<uint, Win32Process>();
             
             // NOTE: Start the thread last so everything will be initialized
@@ -65,7 +65,7 @@ namespace Yoakke.Debugging.Win32
         {
             Console.WriteLine("create process");
             // NOTE: We assign the result here as this is when we know the start address of the process
-            if (unreturnedProcesses.TryRemove(process.Id, out var tcs))
+            if (unreturnedProcesses.Remove(process.Id, out var tcs))
             {
                 unsafe
                 {
