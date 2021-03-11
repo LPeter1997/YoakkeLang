@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -106,7 +107,21 @@ namespace Yoakke.Debugging.Win32
             }
         }
 
-        internal static void OffsetInstructionPointer(IntPtr threadHandle, int offset)
+        internal static byte[] WriteBreakInstruction(Win32Process process, ulong offset)
+        {
+            byte[] oldBytes = ReadInstructionBytes(process, offset, 1);
+            Debug.Assert(oldBytes.Length == 1);
+            WriteInstructionBytes(process, offset, new byte[] { INSTR_BREAK_X86 });
+            return oldBytes;
+        }
+
+        internal static void OffsetInstructionPointer(IntPtr threadHandle, int offset) =>
+            ModifyThreadContext(threadHandle, offset, null);
+
+        internal static void SetTrapFlag(IntPtr threadHandle, bool on) =>
+            ModifyThreadContext(threadHandle, null, on);
+
+        private static void ModifyThreadContext(IntPtr threadHandle, int? instructionPointerOffset, bool? trapFlag)
         {
             var arch = RuntimeInformation.ProcessArchitecture;
             unsafe
@@ -114,16 +129,24 @@ namespace Yoakke.Debugging.Win32
                 if (arch == Architecture.X86)
                 {
                     var context = new CONTEXT_X86();
-                    context.ContextFlags = 1;
+                    context.ContextFlags = CONTEXT_CONTROL;
                     var success = GetThreadContext_X86(threadHandle, &context);
                     ErrorOnFalse(success);
-                    context.Eip = (uint)((int)context.Eip + offset);
+                    if (instructionPointerOffset != null)
+                    {
+                        context.Eip = (uint)((int)context.Eip + instructionPointerOffset.Value);
+                    }
+                    if (trapFlag != null)
+                    {
+                        if (trapFlag.Value) context.EFlags |= TRAP_FLAG_X86;
+                        else context.EFlags &= ~TRAP_FLAG_X86;
+                    }
                     success = SetThreadContext_X86(threadHandle, &context);
                     ErrorOnFalse(success);
                 }
                 else
                 {
-                    throw new NotImplementedException($"Architecture {arch} does not support this operation");
+                    throw new NotImplementedException($"Architecture {arch} does not support thread context modification");
                 }
             }
         }
@@ -137,10 +160,8 @@ namespace Yoakke.Debugging.Win32
             }
         }
 
-        private static void ThrowApiError(UInt32 errorCode)
-        {
+        private static void ThrowApiError(UInt32 errorCode) =>
             throw new InvalidOperationException($"WinAPI error code {errorCode}");
-        }
 
         private const Int32 FALSE = 0;
         private const UInt32 DEBUG_ONLY_THIS_PROCESS = 2;
@@ -148,6 +169,10 @@ namespace Yoakke.Debugging.Win32
         private const UInt32 ERROR_SUCCESS = 0;
         private const UInt32 ERROR_SEM_TIMEOUT = 121;
         private const UInt32 DBG_CONTINUE = 0x00010002;
+        private const UInt32 CONTEXT_i386 = 0x00010000;
+        private const UInt32 CONTEXT_CONTROL = CONTEXT_i386 | 0x00000001;
+        private const UInt32 TRAP_FLAG_X86 = 0x100;
+        private const byte INSTR_BREAK_X86 = 0xCC;
 
         internal const UInt32 CREATE_PROCESS_DEBUG_EVENT = 3;
         internal const UInt32 CREATE_THREAD_DEBUG_EVENT = 2;
