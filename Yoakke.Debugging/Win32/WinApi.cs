@@ -184,6 +184,27 @@ namespace Yoakke.Debugging.Win32
         internal const UInt32 RIP_EVENT = 9;
         internal const UInt32 UNLOAD_DLL_DEBUG_EVENT = 7;
 
+        internal const UInt32 EXCEPTION_ACCESS_VIOLATION = 0xC0000005;
+        internal const UInt32 EXCEPTION_ARRAY_BOUNDS_EXCEEDED = 0xC000008C;
+        internal const UInt32 EXCEPTION_BREAKPOINT = 0x80000003;
+        internal const UInt32 EXCEPTION_DATATYPE_MISALIGNMENT = 0x80000002;
+        internal const UInt32 EXCEPTION_FLT_DENORMAL_OPERAND = 0xC000008D;
+        internal const UInt32 EXCEPTION_FLT_DIVIDE_BY_ZERO = 0xC000008E;
+        internal const UInt32 EXCEPTION_FLT_INEXACT_RESULT = 0xC000008F;
+        internal const UInt32 EXCEPTION_FLT_INVALID_OPERATION = 0xC0000090;
+        internal const UInt32 EXCEPTION_FLT_OVERFLOW = 0xC0000091;
+        internal const UInt32 EXCEPTION_FLT_STACK_CHECK = 0xC0000092;
+        internal const UInt32 EXCEPTION_FLT_UNDERFLOW = 0xC0000093;
+        internal const UInt32 EXCEPTION_ILLEGAL_INSTRUCTION = 0xC000001D;
+        internal const UInt32 EXCEPTION_IN_PAGE_ERROR = 0xC0000006;
+        internal const UInt32 EXCEPTION_INT_DIVIDE_BY_ZERO = 0xC0000094;
+        internal const UInt32 EXCEPTION_INT_OVERFLOW = 0xC0000095;
+        internal const UInt32 EXCEPTION_INVALID_DISPOSITION = 0xC0000026;
+        internal const UInt32 EXCEPTION_NONCONTINUABLE_EXCEPTION = 0xC0000025;
+        internal const UInt32 EXCEPTION_PRIV_INSTRUCTION = 0xC0000096;
+        internal const UInt32 EXCEPTION_SINGLE_STEP = 0x80000004;
+        internal const UInt32 EXCEPTION_STACK_OVERFLOW = 0xC00000FD;
+
         private unsafe struct STARTUPINFOW
         {
             public UInt32 cb;

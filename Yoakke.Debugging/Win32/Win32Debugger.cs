@@ -87,7 +87,82 @@ namespace Yoakke.Debugging.Win32
 
         private void ExceptionDebugEvent(Win32Process process, ref WinApi.EXCEPTION_DEBUG_INFO info)
         {
-            Console.WriteLine("exception");
+            if (info.dwFirstChance != 0)
+            {
+                // First time encounter
+                switch (info.ExceptionRecord.ExceptionCode)
+                {
+                case WinApi.EXCEPTION_ACCESS_VIOLATION:
+                    Console.WriteLine("Exception: ACCESS VIOLATION");
+                    break;
+                case WinApi.EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
+                    Console.WriteLine("Exception: ARRAY BOUNDS EXCEEDED");
+                    break;
+                case WinApi.EXCEPTION_BREAKPOINT:
+                    Console.WriteLine("Exception: BREAKPOINT");
+                    break;
+                case WinApi.EXCEPTION_DATATYPE_MISALIGNMENT:
+                    Console.WriteLine("Exception: DATATYPE MISALIGNMENT");
+                    break;
+                case WinApi.EXCEPTION_FLT_DENORMAL_OPERAND:
+                    Console.WriteLine("Exception: FLT DENORMAL OPERAND");
+                    break;
+                case WinApi.EXCEPTION_FLT_DIVIDE_BY_ZERO:
+                    Console.WriteLine("Exception: FLT DIVIDE BY ZERO");
+                    break;
+                case WinApi.EXCEPTION_FLT_INEXACT_RESULT:
+                    Console.WriteLine("Exception: FLT INEXACT RESULT");
+                    break;
+                case WinApi.EXCEPTION_FLT_INVALID_OPERATION:
+                    Console.WriteLine("Exception: FLT INVALID OPERATION");
+                    break;
+                case WinApi.EXCEPTION_FLT_OVERFLOW:
+                    Console.WriteLine("Exception: FLT OVERFLOW");
+                    break;
+                case WinApi.EXCEPTION_FLT_STACK_CHECK:
+                    Console.WriteLine("Exception: FLT STACK CHECK");
+                    break;
+                case WinApi.EXCEPTION_FLT_UNDERFLOW:
+                    Console.WriteLine("Exception: FLT UNDERFLOW");
+                    break;
+                case WinApi.EXCEPTION_ILLEGAL_INSTRUCTION:
+                    Console.WriteLine("Exception: ILLEGAL INSTRUCTION");
+                    break;
+                case WinApi.EXCEPTION_IN_PAGE_ERROR:
+                    Console.WriteLine("Exception: IN PAGE ERROR");
+                    break;
+                case WinApi.EXCEPTION_INT_DIVIDE_BY_ZERO:
+                    Console.WriteLine("Exception: INT DIVIDE BY ZERO");
+                    break;
+                case WinApi.EXCEPTION_INT_OVERFLOW:
+                    Console.WriteLine("Exception: INT OVERFLOW");
+                    break;
+                case WinApi.EXCEPTION_INVALID_DISPOSITION:
+                    Console.WriteLine("Exception: INVALID DISPOSITION");
+                    break;
+                case WinApi.EXCEPTION_NONCONTINUABLE_EXCEPTION:
+                    Console.WriteLine("Exception: NONCONTINUABLE EXCEPTION");
+                    break;
+                case WinApi.EXCEPTION_PRIV_INSTRUCTION:
+                    Console.WriteLine("Exception: PRIV INSTRUCTION");
+                    break;
+                case WinApi.EXCEPTION_SINGLE_STEP:
+                    Console.WriteLine("Exception: SINGLE STEP");
+                    break;
+                case WinApi.EXCEPTION_STACK_OVERFLOW:
+                    Console.WriteLine("Exception: STACK OVERFLOW");
+                    break;
+                default:
+                    Console.WriteLine("Exception: ???");
+                    break;
+                }
+            }
+            else
+            {
+                // Already encountered
+                // TODO: What to do?
+                Console.WriteLine("already encountered exception");
+            }
         }
 
         private void ExitProcessDebugEvent(Win32Process process, ref WinApi.EXIT_PROCESS_DEBUG_INFO info)
