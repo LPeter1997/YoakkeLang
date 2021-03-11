@@ -16,7 +16,7 @@ namespace Yoakke.Debugging.Win32
                 var startupInfo = new STARTUPINFOW();
                 startupInfo.cb = (UInt32)sizeof(STARTUPINFOW);
                 var processInfo = new PROCESS_INFORMATION();
-                Int32 success = 0;
+                Int32 success = FALSE;
                 fixed (char* lpApplicationName = applicationName)
                 fixed (char* lpCommandLine = commandLine)
                 {
@@ -37,7 +37,7 @@ namespace Yoakke.Debugging.Win32
                     throw new NotImplementedException();
                 }
                 var handleId = GetProcessId(processInfo.hProcess);
-                if (handleId == 0)
+                if (handleId == FALSE)
                 {
                     // TODO: Error
                     throw new NotImplementedException();
@@ -50,12 +50,12 @@ namespace Yoakke.Debugging.Win32
         {
             unsafe
             {
-                Int32 result = 0;
+                Int32 success = FALSE;
                 fixed (DEBUG_EVENT* lpDebugEvent = &debugEvent)
                 {
-                    result = WaitForDebugEventEx(lpDebugEvent, 0);
+                    success = WaitForDebugEventEx(lpDebugEvent, 0);
                 }
-                if (result == 0)
+                if (success == FALSE)
                 {
                     var err = GetLastError();
                     if (err != ERROR_SEM_TIMEOUT)
@@ -75,16 +75,61 @@ namespace Yoakke.Debugging.Win32
         {
             unsafe
             {
-                Int32 result = 0;
-                ContinueDebugEvent(debugEvent.dwProcessId, debugEvent.dwThreadId, DBG_CONTINUE);
-                if (result == 0)
+                Int32 success = ContinueDebugEvent(debugEvent.dwProcessId, debugEvent.dwThreadId, DBG_CONTINUE);
+                if (success == FALSE)
                 {
                     var err = GetLastError();
-                    if (err != ERROR_SUCCESS)
-                    {
-                        // TODO: Proper error
-                        throw new NotImplementedException($"error {err}");
-                    }
+                    // TODO: Proper error
+                    throw new NotImplementedException($"error {err}");
+                }
+            }
+        }
+
+        internal static byte[] ReadInstructionBytes(Win32Process process, ulong offset, int size)
+        {
+            unsafe
+            {
+                Int32 success = FALSE;
+                byte[] buffer = new byte[size];
+                fixed (byte* pBuffer = buffer)
+                {
+                    // TODO: Offset is wrong here!
+                    success = ReadProcessMemory(process.Handle, (void*)offset, pBuffer, (nuint)size, null);
+                }
+                if (success == FALSE)
+                {
+                    // TODO: Error
+                    var err = GetLastError();
+                    throw new NotImplementedException($"error {err}");
+                }
+                return buffer;
+            }
+        }
+
+        internal static void WriteInstructionBytes(Win32Process process, ulong offset, byte[] bytes)
+        {
+            unsafe
+            {
+                // First write the memory
+                Int32 success = FALSE;
+                fixed (byte* pBuffer = bytes)
+                {
+                    // TODO: Offset is wrong here!
+                    success = WriteProcessMemory(process.Handle, (void*)offset, pBuffer, (nuint)bytes.Length, null);
+                }
+                if (success == FALSE)
+                {
+                    // TODO: Error
+                    var err = GetLastError();
+                    throw new NotImplementedException($"error {err}");
+                }
+                // Then flush instruction cache
+                success = FlushInstructionCache(process.Handle, (void*)offset, (nuint)bytes.Length);
+                if (success == FALSE)
+                {
+                    // TODO: Error
+                    var err = GetLastError();
+                    throw new NotImplementedException($"error {err}");
                 }
             }
         }
@@ -324,5 +369,19 @@ namespace Yoakke.Debugging.Win32
             void* lpBuffer,
             nuint nSize,
             nuint* lpNumberOfBytesRead);
+
+        [DllImport("Kernel32", ExactSpelling = true, SetLastError = true)]
+        private static extern unsafe Int32 WriteProcessMemory(
+            IntPtr hProcess,
+            void* lpBaseAddress,
+            void* lpBuffer,
+            nuint nSize,
+            nuint* lpNumberOfBytesRead);
+
+        [DllImport("Kernel32", ExactSpelling = true, SetLastError = true)]
+        private static extern unsafe Int32 FlushInstructionCache(
+            IntPtr hProcess,
+            void* lpBaseAddress,
+            nuint dwSize);
     }
 }
