@@ -9,7 +9,7 @@ namespace Yoakke.Debugging.Win32
 {
     internal static class WinApi
     {
-        internal static Win32Process? CreateDebuggableProcess(string applicationName, string? commandLine)
+        internal static Win32Process CreateDebuggableProcess(string applicationName, string? commandLine)
         {
             unsafe
             {
@@ -31,9 +31,17 @@ namespace Yoakke.Debugging.Win32
                         &startupInfo,
                         &processInfo);
                 }
-                if (success == FALSE) return null;
+                if (success == FALSE)
+                {
+                    // TODO: Error
+                    throw new NotImplementedException();
+                }
                 var handleId = GetProcessId(processInfo.hProcess);
-                if (handleId == 0) return null;
+                if (handleId == 0)
+                {
+                    // TODO: Error
+                    throw new NotImplementedException();
+                }
                 return new Win32Process(processInfo.hProcess, handleId);
             }
         }
@@ -54,7 +62,7 @@ namespace Yoakke.Debugging.Win32
                     {
                         // Unexpected
                         // TODO: Proper error
-                        throw new NotImplementedException();
+                        throw new NotImplementedException($"err {err}");
                     }
                     return false;
                 }
@@ -87,6 +95,16 @@ namespace Yoakke.Debugging.Win32
         private const UInt32 ERROR_SUCCESS = 0;
         private const UInt32 ERROR_SEM_TIMEOUT = 121;
         private const UInt32 DBG_CONTINUE = 0x00010002;
+
+        internal const UInt32 CREATE_PROCESS_DEBUG_EVENT = 3;
+        internal const UInt32 CREATE_THREAD_DEBUG_EVENT = 2;
+        internal const UInt32 EXCEPTION_DEBUG_EVENT = 1;
+        internal const UInt32 EXIT_PROCESS_DEBUG_EVENT = 5;
+        internal const UInt32 EXIT_THREAD_DEBUG_EVENT = 4;
+        internal const UInt32 LOAD_DLL_DEBUG_EVENT = 6;
+        internal const UInt32 OUTPUT_DEBUG_STRING_EVENT = 8;
+        internal const UInt32 RIP_EVENT = 9;
+        internal const UInt32 UNLOAD_DLL_DEBUG_EVENT = 7;
 
         private unsafe struct STARTUPINFOW
         {
