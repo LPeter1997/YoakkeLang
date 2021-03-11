@@ -31,17 +31,9 @@ namespace Yoakke.Debugging.Win32
                         &startupInfo,
                         &processInfo);
                 }
-                if (success == FALSE)
-                {
-                    // TODO: Error
-                    throw new NotImplementedException();
-                }
+                ErrorOnFalse(success);
                 var handleId = GetProcessId(processInfo.hProcess);
-                if (handleId == FALSE)
-                {
-                    // TODO: Error
-                    throw new NotImplementedException();
-                }
+                ErrorOnFalse((Int32)handleId);
                 return new Win32Process(processInfo.hProcess, handleId);
             }
         }
@@ -61,8 +53,7 @@ namespace Yoakke.Debugging.Win32
                     if (err != ERROR_SEM_TIMEOUT)
                     {
                         // Unexpected
-                        // TODO: Proper error
-                        throw new NotImplementedException($"err {err}");
+                        ThrowApiError(err);
                     }
                     return false;
                 }
@@ -76,12 +67,7 @@ namespace Yoakke.Debugging.Win32
             unsafe
             {
                 Int32 success = ContinueDebugEvent(debugEvent.dwProcessId, debugEvent.dwThreadId, DBG_CONTINUE);
-                if (success == FALSE)
-                {
-                    var err = GetLastError();
-                    // TODO: Proper error
-                    throw new NotImplementedException($"error {err}");
-                }
+                ErrorOnFalse(success);
             }
         }
 
@@ -96,12 +82,7 @@ namespace Yoakke.Debugging.Win32
                     // TODO: Offset is wrong here!
                     success = ReadProcessMemory(process.Handle, (void*)offset, pBuffer, (nuint)size, null);
                 }
-                if (success == FALSE)
-                {
-                    // TODO: Error
-                    var err = GetLastError();
-                    throw new NotImplementedException($"error {err}");
-                }
+                ErrorOnFalse(success);
                 return buffer;
             }
         }
@@ -117,21 +98,25 @@ namespace Yoakke.Debugging.Win32
                     // TODO: Offset is wrong here!
                     success = WriteProcessMemory(process.Handle, (void*)offset, pBuffer, (nuint)bytes.Length, null);
                 }
-                if (success == FALSE)
-                {
-                    // TODO: Error
-                    var err = GetLastError();
-                    throw new NotImplementedException($"error {err}");
-                }
+                ErrorOnFalse(success);
                 // Then flush instruction cache
                 success = FlushInstructionCache(process.Handle, (void*)offset, (nuint)bytes.Length);
-                if (success == FALSE)
-                {
-                    // TODO: Error
-                    var err = GetLastError();
-                    throw new NotImplementedException($"error {err}");
-                }
+                ErrorOnFalse(success);
             }
+        }
+
+        private static void ErrorOnFalse(Int32 success)
+        {
+            if (success == 0)
+            {
+                var err = GetLastError();
+                ThrowApiError(err);
+            }
+        }
+
+        private static void ThrowApiError(UInt32 errorCode)
+        {
+            throw new InvalidOperationException($"WinAPI error code {errorCode}");
         }
 
         private const Int32 FALSE = 0;
@@ -272,17 +257,12 @@ namespace Yoakke.Debugging.Win32
             public string GetMessage(IntPtr hProcess)
             {
                 byte[] buffer = new byte[nDebugStringLength * 2];
-                Int32 result = 0;
+                Int32 success = 0;
                 fixed (byte* pbuffer = buffer)
                 {
-                    result = ReadProcessMemory(hProcess, lpDebugStringData, pbuffer, nDebugStringLength, null);
+                    success = ReadProcessMemory(hProcess, lpDebugStringData, pbuffer, nDebugStringLength, null);
                 }
-                if (result == 0)
-                {
-                    // TODO: Error
-                    var err = GetLastError();
-                    throw new NotImplementedException($"error {err}");
-                }
+                ErrorOnFalse(success);
                 if (fUnicode == 0)
                 {
                     // ANSI
