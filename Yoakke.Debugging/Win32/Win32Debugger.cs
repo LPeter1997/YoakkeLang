@@ -53,14 +53,24 @@ namespace Yoakke.Debugging.Win32
         private void RunLoop()
         {
             running = true;
+            var debugEvent = new WinApi.DEBUG_EVENT();
             while (running)
             {
                 // First check if there's something to perform and perform them
                 for (; queuedActions.TryTake(out var action); action()) ;
                 // Now handle debug events
-                // TODO
+                while (WinApi.TryGetDebugEvent(out debugEvent))
+                {
+                    ProcessDebugEvent(ref debugEvent);
+                    WinApi.ContinueDebugEvent(ref debugEvent);
+                }
                 Thread.Sleep(0);
             }
+        }
+
+        private void ProcessDebugEvent(ref WinApi.DEBUG_EVENT debugEvent)
+        {
+            Console.WriteLine("DEBUG EVENT");
         }
     }
 }
