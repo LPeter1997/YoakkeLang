@@ -6,16 +6,15 @@ using System.Threading.Tasks;
 
 namespace Yoakke.Debugging.Win32
 {
-    internal class Win32Process : IProcess
+    internal class Win32Thread : IThread
     {
+        public IProcess Process { get; }
         public readonly IntPtr Handle;
         public readonly UInt32 Id;
-        public nuint StartAddress { get; internal set; }
 
-        public IThread MainThread { get; internal set; }
-
-        public Win32Process(IntPtr handle, UInt32 id)
+        public Win32Thread(Win32Process process, IntPtr handle, UInt32 id)
         {
+            Process = process;
             Handle = handle;
             Id = id;
         }

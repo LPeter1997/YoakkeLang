@@ -40,6 +40,14 @@ namespace Yoakke.Debugging.Win32
             }
         }
 
+        internal static Win32Thread MakeThreadObject(Win32Process process, IntPtr threadHandle)
+        {
+            var threadId = GetThreadId(threadHandle);
+            ErrorOnFalse((Int32)threadId);
+            var thread = new Win32Thread(process, threadHandle, threadId);
+            return thread;
+        }
+
         internal static bool TryGetDebugEvent(out DEBUG_EVENT debugEvent)
         {
             unsafe
@@ -120,6 +128,26 @@ namespace Yoakke.Debugging.Win32
 
         internal static void SetTrapFlag(IntPtr threadHandle, bool on) =>
             ModifyThreadContext(threadHandle, null, on);
+
+        internal static nuint GetInstructionPointer(IntPtr threadHandle)
+        {
+            var arch = RuntimeInformation.ProcessArchitecture;
+            unsafe
+            {
+                if (arch == Architecture.X86)
+                {
+                    var context = new CONTEXT_X86();
+                    context.ContextFlags = CONTEXT_CONTROL;
+                    var success = GetThreadContext_X86(threadHandle, &context);
+                    ErrorOnFalse(success);
+                    return context.Eip;
+                }
+                else
+                {
+                    throw new NotImplementedException($"Architecture {arch} does not support thread context querying");
+                }
+            }
+        }
 
         private static void ModifyThreadContext(IntPtr threadHandle, int? instructionPointerOffset, bool? trapFlag)
         {
@@ -447,6 +475,9 @@ namespace Yoakke.Debugging.Win32
 
         [DllImport("Kernel32", ExactSpelling = true, SetLastError = true)]
         private static extern unsafe UInt32 GetProcessId(IntPtr process);
+
+        [DllImport("Kernel32", ExactSpelling = true, SetLastError = true)]
+        private static extern unsafe UInt32 GetThreadId(IntPtr thread);
 
         [DllImport("Kernel32", ExactSpelling = true, SetLastError = true)]
         private static extern unsafe Int32 CreateProcessW(

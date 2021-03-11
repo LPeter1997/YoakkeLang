@@ -11,5 +11,9 @@ namespace Yoakke.Debugging
     /// </summary>
     public interface IProcess
     {
+        /// <summary>
+        /// The first thread that starts when the process is started.
+        /// </summary>
+        public IThread MainThread { get; }
     }
 }
