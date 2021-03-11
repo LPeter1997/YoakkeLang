@@ -16,6 +16,7 @@ namespace Yoakke.Debugging.Win32
         private Thread loopThread;
         // Communication between threads
         private BlockingCollection<Action> queuedActions;
+        private ConcurrentDictionary<UInt32, TaskCompletionSource<IProcess>> unreturnedProcesses;
         // Bookkeeping
         private ConcurrentDictionary<UInt32, Win32Process> processes;
 
@@ -26,6 +27,7 @@ namespace Yoakke.Debugging.Win32
             loopThread = new Thread(RunLoop);
 
             queuedActions = new BlockingCollection<Action>();
+            unreturnedProcesses = new ConcurrentDictionary<uint, TaskCompletionSource<IProcess>>();
             processes = new ConcurrentDictionary<uint, Win32Process>();
             
             // NOTE: Start the thread last so everything will be initialized
@@ -48,8 +50,8 @@ namespace Yoakke.Debugging.Win32
                 try
                 {
                     var process = WinApi.CreateDebuggableProcess(path, args);
+                    unreturnedProcesses.TryAdd(process.Id, tcs);
                     processes.TryAdd(process.Id, process);
-                    tcs.SetResult(process);
                 }
                 catch (Exception ex)
                 {
@@ -62,6 +64,20 @@ namespace Yoakke.Debugging.Win32
         private void CreateProcessDebugEvent(Win32Process process, ref WinApi.CREATE_PROCESS_DEBUG_INFO info)
         {
             Console.WriteLine("create process");
+            // NOTE: We assign the result here as this is when we know the start address of the process
+            if (unreturnedProcesses.TryRemove(process.Id, out var tcs))
+            {
+                unsafe
+                {
+                    process.StartAddress = (nuint)info.lpStartAddress;
+                }
+                tcs.SetResult(process);
+            }
+            else
+            {
+                // Something went very wrong
+                throw new InvalidOperationException();
+            }
         }
 
         private void CreateThreadDebugEvent(Win32Process process, ref WinApi.CREATE_THREAD_DEBUG_INFO info)

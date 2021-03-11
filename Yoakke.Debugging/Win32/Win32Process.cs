@@ -10,6 +10,7 @@ namespace Yoakke.Debugging.Win32
     {
         public readonly IntPtr Handle;
         public readonly UInt32 Id;
+        public nuint StartAddress { get; internal set; }
 
         public Win32Process(IntPtr handle, UInt32 id)
         {
