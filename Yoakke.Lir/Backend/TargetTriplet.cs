@@ -54,6 +54,7 @@ namespace Yoakke.Lir.Backend
         private static TargetTriplet GetHostMachine()
         {
             var asm = System.Reflection.Assembly.GetExecutingAssembly();
+            // TODO: Use RuntimeInformation.ProcessArchitecture instead
             var cpuFamily = asm.GetName().ProcessorArchitecture switch
             {
                 ProcessorArchitecture.X86 => CpuFamily.X86,

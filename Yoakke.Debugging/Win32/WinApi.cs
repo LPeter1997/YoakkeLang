@@ -108,11 +108,10 @@ namespace Yoakke.Debugging.Win32
 
         internal static void OffsetInstructionPointer(IntPtr threadHandle, int offset)
         {
+            var arch = RuntimeInformation.ProcessArchitecture;
             unsafe
             {
-                var asm = Assembly.GetExecutingAssembly();
-                var arch = asm.GetName().ProcessorArchitecture;
-                if (arch == ProcessorArchitecture.X86)
+                if (arch == Architecture.X86)
                 {
                     var context = new CONTEXT_X86();
                     context.ContextFlags = 1;
