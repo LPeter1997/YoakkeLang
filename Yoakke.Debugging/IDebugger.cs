@@ -1,5 +1,4 @@
 ﻿using System;
-using Yoakke.Debugging.Events;
 
 namespace Yoakke.Debugging
 {
@@ -15,5 +14,14 @@ namespace Yoakke.Debugging
         /// <param name="args">The arguments to the executable.</param>
         /// <returns>The debugged process.</returns>
         public IProcess StartProcess(string path, string? args = null);
+
+        /// <summary>
+        /// Creates a debugger soutable for the current platform.
+        /// </summary>
+        /// <returns>A new debugger instance.</returns>
+        public static IDebugger Create()
+        {
+            return new Win32.Win32Debugger();
+        }
     }
 }

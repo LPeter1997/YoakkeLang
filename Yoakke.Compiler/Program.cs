@@ -47,35 +47,7 @@ namespace Yoakke.Compiler
         {
             using (var debugger = IDebugger.Create())
             {
-                debugger.ProcessStarted += (sender, ev) =>
-                {
-                    var id = GetProcessId(ev.Process);
-                    Console.WriteLine($"Process {id} started");
-                };
-                debugger.ProcessTerminated += (sender, ev) =>
-                {
-                    var id = GetProcessId(ev.Process);
-                    Console.WriteLine($"Process {id} terminated (code {ev.ExitCode})");
-                };
-                debugger.ThreadStarted += (sender, ev) =>
-                {
-                    var id = GetThreadId(ev.Thread);
-                    var pid = GetProcessId(ev.Thread.Process);
-                    Console.WriteLine($"Thread {id} started in process {pid}");
-                };
-                debugger.ThreadTerminated += (sender, ev) =>
-                {
-                    var id = GetThreadId(ev.Thread);
-                    var pid = GetProcessId(ev.Thread.Process);
-                    Console.WriteLine($"Thread {id} terminated in process {pid} (code {ev.ExitCode})");
-                };
-                debugger.DebugOutput += (sender, ev) =>
-                {
-                    var pid = GetProcessId(ev.Process);
-                    Console.WriteLine($"Process {pid} says: {ev.Message}");
-                };
-
-                debugger.StartProcess(@"c:\Users\Péter Lenkefi\source\repos\DebuggerTest\DebuggerTest\foo.exe", null);
+                var proc = debugger.StartProcess(@"c:\Users\Péter Lenkefi\source\repos\DebuggerTest\DebuggerTest\foo.exe", null);
                 while (true) { }
             }
         }
