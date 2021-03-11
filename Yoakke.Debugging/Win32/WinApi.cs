@@ -223,6 +223,32 @@ namespace Yoakke.Debugging.Win32
             public byte* lpDebugStringData;
             public UInt16 fUnicode;
             public UInt16 nDebugStringLength;
+
+            public string GetMessage(IntPtr hProcess)
+            {
+                byte[] buffer = new byte[nDebugStringLength * 2];
+                Int32 result = 0;
+                fixed (byte* pbuffer = buffer)
+                {
+                    result = ReadProcessMemory(hProcess, lpDebugStringData, pbuffer, nDebugStringLength, null);
+                }
+                if (result == 0)
+                {
+                    // TODO: Error
+                    var err = GetLastError();
+                    throw new NotImplementedException($"error {err}");
+                }
+                if (fUnicode == 0)
+                {
+                    // ANSI
+                    return Encoding.ASCII.GetString(buffer);
+                }
+                else
+                {
+                    // Unicode
+                    return Encoding.Unicode.GetString(buffer);
+                }
+            }
         }
 
         internal unsafe struct RIP_INFO
@@ -238,22 +264,27 @@ namespace Yoakke.Debugging.Win32
             public EXCEPTION_RECORD* ExceptionRecord;
             public void* ExceptionAddress;
             public UInt32 NumberParameters;
+            public ExceptionInformation_array ExceptionInformation;
 
-            public UInt32* ExceptionInformation_0;
-            public UInt32* ExceptionInformation_1;
-            public UInt32* ExceptionInformation_2;
-            public UInt32* ExceptionInformation_3;
-            public UInt32* ExceptionInformation_4;
-            public UInt32* ExceptionInformation_5;
-            public UInt32* ExceptionInformation_6;
-            public UInt32* ExceptionInformation_7;
-            public UInt32* ExceptionInformation_8;
-            public UInt32* ExceptionInformation_9;
-            public UInt32* ExceptionInformation_10;
-            public UInt32* ExceptionInformation_11;
-            public UInt32* ExceptionInformation_12;
-            public UInt32* ExceptionInformation_13;
-            public UInt32* ExceptionInformation_14;
+            [StructLayout(LayoutKind.Sequential, Pack = 1)]
+            internal unsafe struct ExceptionInformation_array
+            {
+                public nuint Element_0;
+                public nuint Element_1;
+                public nuint Element_2;
+                public nuint Element_3;
+                public nuint Element_4;
+                public nuint Element_5;
+                public nuint Element_6;
+                public nuint Element_7;
+                public nuint Element_8;
+                public nuint Element_9;
+                public nuint Element_10;
+                public nuint Element_11;
+                public nuint Element_12;
+                public nuint Element_13;
+                public nuint Element_14;
+            }
         }
 
         [DllImport("Kernel32", ExactSpelling = true, SetLastError = true)]
@@ -285,5 +316,13 @@ namespace Yoakke.Debugging.Win32
 
         [DllImport("Kernel32", ExactSpelling = true)]
         private static extern unsafe UInt32 GetLastError();
+
+        [DllImport("Kernel32", ExactSpelling = true, SetLastError = true)]
+        private static extern unsafe Int32 ReadProcessMemory(
+            IntPtr hProcess,
+            void* lpBaseAddress,
+            void* lpBuffer,
+            nuint nSize,
+            nuint* lpNumberOfBytesRead);
     }
 }

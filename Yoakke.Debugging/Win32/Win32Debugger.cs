@@ -91,7 +91,8 @@ namespace Yoakke.Debugging.Win32
 
         private void OutputStringDebugEvent(Win32Process process, ref WinApi.OUTPUT_DEBUG_STRING_INFO info)
         {
-            Console.WriteLine("output string");
+            var message = info.GetMessage(process.Handle);
+            Console.WriteLine($"output string: {message}");
         }
 
         private void RipDebugEvent(Win32Process process, ref WinApi.RIP_INFO info)
