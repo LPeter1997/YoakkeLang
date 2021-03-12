@@ -123,13 +123,13 @@ namespace Yoakke.Debugging.Win32
             return oldBytes;
         }
 
-        internal static void OffsetInstructionPointer(IntPtr threadHandle, int offset) =>
-            ModifyThreadContext(threadHandle, offset, null);
+        internal static void OffsetInstructionPointer(Win32Thread thread, int offset) =>
+            ModifyThreadContext(thread.Handle, offset, null);
 
-        internal static void SetTrapFlag(IntPtr threadHandle, bool on) =>
-            ModifyThreadContext(threadHandle, null, on);
+        internal static void SetTrapFlag(Win32Thread thread, bool on) =>
+            ModifyThreadContext(thread.Handle, null, on);
 
-        internal static nuint GetInstructionPointer(IntPtr threadHandle)
+        internal static nuint GetInstructionPointer(Win32Thread thread)
         {
             var arch = RuntimeInformation.ProcessArchitecture;
             unsafe
@@ -138,7 +138,7 @@ namespace Yoakke.Debugging.Win32
                 {
                     var context = new CONTEXT_X86();
                     context.ContextFlags = CONTEXT_CONTROL;
-                    var success = GetThreadContext_X86(threadHandle, &context);
+                    var success = GetThreadContext_X86(thread.Handle, &context);
                     ErrorOnFalse(success);
                     return context.Eip;
                 }

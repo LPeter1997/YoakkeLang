@@ -98,6 +98,7 @@ namespace Yoakke.Debugging.Win32
 
         private void ExceptionDebugEvent(Win32Process process, ref WinApi.EXCEPTION_DEBUG_INFO info)
         {
+            Console.WriteLine($"IP = {WinApi.GetInstructionPointer((Win32Thread)process.MainThread)}");
             if (info.dwFirstChance != 0)
             {
                 // First time encounter
@@ -193,6 +194,7 @@ namespace Yoakke.Debugging.Win32
 
         private void OutputStringDebugEvent(Win32Process process, ref WinApi.OUTPUT_DEBUG_STRING_INFO info)
         {
+            Console.WriteLine($"IP = {WinApi.GetInstructionPointer((Win32Thread)process.MainThread)}");
             var message = info.GetMessage(process.Handle);
             Console.WriteLine($"output string: {message}");
         }
@@ -231,32 +233,41 @@ namespace Yoakke.Debugging.Win32
             switch (debugEvent.dwDebugEventCode)
             {
             case WinApi.CREATE_PROCESS_DEBUG_EVENT:
+            {
                 CreateProcessDebugEvent(process, ref debugEvent.u.CreateProcessInfo);
-                break;
+            } break;
             case WinApi.CREATE_THREAD_DEBUG_EVENT:
+            {
                 CreateThreadDebugEvent(process, ref debugEvent.u.CreateThread);
-                break;
+            } break;
             case WinApi.EXCEPTION_DEBUG_EVENT:
+            {
                 ExceptionDebugEvent(process, ref debugEvent.u.Exception);
-                break;
+            } break;
             case WinApi.EXIT_PROCESS_DEBUG_EVENT:
+            {
                 ExitProcessDebugEvent(process, ref debugEvent.u.ExitProcess);
-                break;
+            } break;
             case WinApi.EXIT_THREAD_DEBUG_EVENT:
+            {
                 ExitThreadDebugEvent(process, ref debugEvent.u.ExitThread);
-                break;
+            } break;
             case WinApi.LOAD_DLL_DEBUG_EVENT:
+            {
                 LoadDllDebugEvent(process, ref debugEvent.u.LoadDll);
-                break;
+            } break;
             case WinApi.OUTPUT_DEBUG_STRING_EVENT:
+            {
                 OutputStringDebugEvent(process, ref debugEvent.u.DebugString);
-                break;
+            } break;
             case WinApi.RIP_EVENT:
+            {
                 RipDebugEvent(process, ref debugEvent.u.RipInfo);
-                break;
+            } break;
             case WinApi.UNLOAD_DLL_DEBUG_EVENT:
+            {
                 UnloadDllDebugEvent(process, ref debugEvent.u.UnloadDll);
-                break;
+            } break;
 
             default: throw new NotImplementedException();
             }
