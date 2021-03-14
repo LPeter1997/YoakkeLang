@@ -22,6 +22,12 @@ namespace Yoakke.Debugging
         public void ContinueProcess(IProcess process);
 
         /// <summary>
+        /// Steps the given process a single instruction.
+        /// </summary>
+        /// <param name="process">The process to step.</param>
+        public void StepProcess(IProcess process);
+
+        /// <summary>
         /// Creates a debugger soutable for the current platform.
         /// </summary>
         /// <returns>A new debugger instance.</returns>

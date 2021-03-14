@@ -48,6 +48,19 @@ namespace Yoakke.Debugging.Win32
             suspendedThread = null;
         }
 
+        public void StepInstruction()
+        {
+            if (State != Win32ProcessState.Suspended)
+            {
+                // TODO: What to do here? We can't step safely!
+                throw new InvalidOperationException();
+            }
+
+            Debug.Assert(suspendedThread != null);
+            WinApi.SetTrapFlag(suspendedThread, true);
+            ContinueExecution();
+        }
+
         public void HandleDebugEvent(ref WinApi.DEBUG_EVENT debugEvent)
         {
             switch (debugEvent.dwDebugEventCode)

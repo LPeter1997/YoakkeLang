@@ -67,6 +67,11 @@ namespace Yoakke.Debugging.Win32
             queuedActions.Add(() => ((Win32Process)process).ContinueExecution());
         }
 
+        public void StepProcess(IProcess process)
+        {
+            queuedActions.Add(() => ((Win32Process)process).StepInstruction());
+        }
+
         private void CreateProcessDebugEvent(Win32Process process, ref WinApi.CREATE_PROCESS_DEBUG_INFO info)
         {
             Console.WriteLine("create process");

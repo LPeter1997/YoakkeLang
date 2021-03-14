@@ -50,7 +50,14 @@ namespace Yoakke.Compiler
             {
                 var proc = debugger.StartProcess(@"c:\Users\Péter Lenkefi\source\repos\DebuggerTest\DebuggerTest\foo.exe", null);
 
-                Thread.Sleep(5000);
+                Thread.Sleep(2000);
+
+                for (int i = 0; i < 20; ++i) 
+                {
+                    //Console.WriteLine("step");
+                    debugger.StepProcess(proc);
+                    Thread.Sleep(500);
+                }
                 debugger.ContinueProcess(proc);
 
                 while (true) { }
