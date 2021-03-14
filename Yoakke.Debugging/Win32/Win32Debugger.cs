@@ -51,8 +51,8 @@ namespace Yoakke.Debugging.Win32
                 try
                 {
                     var process = WinApi.CreateDebuggableProcess(path, args);
-                    unreturnedProcesses.TryAdd(process.Id, tcs);
-                    processes.TryAdd(process.Id, process);
+                    unreturnedProcesses.Add(process.Id, tcs);
+                    processes.Add(process.Id, process);
                 }
                 catch (Exception ex)
                 {
@@ -81,124 +81,11 @@ namespace Yoakke.Debugging.Win32
             }
         }
 
-        private void CreateThreadDebugEvent(Win32Process process, ref WinApi.CREATE_THREAD_DEBUG_INFO info)
-        {
-            Console.WriteLine("create thread");
-            var thread = WinApi.MakeThreadObject(info.hThread);
-            process.AddThread(thread);
-        }
-
-        private void ExceptionDebugEvent(Win32Process process, ref WinApi.EXCEPTION_DEBUG_INFO info)
-        {
-            Console.WriteLine($"IP = {WinApi.GetInstructionPointer((Win32Thread)process.MainThread)}");
-            if (info.dwFirstChance != 0)
-            {
-                // First time encounter
-                switch (info.ExceptionRecord.ExceptionCode)
-                {
-                case WinApi.EXCEPTION_ACCESS_VIOLATION:
-                    Console.WriteLine("Exception: ACCESS VIOLATION");
-                    break;
-                case WinApi.EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
-                    Console.WriteLine("Exception: ARRAY BOUNDS EXCEEDED");
-                    break;
-                case WinApi.EXCEPTION_BREAKPOINT:
-                    Console.WriteLine("Exception: BREAKPOINT");
-                    break;
-                case WinApi.EXCEPTION_DATATYPE_MISALIGNMENT:
-                    Console.WriteLine("Exception: DATATYPE MISALIGNMENT");
-                    break;
-                case WinApi.EXCEPTION_FLT_DENORMAL_OPERAND:
-                    Console.WriteLine("Exception: FLT DENORMAL OPERAND");
-                    break;
-                case WinApi.EXCEPTION_FLT_DIVIDE_BY_ZERO:
-                    Console.WriteLine("Exception: FLT DIVIDE BY ZERO");
-                    break;
-                case WinApi.EXCEPTION_FLT_INEXACT_RESULT:
-                    Console.WriteLine("Exception: FLT INEXACT RESULT");
-                    break;
-                case WinApi.EXCEPTION_FLT_INVALID_OPERATION:
-                    Console.WriteLine("Exception: FLT INVALID OPERATION");
-                    break;
-                case WinApi.EXCEPTION_FLT_OVERFLOW:
-                    Console.WriteLine("Exception: FLT OVERFLOW");
-                    break;
-                case WinApi.EXCEPTION_FLT_STACK_CHECK:
-                    Console.WriteLine("Exception: FLT STACK CHECK");
-                    break;
-                case WinApi.EXCEPTION_FLT_UNDERFLOW:
-                    Console.WriteLine("Exception: FLT UNDERFLOW");
-                    break;
-                case WinApi.EXCEPTION_ILLEGAL_INSTRUCTION:
-                    Console.WriteLine("Exception: ILLEGAL INSTRUCTION");
-                    break;
-                case WinApi.EXCEPTION_IN_PAGE_ERROR:
-                    Console.WriteLine("Exception: IN PAGE ERROR");
-                    break;
-                case WinApi.EXCEPTION_INT_DIVIDE_BY_ZERO:
-                    Console.WriteLine("Exception: INT DIVIDE BY ZERO");
-                    break;
-                case WinApi.EXCEPTION_INT_OVERFLOW:
-                    Console.WriteLine("Exception: INT OVERFLOW");
-                    break;
-                case WinApi.EXCEPTION_INVALID_DISPOSITION:
-                    Console.WriteLine("Exception: INVALID DISPOSITION");
-                    break;
-                case WinApi.EXCEPTION_NONCONTINUABLE_EXCEPTION:
-                    Console.WriteLine("Exception: NONCONTINUABLE EXCEPTION");
-                    break;
-                case WinApi.EXCEPTION_PRIV_INSTRUCTION:
-                    Console.WriteLine("Exception: PRIV INSTRUCTION");
-                    break;
-                case WinApi.EXCEPTION_SINGLE_STEP:
-                    Console.WriteLine("Exception: SINGLE STEP");
-                    break;
-                case WinApi.EXCEPTION_STACK_OVERFLOW:
-                    Console.WriteLine("Exception: STACK OVERFLOW");
-                    break;
-                default:
-                    Console.WriteLine("Exception: ???");
-                    break;
-                }
-            }
-            else
-            {
-                // Already encountered
-                // TODO: What to do?
-                Console.WriteLine("already encountered exception");
-            }
-        }
-
         private void ExitProcessDebugEvent(Win32Process process, ref WinApi.EXIT_PROCESS_DEBUG_INFO info)
         {
             Console.WriteLine("exit process");
-        }
-
-        private void ExitThreadDebugEvent(Win32Process process, ref WinApi.EXIT_THREAD_DEBUG_INFO info)
-        {
-            Console.WriteLine("exit thread");
-        }
-
-        private void LoadDllDebugEvent(Win32Process process, ref WinApi.LOAD_DLL_DEBUG_INFO info)
-        {
-            Console.WriteLine("load dll");
-        }
-
-        private void OutputStringDebugEvent(Win32Process process, ref WinApi.OUTPUT_DEBUG_STRING_INFO info)
-        {
-            Console.WriteLine($"IP = {WinApi.GetInstructionPointer((Win32Thread)process.MainThread)}");
-            var message = info.GetMessage(process.Handle);
-            Console.WriteLine($"output string: {message}");
-        }
-
-        private void RipDebugEvent(Win32Process process, ref WinApi.RIP_INFO info)
-        {
-            Console.WriteLine("RIP");
-        }
-
-        private void UnloadDllDebugEvent(Win32Process process, ref WinApi.UNLOAD_DLL_DEBUG_INFO info)
-        {
-            Console.WriteLine("unload dll");
+            // Just remove from bookkeeping
+            processes.Remove(process.Id);
         }
 
         private void RunLoop()
@@ -210,13 +97,8 @@ namespace Yoakke.Debugging.Win32
                 // First check if there's something to perform and perform them
                 for (; queuedActions.TryTake(out var action); action()) ;
                 // Now handle debug events
-                while (WinApi.TryGetDebugEvent(out debugEvent))
-                {
-                    ProcessDebugEvent(ref debugEvent);
-                    var process = processes[debugEvent.dwProcessId];
-                    var thread = process.GetThread(debugEvent.dwThreadId);
-                    WinApi.ContinueDebugThread(thread, true);
-                }
+                for (; WinApi.TryGetDebugEvent(out debugEvent); ProcessDebugEvent(ref debugEvent)) ;
+                // Finished everything, ease the thread a bit
                 Thread.Sleep(0);
             }
         }
@@ -226,44 +108,25 @@ namespace Yoakke.Debugging.Win32
             var process = processes[debugEvent.dwProcessId];
             switch (debugEvent.dwDebugEventCode)
             {
+            // Handle process modifier events here
             case WinApi.CREATE_PROCESS_DEBUG_EVENT:
             {
                 CreateProcessDebugEvent(process, ref debugEvent.u.CreateProcessInfo);
+                var thread = process.GetThread(debugEvent.dwThreadId);
+                WinApi.ContinueDebugThread(thread, true);
             } break;
-            case WinApi.CREATE_THREAD_DEBUG_EVENT:
-            {
-                CreateThreadDebugEvent(process, ref debugEvent.u.CreateThread);
-            } break;
-            case WinApi.EXCEPTION_DEBUG_EVENT:
-            {
-                ExceptionDebugEvent(process, ref debugEvent.u.Exception);
-            } break;
+
             case WinApi.EXIT_PROCESS_DEBUG_EVENT:
             {
                 ExitProcessDebugEvent(process, ref debugEvent.u.ExitProcess);
-            } break;
-            case WinApi.EXIT_THREAD_DEBUG_EVENT:
-            {
-                ExitThreadDebugEvent(process, ref debugEvent.u.ExitThread);
-            } break;
-            case WinApi.LOAD_DLL_DEBUG_EVENT:
-            {
-                LoadDllDebugEvent(process, ref debugEvent.u.LoadDll);
-            } break;
-            case WinApi.OUTPUT_DEBUG_STRING_EVENT:
-            {
-                OutputStringDebugEvent(process, ref debugEvent.u.DebugString);
-            } break;
-            case WinApi.RIP_EVENT:
-            {
-                RipDebugEvent(process, ref debugEvent.u.RipInfo);
-            } break;
-            case WinApi.UNLOAD_DLL_DEBUG_EVENT:
-            {
-                UnloadDllDebugEvent(process, ref debugEvent.u.UnloadDll);
+                var thread = process.GetThread(debugEvent.dwThreadId);
+                WinApi.ContinueDebugThread(thread, true);
             } break;
 
-            default: throw new NotImplementedException();
+            // Anything else we do in the process
+            default:
+                process.HandleDebugEvent(ref debugEvent);
+                break;
             }
         }
     }
