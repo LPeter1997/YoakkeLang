@@ -40,11 +40,11 @@ namespace Yoakke.Debugging.Win32
             }
         }
 
-        internal static Win32Thread MakeThreadObject(Win32Process process, IntPtr threadHandle)
+        internal static Win32Thread MakeThreadObject(IntPtr threadHandle)
         {
             var threadId = GetThreadId(threadHandle);
             ErrorOnFalse((Int32)threadId);
-            var thread = new Win32Thread(process, threadHandle, threadId);
+            var thread = new Win32Thread(threadHandle, threadId);
             return thread;
         }
 

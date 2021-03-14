@@ -19,7 +19,6 @@ namespace Yoakke.Debugging.Win32
         // Bookkeeping
         private Dictionary<UInt32, TaskCompletionSource<IProcess>> unreturnedProcesses;
         private Dictionary<UInt32, Win32Process> processes;
-        private Dictionary<UInt32, Win32Thread> threads;
 
         public Win32Debugger()
         {
@@ -31,7 +30,6 @@ namespace Yoakke.Debugging.Win32
 
             unreturnedProcesses = new Dictionary<uint, TaskCompletionSource<IProcess>>();
             processes = new Dictionary<UInt32, Win32Process>();
-            threads = new Dictionary<UInt32, Win32Thread>();
 
             // NOTE: Start the thread last so everything will be initialized
             loopThread.Start();
@@ -70,15 +68,9 @@ namespace Yoakke.Debugging.Win32
             // NOTE: We assign the result here as this is when we know the start address of the process
             if (unreturnedProcesses.Remove(process.Id, out var tcs))
             {
-                // Set start address
-                unsafe
-                {
-                    process.StartAddress = (nuint)info.lpStartAddress;
-                }
                 // Create the main thread, connect it up with the process
-                var mainThread = WinApi.MakeThreadObject(process, info.hThread);
-                process.MainThread = mainThread;
-                threads.Add(mainThread.Id, mainThread);
+                var mainThread = WinApi.MakeThreadObject(info.hThread);
+                process.AddThread(mainThread);
                 // Finally push the result back
                 tcs.SetResult(process);
             }
@@ -92,8 +84,8 @@ namespace Yoakke.Debugging.Win32
         private void CreateThreadDebugEvent(Win32Process process, ref WinApi.CREATE_THREAD_DEBUG_INFO info)
         {
             Console.WriteLine("create thread");
-            var thread = WinApi.MakeThreadObject(process, info.hThread);
-            threads.Add(thread.Id, thread);
+            var thread = WinApi.MakeThreadObject(info.hThread);
+            process.AddThread(thread);
         }
 
         private void ExceptionDebugEvent(Win32Process process, ref WinApi.EXCEPTION_DEBUG_INFO info)
@@ -221,7 +213,8 @@ namespace Yoakke.Debugging.Win32
                 while (WinApi.TryGetDebugEvent(out debugEvent))
                 {
                     ProcessDebugEvent(ref debugEvent);
-                    var thread = threads[debugEvent.dwThreadId];
+                    var process = processes[debugEvent.dwProcessId];
+                    var thread = process.GetThread(debugEvent.dwThreadId);
                     WinApi.ContinueDebugThread(thread, true);
                 }
                 Thread.Sleep(0);

@@ -15,5 +15,10 @@ namespace Yoakke.Debugging
         /// The first thread that starts when the process is started.
         /// </summary>
         public IThread MainThread { get; }
+
+        /// <summary>
+        /// All the threads belonging to this process.
+        /// </summary>
+        public IReadOnlyCollection<IThread> Threads { get; }
     }
 }
