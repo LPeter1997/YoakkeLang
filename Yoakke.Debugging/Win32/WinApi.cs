@@ -71,12 +71,14 @@ namespace Yoakke.Debugging.Win32
             }
         }
 
-        // TODO: Not just DBG_CONTINUE?
-        internal static void ContinueDebugEvent(ref DEBUG_EVENT debugEvent)
+        internal static void ContinueDebugThread(Win32Thread thread, bool handled)
         {
             unsafe
             {
-                Int32 success = ContinueDebugEvent(debugEvent.dwProcessId, debugEvent.dwThreadId, DBG_CONTINUE);
+                Int32 success = ContinueDebugEvent(
+                    ((Win32Process)thread.Process).Id, 
+                    thread.Id, 
+                    handled ? DBG_CONTINUE : DBG_EXCEPTION_NOT_HANDLED);
                 ErrorOnFalse(success);
             }
         }
@@ -197,6 +199,7 @@ namespace Yoakke.Debugging.Win32
         private const UInt32 ERROR_SUCCESS = 0;
         private const UInt32 ERROR_SEM_TIMEOUT = 121;
         private const UInt32 DBG_CONTINUE = 0x00010002;
+        private const UInt32 DBG_EXCEPTION_NOT_HANDLED = 0x80010001;
         private const UInt32 CONTEXT_i386 = 0x00010000;
         private const UInt32 CONTEXT_CONTROL = CONTEXT_i386 | 0x00000001;
         private const UInt32 TRAP_FLAG_X86 = 0x100;

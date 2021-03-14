@@ -221,7 +221,8 @@ namespace Yoakke.Debugging.Win32
                 while (WinApi.TryGetDebugEvent(out debugEvent))
                 {
                     ProcessDebugEvent(ref debugEvent);
-                    WinApi.ContinueDebugEvent(ref debugEvent);
+                    var thread = threads[debugEvent.dwThreadId];
+                    WinApi.ContinueDebugThread(thread, true);
                 }
                 Thread.Sleep(0);
             }
