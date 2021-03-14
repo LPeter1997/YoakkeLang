@@ -16,6 +16,12 @@ namespace Yoakke.Debugging
         public IProcess StartProcess(string path, string? args = null);
 
         /// <summary>
+        /// Continues the execution of the given process, if it's in a suspended state.
+        /// </summary>
+        /// <param name="process">The process to continue executing.</param>
+        public void ContinueProcess(IProcess process);
+
+        /// <summary>
         /// Creates a debugger soutable for the current platform.
         /// </summary>
         /// <returns>A new debugger instance.</returns>

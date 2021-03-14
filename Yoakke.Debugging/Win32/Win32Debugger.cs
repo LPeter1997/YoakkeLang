@@ -62,6 +62,11 @@ namespace Yoakke.Debugging.Win32
             return tcs.Task.Result;
         }
 
+        public void ContinueProcess(IProcess process)
+        {
+            queuedActions.Add(() => ((Win32Process)process).ContinueExecution());
+        }
+
         private void CreateProcessDebugEvent(Win32Process process, ref WinApi.CREATE_PROCESS_DEBUG_INFO info)
         {
             Console.WriteLine("create process");
@@ -83,7 +88,7 @@ namespace Yoakke.Debugging.Win32
 
         private void ExitProcessDebugEvent(Win32Process process, ref WinApi.EXIT_PROCESS_DEBUG_INFO info)
         {
-            Console.WriteLine("exit process");
+            Console.WriteLine($"exit process (code {info.dwExitCode})");
             // Just remove from bookkeeping
             processes.Remove(process.Id);
         }

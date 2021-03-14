@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 //using Yoakke.Compiler.Compile;
 using Yoakke.Compiler.Error;
 using Yoakke.Compiler.Semantic;
@@ -48,6 +49,10 @@ namespace Yoakke.Compiler
             using (var debugger = IDebugger.Create())
             {
                 var proc = debugger.StartProcess(@"c:\Users\Péter Lenkefi\source\repos\DebuggerTest\DebuggerTest\foo.exe", null);
+
+                Thread.Sleep(5000);
+                debugger.ContinueProcess(proc);
+
                 while (true) { }
             }
         }
