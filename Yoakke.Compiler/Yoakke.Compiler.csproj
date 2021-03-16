@@ -17,13 +17,10 @@
     <ProjectReference Include="..\Yoakke.DataStructures\Yoakke.DataStructures.csproj" />
 	  <ProjectReference Include="..\Yoakke.C.Syntax\Yoakke.C.Syntax.csproj" />
     <ProjectReference Include="..\Yoakke.Reporting\Yoakke.Reporting.csproj" />
-    <ProjectReference Include="..\Yoakke.Dependency\Yoakke.Dependency.csproj"/>
+    <ProjectReference Include="..\Yoakke.Dependency\Yoakke.Dependency.csproj" />
     <!-- TODO: Temporary, Yoakke.Dependency should publish this... -->
-    <ProjectReference
-      Include="..\Yoakke.Dependency.Generator\Yoakke.Dependency.Generator.csproj"
-      OutputItemType="Analyzer"
-      ReferenceOutputAssembly="False" />
-    <ProjectReference Include="..\Yoakke.Debugging\Yoakke.Debugging.csproj"/>
+    <ProjectReference Include="..\Yoakke.Dependency.Generator\Yoakke.Dependency.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="False" />
+    <ProjectReference Include="..\Yoakke.Debugging\Yoakke.Debugging.csproj" />
   </ItemGroup>
 
 </Project>
