@@ -119,7 +119,7 @@ namespace {namespaceName}
             var proxyDefinitions = new StringBuilder();
 
             // Member declarations and implementations
-            foreach (var member in IgnorePropertyMethods(symbol.GetMembers()))
+            foreach (var member in IgnorePropertyAndEventMethods(symbol.GetMembers()))
             {
                 if (member is IMethodSymbol methodSymbol)
                 {
@@ -175,8 +175,9 @@ public class Proxy : {symbol.Name} {{
             var clearCalls = new StringBuilder();
 
             // Member declarations and implementations
-            foreach (var member in IgnorePropertyMethods(symbol.GetMembers()))
+            foreach (var member in IgnorePropertyAndEventMethods(symbol.GetMembers()))
             {
+                bool generateClear = true;
                 if (member is IMethodSymbol methodSymbol)
                 {
                     if (   methodSymbol.Parameters.IsEmpty
@@ -193,6 +194,11 @@ public class Proxy : {symbol.Name} {{
                 {
                     GenerateKeylessDerivedQuery(symbol.Name, proxyDefinitions, additionalInit, member);
                 }
+                else if (member is IEventSymbol eventSymbol)
+                {
+                    GenerateQueryChannel(symbol.Name, proxyDefinitions, eventSymbol);
+                    generateClear = false;
+                }
                 else
                 {
                     // Error
@@ -203,7 +209,7 @@ public class Proxy : {symbol.Name} {{
                         symbol.Name,
                         member.Name));
                 }
-                clearCalls.AppendLine($"this.{member.Name}_storage.Clear(before);");
+                if (generateClear) clearCalls.AppendLine($"this.{member.Name}_storage.Clear(before);");
             }
 
             // Assemble the internals
@@ -300,6 +306,21 @@ public class Proxy : {symbol.Name} {{
             proxyDefinitions.AppendLine($@"
 {accessibility} void Set{querySymbol.Name}({setterKeyParams}) {{
     this.{querySymbol.Name}_storage.SetInput(this.dependencySystem, ({keyParamNames}), value);
+}}");
+        }
+
+        private void GenerateQueryChannel(
+            string interfaceName,
+            StringBuilder proxyDefinitions,
+            IEventSymbol channelSymbol)
+        {
+            //var accessibility = AccessibilityToString(channelSymbol.DeclaredAccessibility);
+            var definedType = channelSymbol.Type.ToDisplayString();
+            proxyDefinitions.AppendLine($@"
+event {definedType} {interfaceName}.{channelSymbol.Name}
+{{
+    add => this.implementation.{channelSymbol.Name} += value;
+    remove => this.implementation.{channelSymbol.Name} -= value;
 }}");
         }
 
@@ -419,18 +440,31 @@ public class Proxy : {symbol.Name} {{
             _ => throw new NotImplementedException(),
         };
 
-        private static IEnumerable<ISymbol> IgnorePropertyMethods(IEnumerable<ISymbol> symbols)
+        private static IEnumerable<ISymbol> IgnorePropertyAndEventMethods(IEnumerable<ISymbol> symbols)
         {
+            // Collect property names
             var propertyNames = new HashSet<string>();
             foreach (var propertyName in symbols.OfType<IPropertySymbol>().Select(p => p.Name))
             {
                 propertyNames.Add(propertyName);
             }
+            // Collect event names
+            var eventNames = new HashSet<string>();
+            foreach (var eventName in symbols.OfType<IEventSymbol>().Select(p => p.Name))
+            {
+                eventNames.Add(eventName);
+            }
             return symbols.Where(sym =>
             {
                 if (!(sym is IMethodSymbol methodSymbol)) return true;
-                return !((sym.Name.StartsWith("get_") || sym.Name.StartsWith("set_"))
-                       && propertyNames.Contains(sym.Name.Substring(4)));
+                return !(
+                        // Starts with get_ or set_ and property
+                        ((   sym.Name.StartsWith("get_") || sym.Name.StartsWith("set_"))
+                          && propertyNames.Contains(sym.Name.Substring(4)))
+                          //Or starts with add_ or remove_ and is an event
+                     || (    (sym.Name.StartsWith("add_") && eventNames.Contains(sym.Name.Substring(4)))
+                          || (sym.Name.StartsWith("remove_") && eventNames.Contains(sym.Name.Substring(7))))
+                );
             });
         }
     }
