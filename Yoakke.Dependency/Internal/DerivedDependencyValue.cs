@@ -32,8 +32,16 @@ namespace Yoakke.Dependency.Internal
 
         internal IList<IDependencyValue> Dependencies { get; private set; } = new List<IDependencyValue>();
 
+        // Things for computation
         private ComputeValueAsyncCtDelegate recompute;
+        private EventProxy[] eventProxies;
+        // Storage
         private object cachedValue;
+        private HashSet<(object Sender, object Args)>[] cachedEvents;
+        // Temporaries for re-cacheing events
+        private HashSet<(object Sender, object Args)>[] tempCachedEvents;
+        // Temporaries for event handlers
+        private EventHandler[] subscribedEventHandlers;
 
         public Revision ChangedAt { get; private set; } = Revision.Invalid;
         public Revision VerifiedAt { get; private set; } = Revision.Invalid;
@@ -41,6 +49,11 @@ namespace Yoakke.Dependency.Internal
         public DerivedDependencyValue(ComputeValueAsyncCtDelegate recompute)
         {
             this.recompute = recompute;
+            // TODO: Not this
+            this.eventProxies = new EventProxy[0];
+            this.cachedEvents = new HashSet<(object Sender, object Args)>[this.eventProxies.Length];
+            this.tempCachedEvents = new HashSet<(object Sender, object Args)>[this.eventProxies.Length];
+            this.subscribedEventHandlers = new EventHandler[this.eventProxies.Length];
         }
 
         public void Clear(Revision before)
@@ -130,6 +143,36 @@ namespace Yoakke.Dependency.Internal
             VerifiedAt = system.CurrentRevision;
             ChangedAt = system.CurrentRevision;
             return GetValueCloned<T>();
+        }
+
+        private bool AreEventCachesEqual() =>
+            cachedEvents.Zip(tempCachedEvents).All(sets => sets.First.SetEquals(sets.Second));
+
+        private void SubscribeToEvents(HashSet<(object Sender, object Args)>[] cache)
+        {
+            for (int i = 0; i < eventProxies.Length; ++i)
+            {
+                // Create a handler that caches the event
+                EventHandler handler = (sender, args) =>
+                {
+                    cache[i].Add((sender, args));
+                };
+                // Register it
+                eventProxies[i].Subscribe(handler);
+                // Store it
+                subscribedEventHandlers[i] = handler;
+            }
+        }
+
+        private void UnsubscribeFromEvents()
+        {
+            for (int i = 0; i < eventProxies.Length; ++i)
+            {
+                // Get the stored handler
+                EventHandler handler = subscribedEventHandlers[i];
+                // Unregister it
+                eventProxies[i].Unsubscribe(handler);
+            }
         }
 
         private T GetValueCloned<T>()
