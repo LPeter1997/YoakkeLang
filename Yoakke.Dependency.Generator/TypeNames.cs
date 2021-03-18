@@ -10,9 +10,11 @@ namespace Yoakke.Dependency.Generator
         private static readonly string InternalNamespace       = $"{NamespaceBase}.Internal";
 
         public static readonly string SystemCancellationToken  = "System.Threading.CancellationToken";
+        public static readonly string SystemEventHandler       = "System.EventHandler`1";
 
         public static readonly string QueryGroupAttribute      = $"{NamespaceBase}.QueryGroupAttribute";
         public static readonly string InputQueryGroupAttribute = $"{NamespaceBase}.InputQueryGroupAttribute";
+        public static readonly string QueryChannelAttribute    = $"{NamespaceBase}.QueryChannelAttribute";
 
         public static readonly string Revision                 = $"{NamespaceBase}.Revision";
         public static readonly string DependencySystem         = $"{NamespaceBase}.DependencySystem";

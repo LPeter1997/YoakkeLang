@@ -38,5 +38,29 @@ namespace Yoakke.Dependency.Generator
             category: "Yoakke.Dependency.Generator",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor SpecifiedQueryChannelIsNotAnEventMember = new DiagnosticDescriptor(
+            id: "YKDEPENDENCYGEN005",
+            title: "Quey channel names must point to a declared event in the interface definition",
+            messageFormat: "Quey channel name '{0}' does not point to an event member",
+            category: "Yoakke.Dependency.Generator",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor NoMemberForQueryChannelName = new DiagnosticDescriptor(
+            id: "YKDEPENDENCYGEN006",
+            title: "Quey channel names must point to a declared event in the interface definition",
+            messageFormat: "Quey channel name '{0}' does not point to an event member",
+            category: "Yoakke.Dependency.Generator",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
+        public static readonly DiagnosticDescriptor QueryChannelEventMustBeEventHandler = new DiagnosticDescriptor(
+            id: "YKDEPENDENCYGEN007",
+            title: "Quey channel types must be System.EventHandler<T> types",
+            messageFormat: "Quey channel event '{0}' does not have a System.EventHandler<T> type",
+            category: "Yoakke.Dependency.Generator",
+            DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
     }
 }

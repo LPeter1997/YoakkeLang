@@ -31,6 +31,8 @@ namespace Yoakke.Dependency.Generator
         }
 
         private INamedTypeSymbol cancellationTokenSymbol;
+        private INamedTypeSymbol eventHandlerSymbol;
+        private INamedTypeSymbol queryChannelAttributeSymbol;
 
         public void Initialize(GeneratorInitializationContext context)
         {
@@ -44,9 +46,11 @@ namespace Yoakke.Dependency.Generator
             var compilation = context.Compilation;
 
             // Get the symbol representing the QueryGroup attributes and other required symbols
+            this.cancellationTokenSymbol = compilation.GetTypeByMetadataName(TypeNames.SystemCancellationToken);
+            this.eventHandlerSymbol = compilation.GetTypeByMetadataName(TypeNames.SystemEventHandler);
             var queryGroupAttributeSymbol = compilation.GetTypeByMetadataName(TypeNames.QueryGroupAttribute);
             var inputQueryGroupAttributeSymbol = compilation.GetTypeByMetadataName(TypeNames.InputQueryGroupAttribute);
-            this.cancellationTokenSymbol = compilation.GetTypeByMetadataName(TypeNames.SystemCancellationToken);
+            this.queryChannelAttributeSymbol = compilation.GetTypeByMetadataName(TypeNames.QueryChannelAttribute);
 
             // Only keep the interfaces that are annotated with this
             // The ones that are annotated must be partial
@@ -183,16 +187,16 @@ public class Proxy : {symbol.Name} {{
                     if (   methodSymbol.Parameters.IsEmpty
                         || (methodSymbol.Parameters.Length == 1 && HasCancellationToken(methodSymbol)))
                     {
-                        GenerateKeylessDerivedQuery(symbol.Name, proxyDefinitions, additionalInit, member);
+                        GenerateKeylessDerivedQuery(context, symbol, proxyDefinitions, additionalInit, member);
                     }
                     else
                     {
-                        GenerateKeyedDerivedQuery(symbol.Name, proxyDefinitions, methodSymbol);
+                        GenerateKeyedDerivedQuery(context, symbol, proxyDefinitions, additionalInit, methodSymbol);
                     }
                 }
                 else if (member is IPropertySymbol propertySymbol && propertySymbol.GetMethod != null)
                 {
-                    GenerateKeylessDerivedQuery(symbol.Name, proxyDefinitions, additionalInit, member);
+                    GenerateKeylessDerivedQuery(context, symbol, proxyDefinitions, additionalInit, member);
                 }
                 else if (member is IEventSymbol eventSymbol)
                 {
@@ -314,10 +318,10 @@ public class Proxy : {symbol.Name} {{
             StringBuilder proxyDefinitions,
             IEventSymbol channelSymbol)
         {
-            //var accessibility = AccessibilityToString(channelSymbol.DeclaredAccessibility);
+            var accessibility = AccessibilityToString(channelSymbol.DeclaredAccessibility);
             var definedType = channelSymbol.Type.ToDisplayString();
             proxyDefinitions.AppendLine($@"
-event {definedType} {interfaceName}.{channelSymbol.Name}
+{accessibility} event {definedType} {channelSymbol.Name}
 {{
     add => this.implementation.{channelSymbol.Name} += value;
     remove => this.implementation.{channelSymbol.Name} -= value;
@@ -325,11 +329,14 @@ event {definedType} {interfaceName}.{channelSymbol.Name}
         }
 
         private void GenerateKeylessDerivedQuery(
-            string interfaceName,
+            GeneratorExecutionContext context,
+            INamedTypeSymbol interfac,
             StringBuilder proxyDefinitions,
             StringBuilder additionalInit,
             ISymbol querySymbol)
         {
+            GenerateQueryChannelProxies(context, interfac, proxyDefinitions, additionalInit, querySymbol);
+
             var accessibility = AccessibilityToString(querySymbol.DeclaredAccessibility);
             var returnTypeSymbol = (querySymbol is IMethodSymbol ms ? ms.ReturnType : ((IPropertySymbol)querySymbol).Type);
             var isAsync = IsAwaitable(returnTypeSymbol, out var storedTypeSymbol);
@@ -349,7 +356,7 @@ event {definedType} {interfaceName}.{channelSymbol.Name}
             // Init storage
             //var delegateName = TypeNames.GetComputeDelegateName(isAsync, hasCt);
             additionalInit.AppendLine($@"
-    this.{querySymbol.Name}_storage = new {TypeNames.DerivedDependencyValue}({TypeNames.DerivedDependencyValue}.ToAsyncCtDelegate({callImpl}));");
+    this.{querySymbol.Name}_storage = new {TypeNames.DerivedDependencyValue}(this.{querySymbol.Name}_eventProxies, {TypeNames.DerivedDependencyValue}.ToAsyncCtDelegate({callImpl}));");
 
             var getterExtraArgs = hasCt ? ", cancellationToken" : string.Empty;
             var getterPostfix = isAsync ? "Async" : string.Empty;
@@ -365,7 +372,7 @@ event {definedType} {interfaceName}.{channelSymbol.Name}
             {
                 // Use property syntax
                 proxyDefinitions.AppendLine($@"
-{returnType} {interfaceName}.{querySymbol.Name}
+{returnType} {interfac.Name}.{querySymbol.Name}
 {{
     get {{ {getterImpl} }}
 }}");
@@ -373,10 +380,14 @@ event {definedType} {interfaceName}.{channelSymbol.Name}
         }
 
         private void GenerateKeyedDerivedQuery(
-            string interfaceName,
+            GeneratorExecutionContext context,
+            INamedTypeSymbol interfac,
             StringBuilder proxyDefinitions,
+            StringBuilder additionalInit,
             IMethodSymbol querySymbol)
         {
+            GenerateQueryChannelProxies(context, interfac, proxyDefinitions, additionalInit, querySymbol);
+
             var accessibility = AccessibilityToString(querySymbol.DeclaredAccessibility);
             var returnTypeSymbol = querySymbol.ReturnType;
             var isAsync = IsAwaitable(returnTypeSymbol, out var storedTypeSymbol);
@@ -398,12 +409,86 @@ event {definedType} {interfaceName}.{channelSymbol.Name}
             var getterPostfix = isAsync ? "Async" : string.Empty;
             //var delegateName = TypeNames.GetComputeDelegateName(isAsync, hasCt);
             var getterImpl = $@"
-    return this.{querySymbol.Name}_storage.GetDerived(({keyParamNames}), {TypeNames.DerivedDependencyValue}.ToAsyncCtDelegate({callImpl}))
+    return this.{querySymbol.Name}_storage.GetDerived(({keyParamNames}), this.{querySymbol.Name}_eventProxies, {TypeNames.DerivedDependencyValue}.ToAsyncCtDelegate({callImpl}))
         .GetValue{getterPostfix}<{storedType}>(this.dependencySystem{callExtraArgs});";
 
             // Generate getter
             proxyDefinitions.AppendLine($@"
 {accessibility} {returnType} {querySymbol.Name}({getterParams}) {{ {getterImpl} }}");
+        }
+
+        private void GenerateQueryChannelProxies(
+            GeneratorExecutionContext context,
+            INamedTypeSymbol interfac,
+            StringBuilder proxyDefinitions,
+            StringBuilder additionalInit,
+            ISymbol querySymbol)
+        {
+            //var interfaceName = interfac.Name;
+            // We declare the event proxy array
+            proxyDefinitions.AppendLine($"private {TypeNames.EventProxy}[] {querySymbol.Name}_eventProxies;");
+            // Collect each event proxy instantiation here
+            var eventProxyInits = new List<string>();
+            // Generate implementations
+            var queryChannelNames = GetRelevantQueryChannels(querySymbol);
+            foreach (var member in interfac.GetMembers())
+            {
+                // Search for this member name in the channels
+                var nameIndex = queryChannelNames.IndexOf(member.Name);
+                // Not a channel name
+                if (nameIndex == -1) continue;
+                // Remove it from the unresolved channel names
+                queryChannelNames.RemoveAt(nameIndex);
+                // The member must be an event
+                if (member is IEventSymbol eventSymbol)
+                {
+                    var eventType = eventSymbol.Type;
+                    if (TryGetEventHandlerGenericType(eventType, out var argumentType))
+                    {
+                        var eventTypeName = eventType.ToDisplayString();
+                        var argTypeName = argumentType.ToDisplayString();
+                        // Ok, we can generate it
+                        // Generate the event proxy instance
+                        eventProxyInits.Add($@"new {TypeNames.EventProxy}(
+    eventHandler => {{
+        {eventTypeName} typedEventHandler = (sender, args) => eventHandler(sender, args);
+        this.{member.Name} += typedEventHandler;
+        return () => this.{member.Name} -= typedEventHandler;
+    }},
+    events => {{
+        if (this.{member.Name} == null) return;
+        foreach (var (sender, arg) in events) this.{member.Name}(sender, ({argTypeName})arg);
+    }}
+)");
+                    }
+                    else
+                    {
+                        // Error
+                        context.ReportDiagnostic(Diagnostic.Create(
+                            Diagnostics.QueryChannelEventMustBeEventHandler,
+                            null,
+                            member.Name));
+                    }
+                }
+                else
+                {
+                    // Error, not an event
+                    context.ReportDiagnostic(Diagnostic.Create(
+                        Diagnostics.SpecifiedQueryChannelIsNotAnEventMember,
+                        null,
+                        member.Name));
+                }
+            }
+            // Report unmatched ones as error
+            foreach (var name in queryChannelNames)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(
+                    Diagnostics.NoMemberForQueryChannelName,
+                    null,
+                    name));
+            }
+            // Now that we have all the proxy initializers we can put together the proxy array in the constructor
+            additionalInit.AppendLine($"this.{querySymbol.Name}_eventProxies = new {TypeNames.EventProxy}[] {{ {string.Join(", ", eventProxyInits)} }};");
         }
 
         private static bool IsAwaitable(ITypeSymbol symbol, out ITypeSymbol awaitedType)
@@ -429,6 +514,20 @@ event {definedType} {interfaceName}.{channelSymbol.Name}
         private bool HasCancellationToken(IMethodSymbol methodSymbol) =>
                methodSymbol.Parameters.Length > 0
             && SymbolEqualityComparer.Default.Equals(this.cancellationTokenSymbol, methodSymbol.Parameters.Last().Type);
+
+        private IList<string> GetRelevantQueryChannels(ISymbol symbol) => symbol.GetAttributes()
+            .Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, queryChannelAttributeSymbol))
+            .Select(attr => attr.ConstructorArguments.First().Value.ToString())
+            .ToList();
+
+        private bool TryGetEventHandlerGenericType(ITypeSymbol eventType, out ITypeSymbol argumentType)
+        {
+            argumentType = null;
+            if (!(eventType is INamedTypeSymbol namedEventType)) return false;
+            if (!SymbolEqualityComparer.Default.Equals(namedEventType.ConstructedFrom, eventHandlerSymbol)) return false;
+            argumentType = namedEventType.TypeArguments.First();
+            return true;
+        }
 
         private static string AccessibilityToString(Accessibility accessibility) => accessibility switch
         {
