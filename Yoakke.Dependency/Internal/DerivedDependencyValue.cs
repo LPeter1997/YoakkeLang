@@ -46,11 +46,10 @@ namespace Yoakke.Dependency.Internal
         public Revision ChangedAt { get; private set; } = Revision.Invalid;
         public Revision VerifiedAt { get; private set; } = Revision.Invalid;
 
-        public DerivedDependencyValue(ComputeValueAsyncCtDelegate recompute)
+        public DerivedDependencyValue(EventProxy[] eventProxies, ComputeValueAsyncCtDelegate recompute)
         {
             this.recompute = recompute;
-            // TODO: Not this
-            this.eventProxies = new EventProxy[0];
+            this.eventProxies = eventProxies;
             // Instantiate the temporary cache arrays
             this.cachedEvents = new HashSet<(object Sender, object Args)>[this.eventProxies.Length];
             this.tempCachedEvents = new HashSet<(object Sender, object Args)>[this.eventProxies.Length];

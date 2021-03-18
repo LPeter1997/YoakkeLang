@@ -46,10 +46,13 @@ namespace Yoakke.Dependency.Internal
         /// <summary>
         /// Gets the dependency value for a derived query asynchronously and with a cancellation token.
         /// </summary>
-        public IDependencyValue GetDerived(object key, DerivedDependencyValue.ComputeValueAsyncCtDelegate recompute)
+        public IDependencyValue GetDerived(
+            object key,
+            EventProxy[] eventProxies,
+            DerivedDependencyValue.ComputeValueAsyncCtDelegate recompute)
         {
             if (values.TryGetValue(key, out var value)) return (DerivedDependencyValue)value;
-            var newValue = new DerivedDependencyValue(recompute);
+            var newValue = new DerivedDependencyValue(eventProxies, recompute);
             values.Add(key, newValue);
             return newValue;
         }
@@ -57,31 +60,46 @@ namespace Yoakke.Dependency.Internal
         /// <summary>
         /// Gets the dependency value for a derived query asynchronously.
         /// </summary>
-        public IDependencyValue GetDerived(object key, DerivedDependencyValue.ComputeValueAsyncDelegate recompute) =>
-            GetDerived(key, DerivedDependencyValue.ToAsyncCtDelegate(recompute));
+        public IDependencyValue GetDerived(
+            object key, 
+            EventProxy[] eventProxies, 
+            DerivedDependencyValue.ComputeValueAsyncDelegate recompute) =>
+            GetDerived(key, eventProxies, DerivedDependencyValue.ToAsyncCtDelegate(recompute));
 
         /// <summary>
         /// Gets the dependency value with a cancellation token.
         /// </summary>
-        public IDependencyValue GetDerived(object key, DerivedDependencyValue.ComputeValueCtDelegate recompute) =>
-            GetDerived(key, DerivedDependencyValue.ToAsyncCtDelegate(recompute));
+        public IDependencyValue GetDerived(
+            object key,
+            EventProxy[] eventProxies,
+            DerivedDependencyValue.ComputeValueCtDelegate recompute) =>
+            GetDerived(key, eventProxies, DerivedDependencyValue.ToAsyncCtDelegate(recompute));
 
         /// <summary>
         /// Gets the dependency value with a cancellation token.
         /// </summary>
-        public IDependencyValue GetDerived(object key, DerivedDependencyValue.ComputeValueDelegate recompute) =>
-            GetDerived(key, DerivedDependencyValue.ToAsyncCtDelegate(recompute));
+        public IDependencyValue GetDerived(
+            object key,
+            EventProxy[] eventProxies, 
+            DerivedDependencyValue.ComputeValueDelegate recompute) =>
+            GetDerived(key, eventProxies, DerivedDependencyValue.ToAsyncCtDelegate(recompute));
 
         /// <summary>
         /// Gets the dependency value for a derived query asynchronously.
         /// </summary>
-        public IDependencyValue GetDerived<T>(object key, Func<DependencySystem, Task<T>> recompute) =>
-            GetDerived(key, DerivedDependencyValue.ToAsyncCtDelegate(recompute));
+        public IDependencyValue GetDerived<T>(
+            object key,
+            EventProxy[] eventProxies, 
+            Func<DependencySystem, Task<T>> recompute) =>
+            GetDerived(key, eventProxies, DerivedDependencyValue.ToAsyncCtDelegate(recompute));
 
         /// <summary>
         /// Gets the dependency value for a derived query asynchronously and with a cancellation token.
         /// </summary>
-        public IDependencyValue GetDerived<T>(object key, Func<DependencySystem, CancellationToken, Task<T>> recompute) =>
-            GetDerived(key, DerivedDependencyValue.ToAsyncCtDelegate(recompute));
+        public IDependencyValue GetDerived<T>(
+            object key,
+            EventProxy[] eventProxies, 
+            Func<DependencySystem, CancellationToken, Task<T>> recompute) =>
+            GetDerived(key, eventProxies, DerivedDependencyValue.ToAsyncCtDelegate(recompute));
     }
 }

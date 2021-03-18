@@ -9,7 +9,7 @@ namespace Yoakke.Dependency.Internal
     /// <summary>
     /// Proxy for a C# event.
     /// </summary>
-    internal class EventProxy
+    public class EventProxy
     {
         private readonly Func<EventHandler<object>, Action> subscriber;
         private readonly Action<IEnumerable<(object Sender, object Args)>> sender;
