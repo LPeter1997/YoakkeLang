@@ -41,7 +41,7 @@ namespace Yoakke.Dependency.Internal
         // Temporaries for re-cacheing events
         private HashSet<(object Sender, object Args)>[] tempCachedEvents;
         // Temporaries for event handlers
-        private EventHandler[] subscribedEventHandlers;
+        private Action[] eventHandlerUnsubscribers;
 
         public Revision ChangedAt { get; private set; } = Revision.Invalid;
         public Revision VerifiedAt { get; private set; } = Revision.Invalid;
@@ -54,7 +54,7 @@ namespace Yoakke.Dependency.Internal
             // Instantiate the temporary cache arrays
             this.cachedEvents = new HashSet<(object Sender, object Args)>[this.eventProxies.Length];
             this.tempCachedEvents = new HashSet<(object Sender, object Args)>[this.eventProxies.Length];
-            this.subscribedEventHandlers = new EventHandler[this.eventProxies.Length];
+            this.eventHandlerUnsubscribers = new Action[this.eventProxies.Length];
             // The caches need to be filled
             for (int i = 0; i < this.eventProxies.Length; ++i)
             {
@@ -188,26 +188,17 @@ namespace Yoakke.Dependency.Internal
             for (int i = 0; i < eventProxies.Length; ++i)
             {
                 // Create a handler that caches the event
-                EventHandler handler = (sender, args) =>
-                {
-                    cache[i].Add((sender, args));
-                };
+                EventHandler<object> handler = (sender, args) => cache[i].Add((sender, args));
                 // Register it
-                eventProxies[i].Subscribe(handler);
-                // Store it
-                subscribedEventHandlers[i] = handler;
+                var unsubscribeAction = eventProxies[i].Subscribe(handler);
+                // Store the unsubscriber
+                eventHandlerUnsubscribers[i] = unsubscribeAction;
             }
         }
 
         private void UnsubscribeFromEvents()
         {
-            for (int i = 0; i < eventProxies.Length; ++i)
-            {
-                // Get the stored handler
-                EventHandler handler = subscribedEventHandlers[i];
-                // Unregister it
-                eventProxies[i].Unsubscribe(handler);
-            }
+            foreach (var unsubscriber in eventHandlerUnsubscribers) unsubscriber();
         }
 
         private void ResendEvents()
