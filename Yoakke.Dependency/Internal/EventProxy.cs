@@ -23,7 +23,7 @@ namespace Yoakke.Dependency.Internal
             throw new NotImplementedException();
         }
 
-        public void Send(IEnumerable<object> events)
+        public void Send(IEnumerable<(object Sender, object Args)> events)
         {
             // TODO
             throw new NotImplementedException();

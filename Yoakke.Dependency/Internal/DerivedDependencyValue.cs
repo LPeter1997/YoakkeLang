@@ -51,9 +51,16 @@ namespace Yoakke.Dependency.Internal
             this.recompute = recompute;
             // TODO: Not this
             this.eventProxies = new EventProxy[0];
+            // Instantiate the temporary cache arrays
             this.cachedEvents = new HashSet<(object Sender, object Args)>[this.eventProxies.Length];
             this.tempCachedEvents = new HashSet<(object Sender, object Args)>[this.eventProxies.Length];
             this.subscribedEventHandlers = new EventHandler[this.eventProxies.Length];
+            // The caches need to be filled
+            for (int i = 0; i < this.eventProxies.Length; ++i)
+            {
+                this.cachedEvents[i] = new HashSet<(object Sender, object Args)>();
+                this.tempCachedEvents[i] = new HashSet<(object Sender, object Args)>();
+            }
         }
 
         public void Clear(Revision before)
@@ -72,6 +79,8 @@ namespace Yoakke.Dependency.Internal
             if (!system.AllowMemo)
             {
                 // We disabled memoization, recompute
+                // Recomputation takes care of emitting events
+                // Since there is no memoization, we don't even record events
                 return (T)(await recompute(system, cancellationToken));
             }
             else if (ChangedAt != Revision.Invalid)
@@ -80,6 +89,8 @@ namespace Yoakke.Dependency.Internal
                 if (VerifiedAt == system.CurrentRevision)
                 {
                     // We can just clone and return
+                    // Since there is no recomputation, we need to re-emit events manually
+                    ResendEvents();
                     return GetValueCloned<T>();
                 }
                 // The system has a later revision, let's see if this value is reusable
@@ -96,23 +107,41 @@ namespace Yoakke.Dependency.Internal
                     // All dependencies came from earlier revisions, this one is still fine
                     // Update the verification, still just clone the memoized value
                     VerifiedAt = system.CurrentRevision;
+                    // Since there is no recomputation, we need to re-emit events manually
+                    ResendEvents();
                     return GetValueCloned<T>();
                 }
                 // We need to do a recomputation
+                // This will emit relevant events, no need to explicitly
+                // But we need to capture them to compare them to the ones cached last time
+                // We collect events into the temporary cache
+                SubscribeToEvents(tempCachedEvents);
                 var newValue = await recompute(system, cancellationToken);
+                // We need to unsubscribe to avoid leaking
+                UnsubscribeFromEvents();
                 // In case a cancellation is requested, we shouldn't continue from here
                 if (cancellationToken.IsCancellationRequested) return (T)newValue;
                 // Check if we can do an early termination because of the old and new result maching
                 if (newValue.Equals(cachedValue))
                 {
                     // The new value is exactly same as the old one
-                    // We will update verification again, as we don't want the dependee values to update unnecessarily
-                    VerifiedAt = system.CurrentRevision;
-                    // NOTE: The newValue is already a clone here, we can just return that
-                    return (T)newValue;
+                    // We still need to check if the cached events are the same
+                    if (AreEventCachesEqual())
+                    {
+                        // Even the emitted events are the same, we don't need to do anything
+                        // We will update verification again, as we don't want the dependee values to update unnecessarily
+                        VerifiedAt = system.CurrentRevision;
+                        // NOTE: The newValue is already a clone here, we can just return that
+                        return (T)newValue;
+                    }
+                    // TODO: If newValue was Equal and only the event caches differed,
+                    // we could actually return newValue without overwriting the original one,
+                    // saving a clone
                 }
                 // The new value is different
                 cachedValue = newValue;
+                // Also use the new events
+                SwapEventCachesAndClearTemporaries();
             }
             else
             {
@@ -125,12 +154,18 @@ namespace Yoakke.Dependency.Internal
                 // but popping off the dependency from the system is crucial
                 try
                 {
+                    // This is the first time we are dealing with events, record them to the primary cache
+                    SubscribeToEvents(cachedEvents);
                     // Now we do the recomputation
+                    // This will emit relevant events, no need to explicitly
                     var newValue = await recompute(system, cancellationToken);
+                    // We need to unsubscribe to avoid leaking
+                    UnsubscribeFromEvents();
                     // In case a cancellation is requested, we shouldn't continue from here
                     if (cancellationToken.IsCancellationRequested) return (T)newValue;
                     // No cancellation, we can store the value
                     cachedValue = newValue;
+                    // NOTE: Events are automatically stored in the primary cache
                 }
                 finally
                 {
@@ -172,6 +207,27 @@ namespace Yoakke.Dependency.Internal
                 EventHandler handler = subscribedEventHandlers[i];
                 // Unregister it
                 eventProxies[i].Unsubscribe(handler);
+            }
+        }
+
+        private void ResendEvents()
+        {
+            for (int i = 0; i < eventProxies.Length; ++i)
+            {
+                eventProxies[i].Send(cachedEvents[i]);
+            }
+        }
+
+        private void SwapEventCachesAndClearTemporaries()
+        {
+            // Swap instances in the arrays
+            for (int i = 0; i < eventProxies.Length; ++i)
+            {
+                var cache1 = cachedEvents[i];
+                cachedEvents[i] = tempCachedEvents[i];
+                tempCachedEvents[i] = cache1;
+                // We also clear the temporaries here
+                cache1.Clear();
             }
         }
 
