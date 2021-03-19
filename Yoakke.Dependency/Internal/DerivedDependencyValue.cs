@@ -187,7 +187,8 @@ namespace Yoakke.Dependency.Internal
             for (int i = 0; i < eventProxies.Length; ++i)
             {
                 // Create a handler that caches the event
-                EventHandler<object> handler = (sender, args) => cache[i].Add((sender, args));
+                int j = i;
+                EventHandler<object> handler = (sender, args) => cache[j].Add((sender, args));
                 // Register it
                 var unsubscribeAction = eventProxies[i].Subscribe(handler);
                 // Store the unsubscriber

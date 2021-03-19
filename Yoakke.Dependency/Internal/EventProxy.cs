@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,14 +13,17 @@ namespace Yoakke.Dependency.Internal
     public class EventProxy
     {
         private readonly Func<EventHandler<object>, Action> subscriber;
-        private readonly Action<IEnumerable<(object Sender, object Args)>> sender;
+        private readonly object target;
+        private readonly FieldInfo delegateFieldInfo;
 
         public EventProxy(
-            Func<EventHandler<object>, Action> subscriber, 
-            Action<IEnumerable<(object Sender, object Args)>> sender)
+            object target,
+            string name,
+            Func<EventHandler<object>, Action> subscriber)
         {
             this.subscriber = subscriber;
-            this.sender = sender;
+            this.target = target;
+            this.delegateFieldInfo = target.GetType().GetField(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
         }
 
         /// <summary>
@@ -29,6 +33,17 @@ namespace Yoakke.Dependency.Internal
         /// <returns>The action to run to unregister the handler.</returns>
         public Action Subscribe(EventHandler<object> eventHandler) => subscriber(eventHandler);
 
-        public void Send(IEnumerable<(object Sender, object Args)> events) => sender(events);
+        public void Send(IEnumerable<(object Sender, object Args)> events)
+        {
+            var delegates = delegateFieldInfo.GetValue(target) as MulticastDelegate;
+            if (delegates == null) return;
+            foreach (var handler in delegates.GetInvocationList())
+            {
+                foreach (var (sender, args) in events)
+                {
+                    handler.Method.Invoke(handler.Target, new object[] { sender, args });
+                }
+            }
+        }
     }
 }

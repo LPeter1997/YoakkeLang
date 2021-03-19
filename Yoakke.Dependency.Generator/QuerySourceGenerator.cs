@@ -450,14 +450,12 @@ public class Proxy : {symbol.Name} {{
                         // Ok, we can generate it
                         // Generate the event proxy instance
                         eventProxyInits.Add($@"new {TypeNames.EventProxy}(
+    this.implementation,
+    ""{member.Name}"",
     eventHandler => {{
         {eventTypeName} typedEventHandler = (sender, args) => eventHandler(sender, args);
         this.{member.Name} += typedEventHandler;
         return () => this.{member.Name} -= typedEventHandler;
-    }},
-    events => {{
-        if (this.{member.Name} == null) return;
-        foreach (var (sender, arg) in events) this.{member.Name}(sender, ({argTypeName})arg);
     }}
 )");
                     }
