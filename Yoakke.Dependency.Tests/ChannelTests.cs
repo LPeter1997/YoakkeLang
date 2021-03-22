@@ -104,7 +104,7 @@ namespace Yoakke.Dependency.Tests
         }
 
         [TestMethod]
-        public void Test()
+        public void BasicTest()
         {
             var system = MakeSystem();
 
@@ -115,7 +115,7 @@ namespace Yoakke.Dependency.Tests
 
             // Calculate addition, should have 2 errors reported
             var result = system.Get<IChannelArithmetic>().AddValue("y");
-            Assert.AreEqual(result, 1);
+            Assert.AreEqual(1, result);
             AssertWarnings();
             AssertErrors("other was zero", "x was negative");
 
@@ -123,9 +123,40 @@ namespace Yoakke.Dependency.Tests
 
             // Calculating a sub-value should return the sub-messages
             result = system.Get<IChannelArithmetic>().Value;
-            Assert.AreEqual(result, 1);
+            Assert.AreEqual(1, result);
             AssertWarnings();
             AssertErrors("x was negative");
+
+            ClearChannels();
+
+            // Redoing the calculation should yield all messages again
+            result = system.Get<IChannelArithmetic>().AddValue("y");
+            Assert.AreEqual(result, 1);
+            AssertWarnings();
+            AssertErrors("other was zero", "x was negative");
+        }
+
+        [TestMethod]
+        public void MultipleChannelsTest()
+        {
+            var system = MakeSystem();
+
+            // Set inputs
+            system.Get<INumberInputs>().SetVariable("z", 3);
+
+            // Division of odd by even, should raise a warning
+            var result = system.Get<IChannelArithmetic>().Divide("z", 2);
+            Assert.AreEqual(1, result);
+            AssertWarnings("oddity lost");
+            AssertErrors();
+
+            ClearChannels();
+
+            // Redoing it should yield them again
+            result = system.Get<IChannelArithmetic>().Divide("z", 2);
+            Assert.AreEqual(1, result);
+            AssertWarnings("oddity lost");
+            AssertErrors();
         }
     }
 }
