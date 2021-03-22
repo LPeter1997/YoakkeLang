@@ -37,10 +37,12 @@ namespace Yoakke.DataStructures
         public void RemoveAt(int index) => underlying.RemoveAt(index);
         IEnumerator IEnumerable.GetEnumerator() => (underlying as IEnumerable).GetEnumerator();
 
+        // TODO: Optimize with Count comparison?
         public bool Equals(IValueList<T>? other) => other != null && this.SequenceEqual(other);
 
         public override bool Equals(object? obj) => obj is IValueList<T> o && Equals(o);
 
+        // TODO: We could sample elements above a certain limit to speed up hashing
         public override int GetHashCode()
         {
             var h = new HashCode();

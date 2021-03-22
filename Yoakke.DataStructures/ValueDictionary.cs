@@ -60,6 +60,7 @@ namespace Yoakke.DataStructures
             return true;
         }
 
+        // TODO: We could sample elements above a certain limit to speed up hashing
         public override int GetHashCode()
         {
             var h = new HashCode();
