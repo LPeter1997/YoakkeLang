@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 //using Yoakke.Compiler.Compile;
 using Yoakke.Compiler.Error;
 using Yoakke.Compiler.Semantic;
+using Yoakke.Compiler.Services;
 using Yoakke.DataStructures;
 using Yoakke.Debugging;
 using Yoakke.Dependency;
@@ -25,43 +27,22 @@ namespace Yoakke.Compiler
 {
     class Program
     {
-        private static Dictionary<IProcess, int> processIds = new Dictionary<IProcess, int>();
-        private static Dictionary<IThread, int> threadIds = new Dictionary<IThread, int>();
-
-        private static int GetProcessId(IProcess p)
-        {
-            if (processIds.TryGetValue(p, out var id)) return id;
-            id = processIds.Count;
-            processIds[p] = id;
-            return id;
-        }
-
-        private static int GetThreadId(IThread p)
-        {
-            if (threadIds.TryGetValue(p, out var id)) return id;
-            id = threadIds.Count;
-            threadIds[p] = id;
-            return id;
-        }
-
         static void Main(string[] args)
         {
-            using (var debugger = IDebugger.Create())
-            {
-                var proc = debugger.StartProcess(@"c:\Users\Péter Lenkefi\source\repos\DebuggerTest\DebuggerTest\foo.exe", null);
+            var sourceBuilder = new StringBuilder(@"
+const foo = proc() { 
 
-                Thread.Sleep(2000);
+};");
 
-                for (int i = 0; i < 20; ++i) 
-                {
-                    //Console.WriteLine("step");
-                    debugger.StepProcess(proc);
-                    Thread.Sleep(500);
-                }
-                debugger.ContinueProcess(proc);
+            var compilerServices = new CompilerServices();
 
-                while (true) { }
-            }
+            compilerServices.Input.SetSourceText("foo.yk", sourceBuilder.ToString());
+            var ast = compilerServices.Syntax.ParseFileToDesugaredAst("foo.yk");
+
+            sourceBuilder.Insert(22, " ");
+
+            compilerServices.Input.SetSourceText("foo.yk", sourceBuilder.ToString());
+            var ast2 = compilerServices.Syntax.ParseFileToDesugaredAst("foo.yk");
         }
     }
 

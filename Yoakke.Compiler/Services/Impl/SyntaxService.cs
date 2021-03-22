@@ -27,6 +27,9 @@ namespace Yoakke.Compiler.Services.Impl
 
         public IValueList<Token> LexTokens(string path)
         {
+            // TODO: Proper logger
+            Console.WriteLine($"Re-lexing '{path}'");
+            
             var sourceText = Input.SourceText(path);
             // TODO: This will cause re-splitting the file each time
             // We could have SourceFile instances elsewhere to incrementally handle that too
@@ -40,6 +43,9 @@ namespace Yoakke.Compiler.Services.Impl
 
         public Syntax.ParseTree.Declaration.File ParseFile(string path)
         {
+            // TODO: Proper logger
+            Console.WriteLine($"Re-parsing '{path}'");
+            
             var tokens = Syntax.LexTokens(path);
             var parser = new Parser(tokens);
             parser.SyntaxError += ReportError;
@@ -50,6 +56,9 @@ namespace Yoakke.Compiler.Services.Impl
 
         public Syntax.Ast.Declaration.File ParseFileToAst(string path)
         {
+            // TODO: Proper logger
+            Console.WriteLine($"Re-parsing '{path}' to AST");
+
             var parseTree = Syntax.ParseFile(path);
             var ast = ParseTreeToAst.Convert(parseTree);
             return ast;
@@ -57,6 +66,9 @@ namespace Yoakke.Compiler.Services.Impl
 
         public Syntax.Ast.Declaration.File ParseFileToDesugaredAst(string path)
         {
+            // TODO: Proper logger
+            Console.WriteLine($"Re-parsing '{path}' to desugared AST");
+
             var ast = Syntax.ParseFileToAst(path);
             // TODO: Bad pattern, ctor + call
             // Shouldn't we publish just a public static Desugaring.Desugar?
