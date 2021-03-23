@@ -70,11 +70,11 @@ namespace Yoakke.Compiler.Compile
             path = GetFilePath(path);
             // To AST
             var src = File.ReadAllText(path);
-            var srcFile = new SourceFile(path, src);
+            var srcFile = new SourceText(path, src);
             return ParseAst(srcFile);
         }
 
-        public Declaration.File ParseAst(SourceFile source)
+        public Declaration.File ParseAst(SourceText source)
         {
             var lexer = new Lexer(source);
             lexer.SyntaxError += OnSyntaxError;

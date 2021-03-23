@@ -39,10 +39,10 @@ namespace Yoakke.Syntax
             TokenKind.Keyword, TokenKind.Keyword, TokenKind.Keyword, TokenKind.Keyword, TokenKind.Keyword,
         };
 
-        public IEnumerable<ColoredToken> GetHighlightingForLine(SourceFile sourceFile, int lineIndex)
+        public IEnumerable<ColoredToken> GetHighlightingForLine(SourceText sourceFile, int lineIndex)
         {
-            var line = sourceFile.Line(lineIndex).TrimEnd().ToString();
-            var lineSource = new SourceFile(sourceFile.Path, line);
+            var line = sourceFile.GetLine(lineIndex).TrimEnd().ToString();
+            var lineSource = new SourceText(sourceFile.Path, line);
             return new Lexer(lineSource).Lex()
                 .Select(t => new ColoredToken
                 { 

@@ -29,7 +29,7 @@ namespace Yoakke.Compiler.Compile
         public void Report(ICompileError compileError);
 
         public Declaration.File LoadAst(string path);
-        public Declaration.File ParseAst(SourceFile source);
+        public Declaration.File ParseAst(SourceText source);
 
         public UncheckedAssembly Compile(Declaration.File file);
         public void TypeCheck(Node node);

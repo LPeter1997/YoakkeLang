@@ -25,7 +25,7 @@ namespace Yoakke.Syntax
         /// </summary>
         public event SyntaxErrorEventHandler? SyntaxError;
 
-        private SourceFile source;
+        private SourceText source;
         private TextReader reader;
         private Cursor cursor = new Cursor();
 
@@ -34,8 +34,8 @@ namespace Yoakke.Syntax
         /// <summary>
         /// Initializes a new <see cref="Lexer"/>.
         /// </summary>
-        /// <param name="source">The <see cref="SourceFile"/> to lex.</param>
-        public Lexer(SourceFile source)
+        /// <param name="source">The <see cref="SourceText"/> to lex.</param>
+        public Lexer(SourceText source)
         {
             this.source = source;
             reader = new StringReader(source.Text);

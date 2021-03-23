@@ -42,10 +42,10 @@ namespace Yoakke.Syntax.ParseTree
             /// </summary>
             public string Name => System.IO.Path.GetFileNameWithoutExtension(source?.Path ?? "unnamed");
 
-            private readonly SourceFile? source;
+            private readonly SourceText? source;
 
             public File(
-                SourceFile? source, 
+                SourceText? source, 
                 CommentGroup? doc,
                 IReadOnlyList<Declaration> declarations, 
                 IReadOnlyList<CommentGroup> comments)

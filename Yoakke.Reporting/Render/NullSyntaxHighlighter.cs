@@ -9,7 +9,7 @@ namespace Yoakke.Reporting.Render
     /// </summary>
     public class NullSyntaxHighlighter : ISyntaxHighlighter
     {
-        public IEnumerable<ColoredToken> GetHighlightingForLine(SourceFile sourceFile, int lineIndex) =>
+        public IEnumerable<ColoredToken> GetHighlightingForLine(SourceText sourceFile, int lineIndex) =>
             Enumerable.Empty<ColoredToken>();
     }
 }

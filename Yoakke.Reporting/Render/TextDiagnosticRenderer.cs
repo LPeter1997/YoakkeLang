@@ -35,7 +35,7 @@ namespace Yoakke.Reporting.Render
         private abstract class LinePrimitive { }
         private class SourceLine : LinePrimitive 
         {
-            public SourceFile Source { get; set; }
+            public SourceText Source { get; set; }
             public int Line { get; set; }
         }
         private class DotLine : LinePrimitive { }
@@ -178,7 +178,7 @@ namespace Yoakke.Reporting.Render
             var xOffset = buffer.CursorX;
             // Print the source line with a default color
             buffer.ForegroundColor = ConsoleColor.White;
-            var line = sourceLine.Source.Line(sourceLine.Line);
+            var line = sourceLine.Source.GetLine(sourceLine.Line);
             var lineCur = new LineCursor { TabSize = TabSize };
             foreach (var ch in line)
             {
@@ -220,7 +220,7 @@ namespace Yoakke.Reporting.Render
         {
             var sourceFile = annotationLine.Annotations.First().Span.Source;
             Debug.Assert(sourceFile != null);
-            var line = sourceFile.Line(annotationLine.AnnotatedLine).TrimEnd();
+            var line = sourceFile.GetLine(annotationLine.AnnotatedLine).TrimEnd();
 
             // Order annotations by starting position
             var annotationsOrdered = annotationLine.Annotations.OrderBy(si => si.Span.Start).ToList();

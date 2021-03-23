@@ -5,45 +5,34 @@ using System.IO;
 
 namespace Yoakke.Text
 {
-    // TODO: Maybe this should only be a file reference and not actually contain the source?
-
     /// <summary>
     /// Represents a source text that originates from some path.
     /// </summary>
-    public class SourceFile : IEquatable<SourceFile>, IEnumerable<char>
+    public class SourceText : IEquatable<SourceText>
     {
         /// <summary>
         /// The path this file originates from.
         /// </summary>
         public readonly string Path;
         /// <summary>
-        /// The full path of the file.
-        /// </summary>
-        public readonly string FullPath;
-        /// <summary>
-        /// True, if this is a real source on the hard-disk.
-        /// </summary>
-        public bool IsReal => File.Exists(FullPath);
-        /// <summary>
         /// The actual source text.
         /// </summary>
-        public readonly string Text;
+        public string Text { get; private set; }
         /// <summary>
         /// The number of lines in this source.
         /// </summary>
         public int LineCount => lineStarts.Count;
 
-        private IList<int> lineStarts = new List<int>();
+        private List<int> lineStarts = new List<int>();
 
         /// <summary>
-        /// Initializes a new <see cref="SourceFile"/>.
+        /// Initializes a new <see cref="SourceText"/>.
         /// </summary>
         /// <param name="path">The path the source originates from.</param>
         /// <param name="text">The source text.</param>
-        public SourceFile(string path, string text)
+        public SourceText(string path, string text)
         {
             Path = path;
-            FullPath = System.IO.Path.GetFullPath(path);
             Text = text;
             CalculateLineStarts();
         }
@@ -53,17 +42,47 @@ namespace Yoakke.Text
         /// </summary>
         /// <param name="index">The index of the line.</param>
         /// <returns>The span containing the given line's text.</returns>
-        public ReadOnlySpan<char> Line(int index)
+        public ReadOnlySpan<char> GetLine(int index)
         {
             var startIndex = LineIndexToTextIndex(index);
             var endIndex = LineIndexToTextIndex(index + 1);
             return Text.AsSpan().Slice(startIndex, endIndex - startIndex);
         }
 
-        public override bool Equals(object? obj) => obj is SourceFile f && Equals(f);
-        public bool Equals(SourceFile? other) =>
-            other != null && other.FullPath == FullPath;
-        public override int GetHashCode() => FullPath.GetHashCode();
+        /// <summary>
+        /// Does an edit on the contents of this source file.
+        /// </summary>
+        /// <param name="range">The range to replace.</param>
+        /// <param name="newContent">The new contents of the range.</param>
+        public void Edit(Range range, string newContent)
+        {
+            var from = IndexOf(range.Start);
+            var to = IndexOf(range.End);
+            Text = $"{Text.Substring(0, from)}{newContent}{Text.Substring(to)}";
+            // NOTE: This is quite inefficient but will work for now
+            // We could redo the lines either from this point
+            // Or we could make it all lazy as required
+            lineStarts.Clear();
+            CalculateLineStarts();
+        }
+
+        /// <summary>
+        /// Calculates the 1D index in the source text based on a position.
+        /// </summary>
+        /// <param name="position">The position to get the index for.</param>
+        /// <returns>The corresponding index in the source <see cref="Text"/>.</returns>
+        public int IndexOf(Position position)
+        {
+            var lineIndex = LineIndexToTextIndex(position.Line);
+            var nextLineIndex = LineIndexToTextIndex(position.Line + 1);
+            var lineLength = lineIndex - nextLineIndex;
+            var columnOffset = Math.Min(position.Column, lineLength);
+            return lineIndex + columnOffset;
+        }
+
+        public override bool Equals(object? obj) => Equals(obj as SourceText);
+        public bool Equals(SourceText? other) => other is not null && other.Path == Path;
+        public override int GetHashCode() => Path.GetHashCode();
 
         private int LineIndexToTextIndex(int index) => index >= lineStarts.Count 
             ? Text.Length
@@ -96,8 +115,5 @@ namespace Yoakke.Text
                 }
             }
         }
-
-        public IEnumerator<char> GetEnumerator() => Text.GetEnumerator();
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

@@ -20,14 +20,14 @@ namespace Yoakke.Syntax.ParseTree
         
         public override IEnumerable<IParseTreeElement> Children => Comments;
 
-        private readonly SourceFile? source;
+        private readonly SourceText? source;
 
         /// <summary>
         /// Initializes a new <see cref="CommentGroup"/>.
         /// </summary>
-        /// <param name="source">The <see cref="SourceFile"/> the comments originate from.</param>
+        /// <param name="source">The <see cref="SourceText"/> the comments originate from.</param>
         /// <param name="comments">The list of comment <see cref="Token"/>s this group consists of.</param>
-        public CommentGroup(SourceFile? source, IReadOnlyList<Token> comments)
+        public CommentGroup(SourceText? source, IReadOnlyList<Token> comments)
         {
             this.source = source;
             Comments = comments;

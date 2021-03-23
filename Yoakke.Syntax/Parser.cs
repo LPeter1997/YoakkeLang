@@ -94,7 +94,7 @@ namespace Yoakke.Syntax
         /// </summary>
         public event SyntaxErrorEventHandler? SyntaxError;
 
-        private SourceFile? source;
+        private SourceText? source;
         private IReadOnlyList<Token> tokens;
         private int tokenIndex = -1;
         private Token? lastToken;

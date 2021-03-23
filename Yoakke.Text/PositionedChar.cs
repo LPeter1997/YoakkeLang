@@ -8,7 +8,7 @@
         /// <summary>
         /// The <see cref="SourceFile"/> the character is in.
         /// </summary>
-        public readonly SourceFile? SourceFile;
+        public readonly SourceText? SourceFile;
         /// <summary>
         /// The <see cref="Position"/> of the character.
         /// </summary>
@@ -18,7 +18,7 @@
         /// </summary>
         public readonly char Char;
 
-        public PositionedChar(SourceFile? sourceFile, Position position, char ch)
+        public PositionedChar(SourceText? sourceFile, Position position, char ch)
         {
             SourceFile = sourceFile;
             Position = position;

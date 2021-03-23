@@ -33,7 +33,7 @@ namespace Yoakke.Compiler.Services.Impl
             var sourceText = Input.SourceText(path);
             // TODO: This will cause re-splitting the file each time
             // We could have SourceFile instances elsewhere to incrementally handle that too
-            var sourceFile = new SourceFile(path, sourceText);
+            var sourceFile = new SourceText(path, sourceText);
             var lexer = new Lexer(sourceFile);
             lexer.SyntaxError += ReportError;
             var tokens = lexer.Lex().ToList().AsValueList();

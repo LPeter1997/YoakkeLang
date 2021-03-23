@@ -33,12 +33,12 @@ namespace Yoakke.C.Syntax
 
         /// <summary>
         /// Breaks up the given source into pre-processor <see cref="Token"/>s.
-        /// Also assigns the <see cref="Token"/>s their <see cref="SourceFile"/>.
+        /// Also assigns the <see cref="Token"/>s their <see cref="SourceText"/>.
         /// </summary>
         /// <param name="sourceText">The source to break up.</param>
-        /// <param name="sourceFile">The <see cref="SourceFile"/> to originate the <see cref="Token"/>s from.</param>
+        /// <param name="sourceFile">The <see cref="SourceText"/> to originate the <see cref="Token"/>s from.</param>
         /// <returns>The broken up <see cref="IEnumerable{Token}"/>.</returns>
-        public static IEnumerable<Token> Lex(SourceFile sourceFile, IEnumerable<PositionedChar> sourceText) =>
+        public static IEnumerable<Token> Lex(SourceText sourceFile, IEnumerable<PositionedChar> sourceText) =>
             Lex(sourceText).Select(token =>
             {
                 token.PhysicalSpan.Source = sourceFile;
@@ -47,9 +47,9 @@ namespace Yoakke.C.Syntax
             });
 
         /// <summary>
-        /// Same as <see cref="Lex(SourceFile, IEnumerable{PositionedChar})"/>.
+        /// Same as <see cref="Lex(SourceText, IEnumerable{PositionedChar})"/>.
         /// </summary>
-        public static IEnumerable<Token> Lex(SourceFile sourceFile, IEnumerable<char> sourceText) => 
+        public static IEnumerable<Token> Lex(SourceText sourceFile, IEnumerable<char> sourceText) => 
             Lex(sourceFile, Adapt(sourceText));
 
         // Keep track of logical position

@@ -46,7 +46,7 @@ namespace Yoakke.LanguageServer.Handlers
         {
         }
 
-        private LocationOrLocationLinks FindDefinition(SourceFile sourceFile, Text.Position position)
+        private LocationOrLocationLinks FindDefinition(SourceText sourceFile, Text.Position position)
         {
             // TODO: A bit redundant to parse again, we need to store ASTs too
             // We could do that in the dependency system or something

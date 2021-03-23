@@ -115,7 +115,7 @@ namespace Yoakke.LanguageServer.Handlers
             });
         }
 
-        private IList<ICompileError> DiagnoseSourceFile(SourceFile sourceFile)
+        private IList<ICompileError> DiagnoseSourceFile(SourceText sourceFile)
         {
             // NOTE: For now we just parse and check syntax
             var result = new List<ICompileError>();

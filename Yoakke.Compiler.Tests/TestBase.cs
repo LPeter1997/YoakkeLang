@@ -114,7 +114,7 @@ namespace Yoakke.Lir.Tests
         protected void TestOnAllBackends<TFunc>(string source, Value expected, params Value[] args)
             where TFunc : Delegate
         {
-            var srcFile = new SourceFile($"{TestContext.TestName}.yk", source);
+            var srcFile = new SourceText($"{TestContext.TestName}.yk", source);
 
             var lexer = new Lexer(srcFile);
             lexer.SyntaxError += (s, err) => Assert.Fail("Test has syntax error!");
