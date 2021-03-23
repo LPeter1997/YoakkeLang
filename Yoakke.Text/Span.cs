@@ -2,6 +2,9 @@
 
 namespace Yoakke.Text
 {
+    // TODO: Since we have made Range, we could use it here and rename span to something like SourceSpan
+    // And have SourceFile be necessary here
+
     /// <summary>
     /// An 2D interval of text positions.
     /// </summary>

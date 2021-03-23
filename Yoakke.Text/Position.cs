@@ -5,9 +5,7 @@ namespace Yoakke.Text
     /// <summary>
     /// Represents 2D position inside some text.
     /// </summary>
-#pragma warning disable CS0660, CS0661 // No reason to override Equals or GetHashCode
-    public readonly struct Position : IComparable<Position>
-#pragma warning restore CS0660, CS0661
+    public readonly struct Position : IEquatable<Position>, IComparable<Position>
     {
         /// <summary>
         /// The 0-based line index.
@@ -28,6 +26,12 @@ namespace Yoakke.Text
             Line = line;
             Column = column;
         }
+
+        public override bool Equals(object? obj) => obj is Position position && Equals(position);
+
+        public override int GetHashCode() => HashCode.Combine(Line, Column);
+
+        public bool Equals(Position other) => CompareTo(other) == 0;
 
         public int CompareTo(Position other)
         {
