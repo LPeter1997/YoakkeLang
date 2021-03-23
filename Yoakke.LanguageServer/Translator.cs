@@ -262,6 +262,8 @@ namespace Yoakke.LanguageServer
 
         public static Range Translate(Text.Span span) => new Range(Translate(span.Start), Translate(span.End));
 
+        public static Text.Range Translate(Range range) => new Text.Range(Translate(range.Start), Translate(range.End));
+
         public static Position Translate(Text.Position pos) => new Position(pos.Line, pos.Column);
 
         public static Text.Position Translate(Position pos) => new Text.Position(pos.Line, pos.Character);

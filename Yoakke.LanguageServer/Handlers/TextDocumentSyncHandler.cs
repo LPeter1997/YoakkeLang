@@ -8,6 +8,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Server.Capabilities;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -15,6 +16,7 @@ using System.Threading.Tasks;
 using Yoakke.Compiler.Compile;
 using Yoakke.Compiler.Error;
 using Yoakke.Compiler.Semantic;
+using Yoakke.Compiler.Services;
 using Yoakke.LanguageServer.Services;
 using Yoakke.Text;
 
@@ -22,15 +24,19 @@ namespace Yoakke.LanguageServer.Handlers
 {
     internal class TextDocumentSyncHandler : ITextDocumentSyncHandler
     {
-        // TODO: We should switch to incremental sync kind later
-        public TextDocumentSyncKind SyncKind => TextDocumentSyncKind.Full;
+        public TextDocumentSyncKind SyncKind => TextDocumentSyncKind.Incremental;
 
         private readonly ILanguageServerFacade server;
+        private readonly CompilerServices compilerServices;
         private readonly SourceContainer sourceContainer;
 
-        public TextDocumentSyncHandler(ILanguageServerFacade server, SourceContainer sourceContainer)
+        public TextDocumentSyncHandler(
+            ILanguageServerFacade server,
+            CompilerServices compilerServices,
+            SourceContainer sourceContainer)
         {
             this.server = server;
+            this.compilerServices = compilerServices;
             this.sourceContainer = sourceContainer;
         }
 
@@ -53,28 +59,16 @@ namespace Yoakke.LanguageServer.Handlers
 
         public TextDocumentAttributes GetTextDocumentAttributes(DocumentUri uri) => new TextDocumentAttributes(uri, "yoakke");
 
-        public Task<Unit> Handle(DidChangeTextDocumentParams request, CancellationToken cancellationToken)
-        {
-            var uri = request.TextDocument.Uri;
-            var text = request.ContentChanges.FirstOrDefault()?.Text;
-
-            if (text != null)
-            {
-                sourceContainer.Update(uri, text);
-                PublishDiagnostics(uri);
-            }
-
-            return Unit.Task;
-        }
-
         public Task<Unit> Handle(DidOpenTextDocumentParams request, CancellationToken cancellationToken)
         {
             var uri = request.TextDocument.Uri;
             var text = request.TextDocument.Text;
 
-            sourceContainer.Update(uri, text);
+            sourceContainer.Add(uri, text);
 
             PublishDiagnostics(uri);
+
+            // TODO: SetInput for compiler
 
             return Unit.Task;
         }
@@ -85,11 +79,30 @@ namespace Yoakke.LanguageServer.Handlers
 
             sourceContainer.Remove(uri);
 
+            // TODO: SetInput for compiler
+
             return Unit.Task;
         }
 
         public Task<Unit> Handle(DidSaveTextDocumentParams request, CancellationToken cancellationToken)
         {
+            return Unit.Task;
+        }
+
+        public Task<Unit> Handle(DidChangeTextDocumentParams request, CancellationToken cancellationToken)
+        {
+            var uri = request.TextDocument.Uri;
+            foreach (var change in request.ContentChanges)
+            {
+                Debug.Assert(change.Range is not null);
+                var range = Translator.Translate(change.Range);
+                sourceContainer.Edit(uri, range, change.Text);
+            }
+
+            PublishDiagnostics(uri);
+
+            // TODO: SetInput for compiler
+
             return Unit.Task;
         }
 
@@ -100,7 +113,7 @@ namespace Yoakke.LanguageServer.Handlers
         private void PublishDiagnostics(DocumentUri uri)
         {
             var diagnostics = new Container<Diagnostic>();
-            if (sourceContainer.TryGetValue(uri, out var sourceFile))
+            if (sourceContainer.TryGet(uri, out var sourceFile))
             {
 #pragma warning disable CS8620 // Argument cannot be used for parameter due to differences in the nullability of reference types.
                 diagnostics = new Container<Diagnostic>(DiagnoseSourceFile(sourceFile)

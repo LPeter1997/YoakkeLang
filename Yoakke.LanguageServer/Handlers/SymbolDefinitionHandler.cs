@@ -15,6 +15,8 @@ using Yoakke.Text;
 
 namespace Yoakke.LanguageServer.Handlers
 {
+    // TODO: Fix this
+
     internal class SymbolDefinitionHandler : IDefinitionHandler
     {
         private readonly SourceContainer sourceContainer;
@@ -32,7 +34,7 @@ namespace Yoakke.LanguageServer.Handlers
 
         public Task<LocationOrLocationLinks> Handle(DefinitionParams request, CancellationToken cancellationToken)
         {
-            if (sourceContainer.TryGetValue(request.TextDocument.Uri, out var sourceFile))
+            if (sourceContainer.TryGet(request.TextDocument.Uri, out var sourceFile))
             {
                 return Task.Run(() => FindDefinition(sourceFile, Translator.Translate(request.Position)));
             }

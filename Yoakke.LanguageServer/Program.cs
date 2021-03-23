@@ -4,6 +4,7 @@ using OmniSharp.Extensions.LanguageServer.Protocol.Document;
 using OmniSharp.Extensions.LanguageServer.Server;
 using System;
 using System.Threading.Tasks;
+using Yoakke.Compiler.Services;
 using Yoakke.LanguageServer.Handlers;
 using Yoakke.LanguageServer.Services;
 using LangServer = OmniSharp.Extensions.LanguageServer;
@@ -29,7 +30,8 @@ namespace Yoakke.LanguageServer
                 )
                 .WithServices(ConfigureServices)
                 .WithHandler<TextDocumentSyncHandler>()
-                .WithHandler<SymbolDefinitionHandler>()
+                // TODO: Re-enable when fixed
+                //.WithHandler<SymbolDefinitionHandler>()
             );
 
             await server.WaitForExit;
@@ -38,6 +40,7 @@ namespace Yoakke.LanguageServer
         private static void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<SourceContainer>();
+            services.AddSingleton<CompilerServices>();
         }
     }
 }
