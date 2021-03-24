@@ -75,14 +75,15 @@ namespace Yoakke.Text
         {
             var lineIndex = LineIndexToTextIndex(position.Line);
             var nextLineIndex = LineIndexToTextIndex(position.Line + 1);
-            var lineLength = lineIndex - nextLineIndex;
+            var lineLength = nextLineIndex - lineIndex;
             var columnOffset = Math.Min(position.Column, lineLength);
             return lineIndex + columnOffset;
         }
 
         public override bool Equals(object? obj) => Equals(obj as SourceText);
-        public bool Equals(SourceText? other) => other is not null && other.Path == Path;
-        public override int GetHashCode() => Path.GetHashCode();
+        public bool Equals(SourceText? other) => 
+            other is not null && other.Path == Path && other.Text == Text;
+        public override int GetHashCode() => HashCode.Combine(Path, Text);
 
         private int LineIndexToTextIndex(int index) => index >= lineStarts.Count 
             ? Text.Length

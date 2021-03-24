@@ -19,6 +19,6 @@ namespace Yoakke.Compiler.Services
         /// </summary>
         /// <param name="path">The file path to retrieve source text for.</param>
         /// <returns>The source text associated with the given path.</returns>
-        public string SourceText(string path);
+        public SourceText SourceText(string path);
     }
 }

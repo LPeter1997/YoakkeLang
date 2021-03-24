@@ -18,6 +18,7 @@ using Yoakke.Compiler.Error;
 using Yoakke.Compiler.Semantic;
 using Yoakke.Compiler.Services;
 using Yoakke.LanguageServer.Services;
+using Yoakke.Syntax.Error;
 using Yoakke.Text;
 
 namespace Yoakke.LanguageServer.Handlers
@@ -66,9 +67,8 @@ namespace Yoakke.LanguageServer.Handlers
 
             sourceContainer.Add(uri, text);
 
+            SetCompilerInput(uri);
             PublishDiagnostics(uri);
-
-            // TODO: SetInput for compiler
 
             return Unit.Task;
         }
@@ -80,6 +80,7 @@ namespace Yoakke.LanguageServer.Handlers
             sourceContainer.Remove(uri);
 
             // TODO: SetInput for compiler
+            // We can't do that yet, we can't reliably delete individual entries
 
             return Unit.Task;
         }
@@ -99,15 +100,21 @@ namespace Yoakke.LanguageServer.Handlers
                 sourceContainer.Edit(uri, range, change.Text);
             }
 
+            SetCompilerInput(uri);
             PublishDiagnostics(uri);
-
-            // TODO: SetInput for compiler
 
             return Unit.Task;
         }
 
         public void SetCapability(SynchronizationCapability capability)
         {
+        }
+
+        private void SetCompilerInput(DocumentUri uri)
+        {
+            var path = uri.GetFileSystemPath();
+            var text = sourceContainer.Get(uri);
+            compilerServices.Input.SetSourceText(path, text);
         }
 
         private void PublishDiagnostics(DocumentUri uri)
@@ -130,27 +137,15 @@ namespace Yoakke.LanguageServer.Handlers
 
         private IList<ICompileError> DiagnoseSourceFile(SourceText sourceFile)
         {
-            // NOTE: For now we just parse and check syntax
-            var result = new List<ICompileError>();
-            // Create a dependency system
-            var system = new DependencySystem("../stdlib");
-            var symTab = system.SymbolTable;
-            // Register for errors
-            system.CompileError += (s, err) => result.Add(err);
-            // From now on we do semantic checking
-            // If at any phase we encounter errors, simply terminate
+            // NOTE: For now we just check syntax
+            var errors = new List<ICompileError>();
 
-            // Parse the ast
-            var ast = system.ParseAst(sourceFile);
-            if (result.Count > 0) return result;
+            EventHandler<ISyntaxError> errorHandler = (sender, args) => errors.Add(new SyntaxError(args));
+            compilerServices.Syntax.OnError += errorHandler;
+            var ast = compilerServices.Syntax.ParseFileToDesugaredAst(sourceFile.Path);
+            compilerServices.Syntax.OnError -= errorHandler;
 
-            // Do symbol resolution
-            SymbolResolution.Resolve(symTab, ast);
-            if (result.Count > 0) return result;
-
-            // Finally type-check
-            system.TypeCheck(ast);
-            return result;
+            return errors;
         }
     }
 }

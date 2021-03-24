@@ -29,20 +29,7 @@ namespace Yoakke.Compiler
     {
         static void Main(string[] args)
         {
-            var sourceBuilder = new StringBuilder(@"
-const foo = proc() { 
-
-};");
-
-            var compilerServices = new CompilerServices();
-
-            compilerServices.Input.SetSourceText("foo.yk", sourceBuilder.ToString());
-            var ast = compilerServices.Syntax.ParseFileToDesugaredAst("foo.yk");
-
-            sourceBuilder.Insert(22, " ");
-
-            compilerServices.Input.SetSourceText("foo.yk", sourceBuilder.ToString());
-            var ast2 = compilerServices.Syntax.ParseFileToDesugaredAst("foo.yk");
+            
         }
     }
 

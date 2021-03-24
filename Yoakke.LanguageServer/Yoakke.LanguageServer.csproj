@@ -18,5 +18,9 @@
     <PackageReference Include="OmniSharp.Extensions.LanguageServer" Version="0.18.3" />
     <ProjectReference Include="..\Yoakke.Compiler\Yoakke.Compiler.csproj" />
   </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="copy $(TargetDir)* $(SolutionDir)Yoakke.VSCode\out" />
+  </Target>
   
 </Project>

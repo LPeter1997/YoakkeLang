@@ -31,10 +31,7 @@ namespace Yoakke.Compiler.Services.Impl
             Console.WriteLine($"Re-lexing '{path}'");
             
             var sourceText = Input.SourceText(path);
-            // TODO: This will cause re-splitting the file each time
-            // We could have SourceFile instances elsewhere to incrementally handle that too
-            var sourceFile = new SourceText(path, sourceText);
-            var lexer = new Lexer(sourceFile);
+            var lexer = new Lexer(sourceText);
             lexer.SyntaxError += ReportError;
             var tokens = lexer.Lex().ToList().AsValueList();
             lexer.SyntaxError -= ReportError;
