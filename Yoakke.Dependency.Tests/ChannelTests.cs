@@ -158,5 +158,31 @@ namespace Yoakke.Dependency.Tests
             AssertWarnings("oddity lost");
             AssertErrors();
         }
+
+        [TestMethod]
+        public void CascadingMessages()
+        {
+            var system = MakeSystem();
+
+            // Set inputs
+            system.Get<INumberInputs>().SetVariable("x", -1);
+            system.Get<INumberInputs>().SetVariable("y", 0);
+
+            // We raise 2 errors
+            var result = system.Get<IChannelArithmetic>().AddValue("y");
+            Assert.AreEqual(1, result);
+            AssertWarnings();
+            AssertErrors("x was negative", "other was zero");
+
+            ClearChannels();
+
+            // Now without changing anything we should only get back those 2 errors
+            // Let's poke one of the values to make sure they are re-yielded and the other ones don't duplicate events
+            system.Get<INumberInputs>().SetVariable("x", -1);
+            result = system.Get<IChannelArithmetic>().AddValue("y");
+            Assert.AreEqual(1, result);
+            AssertWarnings();
+            AssertErrors("x was negative", "other was zero");
+        }
     }
 }
