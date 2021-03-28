@@ -33,15 +33,18 @@ namespace Yoakke.Dependency.Internal
         /// <returns>The action to run to unregister the handler.</returns>
         public Action Subscribe(EventHandler<object> eventHandler) => subscriber(eventHandler);
 
-        public void Send(IEnumerable<(object Sender, object Args)> events)
+        public void Send(DependencySystem system, IEnumerable<(object Sender, object Args)> events)
         {
             var delegates = delegateFieldInfo.GetValue(target) as MulticastDelegate;
             if (delegates == null) return;
-            foreach (var handler in delegates.GetInvocationList())
+            foreach (var (sender, args) in events)
             {
-                foreach (var (sender, args) in events)
+                if (system.CacheEvent((sender, args)))
                 {
-                    handler.Method.Invoke(handler.Target, new object[] { sender, args });
+                    foreach (var handler in delegates.GetInvocationList())
+                    {
+                        handler.Method.Invoke(handler.Target, new object[] { sender, args });
+                    }
                 }
             }
         }

@@ -29,6 +29,10 @@ namespace Yoakke.Dependency
         private Dictionary<Type, Func<object>> queryGroupInstantiators = new Dictionary<Type, Func<object>>();
         // Runtime "call-stack" for computed values
         private Stack<DerivedDependencyValue> valueStack = new Stack<DerivedDependencyValue>();
+        // The depth of the "call-stack" for events
+        private int eventStackDepth = 0;
+        // The event cache for the current call
+        private HashSet<(object Sender, object Args)> cachedEvents = new HashSet<(object Sender, object Args)>();
         
         /// <summary>
         /// Registers a query group to be managed by this <see cref="DependencySystem"/>.
@@ -143,6 +147,27 @@ namespace Yoakke.Dependency
         /// Pops the value off the top of the call-stack.
         /// </summary>
         internal void PopDependency() => valueStack.Pop();
+
+        /// <summary>
+        /// Pushes one onto the event stack. If the event stack was empty, the event cache is cleared.
+        /// </summary>
+        internal void PushEventStack()
+        {
+            if (eventStackDepth == 0) cachedEvents.Clear();
+            ++eventStackDepth;
+        }
+
+        /// <summary>
+        /// Pops one off the event stack.
+        /// </summary>
+        internal void PopEventStack() => --eventStackDepth;
+
+        /// <summary>
+        /// Caches the event.
+        /// </summary>
+        /// <param name="ev">The event to cache.</param>
+        /// <returns>True, if the event was unique in the cache.</returns>
+        internal bool CacheEvent((object Sender, object Args) ev) => cachedEvents.Add(ev);
 
         private (TBase Proxy, Action<Revision> Clear) CreateQueryGroup<TBase>(Func<object> instantiate)
         {

@@ -84,12 +84,15 @@ namespace Yoakke.Dependency.Internal
             }
             else if (ChangedAt != Revision.Invalid)
             {
-                // Value is already memoized
+                // Some value is already memoized
+                // First we push the event stack
+                system.PushEventStack();
                 if (VerifiedAt == system.CurrentRevision)
                 {
                     // We can just clone and return
                     // Since there is no recomputation, we need to re-emit events manually
-                    ResendEvents();
+                    ResendEvents(system);
+                    system.PopEventStack();
                     return GetValueCloned<T>();
                 }
                 // The system has a later revision, let's see if this value is reusable
@@ -99,7 +102,11 @@ namespace Yoakke.Dependency.Internal
                 // We need to wait for all tasks to finish
                 Task.WaitAll(tasks, cancellationToken);
                 // In case a cancellation is requested, we shouldn't continue from here
-                if (cancellationToken.IsCancellationRequested) return default;
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    system.PopEventStack();
+                    return default;
+                }
                 // Now check wether dependencies have been updated since this one
                 if (Dependencies.All(dep => dep.ChangedAt <= VerifiedAt))
                 {
@@ -107,19 +114,24 @@ namespace Yoakke.Dependency.Internal
                     // Update the verification, still just clone the memoized value
                     VerifiedAt = system.CurrentRevision;
                     // Since there is no recomputation, we need to re-emit events manually
-                    ResendEvents();
+                    ResendEvents(system);
+                    system.PopEventStack();
                     return GetValueCloned<T>();
                 }
                 // We need to do a recomputation
                 // This will emit relevant events, no need to explicitly
                 // But we need to capture them to compare them to the ones cached last time
                 // We collect events into the temporary cache
-                SubscribeToEvents(tempCachedEvents);
+                SubscribeToEvents(system, tempCachedEvents);
                 var newValue = await recompute(system, cancellationToken);
                 // We need to unsubscribe to avoid leaking
                 UnsubscribeFromEvents();
                 // In case a cancellation is requested, we shouldn't continue from here
-                if (cancellationToken.IsCancellationRequested) return (T)newValue;
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    system.PopEventStack();
+                    return (T)newValue;
+                }
                 // Check if we can do an early termination because of the old and new result maching
                 if (newValue.Equals(cachedValue))
                 {
@@ -130,6 +142,7 @@ namespace Yoakke.Dependency.Internal
                         // Even the emitted events are the same, we don't need to do anything
                         // We will update verification again, as we don't want the dependee values to update unnecessarily
                         VerifiedAt = system.CurrentRevision;
+                        system.PopEventStack();
                         // NOTE: The newValue is already a clone here, we can just return that
                         return (T)newValue;
                     }
@@ -141,6 +154,7 @@ namespace Yoakke.Dependency.Internal
                 cachedValue = newValue;
                 // Also use the new events
                 SwapEventCachesAndClearTemporaries();
+                system.PopEventStack();
             }
             else
             {
@@ -149,12 +163,13 @@ namespace Yoakke.Dependency.Internal
                 system.DetectCycle(this);
                 // We push this value onto the computation or "call"-stack
                 system.PushDependency(this);
+                system.PushEventStack();
                 // NOTE: We ned a try-finally because there is a chance that the first recomputation tries to access an unset value
                 // but popping off the dependency from the system is crucial
                 try
                 {
                     // This is the first time we are dealing with events, record them to the primary cache
-                    SubscribeToEvents(cachedEvents);
+                    SubscribeToEvents(system, cachedEvents);
                     // Now we do the recomputation
                     // This will emit relevant events, no need to explicitly
                     var newValue = await recompute(system, cancellationToken);
@@ -169,6 +184,7 @@ namespace Yoakke.Dependency.Internal
                 finally
                 {
                     // We are done with the computation, pop off
+                    system.PopEventStack();
                     system.PopDependency();
                 }
             }
@@ -182,13 +198,17 @@ namespace Yoakke.Dependency.Internal
         private bool AreEventCachesEqual() =>
             cachedEvents.Zip(tempCachedEvents).All(sets => sets.First.SetEquals(sets.Second));
 
-        private void SubscribeToEvents(HashSet<(object Sender, object Args)>[] cache)
+        private void SubscribeToEvents(DependencySystem system, HashSet<(object Sender, object Args)>[] cache)
         {
             for (int i = 0; i < eventProxies.Length; ++i)
             {
                 // Create a handler that caches the event
                 int j = i;
-                EventHandler<object> handler = (sender, args) => cache[j].Add((sender, args));
+                EventHandler<object> handler = (sender, args) =>
+                {
+                    system.CacheEvent((sender, args));
+                    cache[j].Add((sender, args));
+                };
                 // Register it
                 var unsubscribeAction = eventProxies[i].Subscribe(handler);
                 // Store the unsubscriber
@@ -201,11 +221,11 @@ namespace Yoakke.Dependency.Internal
             foreach (var unsubscriber in eventHandlerUnsubscribers) unsubscriber();
         }
 
-        private void ResendEvents()
+        private void ResendEvents(DependencySystem system)
         {
             for (int i = 0; i < eventProxies.Length; ++i)
             {
-                eventProxies[i].Send(cachedEvents[i]);
+                eventProxies[i].Send(system, cachedEvents[i]);
             }
         }
 
