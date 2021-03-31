@@ -26,13 +26,25 @@ namespace Yoakke.Compiler.Services
         public ISyntaxService Syntax => dependencySystem.Get<ISyntaxService>();
 
         /// <summary>
+        /// The semantic service.
+        /// </summary>
+        public ISemanticService Semantic => dependencySystem.Get<ISemanticService>();
+
+        /// <summary>
+        /// The compilation service.
+        /// </summary>
+        public ICompilationService Compilation => dependencySystem.Get<ICompilationService>();
+
+        /// <summary>
         /// Initializes the compiler service collection
         /// </summary>
         public CompilerServices()
         {
             dependencySystem = new DependencySystem()
                 .Register<IInputService>()
-                .Register<ISyntaxService, SyntaxService>();
+                .Register<ISyntaxService, SyntaxService>()
+                .Register<ISemanticService, SemanticService>()
+                .Register<ICompilationService, CompilationService>();
         }
     }
 }
