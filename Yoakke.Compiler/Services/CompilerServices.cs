@@ -26,9 +26,19 @@ namespace Yoakke.Compiler.Services
         public ISyntaxService Syntax => dependencySystem.Get<ISyntaxService>();
 
         /// <summary>
-        /// The semantic service.
+        /// The symbol service.
         /// </summary>
-        public ISemanticService Semantic => dependencySystem.Get<ISemanticService>();
+        public ISymbolService Symbol => dependencySystem.Get<ISymbolService>();
+
+        /// <summary>
+        /// The typing service.
+        /// </summary>
+        public ITypeService Type => dependencySystem.Get<ITypeService>();
+
+        /// <summary>
+        /// The evaluation service.
+        /// </summary>
+        public IEvaluationService Evaluation => dependencySystem.Get<IEvaluationService>();
 
         /// <summary>
         /// The compilation service.
@@ -43,7 +53,9 @@ namespace Yoakke.Compiler.Services
             dependencySystem = new DependencySystem()
                 .Register<IInputService>()
                 .Register<ISyntaxService, SyntaxService>()
-                .Register<ISemanticService, SemanticService>()
+                .Register<ISymbolService, SymbolService>()
+                .Register<ITypeService, TypeService>()
+                .Register<IEvaluationService, EvaluationService>()
                 .Register<ICompilationService, CompilationService>();
         }
     }
