@@ -19,5 +19,12 @@ namespace Yoakke.Compiler.Services
         /// <param name="expression">The expression to get the type of.</param>
         /// <returns>The type of the expression.</returns>
         public Type TypeOf(Syntax.Ast.Expression expression);
+
+        /// <summary>
+        /// Checks if the given AST node is type-safe.
+        /// </summary>
+        /// <param name="node">The node to type-check.</param>
+        /// <returns>True, if the node successfully passes type-checking.</returns>
+        public bool IsTypeSafe(Syntax.Ast.Node node);
     }
 }

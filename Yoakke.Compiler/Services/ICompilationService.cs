@@ -14,6 +14,18 @@ namespace Yoakke.Compiler.Services
     [QueryGroup]
     public partial interface ICompilationService
     {
-        // TODO
+        /// <summary>
+        /// Generates the LIR evaluation procedure for the given expression.
+        /// </summary>
+        /// <param name="expression">The expression to generate the evaluation procedure for.</param>
+        /// <returns>The LIR evaluation procedure for the expression.</returns>
+        public Lir.Proc GenerateEvaluation(Syntax.Ast.Expression expression);
+
+        /// <summary>
+        /// Compiles the AST to an unchecked assembly.
+        /// </summary>
+        /// <param name="file">The top-level AST to compile.</param>
+        /// <returns>The compiled unchecked LIR assembly.</returns>
+        public Lir.UncheckedAssembly Compile(Syntax.Ast.Declaration.File file);
     }
 }

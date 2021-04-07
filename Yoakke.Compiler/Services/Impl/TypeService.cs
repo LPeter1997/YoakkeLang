@@ -13,5 +13,10 @@ namespace Yoakke.Compiler.Services.Impl
         {
             throw new NotImplementedException();
         }
+
+        public bool IsTypeSafe(Node node)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
