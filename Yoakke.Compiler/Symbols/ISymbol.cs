@@ -12,15 +12,15 @@ namespace Yoakke.Compiler.Symbols
     public interface ISymbol
     {
         /// <summary>
-        /// The scope of the symbol.
+        /// The containing scope of the symbol.
         /// </summary>
-        public IScope Scope { get; }
+        public IScope ContainingScope { get; }
         /// <summary>
         /// The name of the symbol.
         /// </summary>
         public string Name { get; }
         /// <summary>
-        /// The definition of the symbol, if any.
+        /// The definition AST node of the symbol, if any.
         /// </summary>
         public Syntax.Ast.Node? Definition { get; }
     }

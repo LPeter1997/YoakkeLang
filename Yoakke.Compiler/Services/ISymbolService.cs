@@ -16,17 +16,10 @@ namespace Yoakke.Compiler.Services
     public partial interface ISymbolService
     {
         /// <summary>
-        /// Retrieves the scope associated with the AST node.
+        /// Resolves symbols for the given AST node.
         /// </summary>
-        /// <param name="node">The node to get the scope associated with.</param>
-        /// <returns>The associated scope.</returns>
-        public IScope ContainingScope(Syntax.Ast.Node node);
-
-        /// <summary>
-        /// Retrieves the symbol associated with the AST node.
-        /// </summary>
-        /// <param name="node">The node to get the symbol associated with.</param>
-        /// <returns>The associated symbol with the node.</returns>
-        public ISymbol AssociatedSymbol(Syntax.Ast.Node node);
+        /// <param name="node">The node to resolve symbols for.</param>
+        /// <returns>The symbol table representing symbol information for the given node.</returns>
+        public ISymbolTable GetSymbolTable(Syntax.Ast.Node node);
     }
 }

@@ -10,12 +10,7 @@ namespace Yoakke.Compiler.Services.Impl
 {
     internal class SymbolService : ISymbolService
     {
-        public IScope ContainingScope(Node node)
-        {
-            throw new NotImplementedException();
-        }
-
-        public ISymbol AssociatedSymbol(Node node)
+        public ISymbolTable GetSymbolTable(Node node)
         {
             throw new NotImplementedException();
         }
