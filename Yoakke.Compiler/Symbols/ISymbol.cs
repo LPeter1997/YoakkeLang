@@ -16,6 +16,10 @@ namespace Yoakke.Compiler.Symbols
         /// </summary>
         public IScope ContainingScope { get; }
         /// <summary>
+        /// The subscope this symbol defines, or null if it does not define one.
+        /// </summary>
+        public IScope? DefinedScope { get; }
+        /// <summary>
         /// The name of the symbol.
         /// </summary>
         public string Name { get; }
