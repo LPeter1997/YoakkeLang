@@ -23,7 +23,7 @@ namespace Yoakke.Compiler.Symbols
         /// <summary>
         /// The parent scope of this one.
         /// </summary>
-        public IScope? Parent { get; set; }
+        public IScope? Parent { get; }
         /// <summary>
         /// The symbols defined inside this scope.
         /// </summary>
