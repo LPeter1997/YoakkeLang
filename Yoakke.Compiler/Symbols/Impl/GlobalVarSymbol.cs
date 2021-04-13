@@ -13,8 +13,6 @@ namespace Yoakke.Compiler.Symbols.Impl
         {
             public override IScope ContainingScope => throw new NotImplementedException();
 
-            public override IScope? DefinedScope => throw new NotImplementedException();
-
             public override string Name => throw new NotImplementedException();
 
             public override Node? Definition => throw new NotImplementedException();

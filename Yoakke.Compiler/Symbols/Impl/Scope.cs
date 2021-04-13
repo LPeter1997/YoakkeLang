@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Yoakke.Compiler.Symbols.Impl
 {
-    internal class Scope : IScope
+    internal abstract partial class Scope : IScope
     {
         public IScope? Parent { get; }
         public IReadOnlyDictionary<string, ISymbol> Symbols => symbols;
@@ -17,6 +17,15 @@ namespace Yoakke.Compiler.Symbols.Impl
         public Scope(IScope? parent)
         {
             Parent = parent;
+        }
+
+        public bool TryDefine(ISymbol symbol)
+        {
+            if (symbol.ContainingScope != this)
+            {
+                throw new ArgumentException("Scope of symbol does not match this scope!", nameof(symbol));
+            }
+            return symbols.TryAdd(symbol.Name, symbol);
         }
 
         public ISymbol? Reference(string name)
@@ -45,8 +54,11 @@ namespace Yoakke.Compiler.Symbols.Impl
         {
             Debug.Assert(parts.Length > 0);
             if (!Symbols.TryGetValue(parts[0], out var symbol)) return null;
-            if (symbol.DefinedScope == null) return null;
-            return symbol.DefinedScope.Resolve(parts.Skip(1).ToArray());
+            if (parts.Length == 1) return symbol;
+            // TODO: If the symbol contains a type as a value that acts as a scope, it should be accessible!
+            throw new NotImplementedException();
+            //if (symbol.DefinedScope == null) return null;
+            //return symbol.DefinedScope.Resolve(parts.Skip(1).ToArray());
         }
     }
 }

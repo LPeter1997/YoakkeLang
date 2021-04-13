@@ -18,14 +18,14 @@ namespace Yoakke.Compiler.Symbols.Impl
 
         public SymbolTable()
         {
-            GlobalScope = new Scope(null);
+            GlobalScope = new Scope.Global();
             CurrentScope = GlobalScope;
         }
 
         public void AssociateScope(Node node) => containingScopes.Add(node, CurrentScope);
         public void AssociateSymbol(Node node, ISymbol symbol) => associatedSymbols.Add(node, symbol);
 
-        public void PushScope() => CurrentScope = new Scope(CurrentScope);
+        public void PushScope(Func<IScope, IScope> newScope) => CurrentScope = newScope(CurrentScope);
         public void PopScope()
         {
             Debug.Assert(CurrentScope.Parent != null);
