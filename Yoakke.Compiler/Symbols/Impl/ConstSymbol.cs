@@ -25,13 +25,13 @@ namespace Yoakke.Compiler.Symbols.Impl
             private Func<Value> getValue;
             private Func<Type> getType;
 
-            public Const(CompilerServices services, ISymbolTable symbolTable, Declaration.Const definition)
+            public Const(IEvaluationService eval, ITypeService type, ISymbolTable symbolTable, Declaration.Const definition)
             {
                 Name = definition.Name;
                 Definition = definition;
                 ContainingScope = symbolTable.ContainingScope(definition);
-                getType = () => GetTypeOfConst(services, definition);
-                getValue = () => services.Evaluation.Evaluate(definition.Value);
+                getType = () => GetTypeOfConst(eval, type, definition);
+                getValue = () => eval.Evaluate(definition.Value);
             }
 
             public Const(IScope scope, string name, Type type, Value value)
@@ -42,10 +42,10 @@ namespace Yoakke.Compiler.Symbols.Impl
                 getValue = () => value;
             }
 
-            private static Type GetTypeOfConst(CompilerServices services, Declaration.Const definition)
+            private static Type GetTypeOfConst(IEvaluationService eval, ITypeService type, Declaration.Const definition)
             {
-                if (definition.Type != null) return services.Evaluation.EvaluateType(definition.Type);
-                return services.Type.TypeOf(definition.Value);
+                if (definition.Type != null) return eval.EvaluateType(definition.Type);
+                return type.TypeOf(definition.Value);
             }
         }
     }
