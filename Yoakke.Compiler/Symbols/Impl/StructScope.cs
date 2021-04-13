@@ -10,7 +10,7 @@ namespace Yoakke.Compiler.Symbols.Impl
     {
         public class Struct : Scope
         {
-            public Struct(IScope? parent) 
+            public Struct(IScope parent) 
                 : base(parent)
             {
             }

@@ -10,7 +10,7 @@ namespace Yoakke.Compiler.Symbols.Impl
     {
         public class Local : Scope
         {
-            public Local(IScope? parent)
+            public Local(IScope parent)
                 : base(parent)
             {
             }
