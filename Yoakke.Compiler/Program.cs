@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -29,7 +30,12 @@ namespace Yoakke.Compiler
     {
         static void Main(string[] args)
         {
-            
+            var services = new CompilerServices();
+            var path = @"../../../../../samples/test.yk";
+            var source = new Text.SourceText(path, File.ReadAllText(path));
+            services.Input.SetSourceText(source.Path, source);
+            var ast = services.Syntax.ParseFileToDesugaredAst(path);
+            var symTab = services.Symbol.GetSymbolTable(ast);
         }
     }
 

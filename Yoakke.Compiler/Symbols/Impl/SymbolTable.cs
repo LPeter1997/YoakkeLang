@@ -4,7 +4,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Yoakke.Compiler.Semantic.Types;
+using Yoakke.Lir.Values;
 using Yoakke.Syntax.Ast;
+using Type = Yoakke.Compiler.Semantic.Types.Type;
 
 namespace Yoakke.Compiler.Symbols.Impl
 {
@@ -20,6 +23,7 @@ namespace Yoakke.Compiler.Symbols.Impl
         {
             GlobalScope = new Scope.Global();
             CurrentScope = GlobalScope;
+            DefineBuiltins();
         }
 
         public void AssociateScope(Node node) => containingScopes.Add(node, CurrentScope);
@@ -35,5 +39,13 @@ namespace Yoakke.Compiler.Symbols.Impl
         public ISymbol AssociatedSymbol(Node node) => associatedSymbols[node];
         public IScope ContainingScope(Node node) => containingScopes[node];
         public ISymbol? Resolve(params string[] parts) => GlobalScope.Resolve(parts);
+
+        private void DefineBuiltins()
+        {
+            DefineBuiltinType("i32", Type.I32);
+        }
+
+        private void DefineBuiltinType(string name, Type type) =>
+            ((Scope)GlobalScope).TryDefine(new Symbol.Const(GlobalScope, name, Type.Type_, new Value.User(type)));
     }
 }

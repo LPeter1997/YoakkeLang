@@ -35,7 +35,8 @@ namespace Yoakke.Compiler.Internal
 
             protected override object? Visit(Statement statement)
             {
-                symbolTable.AssociateScope(statement);
+                // TODO: A better visitor could also avoid duplicates
+                if (!(statement is Declaration)) symbolTable.AssociateScope(statement);
                 return base.Visit(statement);
             }
 
