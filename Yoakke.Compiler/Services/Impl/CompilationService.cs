@@ -10,7 +10,7 @@ namespace Yoakke.Compiler.Services.Impl
 {
     internal class CompilationService : ICompilationService
     {
-        public Proc GenerateEvaluation(Expression expression)
+        public (UncheckedAssembly, Proc) GenerateEvaluation(Expression expression)
         {
             throw new NotImplementedException();
         }

@@ -26,5 +26,8 @@ namespace Yoakke.Compiler.Services
         /// <param name="node">The node to type-check.</param>
         /// <returns>True, if the node successfully passes type-checking.</returns>
         public bool IsTypeSafe(Syntax.Ast.Node node);
+
+        internal Type ToSemanticType(Lir.Types.Type type);
+        internal Lir.Types.Type ToLirType(Type type);
     }
 }

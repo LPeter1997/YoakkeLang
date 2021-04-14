@@ -18,8 +18,9 @@ namespace Yoakke.Compiler.Services
         /// Generates the LIR evaluation procedure for the given expression.
         /// </summary>
         /// <param name="expression">The expression to generate the evaluation procedure for.</param>
-        /// <returns>The LIR evaluation procedure for the expression.</returns>
-        public Lir.Proc GenerateEvaluation(Syntax.Ast.Expression expression);
+        /// <returns>The pair of unchecked LIR assembly and the evaluation procedure to invoke 
+        /// to evaluate the expression.</returns>
+        public (Lir.UncheckedAssembly, Lir.Proc) GenerateEvaluation(Syntax.Ast.Expression expression);
 
         /// <summary>
         /// Compiles the AST to an unchecked assembly.
