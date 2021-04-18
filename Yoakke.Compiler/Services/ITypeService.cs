@@ -27,7 +27,8 @@ namespace Yoakke.Compiler.Services
         /// <returns>True, if the node successfully passes type-checking.</returns>
         public bool IsTypeSafe(Syntax.Ast.Node node);
 
-        internal Type ToSemanticType(Lir.Types.Type type);
-        internal Lir.Types.Type ToLirType(Type type);
+        // TODO: This is temporarily public, because the dependency codegen can't properly implement non-public members
+        public Type ToSemanticType(Lir.Values.Value value);
+        public Lir.Types.Type ToLirType(Type type);
     }
 }
