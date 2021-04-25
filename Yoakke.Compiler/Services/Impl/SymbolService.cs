@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Yoakke.Compiler.Error;
 using Yoakke.Compiler.Internal;
 using Yoakke.Compiler.Symbols;
 using Yoakke.Dependency;
@@ -18,8 +19,12 @@ namespace Yoakke.Compiler.Services.Impl
 
         [QueryGroup]
         public ITypeService Type { get; set; }
+
+        public event EventHandler<ICompileError> OnError;
 #pragma warning restore CS8618
 
-        public ISymbolTable GetSymbolTable(Node node) => SymbolResolution.Resolve(Evaluation, Type, node);
+        public ISymbolTable GetSymbolTable(Node node) => SymbolResolution.Resolve(Evaluation, Type, node, ReportError);
+
+        private void ReportError(ICompileError error) => OnError?.Invoke(this, error);
     }
 }

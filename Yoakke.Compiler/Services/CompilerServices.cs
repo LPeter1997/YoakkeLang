@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Yoakke.Compiler.Error;
 using Yoakke.Compiler.Services.Impl;
 using Yoakke.Dependency;
+using Yoakke.Syntax.Error;
 
 namespace Yoakke.Compiler.Services
 {
@@ -14,6 +16,28 @@ namespace Yoakke.Compiler.Services
     public class CompilerServices
     {
         private DependencySystem dependencySystem;
+        // Needed because of the mapping in the syntax parameter type...
+        private Dictionary<EventHandler<ICompileError>, Action> syntaxUnsibscribe = new Dictionary<EventHandler<ICompileError>, Action>();
+
+        /// <summary>
+        /// An event that happens when a compiler error occurs.
+        /// </summary>
+        public event EventHandler<ICompileError> OnError
+        {
+            add
+            {
+                EventHandler<ISyntaxError> syntaxHandler = (sender, args) => value?.Invoke(sender, new SyntaxError(args));
+                syntaxUnsibscribe[value] = () => Syntax.OnError -= syntaxHandler;
+
+                Syntax.OnError += syntaxHandler;
+                Symbol.OnError += value;
+            }
+            remove
+            {
+                syntaxUnsibscribe[value]();
+                Symbol.OnError -= value;
+            }
+        }
 
         /// <summary>
         /// The input service.

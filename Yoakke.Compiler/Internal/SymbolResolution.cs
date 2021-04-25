@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Yoakke.Compiler.Error;
 using Yoakke.Compiler.Services;
 using Yoakke.Compiler.Symbols;
 using Yoakke.Compiler.Symbols.Impl;
@@ -16,10 +17,12 @@ namespace Yoakke.Compiler.Internal
         private class DefineScope : Visitor<object>
         {
             private SymbolTable symbolTable;
+            private Action<ICompileError> onError;
 
-            public DefineScope(SymbolTable symbolTable)
+            public DefineScope(SymbolTable symbolTable, Action<ICompileError> onError)
             {
                 this.symbolTable = symbolTable;
+                this.onError = onError;
             }
 
             public void Define(Node node) => Visit(node);
@@ -96,14 +99,16 @@ namespace Yoakke.Compiler.Internal
         {
             private IEvaluationService evalService;
             private ITypeService typeService;
-            private ISymbolTable symbolTable;
+            private SymbolTable symbolTable;
+            private Action<ICompileError> onError;
 
-            public DeclareSymbol(IEvaluationService evalService, ITypeService typeService, ISymbolTable symbolTable)
+            public DeclareSymbol(IEvaluationService evalService, ITypeService typeService, SymbolTable symbolTable, Action<ICompileError> onError)
             {
                 this.evalService = evalService;
                 this.typeService = typeService;
                 this.symbolTable = symbolTable;
-            }
+                this.onError = onError;
+        }
 
             public void Declare(Node node) => Visit(node);
 
@@ -114,8 +119,13 @@ namespace Yoakke.Compiler.Internal
                 var scope = (Scope)symbol.ContainingScope;
                 if (!scope.TryDefine(symbol))
                 {
+                    var alreadyDefined = scope.Symbols[symbol.Name];
                     // TODO
                     throw new NotImplementedException("Could not define symbol, probably redefinition");
+                }
+                else
+                {
+                    symbolTable.AssociateSymbol(cons, symbol);
                 }
                 return null;
             }
@@ -127,8 +137,13 @@ namespace Yoakke.Compiler.Internal
                 var scope = (Scope)symbol.ContainingScope;
                 if (!scope.TryDefine(symbol))
                 {
+                    var alreadyDefined = scope.Symbols[symbol.Name];
                     // TODO
                     throw new NotImplementedException("Could not define symbol, probably redefinition");
+                }
+                else
+                {
+                    symbolTable.AssociateSymbol(param, symbol);
                 }
                 return null;
             }
@@ -139,13 +154,15 @@ namespace Yoakke.Compiler.Internal
         {
             private IEvaluationService evalService;
             private ITypeService typeService;
-            private ISymbolTable symbolTable;
+            private SymbolTable symbolTable;
+            private Action<ICompileError> onError;
 
-            public ResolveSymbol(IEvaluationService evalService, ITypeService typeService, ISymbolTable symbolTable)
+            public ResolveSymbol(IEvaluationService evalService, ITypeService typeService, SymbolTable symbolTable, Action<ICompileError> onError)
             {
                 this.evalService = evalService;
                 this.typeService = typeService;
                 this.symbolTable = symbolTable;
+                this.onError = onError;
             }
 
             public void Resolve(Node node) => Visit(node);
@@ -160,8 +177,13 @@ namespace Yoakke.Compiler.Internal
                     : new Symbol.GlobalVar(evalService, typeService, symbolTable, var);
                 if (!scope.TryDefine(symbol))
                 {
+                    var alreadyDefined = scope.Symbols[symbol.Name];
                     // TODO
                     throw new NotImplementedException("Could not define symbol, probably redefinition");
+                }
+                else
+                {
+                    symbolTable.AssociateSymbol(var, symbol);
                 }
                 return null;
             }
@@ -177,22 +199,37 @@ namespace Yoakke.Compiler.Internal
             protected override object? Visit(Expression.Identifier ident)
             {
                 var scope = symbolTable.ContainingScope(ident);
-                if (scope.Reference(ident.Name) == null)
+                var symbol = scope.Reference(ident.Name);
+                if (symbol == null)
                 {
-                    // TODO
-                    throw new NotImplementedException("Can't find symbol");
+                    if (ident.ParseTreeNode is Syntax.ParseTree.Expression.Literal lit)
+                    {
+                        onError(new UndefinedSymbolError(lit.Token));
+                    }
+                    else
+                    {
+                        onError(new UndefinedSymbolError(ident.Name));
+                    }
+                }
+                else
+                {
+                    symbolTable.AssociateSymbol(ident, symbol);
                 }
                 return null;
             }
         }
 
-        public static ISymbolTable Resolve(IEvaluationService evalService, ITypeService typeService, Node root)
+        public static ISymbolTable Resolve(
+            IEvaluationService evalService, 
+            ITypeService typeService, 
+            Node root,
+            Action<ICompileError> onError)
         {
             var symbolTable = new SymbolTable();
             // We just do the steps in order
-            new DefineScope(symbolTable).Define(root);
-            new DeclareSymbol(evalService, typeService, symbolTable).Declare(root);
-            new ResolveSymbol(evalService, typeService, symbolTable).Resolve(root);
+            new DefineScope(symbolTable, onError).Define(root);
+            new DeclareSymbol(evalService, typeService, symbolTable, onError).Declare(root);
+            new ResolveSymbol(evalService, typeService, symbolTable, onError).Resolve(root);
             return symbolTable;
         }
     }

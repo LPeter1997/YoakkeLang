@@ -31,11 +31,22 @@ namespace Yoakke.Compiler
         static void Main(string[] args)
         {
             var services = new CompilerServices();
+            services.OnError += Services_OnError;
+
             var path = @"../../../../../samples/test.yk";
             var source = new Text.SourceText(path, File.ReadAllText(path));
             services.Input.SetSourceText(source.Path, source);
             var ast = services.Syntax.ParseFileToDesugaredAst(path);
             var symTab = services.Symbol.GetSymbolTable(ast);
+        }
+
+        private static void Services_OnError(object? sender, ICompileError e)
+        {
+            var diagRenderer = new TextDiagnosticRenderer
+            {
+                SyntaxHighlighter = new YoakkeReportingSyntaxHighlighter()
+            };
+            diagRenderer.Render(e.GetDiagnostic());
         }
     }
 
