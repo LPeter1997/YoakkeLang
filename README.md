@@ -1,5 +1,9 @@
 # Yoakke Language and Compiler
 
+## Important
+
+For now, I'm focusing my efforts on the [Yoakke Compiler Infrastucture](https://github.com/LanguageDev/Yoakke), that aims to provide reusable components for compilers in .NET.
+
 ## Status warning: Early stage
 
 I'm still at very early stages of the compiler. I'm in university and this project basically came from one of my uni projects. I hope it will mature as my time allows, but please look at this as something that's very far away from being usable.
